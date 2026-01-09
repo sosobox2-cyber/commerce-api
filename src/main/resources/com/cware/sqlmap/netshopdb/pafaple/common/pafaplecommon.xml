@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.cware.netshopping.pafaple.repository.PaFapleCommonMapper">
+
+   <select id="selectAddrInsertTargetList" parameterType="hashMap" resultType="com.cware.netshopping.pafaple.domain.AddrVO">
+		SELECT  /* pafaplegoods.xml : pafaple.goods.selectAddrInsertTargetList by PaFapleProductService */ 
+		       A.PA_CODE
+		      , A.ENTP_CODE
+		      , A.BRAND_CODE
+		      , A.SHIP_COST_CODE
+		      , A.ORD_COST
+		      , A.RETURN_COST
+		      , A.ISLAND_COST
+		      , A.ISLAND_RETURN_COST
+		      , SALE_BRAND_NAME AS SENDER_NAME
+		      , A.SHIP_COST_BASE_AMT AS FREE_SALES_PRICE
+		      , '033005' AS EXPRESS_CODE
+		      , '033005' AS RET_EXPRESS_CODE
+		      , '서울특별시 마포구 월드컵북로 402 (케이지아이티센터) SK스토아 본사 [※해당 주소로 반품/교환 불가_ 상품별 상세페이지 반품/교환 주소 확인 부탁 드립니다.]' AS SENDER_ADDR
+		      , '서울 구로구 디지털로 306 대륭포스트타워2차' AS RETURN_ADDR1
+		      , '1503호 SK스토아 제휴전담부서' AS RETURN_ADDR2
+		      , '03925' AS RETURN_ZIPCODE
+		      , '1670-1766' AS RETURNT_TEL 
+		      , A.ORD_COST AS SENDER_FEE
+		      , A.ISLAND_COST AS EXTRA_FEE
+		      , A.RETURN_COST AS RET_SENDER_FEE
+		      , A.ISLAND_RETURN_COST AS RET_EXTRA_FEE
+		  FROM TPAFAPLESHIPCOST A
+		WHERE A.TRANS_TARGET_YN = '1'
+		   AND A.BRAND_ID IS NULL
+		   AND A.SENDER_ID IS NULL
+		   <if test='paCode != null and paCode != ""'>
+		   		AND A.PA_CODE = #{paCode, jdbcType=VARCHAR}
+		   </if>
+		   <if test='entpCode != "0"'>
+		   		AND A.ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+		   </if>
+		   <if test='brandCode != "0"'>
+		   		AND A.BRAND_CODE = #{brandCode, jdbcType=VARCHAR}
+		   </if>
+		   AND NOT EXISTS (SELECT SALE_BRAND_NAME
+				                     FROM TPAFAPLESHIPCOST B
+				                    WHERE A.SALE_BRAND_NAME = B.SALE_BRAND_NAME
+				                      AND ((B.ORD_COST > 0 AND B.RETURN_COST &lt;= 0) OR
+				                       (B.ISLAND_COST > 0 AND B.ISLAND_RETURN_COST &lt;= 0)))
+		   AND NOT EXISTS (SELECT SALE_BRAND_NAME
+				                     FROM TPAFAPLESHIPCOST B
+				                    WHERE A.SALE_BRAND_NAME = B.SALE_BRAND_NAME
+				                      AND (B.ORD_COST > 100000 OR B.RETURN_COST > 100000 OR
+				                       B.ISLAND_COST > 100000 OR B.ISLAND_RETURN_COST > 100000))
+    </select>
+    
+ 	<select id="selectAddrUpdateTargetList" parameterType="hashMap" resultType="com.cware.netshopping.pafaple.domain.AddrVO">
+		SELECT  /* pafaplegoods.xml : pafaple.goods.selectAddrInsertTargetList by PaFapleProductService */ 
+		        A.SENDER_ID  AS SENDER_ID
+		      , '서울특별시 마포구 월드컵북로 402 (케이지아이티센터) SK스토아 본사 [※해당 주소로 반품/교환 불가_ 상품별 상세페이지 반품/교환 주소 확인 부탁 드립니다.]' AS SENDER_ADDR
+		      , '서울 구로구 디지털로 306 대륭포스트타워 2차' AS RETURN_ADDR1
+		      , '1503호 SK스토아 구로 제휴부서' AS RETURN_ADDR2
+		      , '08378' AS RETURN_ZIPCODE
+		      , '1670-1766' AS RETURNT_TEL
+		  FROM TPAFAPLESHIPCOST A
+		WHERE 1=1
+		   AND A.SENDER_ID IS NOT NULL
+		   AND A.PA_CODE = #{paCode, jdbcType=VARCHAR}
+		   <if test='entpCode != "0"'>
+		   		AND A.ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+		   </if>
+		   AND NOT EXISTS (SELECT SALE_BRAND_NAME
+				                     FROM TPAFAPLESHIPCOST B
+				                    WHERE A.SALE_BRAND_NAME = B.SALE_BRAND_NAME
+				                      AND ((B.ORD_COST > 0 AND B.RETURN_COST &lt;= 0) OR
+				                       (B.ISLAND_COST > 0 AND B.ISLAND_RETURN_COST &lt;= 0)))
+		   AND NOT EXISTS (SELECT SALE_BRAND_NAME
+				                     FROM TPAFAPLESHIPCOST B
+				                    WHERE A.SALE_BRAND_NAME = B.SALE_BRAND_NAME
+				                      AND (B.ORD_COST > 100000 OR B.RETURN_COST > 100000 OR
+				                       B.ISLAND_COST > 100000 OR B.ISLAND_RETURN_COST > 100000))
+    </select>
+    
+    <select id="selectbrandInsertTargetList" parameterType="hashMap" resultType="com.cware.netshopping.pafaple.domain.SBrandVO">
+    	SELECT A.PA_CODE
+		      , A.ENTP_CODE
+		      , A.BRAND_CODE
+		      , A.SHIP_COST_CODE
+		      , A.ORD_COST
+		      , A.RETURN_COST
+		      , A.ISLAND_COST
+		      , A.ISLAND_RETURN_COST
+		      , A.SALE_BRAND_NAME AS SALE_BRAND_NAME
+		      , NVL((SELECT PP.KINDS_ID
+		                FROM TPAFAPLEKINDSID PP
+		               WHERE PP.KINDS_NAME = PA_LGROUP_NAME), 1) AS KIND_ID
+              , NVL((SELECT DIS_BRAND
+                        FROM TPAFAPLEDISBRANDMAPPING
+                      WHERE BRAND_CODE = A.BRAND_CODE
+                         AND ROWNUM = 1), '41932') AS DIS_BRAND_ID
+		      , 'O' AS IS_USE
+		      , 'O' AS IS_FPSRCH
+		      , TO_CHAR(SYSDATE, 'YYYYMMDD') AS START_DATE
+		      , '29991231' AS END_DATE
+		      , A.SENDER_ID
+		      , 'X' AS ISUSED_ITEM
+		  FROM TPAFAPLESHIPCOST A
+		 WHERE A.TRANS_TARGET_YN = '1'
+		    AND A.BRAND_ID IS NULL
+		    AND A.SENDER_ID IS NOT NULL
+		   <if test='paCode != null and paCode != ""'>
+		   		AND A.PA_CODE = #{paCode, jdbcType=VARCHAR}
+		   </if>
+		   <if test='entpCode != "0"'>
+		   		AND A.ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+		   </if>
+		   <if test='brandCode != "0"'>
+		   		AND A.BRAND_CODE = #{brandCode, jdbcType=VARCHAR}
+		   </if>
+		    AND NOT EXISTS (SELECT SALE_BRAND_NAME
+				                      FROM TPAFAPLESHIPCOST B
+				                     WHERE A.SALE_BRAND_NAME = B.SALE_BRAND_NAME
+				                        AND ((B.ORD_COST > 0 AND B.RETURN_COST &lt;= 0) OR
+				                           (B.ISLAND_COST > 0 AND B.ISLAND_RETURN_COST &lt;= 0)))
+		    AND NOT EXISTS (SELECT SALE_BRAND_NAME
+				                     FROM TPAFAPLESHIPCOST B
+				                    WHERE A.SALE_BRAND_NAME = B.SALE_BRAND_NAME
+				                       AND (B.ORD_COST > 100000 OR B.RETURN_COST > 100000 OR
+				                           B.ISLAND_COST > 100000 OR B.ISLAND_RETURN_COST > 100000))
+    </select>
+    
+</mapper>

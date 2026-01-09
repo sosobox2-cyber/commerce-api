@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="panaver.common">
+
+	<delete id="deletePaNaverOriginList">
+        DELETE /* panavercommon.xml : panaver.common.deletePaNaverOriginList */ 
+          FROM TPANAVERORIGIN
+    </delete>
+    
+    <insert id="insertPaNaverOriginList" parameterType="com.cware.netshopping.domain.model.PaNaverOrigin">
+        INSERT INTO /* panavercommon.xml : panaver.common.insertPaNaverOriginList by PaNaverCommonController */
+               		TPANAVERORIGIN
+                   ( NAVER_ORIGIN_CODE
+                   , NAVER_ORIGIN_NAME
+                   , INSERT_ID
+                   , INSERT_DATE)
+     	    VALUES ( #{originCode, jdbcType=VARCHAR}
+              	   , #{originName, jdbcType=VARCHAR}
+	               , #{insertId, jdbcType=VARCHAR}
+	               , #{insertDate, jdbcType=VARCHAR}
+	               )
+    </insert> 
+    
+    <insert id="insertPaNaverOriginMapping" parameterType="com.cware.netshopping.domain.model.PaNaverOrigin">
+    	INSERT /* panavercommon.xml : panaver.common.insertPaNaverOriginMapping by PaNaverCommonController */
+     	     INTO TPANAVERORIGINMAPPING
+             ( NAVER_ORIGIN_CODE
+             , ORIGIN_CODE            
+             , INSERT_ID
+             , INSERT_DATE
+             )
+        SELECT *
+          FROM (
+		SELECT ( SELECT PNO.NAVER_ORIGIN_CODE
+                 FROM TPANAVERORIGIN PNO
+                 WHERE INSTR(PNO.NAVER_ORIGIN_NAME,TC.CODE_NAME)>0
+                  AND PNO.NAVER_ORIGIN_CODE LIKE '02%'
+                  AND ROWNUM =1
+                  AND PNO.NAVER_ORIGIN_CODE IS not null
+          	    ) AS NAVER_ORIGIN_CODE,
+              TC.CODE_MGROUP,
+              #{insertId, jdbcType=VARCHAR},
+              #{insertDate, jdbcType=VARCHAR}
+        	  FROM TCODE TC
+        	  WHERE CODE_LGROUP='B023'
+        	  AND NOT EXISTS ( SELECT '1'
+                         FROM TPANAVERORIGINMAPPING PAM
+                        WHERE TC.CODE_MGROUP = PAM.ORIGIN_CODE
+                     )
+         	   ) XA
+       WHERE XA.NAVER_ORIGIN_CODE IS NOT NULL
+    </insert>
+    
+    <!-- 19.09.18 카테고리 작업(11번가 pacommon.xml 참고) -->
+    <!-- 전체 카테고리 PTNAVERGOODSKINDS 삭제 -->
+    <delete id="deletePaNaverGoodsKindsList">
+        DELETE /* panavercommon.xml : panavercommon.common.deletePaGoodsKindsList */ 
+          FROM TPANAVERGOODSKINDS
+    </delete>
+    
+    <!-- 전체 카테고리 PTNAVERGOODSKINDS 에 저장 -->
+    <insert id="insertPaNaverGoodsKindsList" parameterType="com.cware.netshopping.domain.model.Panavergoodskinds">
+        INSERT INTO /* panavercommon.xml : panaver.common.insertPaNaverGoodsKindsList by PaNaverCommonController */
+               		TPANAVERGOODSKINDS
+                   ( CATEGORY_ID
+                   , CATEGORY_NAME
+                   , CATEGORY_FULL_NAME
+                   , LAST
+                   , INSERT_DATE
+                   , INSERT_ID)
+     	    VALUES ( #{categoryId, jdbcType=VARCHAR}
+              	   , #{categoryName, jdbcType=VARCHAR}
+	               , #{categoryFullName, jdbcType=VARCHAR}
+	               , #{last, jdbcType=VARCHAR}
+	               , #{insertDate, jdbcType=VARCHAR}
+	               , #{insertId, jdbcType=VARCHAR}
+	               )
+    </insert>
+    
+    <insert id="mergePaGoodsKindsList" parameterType="com.cware.netshopping.domain.model.PaGoodsKinds">
+    	MERGE /* panavercommon.xml : panaver.common.mergePaGoodsKindsList by PaNaverCommonController */
+    	  INTO TPAGOODSKINDS USING DUAL ON (  PA_GROUP_CODE  = #{paGroupCode , jdbcType=VARCHAR}
+    	   								  AND PA_LMSD_KEY    = #{paLmsdKey , jdbcType=VARCHAR}
+    	                                  )
+    	  WHEN MATCHED THEN
+    	   UPDATE
+              SET USE_YN = '1'
+                , PA_LGROUP_NAME = #{paLgroupName, jdbcType=VARCHAR}
+                , PA_MGROUP_NAME = #{paMgroupName, jdbcType=VARCHAR}
+                , PA_SGROUP_NAME = #{paSgroupName, jdbcType=VARCHAR}
+             	, PA_DGROUP_NAME = #{paDgroupName, jdbcType=VARCHAR}
+    	  WHEN NOT MATCHED THEN                              
+    	INSERT ( PA_GROUP_CODE
+    				, PA_LMSD_KEY
+    				, PA_LGROUP
+    				, PA_MGROUP
+            		, PA_SGROUP
+             		, PA_DGROUP
+             		, PA_LGROUP_NAME
+             		, PA_MGROUP_NAME
+             		, PA_SGROUP_NAME
+             		, PA_DGROUP_NAME
+             		, USE_YN
+             		, INSERT_DATE
+             		, INSERT_ID
+             		, MODIFY_DATE
+             		, MODIFY_ID )
+              VALUES
+              	   ( #{paGroupCode, jdbcType=VARCHAR}
+               		, #{paLmsdKey, jdbcType=VARCHAR}
+               		, #{paLgroup, jdbcType=VARCHAR}
+               		, #{paMgroup, jdbcType=VARCHAR}
+               		, #{paSgroup, jdbcType=VARCHAR}
+               		, #{paDgroup, jdbcType=VARCHAR}
+               		, #{paLgroupName, jdbcType=VARCHAR}
+               		, #{paMgroupName, jdbcType=VARCHAR}
+               		, #{paSgroupName, jdbcType=VARCHAR}
+               		, #{paDgroupName, jdbcType=VARCHAR}
+               		, #{useYn, jdbcType=VARCHAR}
+               		, #{insertDate, jdbcType=VARCHAR}
+               		, #{insertId, jdbcType=VARCHAR}
+               		, #{modifyDate, jdbcType=VARCHAR}
+               		, #{modifyId, jdbcType=VARCHAR}
+               		)
+    </insert>
+    
+    
+    <!-- 사용하지 않는 카테고리 use_yn = 0 처리. -->
+    <update id="updatePaGoodsKindsUnUseListUseYn" parameterType="com.cware.netshopping.domain.model.PaGoodsKinds">
+        UPDATE /* panavercommon.xml : panavercommon.common.updatePaGoodsKindsUnUseListUseYn by PaNaverCommonController-goodsKindsList */
+               TPAGOODSKINDS GK
+           SET GK.USE_YN = '0'
+             , GK.MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+             , GK.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE GK.PA_GROUP_CODE = '04'
+    </update>
+    
+    <!-- 19.09.26 -->
+    <!-- 카테고리별 상세 정보가 저장된 TPANAVERGOODSKINDSEXCEPT 삭제 -->
+    <delete id="deletePaNaverCategoryInfo">
+        DELETE /* panavercommon.xml : panaver.common.deletePaNaverCategoryInfo */ 
+          FROM TPANAVERGOODSKINDSEXCEPT
+    </delete>
+    
+    <!-- 최하위 카테고리 조회(TPANAVERGOODSKINDS) -->
+    <select id="selectPaNaverCategoryInfo" resultType="com.cware.netshopping.domain.model.Panavergoodskinds" >
+        SELECT /* panavercommon.xml : panaver.common.selectPaNaverCategoryInfo by PaNaverCommonController */
+              T.CATEGORY_ID 
+   		 FROM TPANAVERGOODSKINDS T
+   		WHERE T.LAST = 'Y' 
+   		AND NOT EXISTS ( SELECT '1'
+                            FROM TPANAVERGOODSKINDSEXCEPT PGK
+                           WHERE T.CATEGORY_ID = PGK.CATEGORY_ID
+                        )
+        AND T.INFO_SELECT_YN = '0'
+    </select>
+    
+    <!-- 카테고리별 상세 정보 TPANAVERGOODSKINDSEXCEPT에 저장 -->
+    <select id="checkPaNaverCategoryInfo" parameterType="com.cware.netshopping.domain.model.Panaverkindsexcept" resultType="int">
+       SELECT /* panavercommon.xml : panaver.common.checkPaNaverCategoryInfo by PaNaverCommonController */
+              COUNT(1)
+   		 FROM TPANAVERGOODSKINDSEXCEPT T
+   		WHERE T.CATEGORY_ID = #{categoryId, jdbcType=VARCHAR}
+   		  AND T.EXCEPT_CODE = #{exceptCode, jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertPaNaverCategoryInfo" parameterType="com.cware.netshopping.domain.model.Panaverkindsexcept">
+        INSERT INTO /* panavercommon.xml : panaver.common.insertPaNaverCategoryInfo by PaNaverCommonController */
+               		TPANAVERGOODSKINDSEXCEPT
+                   ( CATEGORY_ID
+                   , EXCEPT_CODE
+                   , EXCEPT_NAME
+                   , INSERT_ID
+                   , INSERT_DATE)
+     	    VALUES ( #{categoryId, jdbcType=VARCHAR}
+              	   , #{exceptCode, jdbcType=VARCHAR}
+              	   , #{exceptName, jdbcType=VARCHAR}
+	               , #{insertId, jdbcType=VARCHAR}
+	               , #{insertDate, jdbcType=VARCHAR}
+	               )
+    </insert>
+    
+    <!-- SELECT 된 목록들의 추가정보 조회 여부를 1로 UPDATE -->
+    <update id="updatePaNaverCategoryInfoYN" parameterType="com.cware.netshopping.domain.model.Panavergoodskinds">
+        UPDATE /* panavercommon.xml : panaver.common.updatePaNaverCategoryInfoYN by PaNaverCommonController */
+      		   TPANAVERGOODSKINDS T
+  		   SET T.INFO_SELECT_YN = '1'
+ 		 WHERE T.CATEGORY_ID = #{categoryId, jdbcType=VARCHAR}
+    </update>
+    
+    <!-- 카테고리별 상세 정보 TPANAVERGOODSKINDSCERTI에 저장 -->
+    <select id="checkPaNaverKindsCerti" parameterType="com.cware.netshopping.domain.model.Panaverkindscerti" resultType="int">
+       SELECT /* panavercommon.xml : panaver.common.checkPaNaverKindsCerti by PaNaverCommonController */
+              COUNT(1)
+   		 FROM TPANAVERGOODSKINDSCERTI T
+   		WHERE T.CATEGORY_ID = #{categoryId, jdbcType=VARCHAR}
+   		  AND T.CERTI_CODE = #{certiCode, jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertPaNaverKindsCerti" parameterType="com.cware.netshopping.domain.model.Panaverkindscerti">
+        INSERT INTO /* panavercommon.xml : panaver.common.insertPaNaverKindsCerti by PaNaverCommonController */
+               		TPANAVERGOODSKINDSCERTI
+                   ( CATEGORY_ID
+                   , CERTI_CODE
+                   , CERTI_NAME
+                   , INSERT_ID
+                   , INSERT_DATE)
+     	    VALUES ( #{categoryId, jdbcType=VARCHAR}
+              	   , #{certiCode, jdbcType=VARCHAR}
+              	   , #{certiName, jdbcType=VARCHAR}
+	               , #{insertId, jdbcType=VARCHAR}
+	               , #{insertDate, jdbcType=VARCHAR}
+	               )
+    </insert>
+    
+    <!-- 카테고리별 상세 정보 TPANAVERGOODSKINDSCERTIKIND에 저장 -->
+    <select id="checkPaNaverKindsCertiKindsList" parameterType="com.cware.netshopping.domain.model.Panaverkindscertikinds" resultType="int">
+        SELECT /* panavercommon.xml : panaver.common.checkPaNaverKindsCertiKindsList by PaNaverCommonController */
+              COUNT(1)
+   		 FROM TPANAVERGOODSKINDSCERTIKIND T
+   		WHERE T.CATEGORY_ID = #{categoryId, jdbcType=VARCHAR}
+   		  AND T.CERTI_CODE = #{certiCode, jdbcType=VARCHAR}
+   		  AND T.CERTI_KIND_CODE = #{certiKindCode, jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertPaNaverKindsCertiKinds" parameterType="com.cware.netshopping.domain.model.Panaverkindscertikinds">
+        INSERT INTO /* panavercommon.xml : panaver.common.insertPaNaverKindsCertiKinds by PaNaverCommonController */
+               		TPANAVERGOODSKINDSCERTIKIND
+                   ( CATEGORY_ID
+                   , CERTI_CODE
+                   , CERTI_KIND_CODE
+                   , CERTI_KIND_NAME
+                   , INSERT_ID
+                   , INSERT_DATE)
+     	    VALUES ( #{categoryId, jdbcType=VARCHAR}
+              	   , #{certiCode, jdbcType=VARCHAR}
+              	   , #{certiKindCode, jdbcType=VARCHAR}
+              	   , #{certiKindName, jdbcType=VARCHAR}
+	               , #{insertId, jdbcType=VARCHAR}
+	               , #{insertDate, jdbcType=VARCHAR}
+	               )
+    </insert>
+    
+    <!-- 조소록 목록 조회 API -->
+    <insert id="insertPaNaverEntpAddressMomentList" parameterType="com.cware.netshopping.domain.model.Panaverentpaddressmoment">
+        INSERT INTO /* panavercommon.xml : panaver.common.insertPaNaverEntpAddressMomentList by PaNaverCommonController */
+               		TPANAVERENTPADDRESSMOMENT
+                   ( ADDRESS_ID
+                   , NAME
+                   , ADDRESS_TYPE
+                   , POSTAL_CODE
+                   , BASE_ADDRESS
+                   , DETAIL_ADDRESS
+                   , FULL_ADDRESS
+                   , PHONE_NUMBER1
+                   , PHONE_NUMBER2
+                   , HAS_LOCATION
+                   , ROAD_NAME_ADDRESS
+                   , OVERSEAS_ADDRESS)
+     	    VALUES ( #{addressId, jdbcType=VARCHAR}
+              	   , #{name, jdbcType=VARCHAR}
+	               , #{addressType, jdbcType=VARCHAR}
+	               , #{postalCode, jdbcType=VARCHAR}
+	               , #{baseAddress, jdbcType=VARCHAR}
+              	   , #{detailAddress, jdbcType=VARCHAR}
+	               , #{fullAddress, jdbcType=VARCHAR}
+	               , #{phoneNumber1, jdbcType=VARCHAR}
+	               , #{phoneNumber2, jdbcType=VARCHAR}
+	               , #{hasLocation, jdbcType=VARCHAR}
+	               , #{roadNameAddress, jdbcType=VARCHAR}
+	               , #{overseasAddress, jdbcType=VARCHAR}
+	               )
+    </insert> 
+    
+    <select id="selectInsertOrUpdate" resultType="com.cware.netshopping.domain.PanaverentpaddressmomentVO">
+    	SELECT 'I' AS FLAG  /* panavercommon.xml : panaver.common.selectInsertOrUpdate by PaNaverCommonController */
+     			, PAM.ADDRESS_ID
+     			, PAM.NAME
+     			, PAM.ADDRESS_TYPE
+     			, PAM.POSTAL_CODE
+     			, PAM.BASE_ADDRESS
+     			, PAM.DETAIL_ADDRESS
+     			, PAM.FULL_ADDRESS
+     			, PAM.PHONE_NUMBER1
+     			, PAM.PHONE_NUMBER2
+     			, PAM.HAS_LOCATION
+     			, PAM.ROAD_NAME_ADDRESS
+     			, PAM.OVERSEAS_ADDRESS
+   		  FROM TPANAVERENTPADDRESSMOMENT PAM
+  		 WHERE NOT EXISTS ( SELECT '1' 
+         		              FROM TPANAVERENTPADDRESS PA
+                  	 	     WHERE PAM.ADDRESS_ID = PA.ADDRESS_ID
+                   		  )
+		UNION ALL
+
+		SELECT 'U' AS FLAG
+     			, PAM.ADDRESS_ID
+     			, PAM.NAME
+     			, PAM.ADDRESS_TYPE
+     			, PAM.POSTAL_CODE
+     			, PAM.BASE_ADDRESS
+     			, PAM.DETAIL_ADDRESS
+     			, PAM.FULL_ADDRESS
+     			, PAM.PHONE_NUMBER1
+     			, PAM.PHONE_NUMBER2
+     			, PAM.HAS_LOCATION
+     			, PAM.ROAD_NAME_ADDRESS
+     			, PAM.OVERSEAS_ADDRESS
+  		  FROM TPANAVERENTPADDRESSMOMENT PAM
+     			, TPANAVERENTPADDRESS PA
+	     WHERE PAM.ADDRESS_ID = PA.ADDRESS_ID
+  		   AND ( PAM.NAME  <![CDATA[<>]]>  PA.NAME OR PAM.FULL_ADDRESS <![CDATA[<>]]> PA.FULL_ADDRESS OR 
+        		 PAM.PHONE_NUMBER1 <![CDATA[<>]]> PA.PHONE_NUMBER1 OR PAM.PHONE_NUMBER2 <![CDATA[<>]]> PA.PHONE_NUMBER2
+      			)      
+    </select>
+    
+    <insert id="insertPaNaverEntpAddressList" parameterType="com.cware.netshopping.domain.PanaverentpaddressmomentVO">
+        INSERT INTO TPANAVERENTPADDRESS /* panavercommon.xml : panaver.common.insertPaNaverEntpAddressList by PaNaverCommonController */
+        		   ( ADDRESS_ID
+                    , NAME
+                    , ADDRESS_TYPE
+                    , POSTAL_CODE
+                    , BASE_ADDRESS
+                    , DETAIL_ADDRESS
+                    , FULL_ADDRESS
+                    , PHONE_NUMBER1
+                    , PHONE_NUMBER2
+                    , HAS_LOCATION
+                    , ROAD_NAME_ADDRESS
+                    , OVERSEAS_ADDRESS)
+            VALUES ( #{addressId, jdbcType=VARCHAR}
+              	    , #{name, jdbcType=VARCHAR}
+	                , #{addressType, jdbcType=VARCHAR}
+	                , #{postalCode, jdbcType=VARCHAR}
+	                , #{baseAddress, jdbcType=VARCHAR}
+              	    , #{detailAddress, jdbcType=VARCHAR}
+	                , #{fullAddress, jdbcType=VARCHAR}
+	                , #{phoneNumber1, jdbcType=VARCHAR}
+	                , #{phoneNumber2, jdbcType=VARCHAR}
+	                , #{hasLocation, jdbcType=VARCHAR}
+	                , #{roadNameAddress, jdbcType=VARCHAR}
+	                , #{overseasAddress, jdbcType=VARCHAR})
+    </insert> 
+    
+    <update id="updatePaNaverEntpAddressList" parameterType="com.cware.netshopping.domain.PanaverentpaddressmomentVO">
+       UPDATE TPANAVERENTPADDRESS /* panavercommon.xml : panaver.common.updatePaNaverEntpAddressList by PaNaverCommonController */
+          SET NAME = #{name, jdbcType=VARCHAR}
+            , POSTAL_CODE = #{postalCode, jdbcType=VARCHAR}
+            , BASE_ADDRESS = #{baseAddress, jdbcType=VARCHAR}
+          	, DETAIL_ADDRESS = #{detailAddress, jdbcType=VARCHAR}
+          	, FULL_ADDRESS = #{fullAddress, jdbcType=VARCHAR}
+          	, PHONE_NUMBER1 = #{phoneNumber1, jdbcType=VARCHAR}
+          	, PHONE_NUMBER2 = #{phoneNumber2, jdbcType=VARCHAR}
+        WHERE ADDRESS_ID = #{addressId, jdbcType=VARCHAR}
+    </update>
+    
+    <insert id="insertTpaEntpSlip" parameterType="com.cware.netshopping.domain.PanaverentpaddressmomentVO">
+        INSERT INTO TPAENTPSLIP /* panavercommon.xml : panaver.common.insertTpaEntpSlip by PaNaverCommonController */
+        		 (ENTP_CODE
+       			 , ENTP_MAN_SEQ
+       			 , PA_CODE
+       			 , PA_ADDR_SEQ
+       			 , PA_ADDR_GB
+	   			 , PA_BUNDLE_NO
+       			 , TRANS_TARGET_YN
+       			 , LAST_SYNC_DATE
+       			 , INSERT_DATE
+       			 , INSERT_ID
+       			 , MODIFY_DATE
+       			 , MODIFY_ID)
+        	SELECT EP.ENTP_CODE
+     			 , EP.ENTP_MAN_SEQ
+     			 , '41' AS PA_CODE
+     			 , EA.Address_Id
+     			 , EP.ENTP_MAN_GB
+     			 , '' AS PA_BUNDLE_NO
+     			 , 0 AS TRANS_TARGET_YN
+     		 	 , SYSDATE AS LAST_SYNC_DATE
+     	 		 , SYSDATE AS INSERT_DATE
+     			 , 'SYSTEM' AS INSERT_ID
+     			 , SYSDATE AS MODIFY_DATE
+     			 , 'SYSTEM' AS MODIFY_ID
+  			 FROM TENTPUSER           EP
+     			, TPANAVERENTPADDRESS EA
+ 			WHERE EP.ENTP_CODE||EP.ENTP_MAN_SEQ = EA.NAME
+   			  AND NOT EXISTS ( SELECT '1'
+                      FROM TPAENTPSLIP PES
+                     WHERE EP.ENTP_CODE =  PES.ENTP_CODE
+                       AND EP.ENTP_MAN_SEQ = PES.ENTP_MAN_SEQ
+                       AND PES.PA_CODE ='41'
+                   ) 
+              AND EXISTS ( SELECT '1'
+              		         FROM TPANAVERENTPADDRESS PEA
+                    	    WHERE EA.NAME = PEA.NAME
+                       	 	GROUP BY PEA.NAME
+                     	   HAVING COUNT(1) = 1
+                   )
+    </insert> 
+    
+    <delete id="deleteTpaEntpSlip">
+        DELETE /* panavercommon.xml : panaver.common.deleteTpaEntpSlip by PaNaverCommonController */ 
+          FROM TPAENTPSLIP PES
+ 		 WHERE PES.PA_CODE ='41'
+    	   AND NOT EXISTS ( SELECT '1'
+                       		  FROM TPANAVERENTPADDRESS EA
+                     		 WHERE PES.ENTP_CODE||PES.ENTP_MAN_SEQ = EA.NAME
+                  		   )
+    </delete>
+    
+    <update id="updateTpaEntpSlipChange" parameterType="com.cware.netshopping.domain.PanaverentpaddressmomentVO">
+       UPDATE TPAENTPSLIPCHANGE PA
+   		  SET PA.PROC_FLAG ='10'
+     		, PA.MODIFY_ID ='PANAVER'
+    	    , PA.MODIFY_DATE = SYSDATE
+ 		WHERE PA.ENTP_CODE||PA.ENTP_MAN_SEQ = #{name, jdbcType=VARCHAR}
+  		  AND PA.CHANGE_FLAG ='00'
+  		  AND PA.PROC_FLAG ='00' 
+    </update>
+</mapper>

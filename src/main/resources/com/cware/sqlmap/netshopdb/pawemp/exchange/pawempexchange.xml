@@ -1,0 +1,485 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+        
+<mapper namespace="pawemp.exchange">
+	<select id="selectExchangeGoodsdt" parameterType="String" resultType="hashMap">
+        select /* pawempexchange.xml : pawemp.exchange.selectExchangeGoodsdt */
+               PGD.GOODS_CODE
+             , PGD.GOODSDT_CODE
+          from TPAWEMPGOODS PG
+             , TPAGOODSDTMAPPING PGD
+         where PG.PA_CODE IN ('61', '62')
+          and PG.PA_CODE = PGD.PA_CODE
+          and PG.GOODS_CODE = PGD.GOODS_CODE
+          and PG.PRODUCT_NO = #{productNo, jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectOrderChangeTargetList" resultType="com.cware.netshopping.domain.model.Paorderm">
+        SELECT /* pawempexchange.xml : pawemp.exchange.selectOrderChangeTargetList*/
+               DISTINCT POM.PA_ORDER_NO
+             , POM.PA_ORDER_SEQ
+             , POM.PA_CLAIM_NO
+             , POM.PA_SHIP_NO
+          FROM TPAORDERM POM
+         WHERE POM.PA_CODE IN ('61', '62')
+           AND POM.PA_ORDER_GB      = '40'
+           AND POM.CREATE_YN        = '0'
+           AND POM.PRE_CANCEL_YN    = '0'
+           AND POM.OUT_BEF_CLAIM_GB = '0'
+           AND POM.CHANGE_FLAG IN ('01', '02')
+           AND POM.INSERT_DATE > TRUNC(SYSDATE) - 5
+    </select>
+    
+    <select id="selectOrderChangeTargetDtList" parameterType="hashMap" resultType="hashMap">
+        SELECT /* pawempexchange.xml : pawemp.claim.selectOrderChangeTargetDtList*/
+               PM.MAPPING_SEQ                       AS MAPPING_SEQ
+             , PM.PA_ORDER_GB                       AS CLAIM_GB
+             , OPM.ORDER_NO                         AS ORDER_NO
+             , OPM.ORDER_G_SEQ                      AS ORDER_G_SEQ
+             , PM.CHANGE_GOODSDT_CODE               AS EXCH_GOODSDT_CODE
+             , PM.PA_PROC_QTY                       AS CLAIM_QTY
+             , NVL(PCC.CS_LGROUP || PCC.CS_MGROUP || PCC.CS_SGROUP, '640647') AS CLAIM_CODE
+             , NVL(PCC.CLAIM_GB, '40')              AS CLAIM_TYPE
+             , PC.CLAIM_REASON_DETAIL               AS CLAIM_DESC
+             , PM.PA_ORDER_NO                       AS PA_ORDER_NO
+             , '0'                                  AS SHIPCOST_CHARGE_YN /* 원래 PCC.SHIPCOST_CHARGE_YN이나 위메프는 박스동봉이라 배송비0원처리 */
+             , DECODE(U.USER_GB, '02', '1', '0')    AS ADMIN_PROC_YN
+             , PM.OUT_BEF_CLAIM_GB                  AS OUT_BEF_CLAIM_GB
+             , NVL(PC.CLAIM_FEE, 0)                 AS PA_SHPFEE_COST
+             , PC.PICKUP_NAME                                     AS RETURN_NAME
+             , CWARE_ENC_DEC(PC.PICKUP_PHONE, 'D')                AS RETURN_HP
+             , CWARE_ENC_DEC(PC.PICKUP_BASE_ADDR, 'D') 
+                || ' ' 
+                || CWARE_ENC_DEC(PICKUP_DETAIL_ADDR, 'D')         AS RETURN_ADDR
+             , DECODE(PC.PICKUP_INVOICE_NO, NULL, '0', '1')       AS RETURN_CUST_DELY_YN
+             , CWARE_ENC_DEC(PC.PICKUP_BASE_ADDR  , 'D')          AS RETURN_BASE_ADDR
+             , CWARE_ENC_DEC(PC.PICKUP_DETAIL_ADDR  , 'D')        AS RETURN_DETAIL_ADDR
+             , CWARE_ENC_DEC(PC.PICKUP_ZIPCODE    , 'D')          AS RETURN_ZIPCODE
+             , CASE WHEN PC.PICKUP_DELY_COMP IS NULL   THEN '40'
+                    WHEN PC.PICKUP_DELY_COMP = '00099' THEN '99'
+                    ELSE NVL((SELECT PD.DELY_GB 
+                              FROM TPADELYGB PD 
+                              WHERE PD.PA_CODE = '06' 
+                                AND PD.PA_DELY_GB = PC.PICKUP_DELY_COMP)
+                        , '40')
+                    END                                           AS RETURN_DELY_GB
+             , PC.PICKUP_INVOICE_NO                               AS RETURN_SLIP_NO
+             , PC.DELIVERY_NAME                                   AS EXCH_NAME
+             , CWARE_ENC_DEC(PC.DELIVERY_PHONE, 'D')              AS EXCH_HP
+             , CWARE_ENC_DEC(PC.DELIVERY_BASE_ADDR, 'D') 
+                || ' ' 
+                || CWARE_ENC_DEC(DELIVERY_DETAIL_ADDR, 'D')       AS EXCH_ADDR
+             , DECODE(PC.DELIVERY_METHOD, '12', '1',
+               DECODE(PC.DELIVERY_STATUS,'12','1','0'))           AS EXCH_CUST_DELY_YN
+             , CWARE_ENC_DEC(PC.DELIVERY_BASE_ADDR  , 'D')        AS EXCH_BASE_ADDR
+             , CWARE_ENC_DEC(PC.DELIVERY_DETAIL_ADDR  , 'D')      AS EXCH_DETAIL_ADDR
+             , CWARE_ENC_DEC(PC.DELIVERY_ZIPCODE    , 'D')        AS EXCH_ZIPCODE
+             , CASE WHEN PC.DELIVERY_DELY_COMP IS NULL   THEN '40'
+                    WHEN PC.DELIVERY_DELY_COMP = '00099' THEN '99'
+                    ELSE NVL((SELECT PD.DELY_GB 
+                              FROM TPADELYGB PD 
+                              WHERE PD.PA_CODE = '06' 
+                                AND PD.PA_DELY_GB = PC.DELIVERY_DELY_COMP)
+                        , '40')
+                    END                                           AS EXCH_DELY_GB
+             , PC.DELIVERY_INVOICE_NO                             AS EXCH_SLIP_NO
+          FROM TPAORDERM PM   /*교환접수건*/
+             , TPAORDERM OPM  /*원주문건*/
+             , TPAWEMPCLAIMLIST PC
+             , TPAWEMPCLAIMITEMLIST PCM
+             , TPACLAIMCODE PCC
+             , TUSER U
+         WHERE PC.PA_CLAIM_NO   = PCM.PA_CLAIM_NO
+           AND PC.PA_ORDER_NO   = PCM.PA_ORDER_NO
+           AND PC.PA_SHIP_NO    = PCM.PA_SHIP_NO
+           AND PC.PA_ORDER_GB   = PCM.PA_ORDER_GB
+           AND PM.PA_ORDER_NO   = OPM.PA_ORDER_NO           
+           AND PM.PA_SHIP_NO    = OPM.PA_SHIP_NO
+           AND PM.PA_ORDER_SEQ  = OPM.PA_ORDER_SEQ
+           AND PM.PA_CODE       = OPM.PA_CODE
+           AND PM.PA_ORDER_NO   = PC.PA_ORDER_NO
+           AND PM.PA_SHIP_NO    = PC.PA_SHIP_NO
+           AND PM.PA_ORDER_SEQ  = PCM.PA_ORDER_SEQ
+           AND PM.PA_CLAIM_NO   = PC.PA_CLAIM_NO
+           AND PC.PA_CLAIM_CODE = PCC.PA_CLAIM_CODE(+)
+           AND PM.MODIFY_ID     = U.USER_ID
+           AND PCC.PA_CODE(+) ='06' 
+           AND PCC.CLAIM_GB(+) ='40'
+           AND PC.PA_ORDER_GB = '40'
+           AND PM.PA_CODE IN ('61', '62')
+           AND PM.PA_ORDER_GB IN ('40', '45')
+           AND OPM.PA_ORDER_GB = '10'
+           AND PM.CREATE_YN = '0'
+           AND PM.PRE_CANCEL_YN = '0'
+           AND PM.INSERT_DATE > TRUNC(SYSDATE) - 5
+           AND PM.PA_ORDER_NO   = #{paOrderNo,  jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ  = #{paOrderSeq, jdbcType=VARCHAR}
+           AND PM.PA_CLAIM_NO   = #{paClaimNo,  jdbcType=VARCHAR}
+           AND PM.PA_SHIP_NO    = #{paShipNo,   jdbcType=VARCHAR}
+           ORDER BY PM.PA_ORDER_GB ASC
+    </select>
+    
+    <select id="selectPaOrdermInfo" parameterType="String" resultType="com.cware.netshopping.domain.model.Paorderm">
+        SELECT /* pawempexchange.xml : selectPaOrdermInfo */
+               PM.MAPPING_SEQ
+             , PM.PA_CODE
+             , PM.PA_ORDER_GB
+             , PM.PA_ORDER_NO
+             , PM.PA_ORDER_SEQ
+             , PM.PA_SHIP_NO
+             , PM.PA_CLAIM_NO
+             , PM.PA_PROC_QTY
+             , PM.PA_DO_FLAG
+             , PM.ORDER_NO
+             , PM.ORDER_G_SEQ
+             , PM.ORDER_D_SEQ
+             , PM.ORDER_W_SEQ
+             , PM.CREATE_YN
+             , PM.PRE_CANCEL_YN
+             , PM.OUT_BEF_CLAIM_GB
+             , PM.PA_HOLD_YN
+             , PM.CHANGE_GOODS_CODE
+             , PM.CHANGE_GOODSDT_CODE
+             , PM.CHANGE_FLAG
+             , PM.PA_HOLD_CODE
+          FROM TPAORDERM PM
+         WHERE PM.MAPPING_SEQ = #{mappingSeq, jdbcType=VARCHAR}
+    </select>
+    
+    <update id="updatePaOrdermChangeFlag" parameterType="hashMap">
+        UPDATE TPAORDERM /* pawempexchange.xml : pawemp.exchange.updatePaOrdermChangeFlag */
+           SET CHANGE_FLAG = #{changeFlag, jdbcType=VARCHAR}
+         WHERE MAPPING_SEQ = #{mappingSeq, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectChangeCancelTargetList" resultType="com.cware.netshopping.domain.model.Paorderm">
+        SELECT /* pawempexchange.xml : pawemp.exchange.selectChangeCancelTargetList*/
+               DISTINCT POM.PA_ORDER_NO
+             , POM.PA_ORDER_SEQ
+             , POM.PA_CLAIM_NO
+             , POM.PA_SHIP_NO
+          FROM TPAORDERM POM
+         WHERE POM.PA_CODE IN ('61', '62')
+           AND POM.PA_ORDER_GB      = '46'
+           AND POM.CREATE_YN        = '0'
+           AND POM.PRE_CANCEL_YN    = '0'
+           AND POM.OUT_BEF_CLAIM_GB = '0'
+           AND POM.INSERT_DATE > TRUNC(SYSDATE) - 5
+    </select>
+    
+    <select id="selectChangeCancelTargetDtList" parameterType="hashMap" resultType="hashMap">
+        SELECT A.MAPPING_SEQ    
+			 , A.CLAIM_GB       
+			 , A.ORDER_NO       
+			 , A.ORDER_G_SEQ    
+			 , A.ORDER_D_SEQ    
+			 , A.ORDER_W_SEQ
+			 , A.CLAIM_QTY      
+			 , A.CLAIM_CODE
+			 , A.PRE_CANCEL_YN  
+			 , A.SHIPCOST_CHARGE_YN
+			 , A.CODE_GROUP     
+          FROM (
+		        SELECT /* pawempexchange.xml : pawemp.claim.selectChangeCancelTargetDtList*/
+		               PM.MAPPING_SEQ                       AS MAPPING_SEQ
+		             , PM.PA_ORDER_GB                       AS CLAIM_GB
+		             , OPM1.ORDER_NO                        AS ORDER_NO
+		             , OPM1.ORDER_G_SEQ                     AS ORDER_G_SEQ
+		             , OPM1.ORDER_D_SEQ                     AS ORDER_D_SEQ
+		             , DECODE(PM.PA_ORDER_GB, '41', OPM1.ORDER_W_SEQ, '46', OPM2.ORDER_W_SEQ) AS ORDER_W_SEQ
+		             , PM.PA_PROC_QTY                       AS CLAIM_QTY
+		             , NVL(PCC.CS_LGROUP || PCC.CS_MGROUP || PCC.CS_SGROUP, '640647') AS CLAIM_CODE
+		             , OPM1.PRE_CANCEL_YN                   AS PRE_CANCEL_YN
+		             , '0'                                  AS SHIPCOST_CHARGE_YN /* 원래 PCC.SHIPCOST_CHARGE_YN이나 위메프는 박스동봉이라 배송비0원처리 */
+		             , TC.CODE_GROUP                        AS CODE_GROUP
+		          FROM TPAORDERM PM   /*교환철회건*/
+		             , TPAORDERM OPM1  /*원교환배송 건*/
+		             , TPAORDERM OPM2  /*원교환회수 건*/
+		             , TPAWEMPCLAIMLIST PC /* 원교환배송 건 */
+		             , TPAWEMPCLAIMITEMLIST PCM
+		             , TPACLAIMCODE PCC
+		             , TCODE TC
+		         WHERE PC.PA_CLAIM_NO   = PCM.PA_CLAIM_NO
+		           AND PC.PA_ORDER_NO   = PCM.PA_ORDER_NO
+		           AND PC.PA_SHIP_NO    = PCM.PA_SHIP_NO
+		           AND PC.PA_ORDER_GB   = PCM.PA_ORDER_GB
+		           AND PM.PA_ORDER_NO   = OPM1.PA_ORDER_NO
+		           AND PM.PA_SHIP_NO    = OPM1.PA_SHIP_NO
+		           AND PM.PA_ORDER_SEQ  = OPM1.PA_ORDER_SEQ
+		           AND PM.PA_CLAIM_NO   = OPM1.PA_CLAIM_NO
+		           AND PM.PA_CODE       = OPM1.PA_CODE
+		           AND PM.PA_ORDER_NO   = OPM2.PA_ORDER_NO
+		           AND PM.PA_ORDER_SEQ  = OPM2.PA_ORDER_SEQ
+		           AND PM.PA_CLAIM_NO   = OPM2.PA_CLAIM_NO
+		           AND PM.PA_CODE       = OPM2.PA_CODE
+		           AND PM.PA_CODE       = TC.CODE_MGROUP
+		           AND TC.CODE_LGROUP = 'O501'
+		           AND TC.USE_YN = '1'
+		           AND OPM1.PA_ORDER_NO = PCM.PA_ORDER_NO
+		           AND OPM1.PA_ORDER_SEQ = PCM.PA_ORDER_SEQ
+		           AND OPM1.PA_CLAIM_NO = PCM.PA_CLAIM_NO
+		           AND OPM1.PA_ORDER_GB = PCM.PA_ORDER_GB
+		           AND OPM1.PA_SHIP_NO  = PCM.PA_SHIP_NO
+		           AND PC.PA_CLAIM_CODE = PCC.PA_CLAIM_CODE(+)
+		           AND PCC.PA_CODE(+)   = '04'
+		           AND PCC.CLAIM_GB(+)  = '40'
+		           AND PM.PA_CODE       IN ('61', '62')
+		           AND PM.PA_ORDER_GB IN ('41', '46')
+		           AND OPM1.PA_ORDER_GB = '40'
+		           AND OPM2.PA_ORDER_GB = '45'
+		           AND OPM1.CREATE_YN   = '1'
+		           AND OPM2.CREATE_YN   = '1'
+		           AND PM.CREATE_YN     = '0'
+		           AND PM.PRE_CANCEL_YN = '0'
+		           AND PM.INSERT_DATE > TRUNC(SYSDATE) - 5
+		           AND PM.PA_ORDER_NO   = #{paOrderNo,  jdbcType=VARCHAR}
+		           AND PM.PA_ORDER_SEQ  = #{paOrderSeq, jdbcType=VARCHAR}
+		           AND PM.PA_CLAIM_NO   = #{paClaimNo,  jdbcType=VARCHAR}
+		           AND PM.PA_SHIP_NO    = #{paShipNo,   jdbcType=VARCHAR}
+		           
+		         UNION ALL
+		        
+		        SELECT PM.MAPPING_SEQ 
+		             , PM.PA_ORDER_GB AS CLAIM_GB
+		             , '' AS ORDER_NO
+		             , '' AS ORDER_G_SEQ
+		             , '' AS ORDER_D_SEQ
+		             , '' AS ORDER_W_SEQ
+		             , '' AS CLAIM_QTY
+		             , '' AS CLAIM_CODE
+		             , '1' AS PRE_CANCEL_YN
+		             , '' AS SHIPCOST_CHARGE_YN
+		             , TC.CODE_GROUP AS CODE_GROUP
+		          FROM TPAORDERM PM /* 교환취소건 */
+		             , TCODE TC
+		         WHERE PM.PA_CODE     = TC.CODE_MGROUP
+		           AND TC.CODE_LGROUP = 'O501'
+		           AND TC.USE_YN      = '1'
+		           AND PM.PA_CODE     IN ('61', '62')
+		           AND PM.CREATE_YN   = '0'
+		           AND PM.PRE_CANCEL_YN = '0'
+		           AND PM.PA_ORDER_GB IN ('41', '46')
+		           AND PM.INSERT_DATE > TRUNC(SYSDATE) - 5
+		           AND PM.PA_ORDER_NO   = #{paOrderNo,  jdbcType=VARCHAR}
+		           AND PM.PA_ORDER_SEQ  = #{paOrderSeq, jdbcType=VARCHAR}
+		           AND PM.PA_CLAIM_NO   = #{paClaimNo,  jdbcType=VARCHAR}
+		           AND PM.PA_SHIP_NO    = #{paShipNo,   jdbcType=VARCHAR}
+		           AND NOT EXISTS (SELECT 1
+		                             FROM TPAORDERM OPM
+		                            WHERE OPM.PA_ORDER_NO  = PM.PA_ORDER_NO
+		                              AND OPM.PA_ORDER_SEQ = PM.PA_ORDER_SEQ
+		                              AND OPM.PA_CLAIM_NO  = PM.PA_CLAIM_NO
+		                              AND OPM.PA_CODE      = PM.PA_CODE
+		                              AND OPM.PA_ORDER_GB  = '40'
+		                              AND OPM.CHANGE_FLAG != '00')
+		       ) A
+		 ORDER BY A.CLAIM_GB
+    </select>
+    
+    <select id="selectExchangePickupList" resultType="hashMap">
+        SELECT /* pawempexchange.xml selectExchangePickupList*/
+              PM.PA_CLAIM_NO
+            , (SELECT PA_DELY_GB 
+               FROM TPADELYGB
+                WHERE PA_CODE = '06'
+                  AND DELY_GB = NVL(SM.DELY_GB, CL.DELY_GB)) AS DELIVERY_COMPANY_CODE  
+            , TO_CHAR(NVL(SM.DELY_HOPE_DATE, SYSDATE+5), 'YYYY-MM-DD') AS DELY_HOPE_DATE
+            , REPLACE(NVL(SM.SLIP_NO, CL.SLIP_NO), '-', '') AS INVOICE_NO
+            , SM.SLIP_I_NO AS SUB_INVOICE_NO
+            , PM.PA_CODE
+            , PM.MAPPING_SEQ
+          FROM TPAORDERM PM
+             , TCLAIMDT  CL
+             , TSLIPM    SM
+             , TSLIPDT   SD
+         WHERE PM.ORDER_NO         = CL.ORDER_NO
+           AND PM.ORDER_G_SEQ      = CL.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ      = CL.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ      = CL.ORDER_W_SEQ
+           AND PM.ORDER_NO         = SD.ORDER_NO
+           AND PM.ORDER_G_SEQ      = SD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ      = SD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ      = SD.ORDER_W_SEQ
+           AND SD.SLIP_I_NO        = SM.SLIP_I_NO
+           AND PM.PA_ORDER_GB      = '45'     /*교환회수*/
+           AND PM.PA_CODE      	   IN ('61', '62')
+           AND PM.PA_DO_FLAG       = '20'     /*교환요청등록*/
+           AND PM.OUT_BEF_CLAIM_GB = '0'  /*교환접수대상*/           
+           AND CL.SYSLAST          > 0
+           AND PM.CREATE_DATE      > TRUNC(SYSDATE) - 30
+           AND CL.DO_FLAG     	   = '60'
+      ORDER BY PM.PA_CLAIM_NO
+    </select>
+    
+    <update id="updatePickupProc" parameterType="com.cware.netshopping.domain.model.Paorderm">
+      UPDATE TPAORDERM /* pawempexchange.xml updatePickupProc */
+         SET PA_DO_FLAG     = '55' /*회수지시전송(수거요청전송)*/
+           , API_RESULT_CODE = '000000'
+           , API_RESULT_MESSAGE = '수거요청성공'
+           , PROC_DATE      = SYSDATE
+           , MODIFY_ID      = 'PAWEMP'
+           , MODIFY_DATE    = SYSDATE
+       WHERE PA_ORDER_GB    = '45' /*교환회수*/
+         AND PA_CODE        IN ('61', '62')
+         AND MAPPING_SEQ    = #{mappingSeq, jdbcType=VARCHAR}
+    </update>  
+    
+    <update id="updateProcFail" parameterType="com.cware.netshopping.domain.model.Paorderm">
+      UPDATE TPAORDERM /* pawempexchange.xml updateProcFail */
+         SET API_RESULT_CODE = '999999'
+           , API_RESULT_MESSAGE = #{apiResultMessage, jdbcType=VARCHAR}           
+           , MODIFY_ID      = 'PAWEMP'           
+           , MODIFY_DATE    = SYSDATE
+       WHERE PA_ORDER_GB    = #{paOrderGb, jdbcType=VARCHAR}
+         AND PA_CODE        IN ('61', '62')
+         AND PA_CLAIM_NO    = #{paClaimNo, jdbcType=VARCHAR}
+         <if test='mappingSeq != null and mappingSeq != ""'>
+           AND MAPPING_SEQ = #{mappingSeq, jdbcType=VARCHAR}
+         </if>
+         
+    </update>
+    
+    <select id="selectPickupCompleteList" resultType="hashMap">
+        SELECT /* pawempexchange.xml : selectPickupCompleteList */
+               distinct POM.PA_CLAIM_NO
+             , POM.PA_CODE
+          FROM TPAORDERM           POM
+             , TCLAIMDT            CL
+         WHERE POM.ORDER_NO         = CL.ORDER_NO
+           AND POM.ORDER_G_SEQ      = CL.ORDER_G_SEQ
+           AND POM.ORDER_D_SEQ      = CL.ORDER_D_SEQ
+           AND POM.ORDER_W_SEQ      = CL.ORDER_W_SEQ           
+           AND POM.PA_CODE          IN ('61', '62')
+           AND POM.PA_ORDER_GB      = '45'         /*교환회수*/
+           AND POM.PA_DO_FLAG       = '55' 		   /*수거요청전송*/
+           AND POM.OUT_BEF_CLAIM_GB = '0'          /*교환접수대상*/
+           AND CL.DO_FLAG          = '60'          /*회수확정 */
+           AND NOT EXISTS (SELECT 1
+                             FROM TPAORDERM PM
+                            WHERE PM.PA_CLAIM_NO = POM.PA_CLAIM_NO
+                              AND PM.PA_CODE = POM.PA_CODE
+                              AND PM.PA_ORDER_GB = '45'
+                              AND PM.OUT_BEF_CLAIM_GB = '0'
+                              AND PM.PA_DO_FLAG &lt;&gt; '55')
+    </select>
+    
+    <update id="updatePickupCompleteProc" parameterType="hashMap">
+      UPDATE TPAORDERM /* pawempexchange.xml updatePickupCompleteProc */
+         SET PA_DO_FLAG     = '58' /*회수집하완료(수거완료전송 또는 완료로수집)*/
+           , API_RESULT_CODE = '000000'
+           , API_RESULT_MESSAGE = '수거완료성공'
+           , PROC_DATE      = SYSDATE
+           , MODIFY_ID      = 'PAWEMP'
+           , MODIFY_DATE    = SYSDATE
+       WHERE PA_ORDER_GB    = '45' /*교환회수*/
+         AND PA_CODE        = #{PA_CODE    , jdbcType=VARCHAR}
+         AND PA_CLAIM_NO    = #{PA_CLAIM_NO, jdbcType=VARCHAR}
+         AND PA_DO_FLAG     IN ('20', '55') /*교환등록 또는 수거요청전송*/
+    </update>
+    
+    <select id="selectExchangeSlipOutTargetList" resultType="hashMap" >
+        SELECT /* pawempexchange.xml : selectExchangeSlipOutTargetList */
+              PM.PA_CLAIM_NO
+             , PM.PA_ORDER_NO
+             , PM.PA_SHIP_NO
+             , PM.PA_ORDER_SEQ
+             , PM.MAPPING_SEQ
+             , PM.PA_CODE
+             , NVL((SELECT PDG.PA_DELY_GB FROM TPADELYGB PDG WHERE PDG.PA_CODE = '06' AND SM.DELY_GB = PDG.DELY_GB), 'D002') AS PA_DELY_GB
+             , NVL((SELECT PDG.PA_DELY_GB_NAME FROM TPADELYGB PDG WHERE PDG.PA_CODE = '06' AND SM.DELY_GB = PDG.DELY_GB), 'CJ대한통운') AS PA_DELY_GB_NAME
+             , SM.DELY_HOPE_YN     AS DELY_HOPE_YN
+             , TO_CHAR(NVL(SM.DELY_HOPE_DATE, SYSDATE+5), 'YYYY-MM-DD') AS SCHEDULE_SHIP_DATE
+             , SM.SLIP_NO
+             , SM.SLIP_I_NO
+          FROM TPAORDERM        PM
+             , TCLAIMDT         CL
+             , TSLIPM           SM
+             , TSLIPDT          SD
+         WHERE PM.ORDER_NO     = CL.ORDER_NO
+           AND PM.ORDER_G_SEQ  = CL.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ  = CL.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ  = CL.ORDER_W_SEQ
+           AND PM.ORDER_NO     = SD.ORDER_NO
+           AND PM.ORDER_G_SEQ  = SD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ  = SD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ  = SD.ORDER_W_SEQ
+           AND SD.SLIP_I_NO    = SM.SLIP_I_NO
+           AND CL.CLAIM_GB     = '40'     /*교환배송*/
+           AND CL.DO_FLAG      &gt;='40'
+           AND PM.PA_ORDER_GB  = '40'     /*교환배송*/
+           AND PM.PA_CODE      IN ('61', '62')
+           AND PM.PA_DO_FLAG   IN ('20', '30') /*교환요청등록,g참조*/
+           AND PM.CREATE_DATE  > TRUNC(SYSDATE) - 30
+         ORDER BY PM.PA_CLAIM_NO
+    </select>
+    
+    <update id="updatePickupEnd" parameterType="hashMap">
+      UPDATE TPAORDERM /* pawempexchange.xml updatePickupEnd */
+         SET PA_HOLD_YN     = '0'  /* 클레임보류해제 */
+           , PA_DO_FLAG     = '60' /*회수확정(수거완료전송 및 교환배송등록완료)*/
+           , MODIFY_ID      = 'PAWEMP'
+           , MODIFY_DATE    = SYSDATE
+       WHERE PA_ORDER_GB    = '45' /*교환회수*/
+         AND PA_CODE        IN ('61', '62')
+         AND PA_CLAIM_NO    = #{PA_CLAIM_NO, jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updateDeliveryProc" parameterType="hashMap">
+      UPDATE TPAORDERM /* pawempexchange.xml updateDeliveryProc */
+         SET PA_DO_FLAG         = '40' /*출고(교환배송등록전송)*/
+           , API_RESULT_CODE    = '000000'
+           , API_RESULT_MESSAGE = '교환배송등록성공'
+           , PROC_DATE      	= SYSDATE
+           , MODIFY_ID      	= 'PAWEMP'
+           , MODIFY_DATE    	= SYSDATE
+       WHERE PA_ORDER_GB    	= '40' /*교환배송*/
+         AND PA_CODE        	IN ('61', '62')
+         AND MAPPING_SEQ    	= #{MAPPING_SEQ, jdbcType=VARCHAR}
+         AND PA_DO_FLAG     	= '20' /*교환등록*/
+    </update>
+    
+    <update id="updateExchangeCompleteProc" parameterType="hashMap">
+      UPDATE TPAORDERM /* pawempexchange.xml updateExchangeCompleteProc */
+         SET PA_DO_FLAG     = '80'  /* 배송완료 */
+           , API_RESULT_CODE = '000000'
+           , API_RESULT_MESSAGE = '교환클레임완료전송성공'
+           , PROC_DATE      = SYSDATE
+           , MODIFY_ID      = 'PAWEMP'
+           , MODIFY_DATE    = SYSDATE
+       WHERE PA_ORDER_GB    = '40' /*교환배송*/
+         AND PA_CODE        IN ('61', '62')
+         AND PA_CLAIM_NO    = #{PA_CLAIM_NO, jdbcType=VARCHAR}
+    </update>
+
+	<select id="selectExchangeCompleteList" resultType="hashMap">
+		SELECT /* pawempexchange.xml : pawempexchange.exchange.selectExchangeCompleteList by PaWempExchangeController */
+		       distinct POM.PA_CLAIM_NO     AS PA_CLAIM_NO
+         	 , POM.PA_CODE
+		  FROM TPAORDERM           POM
+		     , TSLIPDT             TSD
+		     , TSLIPM              TSM
+		 WHERE POM.ORDER_NO    = TSD.ORDER_NO
+		   AND POM.ORDER_G_SEQ = TSD.ORDER_G_SEQ
+		   AND POM.ORDER_D_SEQ = TSD.ORDER_D_SEQ
+		   AND POM.ORDER_W_SEQ = TSD.ORDER_W_SEQ
+		   AND TSD.SLIP_I_NO   = TSM.SLIP_I_NO
+		   AND POM.PA_CODE     IN ('61', '62')
+		   AND POM.PA_DO_FLAG  = '40'
+		   AND POM.PA_ORDER_GB = '40'
+		   AND POM.PA_PROC_QTY &gt; 0
+		   AND TSM.SLIP_PROC   = '80'
+		   AND NOT EXISTS (SELECT 1
+                             FROM TPAORDERM PM
+                                , TCLAIMDT CD
+                            WHERE PM.PA_CLAIM_NO = POM.PA_CLAIM_NO
+                              AND PM.PA_CODE = POM.PA_CODE
+                              AND PM.PA_ORDER_GB = '40'
+                              AND PM.OUT_BEF_CLAIM_GB = '0'
+                              AND PM.ORDER_NO = CD.ORDER_NO
+                              AND PM.ORDER_G_SEQ = CD.ORDER_G_SEQ
+                              AND PM.ORDER_D_SEQ = CD.ORDER_D_SEQ
+                              AND PM.ORDER_W_SEQ = CD.ORDER_W_SEQ
+                              AND CD.DO_FLAG &lt; '60')
+	</select>
+</mapper>

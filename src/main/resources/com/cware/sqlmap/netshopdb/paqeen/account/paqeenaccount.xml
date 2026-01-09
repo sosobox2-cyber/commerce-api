@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="paqeen.account">
+
+	<select id="selectSettlementSeq" parameterType="com.cware.netshopping.domain.model.PaQeenSettlement" resultType="int">
+		SELECT /* paqeenaccount.xml: paqeen.account.selectSettlementSeq by PaqeenAccountController*/
+	    	   COUNT(*) AS CNT
+	  	  FROM TPAQEENSETTLEMENT OL
+	 	 WHERE OL.ID = #{id , jdbcType=VARCHAR}
+	</select>
+  
+  	<insert id="insertPaQeenSettlement" parameterType="com.cware.netshopping.domain.model.PaQeenSettlement">
+        INSERT /* paqeenaccount.xml: paqeen.account.insertPaQeenSettlement by PaqeenAccountController*/
+          INTO TPAQEENSETTLEMENT ( 
+          	  ID 				,TRANSACTION_TYPE 				,ORDER_ID 				,ORDER_LINE_GROUP_ID 	 ,ORDER_LINE_ID
+		     ,SELLER_SHARE		,SELLER_DUTY_DISCOUNT 			,QUEENIT_SHARE 			,QUEENIT_DUTY_DISCOUNT	 ,AMOUNT
+	         ,METHOD ,TYPE 		,SELLER_COMPENSATION_AMOUNT 	,LOWEST_BASE_DATE 		,COMMISSION_PERCENTAGE
+	         ,INCLUDED_BOOK_ID 	,BASE_DATE ,SALES_TYPE 			,MEMO 					,PRODUCT_ID
+		     ,PRODUCT_CODE 		,OPTION_TITLE ,PRODUCT_TITLE 	,SINGLE_PRODUCT_PRICE 	,QUANTITY
+			 ,COMMISSION_TARGET ,COMMISSION ,SELLER_PROFIT 		,QUEENIT_PROFIT 		,EVENT_AT_MILLIS
+			 ,DELIVERY_COMPLETED_AT_MILLIS ,SELLER_DIRECT_COUPON_DISCOUNT_AMOUNT ,SELLER_ISSUED_COUPON_DISCOUNT_AMOUNT ,QUEENIT_DIRECT_COUPON_DISCOUNT_AMOUNT ,QUEENIT_ISSUED_COUPON_DISCOUNT_AMOUNT
+			 ,QUEENIT_DISCOUNT_AMOUNT_BY_COUPON ,QUEENIT_POINT_DISCOUNT_AMOUNT
+        	) 
+        VALUES(
+			   #{id   , jdbcType=VARCHAR}
+				,#{transactionType   , jdbcType=VARCHAR}
+				,#{orderId   , jdbcType=VARCHAR}
+				,#{orderLineGroupId   , jdbcType=VARCHAR}
+				,#{orderLineId   , jdbcType=VARCHAR}
+				,#{sellerShare   , jdbcType=NUMERIC}
+				,#{sellerDutyDiscount   , jdbcType=NUMERIC}
+				,#{queenitShare   , jdbcType=NUMERIC}
+				,#{queenitDutyDiscount   , jdbcType=NUMERIC}
+				,#{amount   , jdbcType=NUMERIC}
+				,#{method   , jdbcType=VARCHAR}
+				,#{type   , jdbcType=VARCHAR}
+				,#{sellerCompensationAmount   , jdbcType=NUMERIC}
+				,#{lowestBaseDate   , jdbcType=VARCHAR}
+				,#{commissionPercentage   , jdbcType=NUMERIC}
+				,#{includedBookId   , jdbcType=VARCHAR}
+				,#{baseDate   , jdbcType=VARCHAR}
+				,#{salesType   , jdbcType=VARCHAR}
+				,#{memo   , jdbcType=VARCHAR}
+				,#{productId   , jdbcType=VARCHAR}
+				,#{productCode   , jdbcType=VARCHAR}
+				,#{optionTitle   , jdbcType=VARCHAR}
+				,#{productTitle   , jdbcType=VARCHAR}
+				,#{singleProductPrice   , jdbcType=NUMERIC}
+				,#{quantity   , jdbcType=NUMERIC}
+				,#{commissionTarget   , jdbcType=NUMERIC}
+				,#{commission   , jdbcType=NUMERIC}
+				,#{sellerProfit   , jdbcType=NUMERIC}
+				,#{queenitProfit   , jdbcType=NUMERIC}
+				,#{eventAtMillis   , jdbcType=DATE}
+				,#{deliveryCompletedAtMillis   , jdbcType=DATE}
+				,#{sellerDirectCouponDiscountAmount   , jdbcType=NUMERIC}
+				,#{sellerIssuedCouponDiscountAmount   , jdbcType=NUMERIC}
+				,#{queenitDirectCouponDiscountAmount  , jdbcType=NUMERIC}
+				,#{queenitIssuedCouponDiscountAmount  , jdbcType=NUMERIC}
+				,#{queenitDiscountAmountByCoupon   , jdbcType=NUMERIC}
+				,#{queenitPointDiscountAmount   , jdbcType=NUMERIC}
+        )  
+     </insert>
+</mapper>

@@ -1,0 +1,636 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="passg.common">
+    
+    <insert id="insertPaOfferCodeList" parameterType="com.cware.netshopping.domain.model.PaOfferCode">
+        INSERT INTO /* passgcommon.xml : passg.common.insertPaOfferCodeList by PaSsgCommonController */
+               		TPAOFFERCODE
+		           ( PA_GROUP_CODE
+		           , PA_OFFER_TYPE  
+		           , PA_OFFER_CODE 
+		           , PA_OFFER_TYPE_NAME 
+		           , PA_OFFER_CODE_NAME
+		           , REQUIRED_YN
+		           , SORT_SEQ
+		           , USE_YN
+		           , REMARK
+		           , UNIT_REQUIRED_YN
+		           , IPT_MTHD_CD
+	               , INSERT_ID
+		           , INSERT_DATE
+	               , MODIFY_ID
+	               , MODIFY_DATE )
+		     VALUES 
+		           ( #{paGroupCode, jdbcType=VARCHAR}
+		           , #{paOfferType, jdbcType=VARCHAR}
+		           , #{paOfferCode, jdbcType=VARCHAR}
+	               , #{paOfferTypeName, jdbcType=VARCHAR}
+		           , #{paOfferCodeName, jdbcType=VARCHAR}
+		           , #{requiredYn, jdbcType=VARCHAR}
+		           , #{sortSeq, jdbcType=VARCHAR}
+		           , #{useYn, jdbcType=VARCHAR}
+	               , #{remark, jdbcType=VARCHAR}
+	               , #{unitRequiredYn, jdbcType=VARCHAR}
+	               , #{iptMthdCd, jdbcType=VARCHAR}
+	               , #{insertId, jdbcType=VARCHAR}
+	               , #{insertDate, jdbcType=VARCHAR}
+	               , #{modifyId, jdbcType=VARCHAR}
+	               , #{modifyDate, jdbcType=VARCHAR}
+	               )  
+    </insert>
+    
+    <insert id="insertPaBrand" parameterType="com.cware.netshopping.domain.model.PaBrand">
+        INSERT /* passgcommon.xml : passg.common.insertPaBrand by PaSsgCommonController */
+          INTO TPABRAND
+             ( PA_GROUP_CODE
+             , PA_BRAND_NO
+             , PA_BRAND_NAME
+             , USE_YN
+             , INSERT_ID
+             , INSERT_DATE
+             , MODIFY_ID
+             , MODIFY_DATE 
+             )
+        VALUES 
+             ( 
+               #{paGroupCode, jdbcType=VARCHAR}
+             , #{paBrandNo,   jdbcType=VARCHAR}
+             , #{paBrandName, jdbcType=VARCHAR}
+             , #{useYn, 	  jdbcType=VARCHAR}
+             , #{insertId, jdbcType=VARCHAR}
+	         , #{insertDate, jdbcType=VARCHAR}
+	         , #{modifyId, jdbcType=VARCHAR}
+	         , #{modifyDate, jdbcType=VARCHAR}
+             )
+    </insert>
+ 	
+ 	<insert id="insertPaOrigin" parameterType="com.cware.netshopping.domain.model.PaOrigin">
+        INSERT /* passgcommon.xml : passg.common.insertPaOrigin by PaSsgCommonController */
+          INTO TPAORIGIN
+             ( PA_GROUP_CODE
+             , PA_ORIGIN_CODE
+             , PA_ORIGIN_NAME
+             , REMARK1
+             , REMARK2
+             , REMARK3
+             , REMARK4
+             , INSERT_ID
+             , INSERT_DATE
+             , MODIFY_ID
+             , MODIFY_DATE 
+             )
+        VALUES 
+             ( 
+               #{paGroupCode,	jdbcType=VARCHAR}
+             , #{paOriginCode,	jdbcType=VARCHAR}
+             , #{paOriginName,	jdbcType=VARCHAR}
+             , #{remark1,		jdbcType=VARCHAR}
+             , #{remark2,		jdbcType=VARCHAR}
+             , #{remark3,		jdbcType=VARCHAR}
+             , #{remark4,		jdbcType=VARCHAR}
+             , #{insertId,		jdbcType=VARCHAR}
+	         , #{insertDate,	jdbcType=VARCHAR}
+	         , #{modifyId,		jdbcType=VARCHAR}
+	         , #{modifyDate,	jdbcType=VARCHAR}
+             )
+    </insert>
+    
+    <insert id="insertPaGoodsLimitChar" parameterType="com.cware.netshopping.domain.model.PaGoodsLimitChar">
+        INSERT /* passgcommon.xml : passg.common.insertPaGoodsLimitChar by PaSsgCommonController */
+          INTO TPAGOODSLIMITCHAR
+             ( SEQ
+             , PA_GROUP_CODE
+             , LIMIT_CHAR
+             , REPLACE_CHAR
+             , USE_YN
+             , INSERT_ID
+             , INSERT_DATE
+             , ADD_CHAR
+             )
+        VALUES 
+             ( 
+               (SELECT MAX(SEQ)+1 FROM TPAGOODSLIMITCHAR)
+             , #{paGroupCode,	jdbcType=VARCHAR}
+             , #{limitChar,		jdbcType=VARCHAR}
+             , #{replaceChar,	jdbcType=VARCHAR}
+             , #{useYn,			jdbcType=VARCHAR}
+             , #{insertId,		jdbcType=VARCHAR}
+	         , #{insertDate,	jdbcType=VARCHAR}
+             , #{addChar,		jdbcType=VARCHAR}
+             )
+    </insert>
+    
+    <delete id="deletePaGoodsKindsMomentList" >
+        DELETE /* passgcommon.xml : passg.common.deletePaGoodsKindsMomentList */ 
+          FROM TPAGOODSKINDSMOMENT TGKM
+         WHERE TGKM.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR} 
+    </delete>
+    
+    <insert id="insertPaGoodsKindMomentsList" parameterType="com.cware.netshopping.domain.model.PaGoodsKinds">
+        INSERT INTO /* passgcommon.xml : passg.common.insertPaGoodsKindMomentsList by PaSsgCommonController */
+                    TPAGOODSKINDSMOMENT
+                   ( PA_GROUP_CODE
+                   , PA_LMSD_KEY
+                   , PA_LGROUP
+                   , PA_MGROUP
+                   , PA_SGROUP
+                   , PA_DGROUP
+                   , PA_LGROUP_NAME
+                   , PA_MGROUP_NAME
+                   , PA_SGROUP_NAME
+                   , PA_DGROUP_NAME
+                   , REMARK
+                   , LIFE_CERT_YN
+                   , ELECTRIC_CERT_YN
+                   , CHILD_CERT_YN
+                   , MEDICAL_YN
+                   , HEALTH_YN
+                   , FOOD_YN
+                   )
+            VALUES ( #{paGroupCode,     jdbcType=VARCHAR}
+                   , #{paLmsdKey,       jdbcType=VARCHAR}
+                   , #{paLgroup,        jdbcType=VARCHAR}
+                   , #{paMgroup,        jdbcType=VARCHAR}
+                   , #{paSgroup,        jdbcType=VARCHAR}
+                   , #{paDgroup,        jdbcType=VARCHAR}
+                   , #{paLgroupName,    jdbcType=VARCHAR}
+                   , #{paMgroupName,    jdbcType=VARCHAR}
+                   , #{paSgroupName,    jdbcType=VARCHAR}
+                   , #{paDgroupName,    jdbcType=VARCHAR}
+                   , #{remark,			jdbcType=VARCHAR}
+                   , #{lifeCertYn,		jdbcType=VARCHAR}
+                   , #{electricCertYn,	jdbcType=VARCHAR}
+                   , #{childCertYn,		jdbcType=VARCHAR}
+                   , #{medicalYn,		jdbcType=VARCHAR}
+                   , #{healthYn,		jdbcType=VARCHAR}
+                   , #{foodYn,			jdbcType=VARCHAR}
+                   )
+    </insert>
+    
+    <insert id="insertPaGoodsKindsList" parameterType="com.cware.netshopping.domain.model.PaGoodsKinds">
+        INSERT INTO /* passgcommon.xml : passg.common.insertPaGoodsKindsList by PaSsgCommonController */
+                    TPAGOODSKINDS  
+                 ( PA_GROUP_CODE
+                 , PA_LMSD_KEY
+                 , PA_LGROUP
+                 , PA_MGROUP
+                 , PA_SGROUP
+                 , PA_DGROUP
+                 , PA_LGROUP_NAME
+                 , PA_MGROUP_NAME
+                 , PA_SGROUP_NAME
+                 , PA_DGROUP_NAME
+                 , USE_YN
+                 , MEDICAL_YN
+                 , CHILD_CERT_YN
+                 , ELECTRIC_CERT_YN
+                 , LIFE_CERT_YN
+                 , REMARK
+                 , HEALTH_YN
+                 , FOOD_YN
+                 , INSERT_ID
+                 , INSERT_DATE
+                 , MODIFY_ID 
+                 , MODIFY_DATE
+                 )
+            SELECT TGKM.PA_GROUP_CODE
+                 , TGKM.PA_LMSD_KEY
+                 , TGKM.PA_LGROUP
+                 , TGKM.PA_MGROUP
+                 , TGKM.PA_SGROUP
+                 , TGKM.PA_DGROUP
+                 , TGKM.PA_LGROUP_NAME
+                 , TGKM.PA_MGROUP_NAME
+                 , TGKM.PA_SGROUP_NAME
+                 , TGKM.PA_DGROUP_NAME
+                 , '1'
+                 , NVL(TGKM.MEDICAL_YN,0)
+                 , NVL(TGKM.CHILD_CERT_YN,0)
+                 , NVL(TGKM.ELECTRIC_CERT_YN,0)
+                 , NVL(TGKM.LIFE_CERT_YN,0)
+                 , TGKM.REMARK
+                 , NVL(TGKM.HEALTH_YN,0)
+                 , NVL(TGKM.FOOD_YN,0)
+                 , #{insertId,    jdbcType=VARCHAR}
+                 , #{insertDate,  jdbcType=TIMESTAMP}
+                 , #{insertId,    jdbcType=VARCHAR}
+                 , #{insertDate,  jdbcType=TIMESTAMP}
+              FROM TPAGOODSKINDSMOMENT TGKM
+             WHERE TGKM.PA_GROUP_CODE  = #{paGroupCode, jdbcType=VARCHAR}
+               AND NOT EXISTS ( SELECT 'X'
+                                  FROM TPAGOODSKINDS TGK
+                                 WHERE TGK.PA_GROUP_CODE    = TGKM.PA_GROUP_CODE
+                                   AND TGK.PA_LMSD_KEY      = TGKM.PA_LMSD_KEY
+                              )
+    </insert>
+    
+    <select id="selectSsgStandardCategoryList" resultType="hashMap">
+    	 SELECT /* passgcommon.xml : passg.common.selectSsgStandardCategoryList by PaSsgCommonController-entpShipUpdate */
+    	 		PA_LMSD_KEY
+    	   FROM TPAGOODSKINDS A
+    	  WHERE A.PA_GROUP_CODE = '10' 
+    </select>
+    
+    <insert id="insertPaSsgDisplayCategory" parameterType="com.cware.netshopping.domain.model.PaSsgDisplayCategory">
+        INSERT /* passgcommon.xml : passg.common.insertPaSsgDisplayCategory by PaSsgCommonController */
+          INTO TPASSGDISPLAYCATEGORY
+             ( DISP_CTG_ID
+             , DISP_CTG_NM
+             , DISP_CTG_CLS_CD
+             , DISP_CTG_CLS_NM
+             , DISP_CTG_PATH_NM
+             , APL_SITE_NO
+             , APL_SITE_NO_NM
+             , DISP_CTG_LAST_LVL_YN
+             , DISP_YN             
+             , INSERT_ID
+             , INSERT_DATE
+             )
+        VALUES 
+             ( 
+               #{dispCtgId,			jdbcType=VARCHAR}
+             , #{dispCtgNm,			jdbcType=VARCHAR}
+             , #{dispCtgClsCd,		jdbcType=VARCHAR}
+             , #{dispCtgClsNm,		jdbcType=VARCHAR}
+             , #{dispCtgPathNm,		jdbcType=VARCHAR}
+             , #{aplSiteNo,			jdbcType=VARCHAR}
+             , #{aplSiteNoNm,		jdbcType=VARCHAR}
+             , #{dispCtgLastLvlYn,	jdbcType=VARCHAR}
+             , #{dispYn,			jdbcType=VARCHAR}
+             , #{insertId,			jdbcType=VARCHAR}
+	         , #{insertDate,		jdbcType=VARCHAR}
+             )
+    </insert>
+
+ 	<select id="selectEntpSlipCost" resultType="hashMap" parameterType="hashMap">
+       SELECT /* passgcommon.xml : passg.passgcommon.selectEntpSlipCost */
+			  SC.PA_CODE
+			, SC.SHPPCST_APL_UNIT_CD
+		    , SC.SHPPCST_PLCY_DIV_CD
+		    , SC.COLLECT_YN
+		    , SC.SHIP_COST_BASE_AMT
+		    , SC.SHIP_COST
+		 FROM TPASSGSHIPCOST SC
+		WHERE SC.PA_SHIP_POLICY_NO IS NULL
+    </select>
+    
+    <update id="updatePaSsgShipCost" parameterType="hashMap">
+    	UPDATE /* passgcommon.xml : passg.passgcommon.updatePaSsgShipCost by PaSsgCommonController-entpCustShipCostInsert */
+		       TPASSGSHIPCOST
+		   SET PA_SHIP_POLICY_NO   = #{shppcstId,			jdbcType=VARCHAR}
+         WHERE PA_CODE			   = #{paCode,				jdbcType=VARCHAR}
+           AND SHPPCST_APL_UNIT_CD = #{shppcstAplUnitCd,	jdbcType=VARCHAR}
+           AND SHPPCST_PLCY_DIV_CD = #{shppcstPlcyDivCd,	jdbcType=VARCHAR}
+           AND COLLECT_YN		   = #{collectYn,			jdbcType=VARCHAR}
+           AND SHIP_COST_BASE_AMT  = #{shipCostBaseAmt,		jdbcType=VARCHAR}
+           AND SHIP_COST		   = #{shipCost,			jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectSlipInsertList" resultType="hashMap" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">
+        SELECT /* passgcommon.xml : passg.passgcommon.selectSlipInsertList by PaSsgCommonController-returnSlipInsert  */         
+               EU.POST_NO AS POST_NO
+             , EU.STD_ROAD_POST_ADDR1
+             , EU.STD_ROAD_POST_ADDR2
+             , EU.STD_POST_ADDR1
+             , EU.STD_POST_ADDR2
+             , EU.ENTP_CODE
+             , EU.ENTP_MAN_SEQ
+             , EU.ENTP_MAN_GB
+             , DECODE(EU.ENTP_MAN_HP1, NULL, EU.ENTP_MAN_DDD || '-' || EU.ENTP_MAN_TEL1 || '-' || EU.ENTP_MAN_TEL2, 
+             								 EU.ENTP_MAN_HP1 || '-' || EU.ENTP_MAN_HP2  || '-' || EU.ENTP_MAN_HP3) AS ENTP_MAN_HP
+			 , EU.ENTP_MAN_TEL1
+             , EU.ENTP_MAN_TEL2
+             , EU.ENTP_MAN_HP1
+             , EU.ENTP_MAN_HP2
+             , EU.ENTP_MAN_HP3
+          FROM TENTPUSER   EU
+             , TENTERPRISE EP
+         WHERE EU.ENTP_CODE    = EP.ENTP_CODE
+           AND EU.ENTP_CODE    = #{entpCode, jdbcType=VARCHAR}
+           AND EU.ENTP_MAN_SEQ = #{entpManSeq, jdbcType=VARCHAR}
+           <if test="paAddrSeq == null or paAddrSeq == '' ">
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TPAENTPSLIP PL
+                            WHERE EU.ENTP_CODE    = PL.ENTP_CODE
+                              AND EU.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+                              AND PL.PA_CODE      = #{paCode, jdbcType=VARCHAR})
+           </if>
+    </select>
+    
+    <insert id="insertPaSsgEntpSlip" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">    
+        INSERT /* passgcommon.xml : passg.passgcommon.insertPaSsgEntpSlip by PaSsgCommonController-entpShipInsert */
+          INTO TPAENTPSLIP
+             ( ENTP_CODE
+             , ENTP_MAN_SEQ
+             , PA_CODE
+             , PA_ADDR_SEQ
+             , PA_ADDR_GB
+             , PA_BUNDLE_NO
+             , PA_GMKT_SHIP_NO
+             , TRANS_TARGET_YN
+             , LAST_SYNC_DATE
+             , INSERT_DATE
+             , INSERT_ID
+             , MODIFY_DATE
+             , MODIFY_ID )
+        VALUES 
+             ( 
+               #{entpCode, jdbcType=VARCHAR}
+             , #{entpManSeq, jdbcType=VARCHAR}
+             , #{paCode, jdbcType=VARCHAR}
+             , #{paAddrSeq, jdbcType=VARCHAR}
+             , #{paAddrGb, jdbcType=VARCHAR}
+             , #{paBundleNo, jdbcType=VARCHAR}
+             , #{newGmktShipNo, jdbcType=VARCHAR}
+             , #{transTargetYn, jdbcType=VARCHAR}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{insertId, jdbcType=VARCHAR}
+             , #{modifyDate, jdbcType=TIMESTAMP}
+             , #{modifyId, jdbcType=VARCHAR}
+             )  
+    </insert>
+    
+     <select id="selectEntpSlipUpdateList" resultType="hashMap" parameterType="String">
+        SELECT /* passgcommon.xml : passg.passgcommon.selectEntpSlipUpdateList by PaSsgCommonController-entpShipUpdate */
+               EU.POST_NO AS POST_NO
+             , EU.STD_ROAD_POST_ADDR1
+             , EU.STD_ROAD_POST_ADDR2
+             , EU.STD_POST_ADDR1
+             , EU.STD_POST_ADDR2
+             , EU.ENTP_CODE
+             , EU.ENTP_MAN_SEQ
+             , EU.ENTP_MAN_GB 
+             , DECODE(EU.ENTP_MAN_HP1, NULL, EU.ENTP_MAN_DDD || '-' || EU.ENTP_MAN_TEL1 || '-' || EU.ENTP_MAN_TEL2, 
+             								 EU.ENTP_MAN_HP1 || '-' || EU.ENTP_MAN_HP2  || '-' || EU.ENTP_MAN_HP3) AS ENTP_MAN_HP
+             , EU.ENTP_MAN_TEL1
+             , EU.ENTP_MAN_TEL2
+             , EU.ENTP_MAN_HP1
+             , EU.ENTP_MAN_HP2
+             , EU.ENTP_MAN_HP3
+             , PL.PA_CODE
+             , PL.PA_ADDR_SEQ
+          FROM TENTPUSER EU
+             , TENTERPRISE EP
+             , TPAENTPSLIP PL
+         WHERE EU.ENTP_CODE = EP.ENTP_CODE
+           AND EU.ENTP_CODE = PL.ENTP_CODE
+           AND EU.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+           AND PL.PA_CODE IN ('A1','A2')
+           AND PL.PA_ADDR_GB IN ('20','30')
+           AND PL.TRANS_TARGET_YN = '1'
+           AND PL.PA_ADDR_SEQ IS NOT NULL
+    </select>
+    
+    <select id="selectEntpSlipUpdate" resultType="hashMap" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">
+        SELECT /* passgcommon.xml : passg.passgcommon.selectEntpSlipUpdateList by PaSsgSellerService */
+               EU.POST_NO AS POST_NO
+             , EU.STD_ROAD_POST_ADDR1
+             , EU.STD_ROAD_POST_ADDR2
+             , EU.STD_POST_ADDR1
+             , EU.STD_POST_ADDR2
+             , EU.ENTP_CODE
+             , EU.ENTP_MAN_SEQ
+             , EU.ENTP_MAN_GB 
+             , DECODE(EU.ENTP_MAN_HP1, NULL, EU.ENTP_MAN_DDD || '-' || EU.ENTP_MAN_TEL1 || '-' || EU.ENTP_MAN_TEL2, 
+             								 EU.ENTP_MAN_HP1 || '-' || EU.ENTP_MAN_HP2  || '-' || EU.ENTP_MAN_HP3) AS ENTP_MAN_HP
+             , EU.ENTP_MAN_TEL1
+             , EU.ENTP_MAN_TEL2
+             , EU.ENTP_MAN_HP1
+             , EU.ENTP_MAN_HP2
+             , EU.ENTP_MAN_HP3
+             , PL.PA_CODE
+             , PL.PA_ADDR_SEQ
+          FROM TENTPUSER EU
+             , TENTERPRISE EP
+             , TPAENTPSLIP PL
+         WHERE EU.ENTP_CODE = EP.ENTP_CODE
+           AND EU.ENTP_CODE = PL.ENTP_CODE
+           AND EU.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+           AND PL.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PL.TRANS_TARGET_YN = '1'
+           AND PL.PA_ADDR_SEQ IS NOT NULL
+           AND PL.ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+           AND PL.ENTP_MAN_SEQ = #{entpManSeq, jdbcType=VARCHAR}
+    </select>
+    
+    <update id="updatePaSsgEntpSlip" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">
+        UPDATE /* passgcommon.xml : passg.passgcommon.updatePaSsgEntpSlip */
+               TPAENTPSLIP
+           SET TRANS_TARGET_YN = #{transTargetYn, jdbcType=VARCHAR}
+             , MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+             , MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+         WHERE ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+           AND PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PA_ADDR_SEQ = #{paAddrSeq, jdbcType=VARCHAR}
+    </update>
+    
+	<select id="selectGoodsKindsList" resultType="com.cware.netshopping.domain.model.PaGoodsKinds">
+        SELECT /* passgcommon.xml : passg.passgcommon.selectGoodsKindsList by PaSsgCommonController-recommendCategoryList */
+			   A.PA_LMSD_KEY
+		  FROM TPAGOODSKINDS A
+		 WHERE A.PA_GROUP_CODE = '10'
+		   AND NOT EXISTS ( SELECT 1 
+		   					  FROM TPASSGRECOMMENDDISPLAY B 
+		   					 WHERE A.PA_LMSD_KEY = B.STD_CTG_DCLS_ID
+		   				  )
+		   ORDER BY A.PA_LMSD_KEY
+    </select>
+    
+      <insert id="savePaSsgDisplayRecommendCategory" parameterType="com.cware.netshopping.domain.model.PaSsgDisplayRecommendCategory">    
+        INSERT /* passgcommon.xml : passg.passgcommon.savePaSsgDisplayRecommendCategory by PaSsgCommonController-recommendCategoryList */
+         INTO TPASSGRECOMMENDDISPLAY
+             ( SEQ
+             , SITE_NO
+             , STD_CTG_DCLS_ID
+             , DISP_CTG_CLS_NM
+             , DISP_CTG_LCLS_ID
+             , DISP_CTG_LCLS_NM
+             , DISP_CTG_MCLS_ID
+             , DISP_CTG_MCLS_NM
+             , DISP_CTG_SCLS_ID
+             , DISP_CTG_SCLS_NM
+             , DISP_CTG_DCLS_ID
+             , DISP_CTG_DCLS_NM
+             , DISP_CTG_SDCLS_ID
+             , DISP_CTG_SDCLS_NM
+             , INSERT_ID
+             , INSERT_DATE
+             )
+        VALUES 
+             ( 
+              ( SELECT NVL(LPAD(MAX(SEQ+1),4,'0'),'0001') FROM TPASSGRECOMMENDDISPLAY )
+             , #{siteNo, jdbcType=VARCHAR}
+             , #{stdCtgDclsId, jdbcType=VARCHAR}
+             , #{dispCtgClsNm, jdbcType=VARCHAR}
+             , #{dispCtgLclsId, jdbcType=VARCHAR}
+             , #{dispCtgLclsNm, jdbcType=VARCHAR}
+             , #{dispCtgMclsId, jdbcType=VARCHAR}
+             , #{dispCtgMclsNm, jdbcType=VARCHAR}
+             , #{dispCtgSclsId, jdbcType=TIMESTAMP}
+             , #{dispCtgSclsNm, jdbcType=TIMESTAMP}
+             , #{dispCtgDclsId, jdbcType=VARCHAR}
+             , #{dispCtgDclsNm, jdbcType=TIMESTAMP}
+             , #{dispCtgSdclsId, jdbcType=VARCHAR}
+             , #{dispCtgSdclsNm, jdbcType=VARCHAR}
+             , #{insertId, jdbcType=VARCHAR}
+             , #{insertDate, jdbcType=VARCHAR}
+             )  
+    </insert>
+    
+    <select id="selectSsgGoodsCertList" resultType="com.cware.netshopping.domain.model.PaGoodsKinds">
+        SELECT /* passgcommon.xml : passg.passgcommon.selectSsgGoodsCertList by PaSsgCommonController-authenticationinfoList */
+			   A.PA_LMSD_KEY
+		  FROM TPAGOODSKINDS A
+		 WHERE A.PA_GROUP_CODE = '10'
+		   AND NOT EXISTS ( SELECT 1 
+							  FROM TPASSGGOODSCERTIFICATION B 
+							 WHERE A.PA_LMSD_KEY = B.STD_CTG_ID
+						  )
+		 ORDER BY A.PA_LMSD_KEY
+    </select>
+    
+     <insert id="savePaSsgGoodsCert" parameterType="com.cware.netshopping.domain.model.PaSsgGoodsCert">    
+        INSERT /* passgcommon.xml : passg.passgcommon.savePaSsgGoodsCert by PaSsgCommonController-authenticationinfoList */
+         INTO TPASSGGOODSCERTIFICATION
+             ( STD_CTG_ID
+             , ITEM_APPE_PROP_CLS_ID
+             , ITEM_APPE_PROP_CLS_NM
+             , ITEM_APPE_PROP_ID
+             , ITEM_APPE_PROP_NM
+             , ITEM_APPE_PROP_TYPE_CD
+             , ITEM_APPE_PROP_DTL_TYPE_CD
+             , REP_PROP_TYPE_CD
+             , REP_PROP_CNTT
+             , MAX_IPT_VAL
+             , MNDTY_YN
+             , PRCD_APPE_PROP_ID
+             , PRCD_APPE_PROP_CNTT
+             , INSERT_ID
+             , INSERT_DATE
+             )
+        VALUES 
+             ( 
+               #{stdCtgId, jdbcType=VARCHAR}
+             , #{itemAppePropClsId, jdbcType=VARCHAR}
+             , #{itemAppePropClsNm, jdbcType=VARCHAR}
+             , #{itemAppePropId, jdbcType=VARCHAR}
+             , #{itemAppePropNm, jdbcType=VARCHAR}
+             , #{itemAppePropTypeCd, jdbcType=VARCHAR}
+             , #{itemAppePropDtlTypeCd, jdbcType=VARCHAR}
+             , #{repPropTypeCd, jdbcType=TIMESTAMP}
+             , #{repPropCntt, jdbcType=TIMESTAMP}
+             , #{maxIptVal, jdbcType=VARCHAR}
+             , #{mndtyYn, jdbcType=TIMESTAMP}
+             , #{prcdAppePropId, jdbcType=VARCHAR}
+             , #{prcdAppePropCntt, jdbcType=VARCHAR}
+             , #{insertId, jdbcType=VARCHAR}
+             , #{insertDate, jdbcType=VARCHAR}
+             )  
+    </insert>
+    
+    <delete id="deletePaSsgSettlement" parameterType="hashMap">
+        DELETE /* passgcommon.xml : passg.passgcommon.deletePaSsgSettlement by PaSsgCommonController-settlementGoods */
+        	   FROM TPASSGSETTLEMENT 
+         WHERE CRITN_DT = #{salesDateToString,	jdbcType=VARCHAR}
+    </delete>
+    
+	<select id="selectPaSsgSettlementExists" parameterType="hashMap" resultType="int">
+      SELECT /* passgcommon.xml : passg.passgcommon.selectPaSsgSettlementExists */
+             COUNT(1) 
+        FROM TPASSGSETTLEMENT PS
+       WHERE PS.CRITN_DT = #{salesDateToString,	jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertPaSsgSettlement" parameterType="com.cware.netshopping.domain.model.PaSsgSettlement">    
+        INSERT /* passgcommon.xml : passg.passgcommon.insertPaSsgSettlement by PaSsgCommonController-settlementGoods */
+		  INTO TPASSGSETTLEMENT
+			 ( PA_SSGSETTLEMENT_NO
+			 , CRITN_DT
+			 , SETTL_VEN_ID
+			 , SETTL_VEN_NM
+			 , LRNK_VEN_ID
+			 , LRNK_VEN_NM
+			 , SALESTR_NO
+			 , SALESTR_NO2
+			 , TXN_DIV_CD
+			 , TXN_DIV_NM
+			 , ORD_NO
+			 , ORORD_NO
+			 , ORD_ITEM_SEQ
+			 , ORORD_ITEM_SEQ
+			 , ORDPE_NM
+			 , SHPP_NO
+			 , WBL_NO
+			 , DELICO_NM
+			 , ITEM_ID
+			 , ITEM_NM
+			 , UITEM_NM
+			 , SALES_QTY
+			 , SETTL_AMT
+			 , SELL_UPRC
+			 , TOT_SELL_AMT
+			 , SPL_VEN_BDN_DC_AMT
+			 , OWNCO_BDN_DC_AMT
+			 , TOT_DC_AMT
+			 , NET_AMT
+			 , SELL_FEE_RT
+			 , CTAX_AMT
+			 , FRG_SELL_VAT
+			 , DV_SHPPCST_AMT
+			 , DV_SHPPCST_VAT
+			 , DV_CSTMR_AMT
+			 , VEN_DV_SHPPCST
+			 , VEN_DV_SHPPCST_VAT
+			 , OWNCO_DV_SHPPCST
+			 , FREE_SHPP_CPN_VEN_BDN_AMT
+			 , FREE_SHPP_CPN_OWNCO_BDN_AMT
+			 , ALLN_TYPE_NM
+			 )
+		VALUES
+			 ( #{paSsgSettlementNo,			jdbcType=VARCHAR}
+			 , #{critnDt,					jdbcType=VARCHAR}
+			 , #{settlVenId,				jdbcType=VARCHAR}
+			 , #{settlVenNm,				jdbcType=VARCHAR}
+			 , #{lrnkVenId,					jdbcType=VARCHAR}
+			 , #{lrnkVenNm,					jdbcType=VARCHAR}
+			 , #{salestrNo,					jdbcType=VARCHAR}
+			 , #{salestrNo2,				jdbcType=VARCHAR}
+			 , #{txnDivCd,					jdbcType=VARCHAR}
+			 , #{txnDivNm,					jdbcType=VARCHAR}
+			 , #{ordNo,						jdbcType=VARCHAR}
+			 , #{orordNo,					jdbcType=VARCHAR}
+			 , #{ordItemSeq,				jdbcType=NUMERIC}
+			 , #{orordItemSeq,				jdbcType=NUMERIC}
+			 , #{ordpeNm,					jdbcType=VARCHAR}
+			 , #{shppNo,					jdbcType=VARCHAR}
+			 , #{wblNo,						jdbcType=VARCHAR}
+			 , #{delicoNm,					jdbcType=VARCHAR} 
+			 , #{itemId,					jdbcType=VARCHAR}
+			 , #{itemNm,					jdbcType=VARCHAR}
+			 , #{uitemNm,					jdbcType=VARCHAR}
+			 , #{salesQty,					jdbcType=NUMERIC}
+			 , #{settlAmt,					jdbcType=NUMERIC}
+			 , #{sellUprc,					jdbcType=NUMERIC}
+			 , #{totSellAmt,				jdbcType=NUMERIC}
+			 , #{splVenBdnDcAmt,			jdbcType=NUMERIC}
+			 , #{owncoBdnDcAmt,				jdbcType=NUMERIC}
+			 , #{totDcAmt,					jdbcType=NUMERIC}
+			 , #{netAmt,					jdbcType=NUMERIC}
+			 , #{sellFeeRt,					jdbcType=NUMERIC}
+			 , #{ctaxAmt,					jdbcType=NUMERIC}
+			 , #{frgSellVat,				jdbcType=NUMERIC}
+			 , #{dvShppcstAmt,				jdbcType=NUMERIC}
+			 , #{dvShppcstVat,				jdbcType=NUMERIC}
+			 , #{dvCstmrAmt,				jdbcType=NUMERIC}
+			 , #{venDvShppcst,				jdbcType=NUMERIC}
+			 , #{venDvShppcstVat,			jdbcType=NUMERIC}
+			 , #{owncoDvShppcst,			jdbcType=NUMERIC}
+			 , #{freeShppCpnVenBdnAmt,		jdbcType=NUMERIC}
+			 , #{freeShppCpnOwncoBdnAmt,	jdbcType=VARCHAR}
+			 , #{allnTypeNm,				jdbcType=VARCHAR}
+			 )
+    </insert>
+</mapper>

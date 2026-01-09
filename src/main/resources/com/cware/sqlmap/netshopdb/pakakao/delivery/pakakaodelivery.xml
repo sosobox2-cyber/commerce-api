@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pakakao.delivery">
+
+	<select id="countOrderList" parameterType="String" resultType="int">
+        SELECT /* pakakaodelivery.xml : pakakao.delivery.countOrderList by PaKakaoDeliveryController */
+                COUNT(1) AS CNT
+          FROM TPAKAKAOORDERLIST OL
+         WHERE OL.ID = #{orderId, jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertPaKakaoOrderList" parameterType="com.cware.netshopping.domain.PaKakaoOrderListVO">
+        INSERT /* pakakaodelivery.xml : pakakao.delivery.insertPaKakaoOrderList by PaKakaoDeliveryController */
+		  INTO TPAKAKAOORDERLIST (
+			   ID                             , PAYMENT_ID                     , GROUP_DISCOUNT_ROOM_ID			, STATUS
+			 , PAID_AT                        , DECIDED_AT                     , REFUNDED_AT					, CANCELED_AT
+			 , CREATED_AT                     , MODIFIED_AT                    , PHONE_NUMBER					, ORDER_PRODUCT_ID 
+			 , NAME                           , SELLER_ITEM_NO                 , SELLER_ITEM_OPTION_CODE		, OPTION_CONTENT
+			 , QUANTITY                       , PRODUCT_PRICE                  , OPTION_PRICE					, SELLER_DISCOUNT_PRICE
+			 , SETTLEMENT_BASIC_PRICE         , BASE_FEE                       , DISPLAY_FEE					, REFERER_CODE
+			 , BRAND_NAME                     , MODEL_NAME                     , DELIVERY_AMOUNT_ORIGIN_ID		, DELIVERY_AMOUNT_PAY_POINT_TIME
+			 , DELIVERY_AMOUNT_TYPE           , DELIVERY_AMOUNT                , CONFIRMED_AT					, DELIVERED_AT
+			 , DELIVERY_COMPANY_CODE          , DELIVERY_REQUEST_AT            , INVOICE_NUMBER					, INVOICE_REGISTERED_AT
+			 , SHIPPING_METHOD                , RECEIVER_ADDRESS               , RECEIVER_MOBILE_NUMBER			, RECEIVER_NAME
+			 , RECEIVER_PHONE_NUMBER          , REQUIREMENT                    , ROAD_ZIP_CODE					, ZIPCODE 
+			 , AREA_ADD_DELIVERY_AMOUNT		  , INSERT_DATE                    , MODIFY_DATE                    , SELLER_COUPON_DISCOUNT_PRICE
+             )
+        VALUES (
+			   #{id					  , jdbcType=VARCHAR}							  , #{paymentId					, jdbcType=VARCHAR}								, #{groupDiscountRoomId	   , jdbcType=VARCHAR}							   , #{status                      , jdbcType=VARCHAR}
+			 , TO_DATE(#{paidAt		  , jdbcType=TIMESTAMP}, 'YYYY-MM-DD HH24:MI:SS') , TO_DATE(#{decidedAt			, jdbcType=TIMESTAMP}, 'YYYY-MM-DD HH24:MI:SS') , TO_DATE(#{refundedAt	   , jdbcType=TIMESTAMP}, 'YYYY-MM-DD HH24:MI:SS') , TO_DATE(#{canceledAt          , jdbcType=TIMESTAMP}, 'YYYY-MM-DD HH24:MI:SS')
+			 , TO_DATE(#{createdAt	  , jdbcType=TIMESTAMP}, 'YYYY-MM-DD HH24:MI:SS') , TO_DATE(#{modifiedAt		, jdbcType=TIMESTAMP}, 'YYYY-MM-DD HH24:MI:SS') , #{phoneNumber			   , jdbcType=VARCHAR}							   , #{orderProductId              , jdbcType=VARCHAR}
+			 , #{name				  , jdbcType=VARCHAR}							  , #{sellerItemNo				, jdbcType=VARCHAR}								, #{sellerItemOptionCode   , jdbcType=VARCHAR}							   , #{optionContent               , jdbcType=VARCHAR}
+			 , #{quantity			  , jdbcType=VARCHAR}							  , #{productPrice				, jdbcType=VARCHAR}								, #{optionPrice			   , jdbcType=VARCHAR}							   , #{sellerDiscountPrice         , jdbcType=VARCHAR}
+			 , #{settlementBasicPrice , jdbcType=VARCHAR}							  , #{baseFee					, jdbcType=VARCHAR}								, #{displayFee			   , jdbcType=VARCHAR}							   , #{refererCode                 , jdbcType=VARCHAR}
+			 , #{brandName			  , jdbcType=VARCHAR}							  , #{modelName					, jdbcType=VARCHAR}								, #{deliveryAmountOriginId , jdbcType=VARCHAR}							   , #{deliveryAmountPayPointTime  , jdbcType=VARCHAR} 
+			 , #{deliveryAmountType   , jdbcType=VARCHAR}							  , #{deliveryAmount			, jdbcType=VARCHAR}								, TO_DATE(#{confirmedAt	   , jdbcType=TIMESTAMP}, 'YYYY-MM-DD HH24:MI:SS') , TO_DATE(#{deliveredAt         , jdbcType=TIMESTAMP}, 'YYYY-MM-DD HH24:MI:SS')
+			 , #{deliveryCompanyCode  , jdbcType=VARCHAR}							  , TO_DATE(#{deliveryRequestAt , jdbcType=TIMESTAMP}, 'YYYY-MM-DD HH24:MI:SS') , #{invoiceNumber		   , jdbcType=VARCHAR}							   , TO_DATE(#{invoiceRegisteredAt , jdbcType=TIMESTAMP}, 'YYYY-MM-DD HH24:MI:SS')
+			 , #{shippingMethod		  , jdbcType=VARCHAR}							  , #{receiverAddress			, jdbcType=VARCHAR}								, #{receiverMobileNumber   , jdbcType=VARCHAR}							   , #{receiverName                , jdbcType=VARCHAR}
+			 , #{receiverPhoneNumber  , jdbcType=VARCHAR}							  , #{requirement				, jdbcType=VARCHAR}								, #{roadZipCode			   , jdbcType=VARCHAR}							   , #{zipcode                     , jdbcType=VARCHAR} 
+			 , #{areaAdditionalDeliveryAmount , jdbcType=NUMERIC}				      , #{insertDate			    , jdbcType=TIMESTAMP}							, #{modifyDate			   , jdbcType=TIMESTAMP}                           , #{sellerCouponDiscountPrice   , jdbcType=VARCHAR}
+     )
+	</insert>
+    
+	<update id="updatePreCanYn">
+        UPDATE /* pakakaodelivery.xml : pakakao.delivery.updatePreCanYn by PaKakaoDeliveryController*/
+        	   TPAORDERM
+           SET PRE_CANCEL_YN	 	= #{preCanYn			,	jdbcType=VARCHAR}
+             , API_RESULT_MESSAGE	= #{apiResultMessage	,	jdbcType=VARCHAR}
+             <if test="apiResultCode != null and apiResultCode != ''">
+             , API_RESULT_CODE		= #{apiResultCode    	,	jdbcType=VARCHAR}
+             </if>
+             , MODIFY_DATE		 	= SYSDATE
+         WHERE MAPPING_SEQ       	= #{MAPPING_SEQ			,   jdbcType=VARCHAR}
+    </update>
+    
+	<select id="selectOrderInputTargetList" parameterType="hashMap" resultType="hashMap">
+		SELECT /* pakakaodelivery.xml : pakakao.delivery.selectOrderInputTargetList by PaKakaoDeliveryController */
+			   AA.PA_ORDER_NO
+             , AA.TARGET_CNT
+          FROM (SELECT POM.PA_ORDER_NO
+                     , COUNT(1) TARGET_CNT
+                  FROM TPAORDERM POM
+                 WHERE POM.PA_CODE        IN ('B1','B2')
+                   AND POM.PA_ORDER_GB    = '10'
+                   AND POM.CREATE_YN      = '0'
+                   AND POM.PRE_CANCEL_YN  = '0'
+                   AND POM.INSERT_DATE    > TRUNC(SYSDATE)-5
+                   AND POM.PA_DO_FLAG	  = '20'
+                 GROUP BY POM.PA_ORDER_NO
+                 ORDER BY POM.PA_ORDER_NO) AA
+          WHERE 1 = 1
+            AND ROWNUM &lt;= #{limitCount, jdbcType=NUMERIC}
+	</select>
+	
+	<select id="selectOrderInputTargetDtList" parameterType="hashMap" resultType="hashMap">
+		SELECT /* pakakaodelivery.xml : selectOrderInputTargetDtList by PaKakaoDeliveryController */
+			   PM.PA_ORDER_NO
+			 , PM.PA_CODE
+			 , PGM.PRODUCT_ID AS PA_GOODS_CODE
+			 , PM.MAPPING_SEQ
+			 , TC.REMARK1 AS MEDIA_CODE  
+			 , TO_CHAR(PL.CREATED_AT, 'YYYYMMDDHH24MISS') AS ORDER_DATE
+			 , PGD.GOODS_CODE
+			 , PGD.GOODSDT_CODE
+			 , PL.QUANTITY AS ORDER_QTY
+			 , TO_CHAR(PP.APPLY_DATE, 'YYYYMMDDHH24MISS') APPLY_DATE
+			 , PL.SETTLEMENT_BASIC_PRICE AS RSALE_AMT
+			 , PP.SUPPLY_PRICE
+			 , PL.RECEIVER_NAME AS CUST_NAME
+			 , PL.PHONE_NUMBER AS CUST_TEL1
+			 , PL.RECEIVER_NAME AS RECEIVER_NAME
+			 , NVL(DECODE(PL.RECEIVER_PHONE_NUMBER, '010', '', PL.RECEIVER_PHONE_NUMBER) ,  PL.RECEIVER_MOBILE_NUMBER  ) AS RECEIVER_TEL
+			 , PL.RECEIVER_MOBILE_NUMBER AS RECEIVER_HP
+			 , PL.ZIPCODE  AS ZIPCODE 
+			 , PL.RECEIVER_ADDRESS AS RECEIVER_ADDR
+			 , NVL((PP.SALE_PRICE * PL.QUANTITY),0) - PL.SETTLEMENT_BASIC_PRICE AS SELLER_DC_AMT
+			 , NVL((PP.LUMP_SUM_DC_AMT * PL.QUANTITY),0) AS LUMP_SUM_DC_AMT
+			 , NVL((PP.LUMP_SUM_ENTP_DC_AMT),0) AS LUMP_SUM_ENTP_DC_AMT
+			 , NVL((PP.LUMP_SUM_OWN_DC_AMT),0) AS LUMP_SUM_OWN_DC_AMT
+			 , PL.REQUIREMENT AS MSG
+			 , PL.DELIVERY_AMOUNT+PL.AREA_ADD_DELIVERY_AMOUNT AS SHP_FEE_COST 
+			 , PL.RECEIVER_ADDRESS AS RECEIVER_ADDR1
+			 , PP.PRICE_SEQ
+			 , PP.SALE_PRICE  
+			 , '99' AS CUST_CHAR
+			 , '68' AS RECEIVE_METHOD
+			 , PL.SELLER_COUPON_DISCOUNT_PRICE AS INSTANT_COUPON_DISCOUNT
+			 , PP.COUPON_PROMO_NO AS PROMO_NO
+			 , NVL(PP.COUPON_DC_AMT, 0) AS DO_AMT
+			 , PP.COUPON_OWN_COST AS OWN_COST
+			 , PP.COUPON_ENTP_COST AS ENTP_COST
+			 , PROMO.PROMO_BDATE AS COUPON_PROMO_BDATE
+			 , PROMO.PROMO_EDATE AS COUPON_PROMO_EDATE
+			 , PL.OPTION_CONTENT
+			 , TO_CHAR(GP.APPLY_DATE, 'YYYYMMDDHH24MISS') AS STOA_APPLY_DATE
+		  FROM TPAORDERM PM
+			 , TPAKAKAOORDERLIST PL 
+			 , TCODE TC
+			 , TPAKAKAOGOODS PGM
+			 , TPAGOODSDTMAPPING PGD
+			 , TPAGOODSPRICEAPPLY PP
+			 , TPROMOM PROMO
+			 , TGOODSPRICE GP
+		 WHERE PM.PA_ORDER_NO      = PL.PAYMENT_ID
+		   AND PM.PA_ORDER_SEQ     = PL.ID
+		   AND PM.PA_GROUP_CODE    = TC.CODE_MGROUP
+		   AND PGM.GOODS_CODE      = PGD.GOODS_CODE
+		   AND PL.ORDER_PRODUCT_ID = PGM.PRODUCT_ID
+		   AND PM.PA_CODE          = PGD.PA_CODE
+		   AND PL.SELLER_ITEM_OPTION_CODE = PGD.PA_OPTION_CODE
+		   AND PGM.PA_GROUP_CODE   = PM.PA_GROUP_CODE
+		   AND PGM.GOODS_CODE    = PP.GOODS_CODE
+		   AND PGM.PA_GROUP_CODE = PP.PA_GROUP_CODE
+		   AND PGM.PA_CODE       = PP.PA_CODE
+		   AND (PP.APPLY_DATE, PP.PRICE_APPLY_SEQ) = (SELECT /*+ INDEX_DESC (PP2 PK_TPAGOODSPRICEAPPLY)*/
+															 PP2.APPLY_DATE, PP2.PRICE_APPLY_SEQ
+														FROM TPAGOODSPRICEAPPLY PP2
+													   WHERE PP2.GOODS_CODE = PP.GOODS_CODE
+														 AND PP2.PA_GROUP_CODE = PP.PA_GROUP_CODE
+														 AND PP2.PA_CODE = PP.PA_CODE
+														 AND PP2.APPLY_DATE &lt;= PL.CREATED_AT
+														 AND PP2.TRANS_DATE &lt;= PL.CREATED_AT
+														 AND rownum = 1 )
+		   AND PP.COUPON_PROMO_NO = PROMO.PROMO_NO(+)
+		   AND GP.GOODS_CODE = PP.GOODS_CODE
+           AND GP.ROWID = (SELECT /*+ INDEX_DESC (GP2 PK_TGOODSPRICE)*/
+                                     GP2.ROWID
+                             FROM TGOODSPRICE GP2
+                            WHERE GP2.GOODS_CODE  = GP.GOODS_CODE
+                              AND GP2.APPLY_DATE &lt; PL.CREATED_AT
+                              AND ROWNUM = 1)
+		   AND ((PL.PRODUCT_PRICE - PL.SELLER_DISCOUNT_PRICE) / QUANTITY) = PP.SALE_PRICE - (PP.ARS_DC_AMT + PP.LUMP_SUM_DC_AMT + NVL(PP.COUPON_DC_AMT,0))
+		   AND TC.CODE_LGROUP			 = 'O500'
+		   AND TC.CODE_MGROUP			 =  PM.PA_GROUP_CODE 
+		   AND PM.PA_ORDER_GB			 = '10'
+		   AND PM.CREATE_YN			 	= '0'
+		   AND PM.PRE_CANCEL_YN			 = '0'
+		   AND PM.PA_CODE				 IN ('B1','B2')
+		   AND PM.PA_ORDER_NO			 = #{PA_ORDER_NO, jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectRefusalInfo" parameterType="String" resultType="hashMap">   
+		SELECT /* pakakaodelivery.xml : pakakao.delivery.selectRefusalInfo by PaKakaoDeliveryController */
+		       PL.ID
+			 , PM.PA_CODE
+			 , PM.MAPPING_SEQ
+		  FROM TPAORDERM PM
+			 , TPAKAKAOORDERLIST PL
+		 WHERE PM.PA_ORDER_NO	= PL.PAYMENT_ID
+		   AND PM.PA_ORDER_SEQ  = PL.ID
+		   AND PM.PA_ORDER_GB	= '10'
+		   AND PM.PA_CODE IN ('B1','B2')
+		   AND PM.MAPPING_SEQ	= #{mappingSeq, jdbcType=VARCHAR}
+   	</select>
+	
+	<select id="selectSlipOutProcList" parameterType="hashMap" resultType="hashMap">
+	    SELECT /* pakakaodelivery.xml : pakakao.delivery.selectSlipOutProcList by PaKakaoDeliveryController */
+			   PM.PA_ORDER_NO
+			 , PM.PA_ORDER_SEQ
+			 , PM.PA_ORDER_GB
+			 , PM.PA_CODE
+			 , DG.PA_DELY_GB
+			 , SM.SLIP_NO
+			 , SM.SLIP_PROC
+			 , 'SLIP_OUT' AS SLIP_FLAG
+			 , PM.MAPPING_SEQ
+		  FROM TPAORDERM PM
+			 , TPAKAKAOORDERLIST PO
+			 , TSLIPM SM
+			 , TSLIPDT SD
+			 , TORDERGOODS OG
+			 , TPADELYGB DG
+		 WHERE PM.PA_ORDER_NO  = PO.PAYMENT_ID 
+		   AND PM.PA_ORDER_SEQ = PO.ID
+		   AND SM.SLIP_I_NO    = SD.SLIP_I_NO
+		   AND PM.ORDER_NO     = SD.ORDER_NO
+		   AND PM.ORDER_G_SEQ  = SD.ORDER_G_SEQ
+		   AND PM.ORDER_D_SEQ  = SD.ORDER_D_SEQ
+		   AND PM.ORDER_W_SEQ  = SD.ORDER_W_SEQ
+		   AND PM.ORDER_NO     = OG.ORDER_NO
+		   AND PM.ORDER_G_SEQ  = OG.ORDER_G_SEQ
+		   AND PM.PA_DO_FLAG   = '20'
+		   AND PM.PA_ORDER_GB  = '10'
+		   AND PM.PA_CODE      IN ('B1', 'B2')
+		   AND SM.SLIP_PROC   >= '40'
+		   AND SM.SLIP_NO IS NOT NULL
+		   AND DG.PA_CODE    = '11'
+		   AND SM.DELY_GB    = DG.DELY_GB
+		   AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+		   AND NOT EXISTS (SELECT 1 FROM TPAKAKAOCANCELLIST KC WHERE KC.ID = PO.ID AND KC.WITHDRAW_YN = '0')
+      
+     UNION ALL
+     
+      	  <!-- 송장 없는 배송완료건  -->
+	    SELECT PM.PA_ORDER_NO
+			 , PM.PA_ORDER_SEQ
+			 , PM.PA_ORDER_GB
+			 , PM.PA_CODE
+			 , DG.PA_DELY_GB
+			 , '' AS SLIP_NO
+			 , SM.SLIP_PROC
+			 , 'SLIP_COMPLETE' AS SLIP_FLAG
+			 , PM.MAPPING_SEQ
+          FROM TPAORDERM PM
+			 , TPAKAKAOORDERLIST PO
+			 , TSLIPM SM
+			 , TSLIPDT SD
+			 , TORDERGOODS OG
+			 , TPADELYGB DG
+         WHERE PM.PA_ORDER_NO  = PO.PAYMENT_ID
+		   AND PM.PA_ORDER_SEQ = PO.ID 
+           AND SM.SLIP_I_NO    = SD.SLIP_I_NO
+           AND PM.ORDER_NO     = SD.ORDER_NO
+           AND PM.ORDER_G_SEQ  = SD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ  = SD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ  = SD.ORDER_W_SEQ
+           AND PM.ORDER_NO     = OG.ORDER_NO
+           AND PM.ORDER_G_SEQ  = OG.ORDER_G_SEQ
+           AND PM.PA_DO_FLAG   = '30'
+           AND PM.PA_ORDER_GB  = '10'
+           AND PM.PA_CODE      IN ('B1', 'B2')
+           AND SM.SLIP_PROC    = '80'
+           AND SM.SLIP_NO IS NULL
+           AND DG.PA_CODE	   = '11'
+           AND DG.DELY_GB	   = '99'
+           AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+           AND SM.SLIP_PROC_DATE > SYSDATE - 120
+           
+     UNION ALL
+     
+		SELECT PM.PA_ORDER_NO
+			 , PM.PA_ORDER_SEQ
+			 , PM.PA_ORDER_GB
+			 , PM.PA_CODE
+			 , DG.PA_DELY_GB
+			 , SM.SLIP_NO
+			 , SM.SLIP_PROC
+			 , 'SLIP_UPDATE' AS SLIP_FLAG
+			 , PM.MAPPING_SEQ
+		  FROM TPAORDERM PM
+			 , TPAKAKAOORDERLIST PO
+			 , TSLIPM SM
+			 , TSLIPDT SD
+			 , TORDERGOODS OG
+			 , TPADELYGB DG
+			 , TPASLIPINFO SP
+         WHERE PM.PA_ORDER_NO   = PO.PAYMENT_ID
+           AND PM.PA_ORDER_SEQ  = PO.ID
+           AND SM.SLIP_I_NO     = SD.SLIP_I_NO
+           AND PM.ORDER_NO      = SD.ORDER_NO
+           AND PM.ORDER_G_SEQ   = SD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ   = SD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ   = SD.ORDER_W_SEQ
+           AND PM.ORDER_NO      = OG.ORDER_NO
+           AND PM.ORDER_G_SEQ   = OG.ORDER_G_SEQ
+           AND PM.PA_DO_FLAG    = '40'
+           AND PM.PA_ORDER_GB   = '10'
+           AND PM.PA_CODE       IN ('B1', 'B2')
+           AND SM.SLIP_PROC     = '40'
+           AND SM.SLIP_NO IS NOT NULL
+           AND DG.PA_CODE       = '11'
+           AND SM.DELY_GB       = DG.DELY_GB
+           AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+           AND SP.MAPPING_SEQ   = PM.MAPPING_SEQ
+           AND SP.PA_GROUP_CODE = PM.PA_GROUP_CODE
+           AND SP.SLIP_NO      != SM.SLIP_NO
+           AND SP.LAST_YN	  	= '1'
+	</select>
+	
+	<update id="updatePaOrderMDoFlag" parameterType="hashMap">
+		 UPDATE /* pakakaodelivery.xml : pakakao.delivery.updatePaOrderMDoFlag by PaKakaoDeliveryController */
+        	   TPAORDERM
+           SET 
+           	   PROC_DATE		  = SYSDATE
+           <if test="PA_DO_FLAG != null and PA_DO_FLAG != ''">
+             , PA_DO_FLAG		  = #{PA_DO_FLAG		 , jdbcType=VARCHAR}
+           </if>
+           	 , API_RESULT_CODE	  = #{API_RESULT_CODE	 , jdbcType=VARCHAR}
+           	 , API_RESULT_MESSAGE = #{API_RESULT_MESSAGE , jdbcType=VARCHAR}
+             , MODIFY_DATE		  = SYSDATE
+         WHERE PA_CODE			  = #{PA_CODE			 , jdbcType=VARCHAR}
+           AND PA_ORDER_NO		  = #{PA_ORDER_NO		 , jdbcType=VARCHAR}
+           AND PA_ORDER_SEQ		  = #{PA_ORDER_SEQ		 , jdbcType=VARCHAR}
+           AND PA_ORDER_GB		  = #{PA_ORDER_GB		 , jdbcType=VARCHAR}
+	</update>
+	
+	<select id="selectSlipOutProcOptionList" parameterType="hashMap" resultType="hashMap">
+	    SELECT /* pakakaodelivery.xml : pakakao.delivery.selectSlipOutProcOptionList by PaKakaoDeliveryController */
+			   PO.ID
+			 , NVL((SELECT PDG.PA_DELY_GB FROM TPADELYGB PDG WHERE PDG.PA_CODE = '11' AND SM.DELY_GB = PDG.DELY_GB), '10099') AS PA_DELY_GB
+			 , SM.SLIP_NO AS INVOICE_NO
+			 , SM.SLIP_PROC
+			 , PM.MAPPING_SEQ
+          FROM TPAORDERM PM
+	         , TPAKAKAOORDERLIST PO
+	       	 , TORDERGOODS OG
+	       	 , TSLIPM SM
+	       	 , TSLIPDT SD
+	     WHERE PM.PA_ORDER_NO 	= PO.ID
+	       AND PM.ORDER_NO      = OG.ORDER_NO
+           AND PM.ORDER_G_SEQ   = OG.ORDER_G_SEQ
+           AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+	       <choose>
+			   <when test='slipProc == "SLIP_UPDATE"'>
+			   AND PM.PA_DO_FLAG  = '40'
+		   	   AND SM.SLIP_PROC   >= 40
+			   </when>
+			   <otherwise>
+			   AND PM.PA_DO_FLAG  	= '30'
+			   </otherwise>
+			</choose>
+	       AND PM.PA_ORDER_GB 	= '10'
+	       AND PM.PRE_CANCEL_YN = '0'
+		   AND PM.ORDER_NO      = SD.ORDER_NO
+		   AND PM.ORDER_G_SEQ   = SD.ORDER_G_SEQ
+		   AND PM.ORDER_D_SEQ   = SD.ORDER_D_SEQ
+		   AND PM.ORDER_W_SEQ   = SD.ORDER_W_SEQ
+		   AND SM.SLIP_I_NO     = SD.SLIP_I_NO
+		   AND SM.SLIP_GB       = '101'	       
+	       AND PM.PA_CODE   	= #{paCode, jdbcType=VARCHAR}
+	       AND PO.ID			= #{paOrderNo, jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectDelayOrderList" resultType="hashMap">
+	   SELECT /* pakakaodelivery.xml : pakakao.delivery.selectDelayOrderList by PaKakaoDeliveryController */
+	   		  PA_CODE
+			, MAPPING_SEQ
+			, PA_ORDER_SEQ
+			, TO_CHAR(DELIVERY_REQUEST_AT + DECODE(DELAY_CODE,'ORDER_MADE',30,15),'YYYY-MM-DD HH24:MI:SS') AS EXPECTED_DATE
+			, DELAY_CODE
+		 FROM ( SELECT PM.PA_CODE
+					 , PM.MAPPING_SEQ
+					 , PM.PA_ORDER_SEQ
+					 , PO.DELIVERY_REQUEST_AT
+					 , CASE WHEN G.INSTALL_YN = '0' AND G.ORDER_MAKE_YN = '0' THEN 'ETC'
+							ELSE 'ORDER_MADE' END AS DELAY_CODE
+				  FROM TPAORDERM PM
+					 , TPAKAKAOORDERLIST PO
+					 , TORDERGOODS OG
+					 , TGOODS G
+				 WHERE PM.PA_ORDER_GB	= '10'
+				   AND PM.PA_CODE		IN ('B1', 'B2')
+				   AND PM.CREATE_YN		= '1'
+				   AND PM.PA_DO_FLAG		&lt; '40'
+				   AND PM.PA_ORDER_NO	= PO.PAYMENT_ID
+				   AND PM.PA_ORDER_SEQ	= PO.ID      
+				   AND PM.ORDER_NO		= OG.ORDER_NO
+				   AND PM.ORDER_G_SEQ	= OG.ORDER_G_SEQ
+				   AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+				   AND OG.GOODS_CODE		= G.GOODS_CODE      
+				   AND PO.CONFIRMED_AT + 90/24 &lt;= SYSDATE
+				   AND PM.REMARK1_V		IS NULL
+			  )
+    </select>
+	
+	<update id="updatePaKakaoDeliveryExpectedAt" parameterType="hashMap">
+        UPDATE /* pakakaodelivery.xml : pakakao.delivery.updatePaKakaoDeliveryExpectedAt by PaKakaoDeliveryController */
+        	   TPAORDERM
+           SET REMARK1_V  	= #{EXPECTED_DATE, jdbcType=VARCHAR}
+         WHERE MAPPING_SEQ 	= #{MAPPING_SEQ, jdbcType=VARCHAR}
+    </update>
+	
+    <select id="countChkOrderComplete" parameterType="hashMap" resultType="int">
+        SELECT /* pakakaodelivery.xml : pakakao.delivery.countChkOrderComplete by PaKakaoDeliveryController */
+           	   COUNT(1) AS CNT
+          FROM TPAORDERM PM
+		 WHERE PM.PA_CODE	   = #{PA_CODE		, jdbcType=VARCHAR}
+		   AND PM.PA_ORDER_NO  = #{PA_ORDER_NO  , jdbcType=VARCHAR}
+		   AND PM.PA_ORDER_SEQ = #{PA_ORDER_SEQ , jdbcType=VARCHAR}
+		   AND PM.PA_ORDER_GB  = #{PA_ORDER_GB  , jdbcType=VARCHAR}
+		   AND PM.PA_DO_FLAG   = '80'
+	</select>
+    
+     <insert id="updateBuyDecision" parameterType="com.cware.netshopping.domain.PaKakaoOrderListVO">
+        UPDATE /* pakakaodelivery.xml : pakakao.delivery.updateBuyDecision by PaKakaoDeliveryController */
+        	   TPAKAKAOORDERLIST
+           SET STATUS	   = #{status , jdbcType=VARCHAR}
+			 , MODIFY_DATE = SYSDATE
+			 , DECIDED_AT  = TO_DATE(#{decidedAt	  , jdbcType=TIMESTAMP}, 'YYYY-MM-DD HH24:MI:SS')
+		 WHERE ID 		   = #{id	  , jdbcType=VARCHAR}
+     </insert>
+    
+    <select id="checkUpdateBuyDecision" parameterType="com.cware.netshopping.domain.PaKakaoOrderListVO" resultType="int">
+        SELECT /* pakakaodelivery.xml : pakakao.delivery.checkUpdateBuyDecision by PaKakaoDeliveryController */
+                COUNT(1) AS CNT
+          FROM TPAKAKAOORDERLIST OL
+         WHERE OL.ID  = #{id	 , jdbcType=VARCHAR}
+           AND DECIDED_AT IS NOT NULL
+           AND STATUS = #{status , jdbcType=VARCHAR}
+    </select>
+</mapper>

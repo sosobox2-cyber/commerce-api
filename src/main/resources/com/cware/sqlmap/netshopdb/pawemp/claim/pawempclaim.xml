@@ -1,0 +1,588 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+        
+<mapper namespace="pawemp.claim">
+    
+    <select id="selectPaWempClaimItemList" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaWempClaimItemList">
+        SELECT /* pawempclaim.xml: pawemp.claim.selectPaWempClaimItemList by PaWempClaimController */
+                PA_CLAIM_NO,
+                PA_ORDER_NO,
+                PA_SHIP_NO,
+                PA_ORDER_GB,
+                PA_ORDER_SEQ,
+                ORDER_PRODUCT_NO,
+                PRODUCT_NO,
+                PRODUCT_NAME,
+                PRODUCT_PRICE,
+                PRODUCT_QTY,
+                GOODS_CODE,
+                ORDER_OPTION_NO,
+                OPTION_NO,
+                OPTION_NAME,
+                OPTION_QTY,
+                GOODSDT_CODE,
+                PROC_FLAG,
+                CANCEL_PROC_NOTE,
+                CANCEL_PROC_ID,
+                MODIFY_DATE
+          FROM TPAWEMPCLAIMITEMLIST
+         WHERE 1=1
+           <if test='paClaimNo != null and paClaimNo != ""'>
+                AND PA_CLAIM_NO = #{paClaimNo, jdbcType=VARCHAR}
+           </if>
+           <if test='paOrderNo != null and paOrderNo != ""'>
+                AND PA_ORDER_NO = #{paOrderNo, jdbcType=VARCHAR}
+           </if>
+           <if test='paShipNo != null and paShipNo != ""'>
+                AND PA_SHIP_NO = #{paShipNo, jdbcType=VARCHAR}
+           </if>
+           <if test='paOrderGb != null and paOrderGb != ""'>
+                AND PA_ORDER_GB = #{paOrderGb, jdbcType=VARCHAR}
+           </if>
+           <if test='paOrderSeq != null and paOrderSeq != ""'>
+                AND PA_ORDER_SEQ = #{paOrderSeq, jdbcType=VARCHAR}
+           </if>
+    </select>
+    
+    <select id="selectReturnCancelTargetList" resultType="hashMap">
+        SELECT /* pawempclaim.xml : pawemp.claim.selectReturnCancelTargetList */
+               POM.PA_ORDER_NO
+             , POM.PA_SHIP_NO
+             , POM.PA_ORDER_SEQ
+             , POM.PA_CLAIM_NO
+             , POM.PA_CODE
+          FROM TPAORDERM POM
+         WHERE POM.PA_CODE IN ('61', '62')
+           AND POM.PA_ORDER_GB = '31'
+           AND POM.CREATE_YN = '0'
+           AND POM.PRE_CANCEL_YN = '0'
+           AND POM.INSERT_DATE > TRUNC(SYSDATE) - 5
+    </select>
+    
+    <select id="selectReturnCancelTargetDtList" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* pawempclaim.xml : pawemp.claim.selectClaimCancelTargetDtList */
+               PCM.MAPPING_SEQ
+             , POM.ORDER_NO
+             , POM.ORDER_G_SEQ
+             , POM.ORDER_W_SEQ
+             , PCM.PA_PROC_QTY
+             , NVL((SELECT PC.CS_LGROUP || PC.CS_MGROUP || PC.CS_SGROUP
+                      FROM TPACLAIMCODE PC
+                     WHERE PC.PA_CLAIM_CODE = PCL.PA_CLAIM_CODE
+                       AND PC.PA_CODE = '06'
+                       AND PC.CLAIM_GB = '30'), '630638') AS CANCEL_CODE
+          FROM TPAORDERM        PCM
+             , TPAORDERM        POM
+             , TPAWEMPCLAIMLIST PCL
+             , TCODE            TC
+         WHERE PCM.PA_CODE       = POM.PA_CODE
+           AND PCM.PA_ORDER_NO   = POM.PA_ORDER_NO
+           AND PCM.PA_ORDER_SEQ  = POM.PA_ORDER_SEQ
+           AND PCM.PA_SHIP_NO    = POM.PA_SHIP_NO
+           AND PCM.PA_CLAIM_NO   = POM.PA_CLAIM_NO
+           AND PCM.PA_ORDER_NO   = PCL.PA_ORDER_NO
+           AND PCM.PA_CLAIM_NO   = PCL.PA_CLAIM_NO
+           AND PCM.PA_ORDER_GB   = PCL.PA_ORDER_GB
+           AND PCM.PA_CODE       = TC.CODE_MGROUP
+           AND PCM.PA_CODE       IN ('61', '62')
+           AND PCM.PA_ORDER_GB   = '31'
+           AND PCM.CREATE_YN     = '0'
+           AND PCM.PRE_CANCEL_YN = '0'
+           AND PCM.INSERT_DATE   &gt; TRUNC(SYSDATE) - 5
+           AND POM.PA_ORDER_GB   = '30'
+           AND POM.CREATE_YN     = '1'
+           AND TC.CODE_LGROUP    = 'O501'
+           AND TC.USE_YN         = '1'
+           AND PCM.PA_ORDER_NO   = #{paOrderNo , jdbcType=VARCHAR}
+           AND PCM.PA_SHIP_NO 	 = #{paShipNo, jdbcType=VARCHAR}
+           AND PCM.PA_ORDER_SEQ  = #{paOrderSeq, jdbcType=VARCHAR}
+           AND PCM.PA_CLAIM_NO   = #{paClaimNo , jdbcType=VARCHAR}
+    	
+    </select>
+    
+    <select id="selectOrderReturnTargetDt30List" parameterType="hashMap" resultType="hashMap">
+        SELECT /* pawempclaim.xml : pawemp.claim.selectOrderCalimTargetDt30List*/
+               PM.MAPPING_SEQ
+             , PM.PA_ORDER_NO
+             , OPM.ORDER_NO
+             , OPM.ORDER_G_SEQ
+             , PM.PA_PROC_QTY
+             , NVL(PCC.CS_LGROUP || PCC.CS_MGROUP || PCC.CS_SGROUP, '630638') AS CLAIM_CODE             
+             , NVL(PCC.CLAIM_GB, '30')              AS CLAIM_TYPE
+             , PC.CLAIM_REASON_DETAIL               AS CLAIM_DESC
+             , NVL(PCC.SHIPCOST_CHARGE_YN, '0')     AS SHIPCOST_CHARGE_YN
+             , PM.OUT_BEF_CLAIM_GB                  AS OUT_BEF_CLAIM_GB
+             , PC.PICKUP_NAME                       AS PICKUP_NAME
+             , CWARE_ENC_DEC(PC.PICKUP_PHONE, 'D')   AS PICKUP_PHONE
+             , CWARE_ENC_DEC(PC.PICKUP_BASE_ADDR, 'D') || ' ' || CWARE_ENC_DEC(PICKUP_DETAIL_ADDR, 'D') AS PICKUP_ADDR
+             , DECODE(PC.PICKUP_INVOICE_NO, NULL, '0', '1')  AS CUST_DELY_YN
+             , CWARE_ENC_DEC(PC.PICKUP_BASE_ADDR  , 'D')     AS PICKUP_BASE_ADDR
+             , CWARE_ENC_DEC(PC.PICKUP_DETAIL_ADDR  , 'D')   AS PICKUP_DETAIL_ADDR
+             , CWARE_ENC_DEC(PC.PICKUP_ZIPCODE    , 'D')     AS PICKUP_ZIPCODE
+             ,  NVL((SELECT PD.DELY_GB FROM TPADELYGB PD WHERE PD.PA_CODE = '06' AND PD.PA_DELY_GB = PC.PICKUP_DELY_COMP), '40') AS RETURN_DELY_GB
+             , PC.PICKUP_INVOICE_NO                 AS RETURN_SLIP_NO
+             , PC.CLAIM_FEE
+          FROM TPAORDERM PM   /*반품접수건*/
+             , TPAORDERM OPM  /*원주문건*/
+             , TPAWEMPCLAIMLIST PC
+             , TPAWEMPCLAIMITEMLIST PCM
+             , TPACLAIMCODE PCC
+         WHERE PC.PA_CLAIM_NO = PCM.PA_CLAIM_NO
+           AND PC.PA_ORDER_NO   = PCM.PA_ORDER_NO
+           AND PC.PA_SHIP_NO    = PCM.PA_SHIP_NO
+           AND PC.PA_ORDER_GB    = PCM.PA_ORDER_GB
+           AND PM.PA_ORDER_NO = OPM.PA_ORDER_NO
+           AND PM.PA_SHIP_NO  = OPM.PA_SHIP_NO
+           AND PM.PA_ORDER_SEQ = OPM.PA_ORDER_SEQ
+           AND PM.PA_CODE = OPM.PA_CODE
+           AND PM.PA_ORDER_NO = PC.PA_ORDER_NO
+           AND PM.PA_ORDER_SEQ = PCM.PA_ORDER_SEQ
+           AND PM.PA_CLAIM_NO = PC.PA_CLAIM_NO
+           AND PM.PA_ORDER_GB = PC.PA_ORDER_GB
+           AND PC.PA_CLAIM_CODE = PCC.PA_CLAIM_CODE(+)
+           AND PCC.PA_CODE(+) = '06'
+           AND PCC.CLAIM_GB(+) ='30'
+           AND PM.PA_CODE IN ('61', '62')
+           AND PM.PA_ORDER_GB = '30'
+           AND PM.CREATE_YN = '0'
+           AND PM.PRE_CANCEL_YN = '0'
+           AND PM.INSERT_DATE > TRUNC(SYSDATE) - 5
+           AND OPM.PA_ORDER_GB = '10'
+           AND OPM.CREATE_YN = '1'
+           AND PM.PA_ORDER_NO   = #{paOrderNo, jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ  = #{paOrderSeq, jdbcType=VARCHAR}
+           AND PM.PA_CLAIM_NO   = #{paClaimNo, jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectOrderReturnTargetDt20List" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* pawempclaim.xml : pawemp.claim.selectOrderCalimTargetDt20List*/
+               PM.MAPPING_SEQ
+             , PM.PA_ORDER_NO
+             , OPM.ORDER_NO
+             , OPM.ORDER_G_SEQ
+             , PM.PA_PROC_QTY
+             , (SELECT PC.CS_LGROUP || PC.CS_MGROUP || PC.CS_SGROUP
+                  FROM TPACLAIMCODE PC
+                 WHERE PC.PA_CODE = '06'
+                   AND PC.CLAIM_GB = '20'
+                   AND PC.PA_CLAIM_CODE = (SELECT BB.PA_CLAIM_CODE 
+                                             FROM TPAWEMPCLAIMLIST BB 
+                                            WHERE BB.PA_CLAIM_NO = PM.PA_CLAIM_NO 
+                                              AND BB.PA_ORDER_NO = PM.PA_ORDER_NO 
+                                              AND BB.PA_ORDER_GB = '20' 
+                                              AND rownum = 1 )) AS CLAIM_CODE
+             , '30'       AS CLAIM_TYPE
+             , '위메프 취소' AS CLAIM_DESC
+             , PO.RECEIVER_NAME                     AS PICKUP_NAME
+             , CWARE_ENC_DEC(PO.RECEIVER_PHONE, 'D')   AS PICKUP_PHONE
+             , CWARE_ENC_DEC(PO.BASE_ADDR, 'D') || ' ' || CWARE_ENC_DEC(PO.DETAIL_ADDR, 'D') AS PICKUP_ADDR
+             , PM.OUT_BEF_CLAIM_GB                  AS OUT_BEF_CLAIM_GB
+             , ''                                   AS CUST_DELY_YN
+             , CWARE_ENC_DEC(PO.BASE_ADDR  , 'D')   AS PICKUP_BASE_ADDR
+             , CWARE_ENC_DEC(PO.DETAIL_ADDR  , 'D') AS PICKUP_DETAIL_ADDR
+             , CWARE_ENC_DEC(PO.ZIPCODE    , 'D')   AS PICKUP_ZIPCODE
+             , 0                                    AS PA_SHPFEE_COST
+             , ''                                   AS RETURN_DELY_GB
+             , ''                                   AS RETURN_SLIP_NO
+             , PCL.CLAIM_FEE                        AS CLAIM_FEE
+          FROM TPAORDERM PM   /*반품접수건*/
+             , TPAORDERM OPM  /*원주문건*/
+             , TPAWEMPORDERLIST PO
+             , TPAWEMPORDERITEMLIST POI
+             , TPAWEMPCLAIMLIST PCL
+         WHERE PO.PA_ORDER_NO   = POI.PA_ORDER_NO
+           AND PO.PA_SHIP_NO    = POI.PA_SHIP_NO
+           AND PM.PA_ORDER_NO   = OPM.PA_ORDER_NO
+           AND PM.PA_SHIP_NO    = OPM.PA_SHIP_NO
+           AND PM.PA_ORDER_SEQ  = OPM.PA_ORDER_SEQ
+           AND PM.PA_CODE       = OPM.PA_CODE
+           AND PM.PA_ORDER_NO   = POI.PA_ORDER_NO
+           AND PM.PA_ORDER_SEQ  = POI.PA_ORDER_SEQ
+           AND PM.PA_SHIP_NO    = POI.PA_SHIP_NO
+           AND PCL.PA_CLAIM_NO = PM.PA_CLAIM_NO
+           AND PCL.PA_ORDER_NO = PM.PA_ORDER_NO
+           AND PCL.PA_SHIP_NO = PM.PA_SHIP_NO
+           AND PCL.PA_ORDER_GB = PM.PA_ORDER_GB
+           AND PM.PA_ORDER_GB   = '20'
+           AND PM.CREATE_YN     = '0'
+           AND PM.PRE_CANCEL_YN = '0'
+           AND PM.OUT_BEF_CLAIM_GB = '1'
+           AND PM.INSERT_DATE > TRUNC(SYSDATE) - 5
+           AND OPM.PA_ORDER_GB  = '10'
+           AND OPM.CREATE_YN    = '1'
+           AND PM.PA_ORDER_NO   = #{paOrderNo, jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ  = #{paOrderSeq, jdbcType=VARCHAR}
+           AND PM.PA_CLAIM_NO   = #{paClaimNo, jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectOrderReturnTargetList" resultType="hashMap">
+        SELECT /* pawempclaim.xml : pawemp.claim.selectOrderClaimTargetList */
+              PM.PA_ORDER_NO
+            , PM.PA_ORDER_SEQ
+            , PM.PA_CLAIM_NO
+            , PM.PA_ORDER_GB
+          FROM TPAORDERM PM
+         WHERE PM.PA_CODE IN ('61', '62')
+           AND (PM.PA_ORDER_GB = '30' OR (PM.PA_ORDER_GB = '20' AND PM.OUT_BEF_CLAIM_GB = '1'))
+           AND PM.CREATE_YN = '0'
+           AND PM.PRE_CANCEL_YN = '0'
+           AND PM.INSERT_DATE > TRUNC(SYSDATE) - 5
+           /*부분 발송 불가로 인한 출하지시 이전건 품절 반품처리 시 막기위한 로직. 출하지시 후 출고전 반품처리*/
+           AND NOT EXISTS ( SELECT 1
+                              FROM TPAORDERM OM
+                                 , TORDERDT OD
+                             WHERE OM.PA_CODE      = PM.PA_CODE
+                               AND OM.PA_ORDER_NO  = PM.PA_ORDER_NO
+                               AND OM.PA_SHIP_NO   = PM.PA_SHIP_NO
+                               AND OM.PA_ORDER_SEQ = PM.PA_ORDER_SEQ
+                               AND OM.PA_ORDER_GB  = '10'
+                               AND OM.ORDER_NO     = OD.ORDER_NO
+                               AND OM.ORDER_G_SEQ  = OD.ORDER_G_SEQ
+                               AND OM.ORDER_D_SEQ  = OD.ORDER_D_SEQ
+                               AND OM.ORDER_W_SEQ  = OD.ORDER_W_SEQ
+                               AND OD.DO_FLAG      &lt; 30 )
+    </select>
+    
+    <select id="selectPaWempClaimListExists" parameterType="com.cware.netshopping.domain.model.PaWempClaimList" resultType="int">
+        SELECT /* pawempclaim.xml : pawemp.claim.selectPaWempClaimListExists*/
+               COUNT(1) AS CNT
+          FROM TPAWEMPCLAIMLIST PC
+         WHERE PA_CLAIM_NO = #{paClaimNo,jdbcType=VARCHAR}
+           AND PA_ORDER_NO = #{paOrderNo,jdbcType=VARCHAR}
+           AND PA_SHIP_NO  = #{paShipNo ,jdbcType=VARCHAR}
+           AND PA_ORDER_GB = #{paOrderGb,jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectPaWempReturnExists" parameterType="com.cware.netshopping.domain.model.PaWempClaimList" resultType="com.cware.netshopping.domain.model.PaWempClaimList">
+        SELECT /* pawempclaim.xml : pawemp.claim.selectPaWempReturnExists*/
+               PA_CLAIM_NO
+               ,PA_ORDER_NO
+               ,PA_SHIP_NO
+               ,PA_ORDER_GB
+          FROM TPAWEMPCLAIMLIST PC
+         WHERE PA_CLAIM_NO = #{paClaimNo,jdbcType=VARCHAR}
+           AND PA_ORDER_NO = #{paOrderNo,jdbcType=VARCHAR}
+           AND PA_SHIP_NO  = #{paShipNo ,jdbcType=VARCHAR}
+           AND PA_ORDER_GB IN ('31','30')
+         ORDER BY PA_ORDER_GB DESC
+    </select>
+    
+    <insert id="insertPaWempClaimList" parameterType="com.cware.netshopping.domain.model.PaWempClaimList">
+        INSERT INTO TPAWEMPCLAIMLIST( /*pawempclaim.xml: pawemp.claim.insertPaWempClaimList*/
+               PA_CLAIM_NO
+               ,PA_ORDER_NO
+               ,PA_SHIP_NO
+               ,PA_ORDER_GB
+               ,CLAIM_STATUS
+               ,REQUEST_DATE
+               ,APPROVE_DATE
+               ,PENDING_DATE
+               ,REJECT_DATE
+               ,PA_CLAIM_CODE
+               ,CLAIM_REASON
+               ,CLAIM_REASON_DETAIL
+               ,PENDING_REASON
+               ,PENDING_REASON_DETAIL
+               ,REJECT_REASON
+               ,REJECT_REASON_DETAIL
+               ,CLAIM_WHO_REASON
+               ,CLAIM_FEE
+               ,CLAIM_SHIPFEE_ENCLOSE
+               ,PICKUP_STATUS
+               ,PICKUP_METHOD
+               ,PICKUP_SCHEDULE_DATE
+               ,PICKUP_DELY_COMP
+               ,PICKUP_INVOICE_NO
+               ,PICKUP_NAME
+               ,PICKUP_PHONE
+               ,PICKUP_ZIPCODE
+               ,PICKUP_BASE_ADDR
+               ,PICKUP_DETAIL_ADDR
+               ,PICKUP_MESSAGE
+               ,DELIVERY_STATUS
+               ,DELIVERY_METHOD
+               ,DELIVERY_SCHEDULE_DATE
+               ,DELIVERY_DELY_COMP
+               ,DELIVERY_INVOICE_NO
+               ,DELIVERY_NAME
+               ,DELIVERY_PHONE
+               ,DELIVERY_ZIPCODE
+               ,DELIVERY_BASE_ADDR
+               ,DELIVERY_DETAIL_ADDR
+               ,DELIVERY_MESSAGE
+               <if test='cancelWithdrawYn != null and cancelWithdrawYn != ""'>
+               ,CANCEL_WITHDRAW_YN,
+               </if>
+               ,INSERT_ID
+               ,INSERT_DATE
+               ,MODIFY_ID
+               ,MODIFY_DATE
+            )
+            VALUES(
+                #{paClaimNo                , jdbcType=VARCHAR}
+               , #{paOrderNo                , jdbcType=VARCHAR}
+               , #{paShipNo                 , jdbcType=VARCHAR}
+               , #{paOrderGb                , jdbcType=VARCHAR}
+               , FUN_TCODE_MGROUP('O688'    , #{claimStatus, jdbcType=VARCHAR})
+               , #{requestDate              , jdbcType=TIMESTAMP}
+               , #{approveDate              , jdbcType=TIMESTAMP}
+               , #{pendingDate              , jdbcType=TIMESTAMP}
+               , #{rejectDate               , jdbcType=TIMESTAMP}
+               , NVL((SELECT PA_CLAIM_CODE 
+               			FROM TPACLAIMCODE A 
+               		   WHERE A.PA_CODE = '06'
+               		     AND A.CLAIM_GB = DECODE(#{paOrderGb, jdbcType=VARCHAR},'31','30','41','40',#{paOrderGb, jdbcType=VARCHAR}) 
+               		     AND PA_CLAIM_NAME = #{claimReason, jdbcType=VARCHAR} 
+               		     AND rownum = 1), DECODE(#{paOrderGb, jdbcType=VARCHAR},'20','28','30','38','31','38','47'))
+               , #{claimReason, jdbcType=VARCHAR}
+               , #{claimReasonDetail        , jdbcType=VARCHAR}
+               , #{pendingReason            , jdbcType=VARCHAR}
+               , #{pendingReasonDetail      , jdbcType=VARCHAR}
+               , #{rejectReason             , jdbcType=VARCHAR}
+               , #{rejectReasonDetail       , jdbcType=VARCHAR}
+               , NVL(FUN_TCODE_MGROUP('O694'    , #{claimWhoReason, jdbcType=VARCHAR}), '')
+               , #{claimFee                 , jdbcType=NUMERIC}
+               , NVL(FUN_TCODE_MGROUP('O695'    , #{claimShipfeeEnclose, jdbcType=VARCHAR}), '')
+               , NVL(FUN_TCODE_MGROUP('O692'    , #{pickupStatus, jdbcType=VARCHAR}), '')
+               , NVL(FUN_TCODE_MGROUP('O684'    , #{pickupMethod, jdbcType=VARCHAR}), '')
+               , #{pickupScheduleDate       , jdbcType=TIMESTAMP}
+               , #{pickupDelyComp           , jdbcType=VARCHAR}
+               , #{pickupInvoiceNo          , jdbcType=VARCHAR}
+               , #{pickupName               , jdbcType=VARCHAR}
+               , CWARE_ENC_DEC(#{pickupPhone              , jdbcType=VARCHAR}, 'E')
+               , CWARE_ENC_DEC(#{pickupZipcode            , jdbcType=VARCHAR}, 'E')
+               , CWARE_ENC_DEC(#{pickupBaseAddr           , jdbcType=VARCHAR}, 'E')
+               , CWARE_ENC_DEC(#{pickupDetailAddr         , jdbcType=VARCHAR}, 'E')
+               , #{pickupMessage            , jdbcType=VARCHAR}
+               , NVL(FUN_TCODE_MGROUP('O692'    , #{deliveryStatus, jdbcType=VARCHAR}), '')
+               , NVL(FUN_TCODE_MGROUP('O684'    , #{deliveryMethod, jdbcType=VARCHAR}), '')
+               , #{deliveryScheduleDate     , jdbcType=TIMESTAMP}
+               , #{deliveryDelyComp         , jdbcType=VARCHAR}
+               , #{deliveryInvoiceNo        , jdbcType=VARCHAR}
+               , #{deliveryName             , jdbcType=VARCHAR}
+               , CWARE_ENC_DEC(#{deliveryPhone            , jdbcType=VARCHAR}, 'E')
+               , CWARE_ENC_DEC(#{deliveryZipcode          , jdbcType=VARCHAR}, 'E')
+               , CWARE_ENC_DEC(#{deliveryBaseAddr         , jdbcType=VARCHAR}, 'E')
+               , CWARE_ENC_DEC(#{deliveryDetailAddr       , jdbcType=VARCHAR}, 'E')
+               , #{deliveryMessage          , jdbcType=VARCHAR}
+               <if test='cancelWithdrawYn != null and cancelWithdrawYn != ""'>
+               , #{cancelWithdrawYn         , jdbcType=VARCHAR}
+               </if>
+               , #{insertId                 , jdbcType=VARCHAR}
+               , SYSDATE
+               , #{modifyId                 , jdbcType=VARCHAR}
+               , SYSDATE 
+            )
+    </insert>
+    <insert id="insertPaWempClaimItemList" parameterType="com.cware.netshopping.domain.model.PaWempClaimItemList">
+    	INSERT INTO TPAWEMPCLAIMITEMLIST( /*pawempclaim.xml: pawemp.claim.insertPaWempClaimitemList*/
+            PA_CLAIM_NO
+            ,PA_ORDER_NO
+            ,PA_SHIP_NO
+            ,PA_ORDER_GB
+            ,PA_ORDER_SEQ
+            ,ORDER_PRODUCT_NO
+            ,PRODUCT_NO
+            ,PRODUCT_NAME
+            ,PRODUCT_PRICE
+            ,PRODUCT_QTY
+            ,GOODS_CODE
+            ,ORDER_OPTION_NO
+            ,OPTION_NO
+            ,OPTION_NAME
+            ,OPTION_QTY
+            ,GOODSDT_CODE
+            ,PROC_FLAG
+            ,CANCEL_PROC_NOTE
+            ,CANCEL_PROC_ID
+            ,INSERT_ID
+            ,INSERT_DATE
+            ,MODIFY_ID
+            ,MODIFY_DATE	
+        )
+        VALUES(
+            #{paClaimNo         , jdbcType=VARCHAR}
+            ,#{paOrderNo        , jdbcType=VARCHAR}
+            ,#{paShipNo         , jdbcType=VARCHAR}
+            ,#{paOrderGb        , jdbcType=VARCHAR}
+            ,#{paOrderSeq       , jdbcType=VARCHAR}
+            ,#{orderProductNo   , jdbcType=VARCHAR}
+            ,#{productNo        , jdbcType=VARCHAR}
+            ,#{productName      , jdbcType=VARCHAR}
+            ,#{productPrice     , jdbcType=NUMERIC}
+            ,#{productQty       , jdbcType=NUMERIC}
+            ,#{goodsCode        , jdbcType=VARCHAR}
+            ,#{orderOptionNo    , jdbcType=VARCHAR}
+            ,#{optionNo         , jdbcType=VARCHAR}
+            ,#{optionName       , jdbcType=VARCHAR}
+            ,#{optionQty        , jdbcType=NUMERIC}
+            ,NVL(#{goodsdtCode  , jdbcType=VARCHAR}, '001')
+            ,#{procFlag         , jdbcType=VARCHAR}
+            ,#{cancelProcNote   , jdbcType=VARCHAR}
+            ,#{cancelProcId     , jdbcType=VARCHAR}
+            ,#{insertId         , jdbcType=VARCHAR}
+            ,SYSDATE
+            ,#{modifyId         , jdbcType=VARCHAR}
+            ,SYSDATE
+        )
+    </insert>
+    
+    <select id="selectPickupList" resultType="hashMap">
+        SELECT /* pawempclaim.xml: pawemp.claim.selectPickupList*/
+               POM.PA_CODE
+             , POM.PA_ORDER_GB
+             , POM.PA_ORDER_NO
+             , POM.PA_ORDER_SEQ
+             , POM.PA_CLAIM_NO
+             , REPLACE(NVL(SMD.SLIP_NO, CD.SLIP_NO), '-', '') AS INVOICE_NO
+             , NVL(SMD.SLIP_I_NO, CD.SLIP_NO) AS SUB_INVOICE_NO
+             , (SELECT PDG.PA_DELY_GB
+                  FROM TPADELYGB PDG
+                 WHERE PA_CODE = '06'
+                   AND DELY_GB = NVL(SMD.DELY_GB, CD.DELY_GB)) AS DELIVERY_COMPANY_CODE
+             , TO_CHAR(SYSDATE+1,'yyyy-MM-dd') AS DELY_HOPE_DATE
+             , POM.MAPPING_SEQ
+          FROM TPAORDERM POM
+             , TCLAIMDT  CD
+             , (SELECT SM.SLIP_NO
+                     , SM.SLIP_I_NO
+                     , SM.DELY_GB
+                     , SD.ORDER_NO
+                     , SD.ORDER_G_SEQ
+                     , SD.ORDER_D_SEQ
+                     , SD.ORDER_W_SEQ
+                  FROM TSLIPM  SM
+                     , TSLIPDT SD
+                 WHERE SM.SLIP_I_NO = SD.SLIP_I_NO) SMD
+         WHERE POM.ORDER_NO         = CD.ORDER_NO
+           AND POM.ORDER_G_SEQ      = CD.ORDER_G_SEQ
+           AND POM.ORDER_D_SEQ      = CD.ORDER_D_SEQ
+           AND POM.ORDER_W_SEQ      = CD.ORDER_W_SEQ
+           AND CD.ORDER_NO          = SMD.ORDER_NO(+)
+           AND CD.ORDER_G_SEQ       = SMD.ORDER_G_SEQ(+)
+           AND CD.ORDER_D_SEQ       = SMD.ORDER_D_SEQ(+)
+           AND CD.ORDER_W_SEQ       = SMD.ORDER_W_SEQ(+)
+           AND POM.PA_CODE          IN ('61', '62')
+           AND POM.PA_ORDER_GB      = '30'
+           AND POM.PA_DO_FLAG       = '20'
+           AND POM.PRE_CANCEL_YN    = '0'
+           AND POM.OUT_BEF_CLAIM_GB = '0'
+           AND CD.SYSLAST           &gt; 0
+           AND (CD.DO_FLAG = '60' OR (CD.DO_FLAG = '50' AND CD.SLIP_NO IS NOT NULL))
+      ORDER BY POM.PA_CLAIM_NO, POM.PA_ORDER_SEQ
+    </select>
+    
+    <update id="updatePickupResult" parameterType="hashMap">
+        UPDATE TPAORDERM /* pawempclaim.xml: pawemp.claim.updatePickupResult */
+           SET PA_DO_FLAG         = '55'
+             , API_RESULT_CODE    = '000000'
+             , API_RESULT_MESSAGE = '수거요청 성공'
+             , PROC_DATE          = SYSDATE
+             , MODIFY_ID          = 'PAWEMP'
+             , MODIFY_DATE        = SYSDATE
+        WHERE PA_DO_FLAG  = '20'
+          AND MAPPING_SEQ     	  = #{MAPPING_SEQ    , jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectReceiveConfirmList" resultType="hashMap">
+        SELECT /* pawempclaim.xml: pawemp.claim.selectReceiveConfirmList*/
+               distinct POM.PA_CLAIM_NO
+             , POM.PA_CODE
+          FROM TPAORDERM POM
+             , TCLAIMDT  CD
+         WHERE POM.ORDER_NO         = CD.ORDER_NO
+           AND POM.ORDER_G_SEQ      = CD.ORDER_G_SEQ
+           AND POM.ORDER_D_SEQ      = CD.ORDER_D_SEQ
+           AND POM.ORDER_W_SEQ      = CD.ORDER_W_SEQ
+           AND POM.PA_CODE          IN ('61', '62')
+           AND POM.PA_ORDER_GB      = '30'
+           AND POM.PA_DO_FLAG 		= '55'
+           AND POM.OUT_BEF_CLAIM_GB = '0'
+           AND CD.DO_FLAG           = '60'
+           AND NOT EXISTS (SELECT 1
+                             FROM TPAORDERM PM
+                            WHERE PM.PA_CLAIM_NO = POM.PA_CLAIM_NO
+                              AND PM.PA_CODE = POM.PA_CODE
+                              AND PM.PA_ORDER_GB = '30'
+                              AND PM.OUT_BEF_CLAIM_GB = '0'
+                              AND PM.PA_DO_FLAG &lt;&gt; '55')
+    </select>
+    
+    <update id="updateReceiveConfirmResult" parameterType="hashMap">
+        UPDATE TPAORDERM /* pawempclaim.xml: pawemp.pawemp.updateReceiveConfirmResult*/
+           SET PA_DO_FLAG         = '58'
+             , API_RESULT_CODE    = '000000'
+             , API_RESULT_MESSAGE = '수거완료 성공'
+             , PROC_DATE          = SYSDATE
+             , MODIFY_ID          = 'PAWEMP'
+             , MODIFY_DATE        = SYSDATE
+        WHERE PA_ORDER_GB = '30'
+          AND PA_CODE     = #{PA_CODE    , jdbcType=VARCHAR}
+          AND PA_CLAIM_NO = #{PA_CLAIM_NO, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectReturnApprovalList" resultType="hashMap">
+        SELECT /* pawempclaim.xml: pawemp.claim.selectReturnApprovalList */
+               distinct POM.PA_CLAIM_NO
+             , POM.PA_CODE
+          FROM TPAORDERM POM
+             , TCLAIMDT  CD
+         WHERE POM.ORDER_NO    = CD.ORDER_NO
+           AND POM.ORDER_G_SEQ = CD.ORDER_G_SEQ
+           AND POM.ORDER_D_SEQ = CD.ORDER_D_SEQ
+           AND POM.ORDER_W_SEQ = CD.ORDER_W_SEQ
+           AND POM.PA_CODE          IN ('61', '62')
+           AND POM.PA_ORDER_GB      = '30'
+           AND POM.PA_DO_FLAG       = '58'
+           AND POM.PROC_DATE        &lt;= SYSDATE - 1
+           AND POM.OUT_BEF_CLAIM_GB = '0'
+           AND CD.DO_FLAG           = '60'
+      ORDER BY POM.PA_CLAIM_NO
+    </select>
+    
+    <update id="updateReturnApprovalResult" parameterType="hashMap">
+        UPDATE TPAORDERM /* pawempclaim.xml: pawemp.claim.updateReturnApprovalResult*/
+           SET PA_DO_FLAG         = '60'
+             , API_RESULT_CODE    = '000000'
+             , API_RESULT_MESSAGE = '반품요청 승인 처리 성공'
+             , PROC_DATE          = SYSDATE
+             , MODIFY_ID          = 'PAWEMP'
+             , MODIFY_DATE        = SYSDATE
+        WHERE PA_ORDER_GB = '30'
+          AND PA_CODE     = #{PA_CODE    , jdbcType=VARCHAR}
+          AND PA_CLAIM_NO = #{PA_CLAIM_NO, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="compareAddress" resultType="String" parameterType="hashMap">
+	      SELECT /* pawempclaim.xml: pawemp.claim.compareAddress by PaWempClaimController */
+	           COUNT(1) AS CNT
+	      FROM (
+	        <if test='claimGb != null and claimGb != "" and (claimGb == "30" or claimGb == "45")'>
+	            SELECT UPPER(REPLACE(CWARE_ENC_DEC(OL.BASE_ADDR, 'd'), ' ', '')) AS ORD_ADR1
+	                 , UPPER(REPLACE(CWARE_ENC_DEC(CL.PICKUP_BASE_ADDR, 'd'), ' ', '')) AS CLM_ADR1
+	                 , UPPER(REPLACE(CWARE_ENC_DEC(OL.DETAIL_ADDR, 'd'), ' ', '')) AS ORD_ADR2
+	                 , UPPER(REPLACE(CWARE_ENC_DEC(CL.PICKUP_DETAIL_ADDR, 'd'), ' ', '')) AS CLM_ADR2
+	                 , OL.RECEIVER_NAME AS ORD_NAME
+	                 , CL.PICKUP_NAME AS CLM_NAME
+	        </if>
+	        <if test='claimGb != null and claimGb != "" and claimGb == "40"'>
+	            SELECT UPPER(REPLACE(CWARE_ENC_DEC(OL.BASE_ADDR, 'd'), ' ', '')) AS ORD_ADR1
+	                 , UPPER(REPLACE(CWARE_ENC_DEC(CL.DELIVERY_BASE_ADDR, 'd'), ' ', '')) AS CLM_ADR1
+	                 , UPPER(REPLACE(CWARE_ENC_DEC(OL.DETAIL_ADDR, 'd'), ' ', '')) AS ORD_ADR2
+	                 , UPPER(REPLACE(CWARE_ENC_DEC(CL.DELIVERY_DETAIL_ADDR, 'd'), ' ', '')) AS CLM_ADR2
+	                 , OL.RECEIVER_NAME AS ORD_NAME
+	                 , CL.DELIVERY_NAME AS CLM_NAME
+	        </if>         
+	              FROM TPAWEMPORDERLIST OL
+	                 , TPAWEMPCLAIMLIST CL
+	             WHERE OL.PA_ORDER_NO = CL.PA_ORDER_NO
+	               AND CL.PA_ORDER_GB = #{paOrderGb, jdbcType=VARCHAR}
+	               AND OL.PA_ORDER_NO = #{paOrderNo, jdbcType=VARCHAR}
+	               AND CL.PA_CLAIM_NO = #{paClaimNo, jdbcType=VARCHAR}
+	               ) TB
+	      WHERE TB.ORD_ADR1 = TB.CLM_ADR1
+	        AND TB.ORD_ADR2 = TB.CLM_ADR2
+	        AND TB.ORD_NAME = TB.CLM_NAME
+    </select>
+</mapper>

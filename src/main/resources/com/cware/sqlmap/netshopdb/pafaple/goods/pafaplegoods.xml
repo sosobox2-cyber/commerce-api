@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.cware.netshopping.pafaple.repository.PaFapleGoodsMapper">
+	
+	<select id="selectPaFapleGoodsInfo" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaFapleGoodsVO">
+		SELECT  /*+INDEX(PG PK_TPAFAPLEGOODS)*/ /* pafaplegoods.xml : pafaple.goods.selectPaFapleGoodsInfo by PaFapleProductService */ 
+       			PG.GOODS_CODE || '_' || PB.BRAND_ID AS ITEM_NO,
+			    PG.ITEM_ID AS ORIGIN_ITEM_ID,
+			    PG.ITEM_ID ,
+			    PG.GOODS_NAME,
+			    PP.SALE_PRICE,
+			    PP.ARS_DC_AMT,
+			    PP.COUPON_DC_AMT,
+			    PP.LUMP_SUM_DC_AMT,
+			    PP.LUMP_SUM_OWN_DC_AMT,
+			    PP.LUMP_SUM_ENTP_DC_AMT,
+			    PP.APPLY_DATE,
+			    PP.PRICE_APPLY_SEQ,
+			    PP.SUPPLY_PRICE,
+			    PB.BRAND_ID,
+			    PG.PA_LMSD_KEY,
+			    TO_CHAR(TG.SALE_START_DATE, 'YYYY') AS SALE_START_DATE,
+			    NVL((SELECT REPLACE(DS.DESCRIBE_EXT, chr(10), '')
+			          FROM TDESCRIBE DS
+			         WHERE DS.DESCRIBE_CODE = '998'
+			           AND DS.GOODS_CODE = TP.GOODS_CODE),
+			        (SELECT DECODE(DS.WEB_FLAG,
+			                       '1',
+			                       REPLACE(DS.DESCRIBE_EXT, chr(10), ''),
+			                       DS.DESCRIBE_NOTE)
+			           FROM TDESCRIBE DS
+			          WHERE DS.DESCRIBE_CODE = '999'
+			            AND DS.GOODS_CODE = TP.GOODS_CODE)) AS DESCRIBE_EXT,
+			    NVL((SELECT DS.DESCRIBE_NOTE
+			          FROM TDESCRIBE DS
+			         WHERE DS.GOODS_CODE = TP.GOODS_CODE
+			           AND DS.DESCRIBE_CODE = '200'),
+			        '') AS GOODS_COM,
+			    CEIL(FUN_GET_ORDER_ABLE_QTY(PG.GOODS_CODE, '%', TG.WH_CODE) *
+			         TC.CODE_GROUP) AS TRANS_ORDER_ABLE_QTY,
+			    TI.IMAGE_URL,
+			    TI.IMAGE_G,
+			    TI.IMAGE_AG,
+			    TI.IMAGE_BG,
+			    TI.IMAGE_CG,
+			    TI.IMAGE_DG,
+			    (SELECT CODE_NAME
+		          FROM TCODE C1
+		         WHERE C1.CODE_LGROUP = 'O507'
+		           AND C1.CODE_MGROUP = PG.PA_CODE) AS TOP_IMAGE,
+		        (SELECT CODE_NAME
+		          FROM TCODE C1
+		         WHERE C1.CODE_LGROUP = 'O507'
+		           AND C1.CODE_MGROUP = DECODE(PG.PA_CODE, 'E1', 'E3', 'E4')) AS BOTTOM_IMAGE,
+		        NVL((SELECT /*+ INDEX_DESC (TNM IDX_TPANOTICEM_03)*/
+                            TNM.NOTICE_EXT
+		               FROM TPANOTICEM TNM
+		                  , TPANOTICETARGET TNT
+		                  , TPANOTICEAPPLY TNA
+		              WHERE TNM.NOTICE_NO  = TNT.NOTICE_NO
+		                AND TNT.GOODS_CODE = TG.GOODS_CODE
+		                AND TNM.USE_CODE   = '00'
+		                AND INSTR(TNM.PA_GROUP_CODE, PG.PA_GROUP_CODE) > 0
+		                AND TNT.NOTICE_NO  = TNA.NOTICE_NO
+		                AND TNT.GOODS_CODE = TNA.GOODS_CODE
+		                AND TNA.PA_GROUP_CODE = PG.PA_GROUP_CODE
+		                AND ROWNUM = 1), '') AS NOTICE_EXT ,    
+			    PP.COMMISSION,
+			    (SELECT /*+ INDEX_DESC (GIM PK_TGOODSINFOIMAGE)*/
+			      GIM.INFO_IMAGE_FILE
+			       FROM TGOODSINFOIMAGE GIM
+			      WHERE GIM.GOODS_CODE = TP.GOODS_CODE
+			        AND GIM.INFO_IMAGE_TYPE = '201'
+			        AND ROWNUM = 1) AS IMAGE_LIST,
+			    (SELECT /*+ INDEX_DESC (GIM PK_TGOODSINFOIMAGE)*/
+			      GIM.INFO_IMAGE_FILE
+			       FROM TGOODSINFOIMAGE GIM
+			      WHERE GIM.GOODS_CODE = TP.GOODS_CODE
+			        AND GIM.INFO_IMAGE_TYPE = '40'
+			        AND ROWNUM = 1) AS IMAGE_MC,
+			    TP.INSTALL_YN,
+			    TG.ORDER_MAKE_YN,
+			    TP.ORDER_MIN_QTY,
+			    TP.ADULT_YN,
+			    TP.COLLECT_YN,
+			    TG.RETURN_NO_YN,
+			    NVL(TG.SOURCING_CODE, 'SCM') AS SOURCING_CODE,
+			    PG.PA_CODE,
+			    PG.GOODS_CODE,
+			    TA.ISBN,
+			    NVL((SELECT 1
+			          FROM TPACOPNGOODSKINDSFRESH GF
+			         WHERE TG.LGROUP = GF.LGROUP
+			           AND TG.MGROUP = GF.MGROUP
+			           AND TG.SGROUP = GF.SGROUP
+			           AND TG.DGROUP = GF.DGROUP),
+			        '0') AS FRESH_YN
+		   FROM TPAFAPLEGOODS      PG,
+			    TPAFAPLESHIPCOST   PB,
+			    TPAGOODSKINDS      GK,
+			    TGOODS             TG,
+			    TGOODSADDINFO      TA,
+			    TPAGOODSPRICEAPPLY PP,
+			    TPAPRODUCT         TP,
+			    TCODE              TC,
+			    TGOODSIMAGE        TI,
+			    TSHIPCOSTM         CM,
+          		TSHIPCOSTDT        CD1,
+          		TSHIPCOSTDT        CD2,
+          		TSHIPCOSTDT        CD3
+		  WHERE TG.GOODS_CODE = PG.GOODS_CODE
+		    AND GK.PA_LMSD_KEY = PG.PA_LMSD_KEY
+	        AND TP.GOODS_CODE = TG.GOODS_CODE
+	        AND PG.GOODS_CODE = PP.GOODS_CODE
+	        AND TG.GOODS_CODE = TI.GOODS_CODE
+	        AND TG.GOODS_CODE = TA.GOODS_CODE
+	        AND PG.PA_CODE = PP.PA_CODE
+	        AND PB.PA_CODE = PG.PA_CODE
+	        AND PB.ENTP_CODE  = DECODE(TG.DELY_TYPE, '10', '100001', TG.ENTP_CODE)
+	        AND PB.BRAND_CODE = TG.BRAND_CODE 
+	        AND PB.SHIP_MAN_SEQ = '998' 
+	        AND PB.RETURN_MAN_SEQ ='999' 
+	        AND TG.SHIP_COST_CODE = PB.SHIP_COST_CODE
+	        AND CM.ENTP_CODE = PB.ENTP_CODE
+	        AND CM.SHIP_COST_CODE = PB.SHIP_COST_CODE
+	        AND CM.ENTP_CODE      = CD1.ENTP_CODE
+	        AND CM.SHIP_COST_CODE = CD1.SHIP_COST_CODE
+	        AND CD1.CUST_AREA_GB = '10'
+	        AND CM.ENTP_CODE      = CD2.ENTP_CODE
+	        AND CM.SHIP_COST_CODE = CD2.SHIP_COST_CODE
+	        AND CD2.CUST_AREA_GB = '20'
+	        AND CM.ENTP_CODE      = CD3.ENTP_CODE
+	        AND CM.SHIP_COST_CODE = CD3.SHIP_COST_CODE
+			AND CD3.CUST_AREA_GB = '30'
+	        AND CD1.APPLY_DATE = CD2.APPLY_DATE
+	        AND CD1.APPLY_DATE = CD3.APPLY_DATE
+	        AND CD1.APPLY_DATE = ( SELECT MAX(CDT.APPLY_DATE)
+					                 FROM TSHIPCOSTDT CDT
+					                WHERE CDT.ENTP_CODE      = CM.ENTP_CODE
+					                  AND CDT.SHIP_COST_CODE = CM.SHIP_COST_CODE
+					                  AND CDT.APPLY_DATE   &lt;= SYSDATE
+					                 )
+	        AND PB.ORD_COST = CD1.ORD_COST_AMT
+	        AND PB.RETURN_COST = GREATEST(CD1.RET_COST_AMT, CD1.EXCH_COST_AMT) - CD1.ORD_COST_AMT
+	        AND PB.ISLAND_COST = GREATEST(CD2.ORD_COST_AMT, CD3.ORD_COST_AMT)
+	        AND PB.ISLAND_RETURN_COST = (GREATEST(GREATEST(CD2.RET_COST_AMT, CD3.RET_COST_AMT),GREATEST(CD2.EXCH_COST_AMT, CD3.EXCH_COST_AMT)))- CD1.ORD_COST_AMT
+	        AND GK.PA_GROUP_CODE = '14'
+	        AND TC.CODE_LGROUP = 'O505'
+	        AND TC.CODE_MGROUP = PG.PA_CODE 
+	        AND (PP.APPLY_DATE, PP.PRICE_APPLY_SEQ) = (SELECT /*+ INDEX_DESC (PP2 PK_TPAGOODSPRICEAPPLY)*/
+										             	   	  PP2.APPLY_DATE, PP2.PRICE_APPLY_SEQ
+										                 FROM TPAGOODSPRICEAPPLY PP2
+										                WHERE PP2.GOODS_CODE = PP.GOODS_CODE
+										                  AND PP2.PA_GROUP_CODE = PP.PA_GROUP_CODE
+										                  AND PP2.PA_CODE = PP.PA_CODE
+										                  AND PP2.APPLY_DATE &lt;= SYSDATE
+										                  AND rownum = 1)
+	     	AND PB.BRAND_ID IS NOT NULL
+		     <if test='goodsCode != null and goodsCode != ""'>
+		        AND TP.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+		     </if>
+		     <if test='paCode != null and paCode != ""'>
+		        AND PG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+		     </if>
+		     <if test='modCase == "MODIFY"'>
+		     	AND PG.BRAND_ID IS NOT NULL
+		     	AND PG.BRAND_ID = PB.BRAND_ID  
+		     	AND PG.BRAND_CHANGE_YN = '0'
+		        AND (PG.TRANS_TARGET_YN  = '1' OR PP.TRANS_DATE IS NULL)
+		        AND PG.PA_SALE_GB    = '20'
+		        AND PG.PA_STATUS     = '30'
+		        AND PG.ITEM_ID IS NOT NULL
+		     </if>   
+		     <if test='modCase == "INSERT"'>
+		        AND TG.SALE_GB = '00'
+		        AND PG.BRAND_ID IS NULL 
+		     </if>
+		     <if test='modCase == "BRAND"'>
+		        AND (PG.TRANS_TARGET_YN  = '1' OR PP.TRANS_DATE IS NULL)
+		        AND PG.PA_SALE_GB ='30' 
+		        AND PG.PA_STATUS = '90'
+		        AND PG.BRAND_CHANGE_YN = '1'
+		        AND PG.BRAND_ID IS NULL
+		        AND PG.ITEM_ID IS NOT NULL
+		     </if>
+		    AND ROWNUM &lt; 50000
+    </select>   
+    
+    <select id="selectPaFapleGoodsOfferList" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaGoodsOfferVO">
+        SELECT /* pafaplegoods.xml : pafaple.goods.selectPaFapleGoodsOfferList by PaFapleProductService */
+        	   PO.GOODS_CODE
+             , PO.PA_GROUP_CODE
+             , PO.PA_OFFER_TYPE
+             , PO.PA_OFFER_CODE 
+             , PO.PA_OFFER_EXT
+             , PO.REMARK1
+             , PO.REMARK2
+             , PC.PA_OFFER_TYPE_NAME
+             , PC.PA_OFFER_CODE_NAME
+          FROM TPAGOODSOFFER PO
+             , TPAOFFERCODE PC
+         WHERE PO.PA_GROUP_CODE = PC.PA_GROUP_CODE  
+           AND PO.PA_OFFER_TYPE = PC.PA_OFFER_TYPE 
+           AND PO.PA_OFFER_CODE = PC.PA_OFFER_CODE  
+           AND PO.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PO.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+           AND PO.USE_YN = '1'
+    </select>
+    
+    <select id="selectPaFapleGoodsdtInfoList" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaGoodsdtMapping">
+       SELECT /* pafaplegoods.xml : pafaple.goods.selectPaFapleGoodsdtInfoList by PaFapleProductService */
+               PD.GOODS_CODE 
+             , DM.PA_CODE
+             , DM.GOODSDT_SEQ
+             , PD.GOODSDT_CODE
+             , DECODE(PD.GOODSDT_INFO, '없음', '단일상품', PD.GOODSDT_INFO) AS GOODSDT_INFO
+             , DECODE(PD.GOODSDT_INFO_KIND, '없음', '단일상품', PD.GOODSDT_INFO_KIND) AS GOODSDT_INFO_KIND
+             , DECODE(DT.SALE_GB, '00', NVL(CEIL(FUN_GET_ORDER_ABLE_QTY(PD.GOODS_CODE, PD.GOODSDT_CODE, GD.WH_CODE) * TC.CODE_GROUP), 0), 0) AS TRANS_ORDER_ABLE_QTY
+             , PD.SORT_TYPE 
+             , DT.COLOR_NAME
+             , DT.SIZE_NAME
+             , DT.PATTERN_NAME
+             , DT.FORM_NAME
+             , DM.PA_OPTION_CODE
+             , DM.TRANS_STOCK_YN
+             , DT.SALE_GB
+          FROM TPAPRODUCTOPTION PD
+             , TPAFAPLEGOODSDTMAPPING DM
+             , TGOODS GD
+             , TCODE TC
+             , TGOODSDT DT
+         WHERE PD.GOODS_CODE = DM.GOODS_CODE
+           AND PD.GOODSDT_CODE = DM.GOODSDT_CODE
+           AND PD.GOODS_CODE = GD.GOODS_CODE
+           AND TC.CODE_LGROUP = 'O505'
+           AND TC.CODE_MGROUP = DM.PA_CODE
+           AND DT.GOODS_CODE = PD.GOODS_CODE
+           AND DT.GOODSDT_CODE = PD.GOODSDT_CODE
+           AND DM.PA_CODE IN ('E1','E2') 
+           AND DM.USE_YN = '1'
+           AND GD.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+         ORDER BY PD.GOODS_CODE
+                , PD.GOODSDT_CODE
+    </select>
+    
+    <select id="selectPaFapleGoodsBrandTarget" parameterType="String" resultType="com.cware.netshopping.domain.PaFapleGoodsVO">
+		 SELECT /* pafaplegoods.xml : pafaple.goods.selectPaFapleGoodsBrandTarget by PaFapleProductService */
+        	   PG.GOODS_CODE
+             , PG.PA_CODE
+          FROM TPAFAPLEGOODS PG
+             , TPAFAPLEGOODSBRANDTARGET PBT
+         WHERE PG.GOODS_CODE = PBT.GOODS_CODE 
+           AND PG.PA_CODE = PBT.PA_CODE
+           AND PG.PA_SALE_GB = '30'
+           AND PG.PA_STATUS = '90'
+           AND PG.BRAND_ID IS NULL  
+           AND PG.BRAND_CHANGE_YN = '1'
+           AND PG.TRANS_TARGET_YN ='1'
+           AND PBT.TARGET_YN = '1'
+           AND PG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+    </select>
+    
+      <insert id="insertBrandReRegisterProduct" >
+         INSERT INTO TPAFAPLEGOODSBRANDTARGET
+			SELECT /*+ LEADING(PG TG)*/
+			distinct PG.GOODS_CODE, PG.PA_CODE, '1'
+			  FROM TPAFAPLEGOODS PG
+			  		 , TGOODS TG
+			  		 , TPAFAPLESHIPCOST SH
+			  		 , TSHIPCOSTDT SD
+			 WHERE 1 = 1
+			   AND PG.GOODS_CODE = TG.GOODS_CODE
+			   AND TG.ENTP_CODE = SH.ENTP_CODE
+			   AND TG.BRAND_CODE = SH.BRAND_CODE
+			   AND TG.SHIP_COST_CODE = SH.SHIP_COST_CODE
+			   AND TG.ENTP_CODE = SD.ENTP_CODE
+			   AND TG.SHIP_COST_CODE = SD.SHIP_COST_CODE
+			   AND SD.APPLY_DATE = (SELECT MAX(C.APPLY_DATE)
+						                         FROM TSHIPCOSTDT C
+						                        WHERE SD.ENTP_CODE = C.ENTP_CODE
+						                           AND SD.SHIP_COST_CODE = C.SHIP_COST_CODE
+						                           AND C.CUST_AREA_GB = '10'
+						                           AND C.APPLY_DATE &lt;= SYSDATE)
+			   AND SH.ORD_COST = SD.ORD_COST_AMT
+			   AND SH.RETURN_COST = SD.RET_COST_AMT
+			   AND SD.CUST_AREA_GB = '10'
+			   AND PG.PA_SALE_GB = '30'
+			   AND PG.PA_STATUS = '90'
+			   AND PG.BRAND_ID IS NULL
+			   AND PG.BRAND_CHANGE_YN = '1'
+			   AND PG.TRANS_TARGET_YN = '1'
+			   AND TG.SALE_GB = '00'
+			   AND SH.TRANS_TARGET_YN = '0'
+			   AND NOT EXISTS (SELECT 1
+								         FROM TPAGOODSFILTERLOG AA
+								        WHERE AA.GOODS_CODE = PG.GOODS_CODE
+								           AND INSERT_DATE > SYSDATE - 1/24
+								           AND PA_GROUP_CODE = '14')
+			   AND NOT EXISTS (SELECT 1
+								         FROM TPATRANSAPI AAA
+								        WHERE AAA.TRANS_CODE = PG.GOODS_CODE
+								           AND AAA.REQUEST_DATE > SYSDATE - 1/24
+								           AND AAA.API_NAME = 'IF_PAFAPLEAPI_01_001'
+								           AND AAA.PA_GROUP_CODE = '14')
+			   AND NOT EXISTS (SELECT 1
+                         				FROM TPAFAPLEGOODSBRANDTARGET BT
+                         			   WHERE BT.GOODS_CODE = PG.GOODS_CODE)
+ 		</insert>
+ 		
+</mapper>

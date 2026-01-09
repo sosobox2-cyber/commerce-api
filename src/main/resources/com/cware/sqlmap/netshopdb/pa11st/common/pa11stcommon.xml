@@ -1,0 +1,727 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pa11st.common">
+    <select id="selectEntpShipInsertList" resultType="hashMap" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">
+        SELECT /* pa11stcommon.xml : pa11st.pa11stcommon.selectEntpShipInsertList by Pa11stCommonController-entpShipInsert */
+               EU.POST_NO
+             , EU.POST_SEQ             
+             , DECODE(EU.SELECT_ADDR, '1', EU.POST_ADDR
+                                    , '2', RTRIM(EU.STD_ROAD_POST_ADDR1)
+                                    , '3', RTRIM(EU.STD_POST_ADDR1) 
+                     ) AS POST_ADDR
+              , DECODE(EU.SELECT_ADDR, '1',EU.ADDR
+                         , '2', RTRIM(EU.STD_ROAD_POST_ADDR2)
+                         , '3', RTRIM(EU.STD_POST_ADDR2) 
+                     ) AS ADDR
+             , EU.STD_ROAD_POST_ADDR1 AS ROAD_POST_ADDR
+             , EU.STD_ROAD_POST_ADDR2 AS ROAD_ADDR             
+             , EU.ROAD_ADDR_YN
+             , EU.ENTP_CODE
+             , EU.ENTP_MAN_SEQ
+             , EU.ENTP_MAN_GB 
+             , EU.ENTP_MAN_NAME
+             , EU.ENTP_MAN_DDD || '-' || EU.ENTP_MAN_TEL1 || '-' || EU.ENTP_MAN_TEL2 AS ENTP_MAN_TEL
+             , EU.ENTP_MAN_HP1 || '-' || EU.ENTP_MAN_HP2 || '-' || EU.ENTP_MAN_HP3 AS ENTP_MAN_HP
+             , TO_CHAR(EU.MODIFY_DATE, 'YYYY/MM/DD HH24:MI:SS') MODIFY_DATE
+             , REPLACE(EP.ENTP_NAME,'&amp;','') ENTP_NAME
+          FROM TENTPUSER EU
+             , TENTERPRISE EP
+         WHERE EU.ENTP_MAN_GB = #{paAddrGb, jdbcType=VARCHAR}
+           AND EU.ENTP_CODE = EP.ENTP_CODE           
+           AND EU.ENTP_CODE  = #{entpCode, jdbcType=VARCHAR}
+           AND EU.ENTP_MAN_SEQ = #{entpManSeq, jdbcType=VARCHAR}
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TPAENTPSLIP PL               
+                            WHERE EU.ENTP_CODE = PL.ENTP_CODE
+                              AND EU.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+                              AND PL.PA_CODE = #{paCode, jdbcType=VARCHAR})
+        
+    </select>
+    
+    <insert id="insertPa11stEntpSlip" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">
+        INSERT /* pa11stcommon.xml : pa11st.pa11stcommon.insertPa11stEntpSlip by Pa11stCommonController-entpShipInsert */
+          INTO TPAENTPSLIP
+             ( ENTP_CODE
+             , ENTP_MAN_SEQ
+             , PA_CODE
+             , PA_ADDR_SEQ
+             , PA_ADDR_GB
+             , TRANS_TARGET_YN
+             , LAST_SYNC_DATE
+             , INSERT_DATE
+             , INSERT_ID
+             , MODIFY_DATE
+             , MODIFY_ID )
+        VALUES 
+             ( #{entpCode, jdbcType=VARCHAR}
+             , #{entpManSeq, jdbcType=VARCHAR}
+             , #{paCode, jdbcType=VARCHAR}
+             , #{paAddrSeq, jdbcType=VARCHAR}
+             , #{paAddrGb, jdbcType=VARCHAR}
+             , #{transTargetYn, jdbcType=VARCHAR}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{insertId, jdbcType=VARCHAR}
+             , #{modifyDate, jdbcType=TIMESTAMP}
+             , #{modifyId, jdbcType=VARCHAR}
+             )  
+    </insert>
+    
+    <select id="selectEntpShipUpdateList" resultType="hashMap" parameterType="String">
+        SELECT /* pa11stcommon.xml : pa11st.pa11stcommon.selectEntpShipUpdateList by Pa11stCommonController-entpShipUpdate */
+               EU.POST_NO
+             , EU.POST_SEQ
+             , DECODE(EU.SELECT_ADDR, '1', EU.POST_ADDR
+                                    , '2', RTRIM(EU.STD_ROAD_POST_ADDR1)
+                                    , '3', RTRIM(EU.STD_POST_ADDR1) 
+                     ) AS POST_ADDR
+              , DECODE(EU.SELECT_ADDR, '1',EU.ADDR
+                         , '2', RTRIM(EU.STD_ROAD_POST_ADDR2)
+                         , '3', RTRIM(EU.STD_POST_ADDR2) 
+                     ) AS ADDR
+             , EU.STD_ROAD_POST_ADDR1 AS ROAD_POST_ADDR
+             , EU.STD_ROAD_POST_ADDR2 AS ROAD_ADDR
+             , EU.ROAD_ADDR_YN
+             , EU.ENTP_CODE
+             , EU.ENTP_MAN_SEQ
+             , EU.ENTP_MAN_GB 
+             , EU.ENTP_MAN_NAME
+             , EU.ENTP_MAN_DDD || '-' || EU.ENTP_MAN_TEL1 || '-' || EU.ENTP_MAN_TEL2 AS ENTP_MAN_TEL
+             , EU.ENTP_MAN_HP1 || '-' || EU.ENTP_MAN_HP2 || '-' || EU.ENTP_MAN_HP3 AS ENTP_MAN_HP
+             , TO_CHAR(EU.MODIFY_DATE, 'YYYY/MM/DD HH24:MI:SS') MODIFY_DATE
+             , REPLACE(EP.ENTP_NAME,'&amp;','') ENTP_NAME
+             , PL.PA_ADDR_SEQ 
+             , PL.PA_CODE
+          FROM TENTPUSER EU
+             , TENTERPRISE EP
+             , TPAENTPSLIP PL
+         WHERE EU.ENTP_CODE = EP.ENTP_CODE
+           AND EU.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+           AND EU.ENTP_CODE = PL.ENTP_CODE 
+           AND PL.PA_CODE IN ('11', '12')
+           AND PL.PA_ADDR_GB = #{paAddrGb, jdbcType=VARCHAR}
+           AND PL.TRANS_TARGET_YN = '1'
+    </select>
+    
+    <select id="selectEntpShipUpdate" resultType="hashMap" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">
+        SELECT /* pa11stcommon.xml : pa11st.pa11stcommon.selectEntpShipUpdate by Pa11stSellerService */
+               EU.POST_NO
+             , EU.POST_SEQ
+             , DECODE(EU.SELECT_ADDR, '1', EU.POST_ADDR
+                                    , '2', RTRIM(EU.STD_ROAD_POST_ADDR1)
+                                    , '3', RTRIM(EU.STD_POST_ADDR1) 
+                     ) AS POST_ADDR
+              , DECODE(EU.SELECT_ADDR, '1',EU.ADDR
+                         , '2', RTRIM(EU.STD_ROAD_POST_ADDR2)
+                         , '3', RTRIM(EU.STD_POST_ADDR2) 
+                     ) AS ADDR
+             , EU.STD_ROAD_POST_ADDR1 AS ROAD_POST_ADDR
+             , EU.STD_ROAD_POST_ADDR2 AS ROAD_ADDR
+             , EU.ROAD_ADDR_YN
+             , EU.ENTP_CODE
+             , EU.ENTP_MAN_SEQ
+             , EU.ENTP_MAN_GB 
+             , EU.ENTP_MAN_NAME
+             , EU.ENTP_MAN_DDD || '-' || EU.ENTP_MAN_TEL1 || '-' || EU.ENTP_MAN_TEL2 AS ENTP_MAN_TEL
+             , EU.ENTP_MAN_HP1 || '-' || EU.ENTP_MAN_HP2 || '-' || EU.ENTP_MAN_HP3 AS ENTP_MAN_HP
+             , TO_CHAR(EU.MODIFY_DATE, 'YYYY/MM/DD HH24:MI:SS') MODIFY_DATE
+             , REPLACE(EP.ENTP_NAME,'&amp;','') ENTP_NAME
+             , PL.PA_ADDR_SEQ 
+             , PL.PA_CODE
+          FROM TENTPUSER EU
+             , TENTERPRISE EP
+             , TPAENTPSLIP PL
+         WHERE EU.ENTP_CODE = EP.ENTP_CODE
+           AND EU.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+           AND EU.ENTP_CODE = PL.ENTP_CODE 
+           AND PL.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PL.PA_ADDR_GB = #{paAddrGb, jdbcType=VARCHAR}
+           AND PL.ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+           AND PL.ENTP_MAN_SEQ = #{entpManSeq, jdbcType=VARCHAR}
+           <if test ='transTargetYn != null'>
+           AND PL.TRANS_TARGET_YN = #{transTargetYn, jdbcType=VARCHAR}
+           </if>
+    </select>
+    
+    <update id="updatePa11stEntpSlip" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">
+        UPDATE /* pa11stcommon.xml : pa11st.pa11stcommon.updatePa11stEntpSlip by Pa11stCommonController-entpShipInsert */
+               TPAENTPSLIP
+           SET TRANS_TARGET_YN = #{transTargetYn, jdbcType=VARCHAR}
+             , MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+             , MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+         WHERE ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+           AND PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PA_ADDR_SEQ = #{paAddrSeq, jdbcType=VARCHAR}
+    </update>
+    
+    <delete id="deletePa11stOrigin" >
+        DELETE /* pa11stcommon.xml : pa11st.pa11stcommon.deletePa11stOrigin by Pa11stCommonController-originList */ 
+          FROM TPA11STORIGIN
+    </delete>
+    
+    <insert id="insertPa11stOrigin" parameterType="com.cware.netshopping.domain.model.Pa11stOrigin">
+        INSERT /* pa11stcommon.xml : pa11st.pa11stcommon.insertPa11stOrigin by Pa11stCommonController-originList */
+          INTO TPA11STORIGIN
+             ( ORGN_TYP_DTLS_CD 
+             , ORGN_TYP_CD 
+             , AREA_NAME 
+             , DETAIL_AREA_NAME 
+             , INSERT_DATE
+             , INSERT_ID
+             , MODIFY_DATE
+             , MODIFY_ID )
+        VALUES 
+             ( #{orgnTypDtlsCd, jdbcType=VARCHAR}
+             , #{orgnTypCd, jdbcType=VARCHAR}
+             , #{areaName, jdbcType=VARCHAR}
+             , #{detailAreaName, jdbcType=VARCHAR}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{insertId, jdbcType=VARCHAR}
+             , #{modifyDate, jdbcType=TIMESTAMP}
+             , #{modifyId, jdbcType=VARCHAR}
+             )  
+    </insert>
+    
+    <insert id="insertPa11stOriginMapping" parameterType="com.cware.netshopping.domain.model.Pa11stOrigin">
+        INSERT /* pa11stcommon.xml : pa11st.pa11stcommon.insertPa11stOriginMapping by Pa11stCommonController-originList */
+          INTO TPA11STORIGINMAPPING
+             ( ORGN_TYP_DTLS_CD 
+             , ORIGIN_CODE 
+             , INSERT_DATE
+             , INSERT_ID
+             )
+        SELECT PO.ORGN_TYP_DTLS_CD
+             , TC.CODE_MGROUP
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{insertId, jdbcType=VARCHAR}
+          FROM TPA11STORIGIN PO
+             , TCODE TC
+         WHERE PO.DETAIL_AREA_NAME = TC.CODE_NAME
+           AND TC.CODE_LGROUP = 'B023'
+           AND NOT EXISTS ( SELECT 'X'
+                              FROM TPA11STORIGINMAPPING TP
+                             WHERE TP.ORGN_TYP_DTLS_CD = PO.ORGN_TYP_DTLS_CD
+                               AND TP.ORIGIN_CODE = TC.CODE_MGROUP
+                          )
+              
+    </insert>
+    
+    <update id="updatePa11stCertGoodsKinds" parameterType="com.cware.netshopping.domain.model.PaGoodsKinds">
+        UPDATE /* pa11stcommon.xml : pa11st.pa11stcommon.updatePa11stCertGoodsKinds by Pa11stCommonController-certGoodsKindsList */
+               TPAGOODSKINDS
+           SET CERT_YN = #{certYn, jdbcType=VARCHAR}
+             , MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+             , MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+         WHERE PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+           AND PA_LGROUP = #{paLgroup, jdbcType=VARCHAR}
+           AND PA_MGROUP = #{paMgroup, jdbcType=VARCHAR}
+           <if test='paSgroup != "" and paSgroup != null'>
+           AND PA_SGROUP = #{paSgroup, jdbcType=VARCHAR}
+           </if>
+           <if test='paDgroup != "" and paDgroup != null'>
+           AND PA_DGROUP = #{paDgroup, jdbcType=VARCHAR}
+           </if>
+    </update>
+    
+    
+    <delete id="deletePa11stOfferCodeMoment" >
+        DELETE /* pa11stcommon.xml : pa11st.pa11stcommon.deletePa11stOfferCodeMoment by Pa11stCommonController-goodsOfferList */ 
+          FROM TPAOFFERCODEMOMENT
+    </delete>
+    
+    <insert id="insertPa11stOfferCodeMoment" parameterType="com.cware.netshopping.domain.model.PaOfferCode">
+        INSERT /* pa11stcommon.xml : pa11st.pa11stcommon.insertPa11stOfferCodeMoment by Pa11stCommonController-goodsOfferList */
+          INTO TPAOFFERCODEMOMENT
+             ( PA_GROUP_CODE
+             , PA_OFFER_TYPE  
+             , PA_OFFER_CODE 
+             , PA_OFFER_TYPE_NAME 
+             , PA_OFFER_CODE_NAME 
+             , REQUIRED_YN
+             , USE_YN 
+             , REMARK )
+        VALUES 
+             ( #{paGroupCode, jdbcType=VARCHAR}
+             , #{paOfferType, jdbcType=VARCHAR}
+             , #{paOfferCode, jdbcType=VARCHAR}
+             , #{paOfferTypeName, jdbcType=VARCHAR}
+             , #{paOfferCodeName, jdbcType=VARCHAR}
+             , #{requiredYn, jdbcType=VARCHAR}
+             , #{useYn, jdbcType=VARCHAR}
+             , #{remark, jdbcType=VARCHAR} )  
+    </insert>
+    
+    <insert id="insertPa11stOfferCodeList" parameterType="com.cware.netshopping.domain.model.PaOfferCode">
+        INSERT /* pa11stcommon.xml : pa11st.pa11stcommon.insertPa11stOfferCodeList by Pa11stCommonController-goodsOfferList */
+          INTO TPAOFFERCODE
+             ( PA_GROUP_CODE
+             , PA_OFFER_TYPE  
+             , PA_OFFER_CODE 
+             , PA_OFFER_TYPE_NAME 
+             , PA_OFFER_CODE_NAME 
+             , REQUIRED_YN
+             , USE_YN 
+             , REMARK
+             , INSERT_DATE
+             , INSERT_ID
+             , MODIFY_DATE
+             , MODIFY_ID )
+        SELECT OM.PA_GROUP_CODE
+             , OM.PA_OFFER_TYPE  
+             , OM.PA_OFFER_CODE 
+             , OM.PA_OFFER_TYPE_NAME 
+             , OM.PA_OFFER_CODE_NAME 
+             , OM.REQUIRED_YN
+             , OM.USE_YN 
+             , OM.REMARK
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , UPPER(#{insertId, jdbcType=VARCHAR})
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , UPPER(#{insertId, jdbcType=VARCHAR})
+          FROM TPAOFFERCODEMOMENT OM  
+         WHERE OM.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+           AND NOT EXISTS ( SELECT 'X'
+                              FROM TPAOFFERCODE OC
+                             WHERE OC.PA_GROUP_CODE = OM.PA_GROUP_CODE
+                               AND OC.PA_OFFER_TYPE = OM.PA_OFFER_TYPE
+                               AND OC.PA_OFFER_CODE = OM.PA_OFFER_CODE
+                          )
+    </insert>
+    
+    <update id="updatePa11stOfferCodeList" parameterType="com.cware.netshopping.domain.model.PaOfferCode">
+        UPDATE /* pa11stcommon.xml : pa11st.pa11stcommon.insertPa11stOfferCodeList by Pa11stCommonController-goodsOfferList */
+             ( SELECT OC.PA_OFFER_TYPE         AS OLD_PA_OFFER_TYPE
+                    , OC.PA_OFFER_CODE         AS OLD_PA_OFFER_CODE
+                    , OC.PA_OFFER_TYPE_NAME    AS OLD_PA_OFFER_TYPE_NAME
+                    , OC.PA_OFFER_CODE_NAME    AS OLD_PA_OFFER_CODE_NAME
+                    , OC.REQUIRED_YN           AS OLD_REQUIRED_YN
+                    , OC.REMARK                AS OLD_REMARK
+                    , OC.USE_YN                AS USE_YN
+                    , OC.MODIFY_DATE           AS MODIFY_DATE  
+                    , OC.MODIFY_ID             AS MODIFY_ID
+                    , OM.PA_OFFER_TYPE         AS NEW_PA_OFFER_TYPE    
+                    , OM.PA_OFFER_CODE         AS NEW_PA_OFFER_CODE
+                    , OM.PA_OFFER_TYPE_NAME    AS NEW_PA_OFFER_TYPE_NAME
+                    , OM.PA_OFFER_CODE_NAME    AS NEW_PA_OFFER_CODE_NAME
+                    , OM.REQUIRED_YN           AS NEW_REQUIRED_YN   
+                    , OM.REMARK                AS NEW_REMARK
+                 FROM TPAOFFERCODEMOMENT OM
+                    , TPAOFFERCODE OC
+                WHERE OM.PA_OFFER_TYPE = OC.PA_OFFER_TYPE
+                  AND OM.PA_OFFER_CODE = OC.PA_OFFER_CODE
+                  AND OM.PA_GROUP_CODE = OC.PA_GROUP_CODE
+                  AND OM.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+                  AND (OM.PA_OFFER_TYPE_NAME != OC.PA_OFFER_TYPE_NAME
+                    OR OM.PA_OFFER_CODE_NAME != OC.PA_OFFER_CODE_NAME
+                    OR OC.USE_YN != '1'
+                      )
+               )
+           SET OLD_PA_OFFER_TYPE_NAME = NEW_PA_OFFER_TYPE_NAME
+             , OLD_PA_OFFER_CODE_NAME = NEW_PA_OFFER_CODE_NAME
+             , OLD_REQUIRED_YN = NEW_REQUIRED_YN
+             , OLD_REMARK = NEW_REMARK
+             , USE_YN = '1'
+             , MODIFY_ID = UPPER(#{modifyId, jdbcType=VARCHAR})
+             , MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+    </update>
+    
+    <update id="updatePa11stOfferCodeListUseYn" parameterType="com.cware.netshopping.domain.model.PaOfferCode">
+        UPDATE /* pa11stcommon.xml : pa11st.pa11stcommon.updatePa11stOfferCodeListUseYn by Pa11stCommonController-goodsOfferList */
+               TPAOFFERCODE OC
+           SET OC.USE_YN = '0'
+             , OC.MODIFY_ID = UPPER(#{modifyId, jdbcType=VARCHAR})
+             , OC.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE OC.USE_YN = '1'
+           AND OC.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+           AND NOT EXISTS ( SELECT 'X'
+                              FROM TPAOFFERCODEMOMENT OM
+                             WHERE OC.PA_OFFER_TYPE = OM.PA_OFFER_TYPE
+                               AND OC.PA_OFFER_CODE = OM.PA_OFFER_CODE
+                               AND OC.PA_GROUP_CODE = OM.PA_GROUP_CODE
+                          )
+    </update>    
+    
+    
+    <select id="selectPaOfferTypeList" resultType="com.cware.netshopping.domain.model.PaOfferCode" parameterType="com.cware.netshopping.domain.model.PaOfferCode">
+        SELECT /* pa11stcommon.xml : pa11st.pa11stcommon.selectPaOfferTypeList by Pa11stCommonController-goodsOfferList */
+               DISTINCT PF.PA_OFFER_TYPE
+             , PF.PA_OFFER_TYPE_NAME
+          FROM TPAOFFERCODE PF
+         WHERE PF.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+           AND PF.USE_YN = '1'
+           AND NOT EXISTS ( SELECT 'X'
+                              FROM TCODE TC
+                             WHERE TC.CODE_LGROUP = 'O506'
+                               AND TC.CODE_MGROUP = PF.PA_OFFER_TYPE
+                               AND TC.USE_YN = PF.USE_YN
+                           )
+    </select>
+    
+    <insert id="insertPaOfferType" parameterType="com.cware.netshopping.domain.model.PaOfferCode">
+        INSERT /* pa11stcommon.xml : pa11st.pa11stcommon.insertPaOfferType by Pa11stCommonController-goodsOfferList */
+          INTO TCODE
+             ( CODE_LGROUP
+             , CODE_MGROUP  
+             , CODE_NAME
+             , CODE_GROUP 
+             , USE_YN 
+             , INSERT_ID
+             , INSERT_DATE
+             , MODIFY_ID
+             , MODIFY_DATE )
+        VALUES 
+             ( 'O506'
+             , #{paOfferType, jdbcType=VARCHAR}
+             , #{paOfferTypeName, jdbcType=VARCHAR}
+             , '01'
+             , '1'
+             , UPPER(#{insertId, jdbcType=VARCHAR})
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , UPPER(#{modifyId, jdbcType=VARCHAR})
+             , #{modifyDate, jdbcType=TIMESTAMP} )  
+    </insert>
+    
+    <insert id="updatePaOfferType" parameterType="com.cware.netshopping.domain.model.PaOfferCode" >
+        UPDATE /* pa11stcommon.xml : pa11st.pa11stcommon.updatePaOfferType by Pa11stCommonController-goodsOfferList */
+               TCODE TC
+           SET TC.USE_YN = '1'
+             , TC.MODIFY_ID = UPPER(#{modifyId, jdbcType=VARCHAR})
+             , TC.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE TC.CODE_LGROUP = 'O506' 
+           AND TC.CODE_MGROUP = #{paOfferType, jdbcType=VARCHAR}
+    </insert>
+    
+    
+    <select id="selectTroadPostList" resultType="hashMap" parameterType="String">
+        SELECT /* pa11stcommon.xml : pa11st.pa11stcommon.selectTroadPostList by Pa11stCommonController-noDelyAreaInsert */
+               DISTINCT RP.POST_NO
+          FROM TROADPOST RP
+         WHERE RP.USE_YN = '1'
+           AND RP.DO_NOT_ISLAND_DELY_YN = '1'
+           AND RP.CUST_AREA_GB IN ('20','30')
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TPA11STNODELYAREAM PM
+                                , TPA11STNODELYAREADT PD
+                            WHERE PM.NO_DELY_AREA_CODE = PD.NO_DELY_AREA_CODE
+                              AND PD.MAIL_NO = RP.POST_NO
+                              AND PM.PA_CODE = #{paCode, jdbcType=VARCHAR}
+                          )
+    </select>
+    
+    <select id="checkTpa11stNoDelyAream" resultType="int" parameterType="String">
+        SELECT /* pa11stcommon.xml : pa11st.pa11stcommon.checkTpa11stNoDelyAream by Pa11stCommonController-noDelyAreaInsert */
+               COUNT(1) AS CNT
+          FROM TPA11STNODELYAREAM PM
+         WHERE PM.PA_CODE = #{paCode, jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertPa11stNoDelyAreaM" parameterType="com.cware.netshopping.domain.Pa11stnodelyareamVO">
+        INSERT /* pa11stcommon.xml : pa11st.pa11stcommon.insertPa11stNoDelyAreaM by Pa11stCommonController-noDelyAreaInsert */
+          INTO TPA11STNODELYAREAM
+             ( PA_CODE
+             , NO_DELY_AREA_CODE  
+             , PRD_INFO_TMPLT_NO 
+             , PRD_INFO_TMPLT_NM 
+             , INSERT_ID
+             , INSERT_DATE 
+             , MODIFY_ID
+             , MODIFY_DATE )
+        VALUES 
+             ( #{paCode, jdbcType=VARCHAR}
+             , #{noDelyAreaCode, jdbcType=VARCHAR}
+             , #{prdInfoTmpltNo, jdbcType=VARCHAR}
+             , #{prdInfoTmpltNm, jdbcType=VARCHAR}
+             , #{insertId, jdbcType=VARCHAR}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{modifyId, jdbcType=VARCHAR}
+             , #{modifyDate, jdbcType=TIMESTAMP} )  
+    </insert>
+    
+    <insert id="insertPa11stNoDelyAreaDt" parameterType="com.cware.netshopping.domain.Pa11stnodelyareamVO">
+        INSERT /* pa11stcommon.xml : pa11st.pa11stcommon.insertPa11stNoDelyAreaDt by Pa11stCommonController-noDelyAreaInsert */
+          INTO TPA11STNODELYAREADT
+             ( NO_DELY_AREA_CODE
+             , MAIL_NO  
+             , MAIL_NO_SEQ 
+             , DLV_CNNT_AREA_NO
+             , INSERT_ID
+             , INSERT_DATE 
+             , MODIFY_ID
+             , MODIFY_DATE )
+        VALUES 
+             ( #{noDelyAreaCode, jdbcType=VARCHAR}
+             , #{mailNo, jdbcType=VARCHAR}
+             , #{mailNoSeq, jdbcType=VARCHAR}
+             , #{dlvCnntAreaNo, jdbcType=VARCHAR}
+             , #{insertId, jdbcType=VARCHAR}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{modifyId, jdbcType=VARCHAR}
+             , #{modifyDate, jdbcType=TIMESTAMP} )  
+    </insert>
+    
+    <insert id="insertPa11stNoDelyAreaApply" parameterType="com.cware.netshopping.domain.Pa11stnodelyareamVO">
+        INSERT /* pa11stcommon.xml : pa11st.pa11stcommon.insertPa11stNoDelyAreaApply by Pa11stCommonController-noDelyAreaInsert */
+          INTO TPA11STNODELYAREAAPPLY
+             ( NO_DELY_AREA_CODE
+             , PRD_NO  
+             , APPLY_YN 
+             , INSERT_ID
+             , INSERT_DATE
+             , MODIFY_ID
+             , MODIFY_DATE )
+        SELECT #{noDelyAreaCode, jdbcType=VARCHAR}
+             , PT.PRODUCT_NO 
+             , '0'
+             , #{insertId, jdbcType=VARCHAR}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{modifyId, jdbcType=VARCHAR}
+             , #{modifyDate, jdbcType=TIMESTAMP}
+          FROM TPAPRODUCT PD
+             , TPA11STGOODS PT  
+         WHERE PD.GOODS_CODE = PT.GOODS_CODE
+           AND PD.DO_NOT_ISLAND_DELY_YN = '1'
+           AND PT.PA_STATUS = '30'
+           AND PT.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND NOT EXISTS ( SELECT 'X'
+                              FROM TPA11STNODELYAREAAPPLY PA
+                             WHERE PA.PRD_NO = PT.PRODUCT_NO
+                          )
+    </insert>
+    
+    <update id="updatePa11stNoDelyAreaDt" parameterType="com.cware.netshopping.domain.Pa11stnodelyareamVO">
+        UPDATE /* pa11stcommon.xml : pa11st.pa11stcommon.updatePa11stNoDelyAreaDt by Pa11stCommonController-noDelyAreaSelect */
+               TPA11STNODELYAREADT
+           SET DLV_CNNT_AREA_NO = #{dlvCnntAreaNo, jdbcType=VARCHAR}
+             , MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+             , MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE NO_DELY_AREA_CODE = #{noDelyAreaCode, jdbcType=VARCHAR}
+           AND MAIL_NO = #{mailNo, jdbcType=VARCHAR}
+           AND DLV_CNNT_AREA_NO IS NULL
+    </update> 
+    
+    <select id="selectNoDelyAreaUpdateList" resultType="hashMap" parameterType="String">
+        SELECT /* pa11stcommon.xml : pa11st.pa11stcommon.selectNoDelyAreaUpdateList by Pa11stCommonController-noDelyAreaUpdate */
+               DISTINCT RP.POST_NO
+             , 'I' AS CWARE_ACTION
+             , (SELECT TPM1.PRD_INFO_TMPLT_NO
+                  FROM TPA11STNODELYAREAM TPM1
+                 WHERE TPM1.PA_CODE = #{paCode, jdbcType=VARCHAR}
+                   AND ROWNUM = 1
+               ) AS PRD_INFO_TMPLT_NO
+             , 'N' AS DELETE_YN
+             , '' AS DLV_CNNT_AREA_NO
+             , (SELECT TPM2.NO_DELY_AREA_CODE
+                  FROM TPA11STNODELYAREAM TPM2
+                 WHERE TPM2.PA_CODE = #{paCode, jdbcType=VARCHAR}
+                   AND ROWNUM = 1
+               ) AS NO_DELY_AREA_CODE
+          FROM TROADPOST RP
+         WHERE RP.USE_YN = '1'
+           AND RP.DO_NOT_ISLAND_DELY_YN = '1'
+           AND RP.CUST_AREA_GB IN ('20','30')
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TPA11STNODELYAREAM PM
+                                , TPA11STNODELYAREADT PD
+                            WHERE PM.NO_DELY_AREA_CODE = PD.NO_DELY_AREA_CODE
+                              AND PD.MAIL_NO = RP.POST_NO
+                              AND PM.PA_CODE = #{paCode, jdbcType=VARCHAR}
+                           )
+           AND RP.MODIFY_DATE >  SYSDATE - 2
+    UNION ALL
+    
+        SELECT DISTINCT RP.POST_NO
+             , 'U' AS CWARE_ACTION
+             , (SELECT TPM.PRD_INFO_TMPLT_NO
+                  FROM TPA11STNODELYAREAM TPM
+                 WHERE TPM.PA_CODE = #{paCode, jdbcType=VARCHAR}
+                   AND ROWNUM = 1
+               ) AS PRD_INFO_TMPLT_NO
+             , CASE WHEN RP.DO_NOT_ISLAND_DELY_YN = '0' AND PD.DELETE_YN = '0'
+                    THEN 'Y'
+                    WHEN RP.DO_NOT_ISLAND_DELY_YN = '1' AND PD.DELETE_YN = '1'
+                    THEN 'N'
+                    ELSE ''
+                     END AS DELETE_YN  
+             , PD.DLV_CNNT_AREA_NO AS DLV_CNNT_AREA_NO
+             , PD.NO_DELY_AREA_CODE AS NO_DELY_AREA_CODE
+          FROM TROADPOST RP
+             , TPA11STNODELYAREADT PD
+         WHERE RP.POST_NO = PD.MAIL_NO
+           AND RP.USE_YN = '1'
+           AND RP.CUST_AREA_GB IN ('20','30')
+           AND EXISTS (SELECT 'X'
+                         FROM TPA11STNODELYAREAM PM
+                        WHERE PM.NO_DELY_AREA_CODE = PD.NO_DELY_AREA_CODE
+                          AND PM.PA_CODE = #{paCode, jdbcType=VARCHAR}
+                       )
+           AND RP.MODIFY_DATE >  SYSDATE - 2
+    </select>
+    
+    <update id="updatePa11stNoDelyAreaDtDeleteYn" parameterType="com.cware.netshopping.domain.Pa11stnodelyareamVO">
+        UPDATE /* pa11stcommon.xml : pa11st.pa11stcommon.updatePa11stNoDelyAreaDtDeleteYn by Pa11stCommonController-noDelyAreaUpdate */
+               TPA11STNODELYAREADT
+           SET MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+             , MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+           <choose>
+             <when test='deleteYn == "Y"'>
+             , DELETE_YN = '1' 
+             </when>
+             <when test='deleteYn == "N"'>
+             , DELETE_YN = '0' 
+             </when>
+           </choose>
+         WHERE NO_DELY_AREA_CODE = #{noDelyAreaCode, jdbcType=VARCHAR}
+           AND MAIL_NO = #{mailNo, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectNoDelyAreaApplyList" resultType="hashMap" parameterType="String">
+        SELECT /* pa11stcommon.xml : pa11st.pa11stcommon.selectNoDelyAreaApplyList by Pa11stCommonController-noDelyAreaApply */
+               PA.PRD_NO
+             , PM.PRD_INFO_TMPLT_NO
+             , PA.NO_DELY_AREA_CODE
+             , PM.PA_CODE
+          FROM TPA11STNODELYAREAM PM
+             , TPA11STNODELYAREAAPPLY PA
+         WHERE PM.NO_DELY_AREA_CODE = PA.NO_DELY_AREA_CODE
+           AND PA.APPLY_YN = '0'
+           AND PM.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND EXISTS ( SELECT '1'
+                          FROM TPAPRODUCT PD
+                             , TPA11STGOODS PT  
+                         WHERE PT.PA_CODE = PM.PA_CODE
+                           AND PT.PRODUCT_NO = PA.PRD_NO 
+                           AND PD.GOODS_CODE = PT.GOODS_CODE
+                           AND PT.PA_STATUS = '30'
+                           AND PD.DO_NOT_ISLAND_DELY_YN = '1'
+                      )
+    </select>
+    
+    <update id="updatePa11stNoDelyAreaApply" parameterType="com.cware.netshopping.domain.Pa11stnodelyareamVO">
+        UPDATE /* pa11stcommon.xml : pa11st.pa11stcommon.updatePa11stNoDelyAreaApply by Pa11stCommonController-noDelyAreaApply */
+               TPA11STNODELYAREAAPPLY
+           SET MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+             , MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+             <choose>
+             <when test='applyYn == "1"'>
+             , APPLY_YN = '1' 
+             </when>
+             <when test='applyYn == "0"'>
+             , APPLY_YN = '0' 
+             </when>
+           </choose>
+         WHERE NO_DELY_AREA_CODE = #{noDelyAreaCode, jdbcType=VARCHAR}
+           AND PRD_NO = #{prdNo, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectNoDelyAreaDeleteList" resultType="hashMap" parameterType="String">
+        SELECT /* pa11stcommon.xml : pa11st.pa11stcommon.selectNoDelyAreaDeleteList by Pa11stCommonController-noDelyAreaDelete */
+               PA.PRD_NO
+             , PM.PRD_INFO_TMPLT_NO
+             , PA.NO_DELY_AREA_CODE
+             , PM.PA_CODE
+          FROM TPA11STNODELYAREAM PM
+             , TPA11STNODELYAREAAPPLY PA
+         WHERE PM.NO_DELY_AREA_CODE = PA.NO_DELY_AREA_CODE
+           AND PA.APPLY_YN = '1'
+           AND PM.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND EXISTS ( SELECT '1'
+                          FROM TPAPRODUCT PD
+                             , TPA11STGOODS PT  
+                         WHERE PT.PA_CODE = PM.PA_CODE
+                           AND PT.PRODUCT_NO = PA.PRD_NO 
+                           AND PD.GOODS_CODE = PT.GOODS_CODE
+                           AND PT.PA_STATUS = '30'
+                           AND PD.DO_NOT_ISLAND_DELY_YN = '0'
+                      )
+    </select>
+    
+    <select id="selectNoDelyAreaCodeList" resultType="String" parameterType="String">
+        SELECT /* pa11stcommon.xml : pa11st.pa11stcommon.selectNoDelyAreaCodeList by Pa11stCommonController-noDelyAreaApply */
+               PM.NO_DELY_AREA_CODE
+          FROM TPA11STNODELYAREAM PM
+         WHERE PM.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND ROWNUM = 1
+    </select>
+
+    <update id="updatePaGoodsKindsUnUseListUseYn" parameterType="com.cware.netshopping.domain.model.PaGoodsKinds">
+        UPDATE /* pa11stcommon.xml : pa11st.pa11stcommon.updatePaGoodsKindsUnUseListUseYn by Pa11stCommonController-goodsKindsList */
+               TPAGOODSKINDS GK
+           SET GK.USE_YN = '0'
+             , GK.MODIFY_ID = UPPER(#{modifyId, jdbcType=VARCHAR})
+             , GK.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE GK.USE_YN = '1'
+           AND GK.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+           AND EXISTS ( SELECT 'X'
+                          FROM TCODE TC
+                         WHERE TC.CODE_LGROUP = 'O508'
+                           AND GK.PA_LGROUP = TC.CODE_MGROUP
+                           AND TC.CODE_MGROUP != '0000'
+                        UNION ALL
+                        SELECT 'X'
+                          FROM TCODE TC
+                         WHERE TC.CODE_LGROUP = 'O508'
+                           AND GK.PA_SGROUP_NAME LIKE '%'||TC.CODE_NAME||'%'
+                           AND TC.CODE_MGROUP = '0000'
+                      )
+    </update>
+    
+    <insert id="insertPaBrandList" parameterType="com.cware.netshopping.domain.model.PaBrand">
+        INSERT /* pa11stcommon.xml : pa11st.pa11stcommon.insertPaBrandList by Pa11stCommonController-brandList */
+          INTO TPABRAND
+             ( PA_GROUP_CODE
+             , PA_BRAND_NO
+             , PA_BRAND_NAME
+             , INSERT_ID
+             , INSERT_DATE
+             , MODIFY_ID
+             , MODIFY_DATE )
+        VALUES 
+             ( #{paGroupCode, jdbcType=VARCHAR}
+             , #{paBrandNo, jdbcType=VARCHAR}
+             , #{paBrandName, jdbcType=VARCHAR}
+             , #{insertId, jdbcType=VARCHAR}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{modifyId, jdbcType=VARCHAR}
+             , #{modifyDate, jdbcType=TIMESTAMP}
+             )
+    </insert>
+  
+    <select id="selectEntpSlipCost" resultType="hashMap" parameterType="String">
+        SELECT PES.PA_ADDR_SEQ,
+		       PES.PA_ADDR_GB,
+		       PCC.ORD_COST_AMT AS ORD_COST,
+		       PCC.SHIP_COST_BASE_AMT,
+		       PCC.ENTP_CODE,
+		       PCC.SHIP_COST_CODE
+		  FROM TPACUSTCNSHIPCOST PCC, TPAENTPSLIP PES
+		 WHERE PCC.PA_CODE = PES.PA_CODE
+		   AND PCC.ENTP_CODE = PES.ENTP_CODE
+		   AND PCC.ENTP_MAN_SEQ = PES.ENTP_MAN_SEQ
+		   AND PCC.PA_CODE = #{paCode, jdbcType=VARCHAR}
+		   AND PCC.TRANS_CN_COST_YN = '1'
+		 ORDER BY PCC.ENTP_CODE, PCC.ORD_COST_AMT, PCC.SHIP_COST_BASE_AMT
+    </select>
+    <update id="updateEntpSlipCost" parameterType="hashMap">
+        UPDATE /* pa11stcommon.xml : pa11st.pa11stcommon.updateEntpSlipCost by Pa11stCommonController-entpShipCostInsert */
+               TPACUSTCNSHIPCOST PCC
+		   SET PCC.TRANS_END_DATE = TO_DATE(#{transEndDate, jdbcType=TIMESTAMP}, 'YYYY/MM/DD HH24:MI:SS'),
+		       PCC.TRANS_CN_COST_YN = '0',
+		       PCC.MODIFY_DATE = TO_DATE(#{transEndDate, jdbcType=TIMESTAMP}, 'YYYY/MM/DD HH24:MI:SS')
+		 WHERE PCC.TRANS_CN_COST_YN = '1'
+		   AND PCC.ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+		   AND PCC.SHIP_COST_CODE = #{shipCostCode, jdbcType=VARCHAR}
+		   AND PCC.PA_CODE = #{paCode, jdbcType=VARCHAR}
+    </update>
+    
+    
+    <select id="selectPa11stSettlementList" resultType="int" parameterType="com.cware.netshopping.domain.model.Pa11stSettlement">
+        SELECT COUNT(1)      
+		  FROM TPA11STSETTLEMENT T
+		 WHERE T.ORD_NO	 	 = #{ordNo, jdbcType=VARCHAR}
+		   AND T.ORD_PRD_SEQ = #{ordPrdSeq, jdbcType=VARCHAR}
+		   AND T.ORD_QTY 	 = #{ordQty, jdbcType=VARCHAR}
+		   AND T.DLV_NO  	 = #{dlvNo, jdbcType=VARCHAR}
+    </select>
+</mapper>

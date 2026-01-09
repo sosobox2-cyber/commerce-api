@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pacommon.pacounsel">
+    
+    <insert id="insertPaQnaMoment" parameterType="com.cware.netshopping.domain.model.Paqnamoment">
+        INSERT INTO TPAQNAMOMENT ( /* pacounsel.xml : pacommon.pacounsel.insertPaQnaMoment */
+                      PA_CODE
+                    , PA_COUNSEL_NO
+                    , COUNSEL_DATE
+                    , TITLE
+                    , QUEST_COMMENT
+                    , ANSWER_COMMENT
+                    , COUNSEL_GB
+                    , PA_GOODS_CODE
+                    , PA_GOODS_DT_CODE
+                    , PA_ORDER_NO
+                    , ORDER_YN
+                    , DISPLAY_YN
+                    , PA_CUST_NO
+                    , CUST_NAME
+                    , CUST_TEL
+                    , RECEIPT_DATE
+                    , MSG_GB
+                    , TOKEN
+                    , PA_GROUP_CODE
+                    )
+             VALUES( #{paCode, jdbcType=VARCHAR}
+                   , #{paCounselNo, jdbcType=VARCHAR}
+                   , #{counselDate, jdbcType=VARCHAR}
+                   , #{title, jdbcType=VARCHAR}
+                   , #{questComment, jdbcType=VARCHAR}
+                   , #{answerComment, jdbcType=VARCHAR}
+                   , #{counselGb, jdbcType=VARCHAR}
+                   , #{paGoodsCode, jdbcType=VARCHAR}
+                   , #{paGoodsDtCode, jdbcType=VARCHAR}
+                   , #{paOrderNo, jdbcType=VARCHAR}
+                   , #{orderYn, jdbcType=DATE}
+                   , #{displayYn, jdbcType=VARCHAR}
+                   , SUBSTR(#{paCustNo, jdbcType=DATE},1,35)
+                   , #{custName, jdbcType=VARCHAR}
+                   , #{custTel, jdbcType=VARCHAR}
+                   , #{receiptDate, jdbcType=VARCHAR}
+                   , #{msgGb, jdbcType=VARCHAR}
+                   , #{token, jdbcType=VARCHAR}
+                   , #{paGroupCode, jdbcType=VARCHAR}
+                   )
+    </insert>
+    <insert id="insertPaQnaMomentTemp" parameterType="com.cware.netshopping.domain.model.Paqnamoment">
+        INSERT INTO TPAQNAMOMENTTEMP ( /* pacounsel.xml : pacommon.pacounsel.insertPaQnaMomentTemp */
+                      PA_CODE
+                    , PA_COUNSEL_NO
+                    , COUNSEL_DATE
+                    , TITLE
+                    , QUEST_COMMENT
+                    , ANSWER_COMMENT
+                    , COUNSEL_GB
+                    , PA_GOODS_CODE
+                    , PA_GOODS_DT_CODE
+                    , PA_ORDER_NO
+                    , ORDER_YN
+                    , DISPLAY_YN
+                    , PA_CUST_NO
+                    , CUST_NAME
+                    , CUST_TEL
+                    , RECEIPT_DATE
+                    , MSG_GB
+                    , TOKEN
+                    , PA_GROUP_CODE
+                    )
+             VALUES( #{paCode, jdbcType=VARCHAR}
+                   , #{paCounselNo, jdbcType=VARCHAR}
+                   , #{counselDate, jdbcType=VARCHAR}
+                   , #{title, jdbcType=VARCHAR}
+                   , #{questComment, jdbcType=VARCHAR}
+                   , #{answerComment, jdbcType=VARCHAR}
+                   , #{counselGb, jdbcType=VARCHAR}
+                   , #{paGoodsCode, jdbcType=VARCHAR}
+                   , #{paGoodsDtCode, jdbcType=VARCHAR}
+                   , #{paOrderNo, jdbcType=VARCHAR}
+                   , #{orderYn, jdbcType=DATE}
+                   , #{displayYn, jdbcType=VARCHAR}
+                   , SUBSTR(#{paCustNo, jdbcType=DATE},1,35)
+                   , #{custName, jdbcType=VARCHAR}
+                   , #{custTel, jdbcType=VARCHAR}
+                   , #{receiptDate, jdbcType=VARCHAR}
+                   , #{msgGb, jdbcType=VARCHAR}
+                   , #{token, jdbcType=VARCHAR}
+                   , #{paGroupCode, jdbcType=VARCHAR}
+                   )
+    </insert>
+    <insert id="insertPaQnaM" parameterType="com.cware.netshopping.domain.model.Paqnamoment">
+        INSERT INTO TPAQNAM ( /* pacounsel.xml : pacommon.pacounsel.insertPaQnaM */
+                      PA_COUNSEL_SEQ
+                    , PROC_GB
+                    , PA_CODE
+                    , PA_COUNSEL_NO
+                    , COUNSEL_SEQ
+                    , COUNSEL_DATE
+                    , COUNSEL_GB
+                    , PA_GOODS_CODE
+                    , PA_GOODS_DT_CODE
+                    , PA_ORDER_NO
+                    , ORDER_YN
+                    , DISPLAY_YN
+                    , PA_CUST_NO
+                    , CUST_NAME
+                    , CUST_TEL
+                    , RECEIPT_DATE
+                    , MSG_GB
+                    , TOKEN
+                    , TRANS_YN
+                    , INSERT_DATE
+                    , INSERT_ID
+                    , MODIFY_DATE
+                    , MODIFY_ID
+                    , PA_GROUP_CODE)
+        SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SEQ_PA_COUNSEL_SEQ.NEXTVAL, 6, '0') AS PA_COUNSEL_SEQ
+             , '10' AS PROC_GB
+             , PQM.PA_CODE
+             , PQM.PA_COUNSEL_NO
+             , null AS COUNSEL_SEQ
+             , PQM.COUNSEL_DATE
+             , PQM.COUNSEL_GB
+             , PQM.PA_GOODS_CODE
+             , PQM.PA_GOODS_DT_CODE
+             , PQM.PA_ORDER_NO
+             , PQM.ORDER_YN
+             , PQM.DISPLAY_YN
+             , PQM.PA_CUST_NO
+             , PQM.CUST_NAME
+             , PQM.CUST_TEL
+             , PQM.RECEIPT_DATE
+             , PQM.MSG_GB
+             , PQM.TOKEN
+             , '0' AS TRANS_YN
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , UPPER(#{insertId, jdbcType=VARCHAR})
+             , #{modifyDate, jdbcType=TIMESTAMP}
+             , UPPER(#{modifyId, jdbcType=VARCHAR})
+             , PQM.PA_GROUP_CODE
+        FROM TPAQNAMOMENT PQM
+       WHERE 1=1
+         AND PQM.PA_CODE = #{paCode, jdbcType=VARCHAR}
+         AND PQM.MSG_GB = #{msgGb, jdbcType=VARCHAR}
+         <if test='paGroupCode != "06"'>
+	         AND NOT EXISTS (
+	         				 SELECT 'X'
+	                           FROM TPAQNAM PQ
+	                          WHERE PQ.PA_COUNSEL_NO = PQM.PA_COUNSEL_NO
+	                            AND PQ.PA_CODE = #{paCode, jdbcType=VARCHAR}
+	                            AND PQ.MSG_GB = #{msgGb, jdbcType=VARCHAR}
+	                             <if test="paGroupCode == 13 and msgGb == 10">
+	                             AND PQ.TOKEN = PQM.TOKEN 
+	                             </if>
+	                             <if test="paGroupCode == 14 and msgGb == 10">
+	                             AND PQ.TOKEN = PQM.TOKEN 
+	                             </if>
+	                             <if test="paGroupCode == 15">
+	                             AND PQ.TOKEN = PQM.TOKEN 
+	                             </if>
+	                         )
+	     </if>
+    </insert>
+    
+    <insert id="insertPaQnaDt" parameterType="com.cware.netshopping.domain.model.Paqnamoment">
+        INSERT INTO TPAQNADT ( /* pacounsel.xml : pacommon.pacounsel.insertPaQnaDt */
+                      PA_COUNSEL_SEQ
+                      , PA_COUNSEL_DT_SEQ
+                      , PROC_GB
+                      , TITLE
+                      , PROC_NOTE
+                      , PROC_DATE
+                      , PROC_ID)
+        SELECT DISTINCT PQ.PA_COUNSEL_SEQ
+             , '1' PA_COUNSEL_DT_SEQ
+             , PQ.PROC_GB
+             , PQM.TITLE AS TITLE
+             , PQM.QUEST_COMMENT AS PROC_NOTE
+             , PQ.MODIFY_DATE AS PROC_DATE 
+             , PQ.MODIFY_ID AS PROC_ID
+        FROM TPAQNAMOMENT PQM
+           , TPAQNAM PQ
+       WHERE 1=1
+         AND PQ.PA_COUNSEL_NO = PQM.PA_COUNSEL_NO
+         <if test='paGroupCode == "08" '>
+         AND PQ.COUNSEL_DATE = PQM.COUNSEL_DATE
+         </if> 
+         <if test='paGroupCode == "13" and msgGb == "10"'>
+	     AND PQ.TOKEN = PQM.TOKEN 
+	     </if>
+         <if test='paGroupCode == "14" and msgGb == "10"'>
+	     AND PQ.TOKEN = PQM.TOKEN 
+	     </if>
+         <if test='paGroupCode == "15"'>
+	     AND PQ.TOKEN = PQM.TOKEN 
+	     </if>
+         AND PQ.TRANS_YN = 0
+         AND PQ.TRANS_DATE IS NULL
+         AND PQ.COUNSEL_SEQ IS NULL
+         AND PQ.PROC_GB = '10'
+         AND PQ.PA_CODE = #{paCode, jdbcType=VARCHAR}
+         AND NOT EXISTS (SELECT 'X'
+                           FROM TPAQNADT PD
+                          WHERE PD.PA_COUNSEL_SEQ = PQ.PA_COUNSEL_SEQ
+                         )
+    </insert>
+    
+    <insert id="insertCounselCustcounselm" parameterType="com.cware.netshopping.domain.model.Custcounselm">
+        INSERT /* pacounsel.xml : pacommon.pacounsel.insertCounselCustcounselm */
+          INTO TCUSTCOUNSELM 
+              (COUNSEL_SEQ
+             , CUST_NO
+             , DO_FLAG
+             , REF_NO1
+             , REF_NO2
+             , REF_NO3
+             , REF_NO4
+             , OUT_LGROUP_CODE
+             , OUT_MGROUP_CODE
+             , CS_LGROUP
+             , CS_MGROUP
+             , CS_SGROUP
+             , CS_LMS_CODE
+             , GOODS_CODE
+             , GOODSDT_CODE
+             , CLAIM_NO
+             , DDD
+             , TEL1
+             , TEL2
+             , TEL3
+             , TEL
+             , WILD_YN
+             , HC_REQ_DATE
+             , INSERT_ID
+             , INSERT_DATE
+             , REMARK
+             , PROC_ID
+             , PROC_DATE
+             , REF_ID1
+             , CS_SEND_YN
+             , QUICK_YN
+             , QUICK_END_YN
+             , COUNSEL_MEDIA
+             , SEND_ENTP_CODE 
+               )
+      VALUES ( #{counselSeq ,jdbcType=VARCHAR}
+             , #{custNo ,jdbcType=VARCHAR}
+             , #{doFlag ,jdbcType=VARCHAR}
+             , #{refNo1 ,jdbcType=VARCHAR}
+             , #{refNo2 ,jdbcType=VARCHAR}
+             , #{refNo3 ,jdbcType=VARCHAR}
+             , #{refNo4 ,jdbcType=VARCHAR}
+             , #{outLgroupCode ,jdbcType=VARCHAR}
+             , #{outMgroupCode ,jdbcType=VARCHAR}
+             , #{csLgroup ,jdbcType=VARCHAR}
+             , #{csMgroup ,jdbcType=VARCHAR}
+             , #{csSgroup ,jdbcType=VARCHAR}
+             , #{csLmsCode ,jdbcType=VARCHAR}
+             , #{goodsCode ,jdbcType=VARCHAR} 
+             , #{goodsdtCode ,jdbcType=VARCHAR}
+             , #{claimNo ,jdbcType=VARCHAR}
+             , #{ddd  ,jdbcType=VARCHAR}
+             , #{tel1 ,jdbcType=VARCHAR}
+             , #{tel2 ,jdbcType=VARCHAR}
+             , #{tel3 ,jdbcType=VARCHAR}
+             , #{tel ,jdbcType=VARCHAR}
+             , #{wildYn ,jdbcType=VARCHAR}
+             , #{hcReqDate ,jdbcType=TIMESTAMP}
+             , #{insertId ,jdbcType=VARCHAR}
+             , #{insertDate,jdbcType=TIMESTAMP}
+             , #{remark ,jdbcType=VARCHAR}
+             , #{procId ,jdbcType=VARCHAR}
+             , #{procDate,jdbcType=TIMESTAMP}
+             , #{refId1 ,jdbcType=VARCHAR}
+             , #{csSendYn ,jdbcType=VARCHAR}
+             , #{quickYn ,jdbcType=VARCHAR}
+             , #{quickEndYn ,jdbcType=VARCHAR}
+             , #{counselMedia ,jdbcType=VARCHAR}
+             , #{sendEntpCode ,jdbcType=VARCHAR}
+             )
+    </insert>
+    
+    <insert id="insertCounselCustcounseldt" parameterType="com.cware.netshopping.domain.model.Custcounseldt">
+        INSERT /* pacounsel.xml : pacommon.pacounsel.insertCounselCustcounseldt */
+          INTO TCUSTCOUNSELDT 
+              ( COUNSEL_SEQ
+              , COUNSEL_DT_SEQ
+              , DO_FLAG
+              , TITLE
+              , DISPLAY_YN
+              , PROC_NOTE
+              , PROC_DATE
+              , PROC_ID)
+        VALUES( #{counselSeq ,jdbcType=VARCHAR}
+              , #{counselDtSeq,jdbcType=VARCHAR}
+              , #{doFlag,jdbcType=VARCHAR}
+              , #{title,jdbcType=VARCHAR}
+              , #{displayYn,jdbcType=VARCHAR}
+              , #{procNote,jdbcType=VARCHAR}
+              , #{procDate,jdbcType=TIMESTAMP}
+              , #{procId,jdbcType=VARCHAR})
+    </insert>
+    
+    <update id="updatePaQnaCounselSeq" parameterType="com.cware.netshopping.domain.PaqnamVO">
+        UPDATE /* pacounsel.xml : pacommon.pacounsel.updatePaQnaCounselSeq */
+               TPAQNAM 
+           SET COUNSEL_SEQ = #{counselSeq, jdbcType=VARCHAR}
+             , MODIFY_ID = UPPER(#{modifyId, jdbcType=VARCHAR})
+             , MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE PA_COUNSEL_SEQ = #{paCounselSeq, jdbcType=VARCHAR}
+           AND PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND COUNSEL_SEQ IS NULL
+    </update>
+    
+    <select id="selectPaCounselNewSeq" resultType="String">
+		SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SEQ_PA_COUNSEL_SEQ.NEXTVAL, 6, '0') AS PA_COUNSEL_SEQ
+		  FROM DUAL
+	</select>
+    
+    <select id="selectPaQnaM" parameterType="com.cware.netshopping.domain.model.Paqnamoment" resultType="hashMap">
+		SELECT PQ.PA_CODE
+             , PQ.PA_COUNSEL_NO
+             , PQ.COUNSEL_DATE
+             , PQ.COUNSEL_GB
+             , PQ.MSG_GB
+             , PQ.PA_GROUP_CODE
+        FROM TPAQNAM PQ   
+       WHERE PQ.PA_CODE = #{paCode, jdbcType=VARCHAR}
+         AND PQ.MSG_GB = #{msgGb, jdbcType=VARCHAR}
+	     AND PQ.PA_COUNSEL_NO = #{paCounselNo, jdbcType=VARCHAR}
+	</select>
+    
+    <insert id="insertPaQnaMByPaCounselNo" parameterType="com.cware.netshopping.domain.model.Paqnamoment">
+        INSERT INTO TPAQNAM ( /* pacounsel.xml : pacommon.pacounsel.insertPaQnaM */
+                      PA_COUNSEL_SEQ
+                    , PROC_GB
+                    , PA_CODE
+                    , PA_COUNSEL_NO
+                    , COUNSEL_SEQ
+                    , COUNSEL_DATE
+                    , COUNSEL_GB
+                    , PA_GOODS_CODE
+                    , PA_GOODS_DT_CODE
+                    , PA_ORDER_NO
+                    , ORDER_YN
+                    , DISPLAY_YN
+                    , PA_CUST_NO
+                    , CUST_NAME
+                    , CUST_TEL
+                    , RECEIPT_DATE
+                    , MSG_GB
+                    , TOKEN
+                    , TRANS_YN
+                    , INSERT_DATE
+                    , INSERT_ID
+                    , MODIFY_DATE
+                    , MODIFY_ID
+                    , PA_GROUP_CODE)
+        VALUES ( TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SEQ_PA_COUNSEL_SEQ.NEXTVAL, 6, '0') 
+             , '10'
+             , #{paCode, jdbcType=VARCHAR}
+             , #{paCounselNo, jdbcType=VARCHAR}
+             , null
+             , #{counselDate, jdbcType=TIMESTAMP}
+             , #{counselGb, jdbcType=VARCHAR}
+             , #{paGoodsCode, jdbcType=VARCHAR}
+             , #{paGoodsDtCode, jdbcType=VARCHAR}
+             , #{paOrderNo, jdbcType=VARCHAR}
+             , #{orderYn, jdbcType=DATE}
+             , #{displayYn, jdbcType=VARCHAR}
+             , SUBSTR(#{paCustNo, jdbcType=DATE},1,35)
+             , #{custName, jdbcType=VARCHAR}
+             , #{custTel, jdbcType=VARCHAR}
+             , #{receiptDate, jdbcType=VARCHAR}
+             , #{msgGb, jdbcType=VARCHAR}
+             , #{token, jdbcType=VARCHAR}
+             , '0'
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , UPPER(#{insertId, jdbcType=VARCHAR})
+             , #{modifyDate, jdbcType=TIMESTAMP}
+             , UPPER(#{modifyId, jdbcType=VARCHAR})
+             , #{paGroupCode, jdbcType=VARCHAR}
+             )
+    </insert>
+</mapper>

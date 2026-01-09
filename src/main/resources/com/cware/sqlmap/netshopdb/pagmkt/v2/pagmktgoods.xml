@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.cware.netshopping.pagmkt.v2.repository.PaGmktGoodsMapper">
+
+    <select id="selectGoodsTransTaget" resultType="ebaygoods">
+        SELECT DISTINCT /* v2.pagmktgoods.xml : pagmkt.v2.pagmktgoods.selectGoodsTransTaget by PaEbayProductService */
+        	   GG.PA_STATUS,
+               GG.PA_GROUP_CODE,
+               GG.PA_CODE,
+               GG.PA_SALE_GB,
+               G.GOODS_CODE,
+               G.GOODS_NAME,
+               G.ORDER_MAX_QTY,
+               G.CUST_ORD_QTY_CHECK_TERM,
+               G.ADULT_YN,
+               G.SALE_GB,
+               G.LMSD_CODE,
+               GK.LGROUP_NAME || '-' || GK.MGROUP_NAME || '-' || GK.SGROUP_NAME || '-' || GK.DGROUP_NAME AS LMSD_NAME,
+               G.ENTP_CODE,
+               G.COLLECT_YN,
+               G.INSTALL_YN,
+               G.SHIP_COST_CODE,
+               G.BRAND_CODE,
+               G.TAX_YN,
+               P.DO_NOT_ISLAND_DELY_YN,
+               B.BRAND_NAME,
+               GG.ESM_CATEGORY_CODE,
+               GG.SITE_CATEGORY_CODE,
+               GG.ORIGIN_ENUM,
+               GG.ORIGIN_DT,
+               GG.ESM_GOODS_CODE,
+               GG.ITEM_NO,
+               GSD.BUNDLE_NO,
+               fun_get_order_able_qty(G.GOODS_CODE,'' ,G.WH_CODE) AS TRANS_ORDER_ABLE_QTY,
+               GG.BRAND_NO,
+               GSD.GMKT_SHIP_NO,
+               PES.PA_ADDR_SEQ AS RETURN_MAN_SEQ,
+               PCS.ORD_COST,
+               PCS.RETURN_COST,
+               PCS.CHANGE_COST,
+               PGI.IMAGE_URL,
+               PGI.IMAGE_P,
+               GI.IMAGE_G,
+               GI.IMAGE_AG AS IMAGE_AP,
+               GI.IMAGE_BG AS IMAGE_BP,   
+               GI.IMAGE_CG AS IMAGE_CP,       
+               E.DELY_GB,
+               (SELECT nvl(max(DT.COMBINATION_YN), '0')
+	             FROM TPAGOODSDTMAPPING DT
+	            WHERE DT.GOODS_CODE = GG.GOODS_CODE
+	              AND DT.PA_CODE = GG.PA_CODE ) AS COMBINATION_YN,
+	           TA.ORDER_CREATE_YN,
+	           TA.GOODS_STTS
+          FROM TPAGMKTGOODS      GG,
+               TPAGMKTSHIPCOSTDT GSD,
+               TPACUSTSHIPCOST   PCS,
+               TPAGOODSIMAGE     PGI,
+               TPAENTPSLIP       PES,
+               TGOODS            G,
+               TPAPRODUCT        P,
+               TENTERPRISE       E,
+		       TGOODSKINDS       GK,
+		       TBRAND            B,
+		       TGOODSIMAGE       GI,
+		       TGOODSADDINFO     TA
+         WHERE GG.GOODS_CODE = G.GOODS_CODE
+           AND GG.GOODS_CODE = P.GOODS_CODE
+           AND GG.GOODS_CODE = TA.GOODS_CODE
+           AND DECODE(G.DELY_TYPE,'10','100001',G.ENTP_CODE) = GSD.ENTP_CODE
+           AND DECODE(G.DELY_TYPE,'10','003',G.SHIP_MAN_SEQ) = GSD.ENTP_MAN_SEQ
+           AND G.SHIP_COST_CODE = GSD.SHIP_COST_CODE
+           AND GG.PA_CODE = PCS.PA_CODE
+           AND GSD.ENTP_CODE = PCS.ENTP_CODE
+           AND GSD.SHIP_COST_CODE = PCS.SHIP_COST_CODE
+           AND PGI.GOODS_CODE = GG.GOODS_CODE
+           AND PGI.PA_GROUP_CODE = '02'
+           AND PES.ENTP_CODE = DECODE(G.DELY_TYPE,'10','100001',G.ENTP_CODE)
+           AND PES.ENTP_MAN_SEQ = DECODE(G.DELY_TYPE,'10','002',G.RETURN_MAN_SEQ)
+           AND PES.PA_CODE = '21'
+           AND PES.PA_ADDR_GB = '20'
+           AND E.ENTP_CODE = G.ENTP_CODE
+           AND G.LMSD_CODE = GK.LMSD_CODE
+           AND G.BRAND_CODE = B.BRAND_CODE
+           AND GI.GOODS_CODE = GG.GOODS_CODE
+           AND GSD.TRANS_TARGET_YN = '0'
+           AND GG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND GG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+<!--            <if test="isModify"> -->
+           AND GG.PA_SALE_GB = '20'
+<!--            </if> -->
+      ORDER BY GG.PA_GROUP_CODE ASC
+    </select>
+    
+    <select id="selectGoodsOffer" resultType="ebaygoodsoffer">
+        SELECT  /* v2.pagmktgoods.xml : pagmkt.v2.pagmktgoods.selectGoodsOffer by PaEbayProductService */
+               PGO.PA_OFFER_TYPE,
+               PGO.PA_OFFER_CODE,
+               DBMS_LOB.SUBSTR(PGO.PA_OFFER_EXT, 3000, 1) AS PA_OFFER_EXT,
+               CASE
+                 WHEN POM.TRANS_COLUMN_YN = '1' THEN
+                  KC.KC_NO
+                 ELSE
+                  NULL
+               END AS KC_INFO
+          FROM TPAGOODSOFFER PGO, TPAOFFERCODEMAPPING POM, TGOODSKCINFO KC
+         WHERE PGO.PA_GROUP_CODE = '02'
+           AND PGO.USE_YN = '1'
+           AND PGO.PA_GROUP_CODE = POM.PA_GROUP_CODE(+)
+           AND PGO.PA_OFFER_TYPE = POM.PA_OFFER_TYPE(+)
+           AND PGO.PA_OFFER_CODE = POM.PA_OFFER_CODE(+)
+           AND PGO.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PGO.GOODS_CODE = KC.GOODS_CODE(+)
+    </select>
+    
+    <resultMap id="ebaygoodsdescribeMap" type="ebaygoodsdescribe">
+		<result property="describeExt" column="DESCRIBE_EXT" jdbcType="CLOB" javaType="string" />
+		<result property="noticeExt" column="NOTICE_EXT" jdbcType="CLOB" javaType="string" />
+	</resultMap>
+	
+    <select id="selectGoodsDescribe" resultMap="ebaygoodsdescribeMap">
+        SELECT /* v2.pagmktgoods.xml : pagmkt.v2.pagmktgoods.selectGoodsDescribe by PaEbayProductService */
+			   C1.CODE_NAME AS TOP_IMAGE
+			 , C2.CODE_NAME AS BOTTOM_IMAGE
+			 , NVL((SELECT REPLACE(DS.DESCRIBE_EXT, chr(10), '')
+					  FROM TDESCRIBE DS
+					 WHERE DS.DESCRIBE_CODE ='998'
+					   AND DS.GOODS_CODE = GG.GOODS_CODE)
+		          ,(SELECT DECODE(DS.WEB_FLAG, '1',  REPLACE(DS.DESCRIBE_EXT, chr(10), ''), DS.DESCRIBE_NOTE)
+					  FROM TDESCRIBE DS
+					 WHERE DS.DESCRIBE_CODE ='999'
+					   AND DS.GOODS_CODE = GG.GOODS_CODE)) AS DESCRIBE_EXT
+			 , DECODE(T.COLLECT_YN,'0','',(SELECT CODE_NAME
+                                        	 FROM TCODE C
+                                       	    WHERE C.CODE_LGROUP = 'O507'
+                                         	  AND C.CODE_MGROUP = '99')) AS COLLECT_IMAGE
+             , (SELECT /*+ INDEX_DESC (TNM IDX_TPANOTICEM_03)*/
+             			   TNM.NOTICE_EXT
+					  FROM TPANOTICEM TNM
+					     , TPANOTICETARGET TNT
+					     , TPANOTICEAPPLY TNA
+					 WHERE TNM.NOTICE_NO  = TNT.NOTICE_NO
+					   AND TNT.GOODS_CODE = GG.GOODS_CODE
+					   AND TNM.USE_CODE   = '00'
+					   AND (INSTR(TNM.PA_GROUP_CODE, '02') > 0 or INSTR(TNM.PA_GROUP_CODE, '03') > 0)
+					   AND TNT.NOTICE_NO  = TNA.NOTICE_NO
+					   AND TNT.GOODS_CODE = TNA.GOODS_CODE
+					   AND TNA.PA_GROUP_CODE in ('02','03')
+					   AND ROWNUM = 1) AS NOTICE_EXT
+			 , (SELECT TSB.DESCRIBE_NOTE
+			 		  FROM TDESCRIBE TSB
+			 		 WHERE TSB.DESCRIBE_CODE = '200'
+			 		   AND TSB.GOODS_CODE 	 = GG.GOODS_CODE) AS GOODS_COM
+		  FROM TPAGMKTGOODS GG
+		  	 , TGOODS T
+			 , TCODE C1
+			 , TCODE C2
+		 WHERE GG.GOODS_CODE = T.GOODS_CODE
+       	   AND C1.CODE_LGROUP = 'O507'
+		   AND C1.CODE_MGROUP = DECODE(GG.PA_CODE,'21','03','04')
+		   AND C2.CODE_LGROUP = 'O507'
+		   AND C2.CODE_MGROUP = GG.PA_CODE
+		   AND GG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+		   AND GG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+		   AND rownum = 1
+    </select>
+    
+    <select id="selectDispatchPolicyExceptEntp" resultType="com.cware.netshopping.domain.model.PaGmktPolicy">
+        SELECT /* v2.pagmktgoods.xml : pagmkt.v2.pagmktgoods.selectDispatchPolicyExceptEntp by PaEbayProductService */
+               GPC.PA_CODE,
+               GPC.POLICY_NO,
+               GPC.POLICY_TYPE,
+               GPC.DURATION,
+               GPC.IS_DEFAULT
+          FROM TPAGMKTPOLICY GPC
+         WHERE (GPC.POLICY_TYPE, GPC.DURATION) = (SELECT PPE.POLICY_TYPE, PPE.DURATION
+											        FROM TPADELIVERYPOLICYEXCEPT PPE
+											       WHERE PPE.TARGET_GB     = '00'
+											         AND PPE.TARGET_CODE   = #{entpCode, jdbcType = VARCHAR}
+											         AND PPE.PA_GROUP_CODE = '02'
+											         AND PPE.USE_YN        = '1')
+           AND GPC.PA_CODE = #{paCode,jdbcType=VARCHAR}
+           AND GPC.PA_GROUP_CODE = #{paGroupCode,jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectDispatchPolicyExceptMgroup" resultType="com.cware.netshopping.domain.model.PaGmktPolicy">
+        SELECT /* v2.pagmktgoods.xml : pagmkt.v2.pagmktgoods.selectDispatchPolicyExceptMgroup by PaEbayProductService */
+               GPC.PA_CODE,
+               GPC.POLICY_NO,
+               GPC.POLICY_TYPE,
+               GPC.DURATION,
+               GPC.IS_DEFAULT
+          FROM TPAGMKTPOLICY GPC
+         WHERE (GPC.POLICY_TYPE, GPC.DURATION) =(SELECT PPE.POLICY_TYPE, PPE.DURATION
+										           FROM TPADELIVERYPOLICYEXCEPT PPE
+										          WHERE PPE.TARGET_GB     = '10'
+										            AND PPE.TARGET_CODE   = #{lmCode,jdbcType=VARCHAR}
+										            AND PPE.PA_GROUP_CODE = '02'
+										            AND PPE.USE_YN        = '1')
+           AND GPC.PA_CODE = #{paCode,jdbcType=VARCHAR}
+           AND GPC.PA_GROUP_CODE = #{paGroupCode,jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectDispatchPolicy" parameterType="com.cware.netshopping.domain.model.PaGmktPolicy" 
+    								resultType="com.cware.netshopping.domain.model.PaGmktPolicy">
+        SELECT /* v2.pagmktgoods.xml : pagmkt.v2.pagmktgoods.selectDispatchPolicy by PaEbayProductService */
+               GPC.PA_CODE,
+               GPC.POLICY_NO,
+               GPC.POLICY_TYPE,
+               GPC.DURATION,
+               GPC.IS_DEFAULT
+          FROM TPAGMKTPOLICY GPC
+         WHERE GPC.POLICY_TYPE = #{policyType,jdbcType=VARCHAR}
+           AND GPC.DURATION = #{duration,jdbcType=VARCHAR}
+           AND GPC.PA_CODE = #{paCode,jdbcType=VARCHAR}
+           AND GPC.PA_GROUP_CODE = #{paGroupCode,jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectGoodsOption" resultType="com.cware.netshopping.domain.model.PaGoodsdtMapping">
+        SELECT DISTINCT /* v2.pagmktgoods.xml : pagmkt.v2.pagmktgoods.selectGoodsOption by PaEbayProductService */
+               PM.GOODS_CODE,
+               PM.GOODSDT_CODE,
+               PM.PA_CODE,
+               PD.GOODSDT_INFO_KIND,
+               PD.GOODSDT_INFO,
+               NVL(FUN_GET_ORDER_ABLE_QTY(PD.GOODS_CODE, PD.GOODSDT_CODE, ''), 0) AS TRANS_ORDER_ABLE_QTY
+          FROM TPAGOODSDTMAPPING PM
+             , TPAPRODUCTOPTION PD
+             , TGOODSDT GD
+         WHERE PM.GOODS_CODE = PD.GOODS_CODE
+           AND PM.GOODSDT_CODE = PD.GOODSDT_CODE
+           AND GD.GOODS_CODE = PD.GOODS_CODE
+           AND GD.GOODSDT_CODE = PD.GOODSDT_CODE
+           AND GD.SALE_GB = '00'
+           AND PM.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PM.PA_CODE = #{paCode, jdbcType=VARCHAR}
+        ORDER BY PM.GOODSDT_CODE
+    </select>
+    
+</mapper>

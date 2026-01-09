@@ -1,0 +1,807 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+        
+<mapper namespace="paintp.claim">
+
+        
+    <select id="selectClaimTargetList" parameterType="int" resultType="hashMap">
+       SELECT /* paintpclaim.xml : paintp.claim.selectClaimTargetList by PaIntpClaimController */
+              PM.PA_ORDER_NO
+            , PM.PA_ORDER_SEQ
+            , PM.PA_CLAIM_NO
+            , PM.PA_ORDER_GB            
+            , PM.ORDER_NO
+            , PM.PA_CODE
+            , PM.PA_GROUP_CODE
+            , TC.CODE_SNAME AS SITE_GB
+		 FROM TPAORDERM PM
+		    , TCODE TC
+		WHERE TC.CODE_MGROUP   	=  PM.PA_GROUP_CODE
+		  AND PM.PA_CODE IN ('71', '72')
+		  AND PM.CREATE_YN 		= '0'
+		  AND PM.PRE_CANCEL_YN 	= '0'
+		  AND TC.CODE_LGROUP   	= 'O500'
+		  AND PM.INSERT_DATE > TRUNC(SYSDATE) - 30
+		  <choose>
+		  	 <when test='paOrderGb =="41"'>
+		  	 AND PM.PA_ORDER_GB  = '41'
+		  	 AND EXISTS ( SELECT 1 
+	                        FROM TPAORDERM OPM
+	                       WHERE PM.PA_ORDER_NO    = OPM.PA_ORDER_NO
+	                         AND PM.PA_ORDER_SEQ   = OPM.PA_ORDER_SEQ
+	                         AND PM.PA_CLAIM_NO    = OPM.PA_CLAIM_NO
+	                         AND OPM.PA_ORDER_GB   = '40'
+	                         AND OPM.CREATE_YN 	   = '1' 
+	                         AND OPM.PRE_CANCEL_YN = '0' )
+		  	 </when>
+		  	 <when test='paOrderGb =="40"'>
+		  	 AND PM.PA_ORDER_GB  = '40'   
+		  	 AND PM.CHANGE_FLAG IN ('01', '02') 
+		  	 </when>
+		  	 <when test='paOrderGb =="31"'>
+		  	 AND PM.PA_ORDER_GB   = '31'
+		  	 </when>
+		  	 <when test='paOrderGb =="30"'>
+		  	 AND (PM.PA_ORDER_GB  = '30' OR (PM.PA_ORDER_GB = '20' AND PM.OUT_BEF_CLAIM_GB IN  ('1') ))
+		  	 </when>		  	 
+		  </choose>
+    </select>
+    
+    <select id="selectPaIntpClaimListExists" resultType="int">
+        SELECT /* paintpclaim.xml : paintp.claim.selectPaIntpClaimListExists by PaIntpClaimController */
+               COUNT(1) AS CNT
+          FROM TPAINTPCLAIMLIST PC
+         WHERE PC.ORD_NO 		= #{ordNo		, jdbcType=VARCHAR}
+           AND PC.ORD_SEQ 		= #{ordSeq		, jdbcType=VARCHAR}
+           AND PC.CLM_NO 		= #{clmNo		, jdbcType=VARCHAR}
+           AND PC.CLM_SEQ 		= #{clmSeq		, jdbcType=VARCHAR}
+           AND PC.PA_ORDER_GB 	= #{paOrderGb	, jdbcType=VARCHAR}
+    </select>  
+    
+    <select id="compareAddress" resultType="String" parameterType="hashMap">
+        SELECT /* paintpclaim.xml: paintp.claim.compareAddress by PaIntpClaimController */
+              COUNT(1) AS CNT
+          FROM (
+                SELECT DECODE(OC.ADDR_FLAG, '0', OC.ORD_JIBUN_ADR1, OC.ORD_DORO_ADR1) AS ORD_ADR1
+                	 , DECODE(OC.ADDR_FLAG, '0', OC.ORD_JIBUN_ADR2, OC.ORD_DORO_ADR2) AS ORD_ADR2
+                	 , DECODE(OC.ADDR_FLAG, '0', OC.CLM_JIBUN_ADR1, OC.CLM_DORO_ADR1) AS CLM_ADR1
+                	 , DECODE(OC.ADDR_FLAG, '0', OC.CLM_JIBUN_ADR2, OC.CLM_DORO_ADR2) AS CLM_ADR2
+				     , OC.ORD_NAME      AS ORD_NAME
+				     , OC.CLM_NAME   	AS CLM_NAME  
+                  FROM(
+                       SELECT UPPER(REPLACE(CWARE_ENC_DEC(OL.DELI_ADDR2_DORO, 'd'), ' ', ''))        AS ORD_DORO_ADR1
+                            , UPPER(REPLACE(CWARE_ENC_DEC(OL.DELI_ADDR1_DORO, 'd'), ' ', ''))        AS ORD_DORO_ADR2
+                            , UPPER(REPLACE(CWARE_ENC_DEC(CL.CLM_RCVR_ADDR1_DORO, 'd'), ' ', ''))    AS CLM_DORO_ADR1
+                            , UPPER(REPLACE(CWARE_ENC_DEC(CL.CLM_RCVR_ADDR2_DORO, 'd'), ' ', ''))    AS CLM_DORO_ADR2
+                            , UPPER(REPLACE(CWARE_ENC_DEC(OL.DELI_ADDR1, 'd'), ' ', ''))        	 AS ORD_JIBUN_ADR1
+                            , UPPER(REPLACE(CWARE_ENC_DEC(OL.DELI_ADDR2, 'd'), ' ', ''))        	 AS ORD_JIBUN_ADR2
+                            , UPPER(REPLACE(CWARE_ENC_DEC(CL.CLM_RCVR_ADDR1, 'd'), ' ', ''))   	     AS CLM_JIBUN_ADR1
+                            , UPPER(REPLACE(CWARE_ENC_DEC(CL.CLM_RCVR_ADDR2, 'd'), ' ', ''))   	     AS CLM_JIBUN_ADR2
+                            , OL.RCVR_NM       AS ORD_NAME
+                            , CL.CLM_RCVR_NM   AS CLM_NAME  
+                            , CASE WHEN UPPER(REPLACE(CWARE_ENC_DEC(OL.DELI_ADDR2_DORO, 'd'), ' ', '')) IS NULL THEN  '0'
+                              ELSE '0'
+                              END AS ADDR_FLAG
+                         FROM TPAINTPORDERLIST OL
+                            , TPAINTPCLAIMLIST CL
+                        WHERE OL.ORD_NO    = CL.ORD_NO
+                          AND OL.ORD_SEQ     = CL.ORD_SEQ
+                          AND OL.PA_ORDER_GB = '10'
+                          AND CL.PA_ORDER_GB = '40'
+                          AND OL.ORD_NO      =  #{PA_ORDER_NO	, jdbcType=VARCHAR}
+                          AND OL.ORD_SEQ     =  #{PA_ORDER_SEQ	, jdbcType=VARCHAR} 
+                          AND CL.CLM_NO      =  #{PA_CLAIM_NO	, jdbcType=VARCHAR} ) OC
+               ) TB
+         WHERE TB.ORD_ADR1 = TB.CLM_ADR1
+           AND TB.ORD_ADR2 = TB.CLM_ADR2
+           AND TB.ORD_NAME = TB.CLM_NAME
+    </select>    
+      
+    <select id="selectGoodsOptionCode4Exchange" resultType="hashMap" parameterType="hashMap">
+		SELECT /* paintpclaim.xml: paintp.claim.selectGoodsOptionCode4Exchange by PaIntpClaimController */
+			   PG.GOODS_CODE
+			 , PG.GOODSDT_CODE
+		  FROM TPAGOODSDTMAPPING PG
+		 WHERE PG.PA_CODE 		 = #{paCode		, jdbcType=VARCHAR}
+		   AND PG.PA_OPTION_CODE = #{paOptCode	, jdbcType=VARCHAR} 
+    </select>
+      
+    <insert id="insertPaIntpClaimList" parameterType="com.cware.netshopping.domain.model.PaIntpClaimlist">
+		INSERT INTO TPAINTPCLAIMLIST( /* paintpclaim.xml : paintp.claim.insertPaIntpClaimList by PaintpClaimController */
+		    ORD_NO
+	      , ORD_SEQ
+	      , CLM_NO
+	      , CLM_SEQ
+	      , PA_ORDER_GB
+	      , CLM_CRT_TPNM
+	      , CLM_CRT_TP
+	      , CLM_REG_TP
+	      , CLM_RCVR_NM
+	      , CLM_RCVR_TEL
+	      , CLM_RCVR_MOBILE
+	      , CLM_RCVR_ZIP
+	      , CLM_RCVR_ADDR1
+	      , CLM_RCVR_ADDR2
+	      , CLM_RCVR_ZIP_DORO
+	      , CLM_RCVR_ADDR1_DORO
+	      , CLM_RCVR_ADDR2_DORO
+	      , RTN_INVO_NO
+	      , RTN_DELV_ENTR_NO
+	      , RTN_RESP_TP
+	      , RTN_RESP_TPNM
+	      , OPT_PRD_TP
+	      , OPT_PARENT_SEQ
+	      , PRD_NO
+	      , OPT_PRD_NO
+	      , ENTR_PRD_NO
+	      , OPT_NO
+	      , CLM_QTY
+	      , CURRENT_CLMPRD_STATNM
+	      , CURRENT_CLMPRD_STAT
+	      , CLM_DT
+	      , CLM_RSN_TP
+	      , CLM_RSN_TPNM
+	      , CLM_RSN_DTL
+	      , COST_RESP_TP
+	      , COST_RESP_TPNM
+	      , COST_PAY_MTHD_TP
+	      , COST_PAY_MTHD_TPNM
+	      , FRTN_CP_TP	      
+	      , RT_HDELV_AMT
+	      , INTIAL_DELV_AMT	      
+	      , INSERT_DATE
+	      )
+	    VALUES
+	       (#{ordNo					, jdbcType=VARCHAR}
+	      , #{ordSeq				, jdbcType=VARCHAR}
+	      , #{clmNo					, jdbcType=VARCHAR}
+	      , #{clmSeq				, jdbcType=VARCHAR}
+	      , #{paOrderGb				, jdbcType=VARCHAR}
+	      , #{clmCrtTpNm			, jdbcType=VARCHAR}
+	      , #{clmCrtTp				, jdbcType=VARCHAR}
+	      , #{clmRegTp				, jdbcType=VARCHAR}	      
+	      , #{clmRcvrNm				, jdbcType=VARCHAR}
+	      , CWARE_ENC_DEC(#{clmRcvrTel			, jdbcType=VARCHAR}, 'E')
+	      , CWARE_ENC_DEC(#{clmRcvrMobile		, jdbcType=VARCHAR}, 'E')
+	      , CWARE_ENC_DEC(#{clmRcvrZip			, jdbcType=VARCHAR}, 'E')
+	      , CWARE_ENC_DEC(#{clmRcvrAddr1		, jdbcType=VARCHAR}, 'E')
+	      , CWARE_ENC_DEC(#{clmRcvrAddr2		, jdbcType=VARCHAR}, 'E')
+	      , CWARE_ENC_DEC(#{clmRcvrZipDoro		, jdbcType=VARCHAR}, 'E')
+	      , CWARE_ENC_DEC(#{clmRcvrAddr1Doro	, jdbcType=VARCHAR}, 'E')
+	      , CWARE_ENC_DEC(#{clmRcvrAddr2Doro	, jdbcType=VARCHAR}, 'E')
+	      , #{rtnInvoNo				, jdbcType=VARCHAR}
+	      , #{rtnDelvEntrNo			, jdbcType=VARCHAR}
+	      , #{rtnRespTp				, jdbcType=VARCHAR}
+	      , #{rtnRespTpNm			, jdbcType=VARCHAR}
+	      , #{optPrdTp				, jdbcType=VARCHAR}
+	      , #{optParentSeq			, jdbcType=NUMERIC}
+	      , #{prdNo					, jdbcType=VARCHAR}
+	      , #{optPrdNo				, jdbcType=VARCHAR}
+	      , #{entrPrdNo				, jdbcType=VARCHAR}
+	      , #{optNo					, jdbcType=VARCHAR}
+	      , #{clmQty				, jdbcType=NUMERIC}
+	      , #{currentClmPrdStatNm	, jdbcType=VARCHAR}
+	      , #{currentClmPrdStat		, jdbcType=VARCHAR}
+	      , #{clmDt					, jdbcType=TIMESTAMP}
+	      , #{clmRsnTp				, jdbcType=VARCHAR}
+	      , #{clmRsnTpNm			, jdbcType=VARCHAR}
+	      , #{clmRsnDtl				, jdbcType=VARCHAR}
+	      , #{costRespTp			, jdbcType=VARCHAR}
+	      , #{costRespTpNm			, jdbcType=VARCHAR}
+	      , #{costPayMthdTp			, jdbcType=VARCHAR}
+	      , #{costPayMthdTpNm		, jdbcType=VARCHAR}
+	      , #{frtnCpTp				, jdbcType=VARCHAR}
+	      , #{rtHdelvAmt			, jdbcType=NUMERIC}
+	      , #{intialDelvAmt			, jdbcType=NUMERIC}
+	      , #{insertDate			, jdbcType=TIMESTAMP}
+	      )
+    </insert>
+    
+    <select id="selectOrderCalimTargetDt30List" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* paintpclaim.xml : paintp.claim.selectOrderCalimTargetDt30List by PaIntpClaimController */
+              PM.PA_ORDER_GB
+            , PM.MAPPING_SEQ
+            , PM.PA_ORDER_NO
+            , PM.PA_ORDER_SEQ
+            , PM.PA_CLAIM_NO
+            , OPM.ORDER_NO
+            , OPM.ORDER_G_SEQ
+            , OPM.ORDER_W_SEQ
+            , PM.PA_PROC_QTY
+            , PM.OUT_BEF_CLAIM_GB AS OUT_BEF_CLAIM_GB
+ 			, NVL( (SELECT A.CS_LMS_CODE FROM TCSKINDS A WHERE A.CS_LMS_CODE = '6307' ||  PC.CLM_RSN_TP ) , '630799')   AS CLAIM_CODE
+            , PC.CLM_RSN_DTL AS CLAIM_DESC
+            , PC.CLM_RCVR_NM AS RETURN_NAME
+            , CWARE_ENC_DEC(PC.CLM_RCVR_TEL,'D') AS RETURN_TEL
+            , CWARE_ENC_DEC(PC.CLM_RCVR_MOBILE,'D') AS RETURN_HP
+            , NVL(CWARE_ENC_DEC(PC.CLM_RCVR_ADDR1_DORO,'D') , CWARE_ENC_DEC(PC.CLM_RCVR_ADDR1,'D')) || ' ' ||  NVL(CWARE_ENC_DEC(PC.CLM_RCVR_ADDR2_DORO,'D') , CWARE_ENC_DEC(PC.CLM_RCVR_ADDR2,'D')) AS RETURN_ADDR
+            , DECODE(NVL(CWARE_ENC_DEC(PC.CLM_RCVR_ADDR1_DORO ,'D'), '') , '', CWARE_ENC_DEC(PC.CLM_RCVR_ZIP ,'D')  , CWARE_ENC_DEC(PC.CLM_RCVR_ZIP_DORO ,'D')) AS RCVR_MAIL_NO
+            , NVL(CWARE_ENC_DEC(PC.CLM_RCVR_ADDR1_DORO,'D') , CWARE_ENC_DEC(PC.CLM_RCVR_ADDR1,'D')) AS RCVR_BASE_ADDR
+            , NVL(CWARE_ENC_DEC(PC.CLM_RCVR_ADDR2_DORO,'D') , CWARE_ENC_DEC(PC.CLM_RCVR_ADDR2,'D')) AS RCVR_DTLS_ADDR      
+            , PC.RT_HDELV_AMT AS CLM_LST_DLV_CST      
+            , TC.CODE_SNAME AS SITE_GB
+            , 0  AS ADMIN_PROC_YN
+   			, '' AS EXCH_GOODSDT_CODE
+      FROM TPAORDERM        PM  /*반품접수건*/
+         , TPAORDERM        OPM /*원주문건*/
+         , TPAINTPCLAIMLIST PC    
+         , TCODE            TC      
+      WHERE PM.PA_ORDER_NO     = OPM.PA_ORDER_NO
+        AND PM.PA_ORDER_SEQ    = OPM.PA_ORDER_SEQ
+        AND PM.PA_CODE         = OPM.PA_CODE
+        AND PM.PA_ORDER_NO     = PC.ORD_NO
+        AND PM.PA_ORDER_SEQ    = PC.ORD_SEQ
+        AND PM.PA_CLAIM_NO     = PC.CLM_NO
+        AND PM.PA_ORDER_GB     = PC.PA_ORDER_GB
+        AND PM.PA_CODE IN ('71','72')
+        AND PM.PA_ORDER_GB     = '30'
+        AND PM.CREATE_YN       = '0'
+        AND PM.PRE_CANCEL_YN   = '0'
+        AND PM.INSERT_DATE > TRUNC(SYSDATE) - 30
+        AND OPM.PA_ORDER_GB    = '10'
+        AND OPM.CREATE_YN      = '1'
+        AND PM.PA_ORDER_NO     =  #{paOrderNo   , jdbcType=VARCHAR}
+        AND PM.PA_ORDER_SEQ    =  #{paOrderSeq  , jdbcType=VARCHAR}
+        AND PM.PA_GROUP_CODE   =  #{paGroupCode , jdbcType=VARCHAR}
+        AND PM.PA_CLAIM_NO 	   =  #{paClaimNo	, jdbcType=VARCHAR}
+        AND TC.CODE_LGROUP     =  'O500'
+        AND TC.CODE_MGROUP     =  PM.PA_GROUP_CODE
+    </select>  
+    
+    <select id="selectOrderCalimTargetDt20List" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* paintpclaim.xml : paintp.claim.selectOrderCalimTargetDt20List by PaIntpClaimController */
+      		   PM.PA_ORDER_GB
+      		 , PM.MAPPING_SEQ  
+    		 , PM.PA_ORDER_NO
+    		 , PM.PA_ORDER_SEQ
+			 , PM.PA_CLAIM_NO
+			 , OPM.ORDER_NO
+			 , OPM.ORDER_G_SEQ
+			 , OPM.ORDER_D_SEQ
+			 , OPM.ORDER_W_SEQ
+			 , PM.PA_PROC_QTY
+			 , NVL( (SELECT A.CS_LMS_CODE FROM TCSKINDS A WHERE A.CS_LMS_CODE = '6207' ||  PC.CLMREQ_RSN_TP ) , '620799')   AS CLAIM_CODE
+			 , PC.CLMREQ_RSN_DTL AS CLAIM_DESC
+         	 , PC.ORD_NM AS RETURN_NAME
+         	 <!--,  CWARE_ENC_DEC(PC.TEL, 'D') AS RETURN_TEL
+         	 , CWARE_ENC_DEC(PC.MOBILE_TEL, 'D') AS RETURN_HP
+         	 , NVL(CWARE_ENC_DEC(PC.DELI_ADDR1_DORO,'D') , CWARE_ENC_DEC(PC.DELI_ADDR1,'D')) || ' ' ||  NVL(CWARE_ENC_DEC(PC.DELI_ADDR2_DORO,'D') , CWARE_ENC_DEC(PC.DELI_ADDR2,'D')) AS RETURN_ADDR -->
+         	 , '' AS RETURN_TEL
+         	 , '' AS RETURN_HP
+         	 , '' AS RETURN_ADDR
+   			 , PM.OUT_BEF_CLAIM_GB AS OUT_BEF_CLAIM_GB
+   			 , '' AS RCVR_MAIL_NO
+   			 , '' AS RCVR_BASE_ADDR
+   			 , '' AS RCVR_DTLS_ADDR
+   			 , 0  AS CLM_LST_DLV_CST
+   			 , TC.CODE_SNAME AS SITE_GB
+   			 , 0  AS ADMIN_PROC_YN
+   			 , '' AS EXCH_GOODSDT_CODE
+		  FROM TPAORDERM PM   /*출하지시 이후 취소 접수건*/
+		     , TPAORDERM OPM  /*원주문건*/
+		     , TPAINTPORDERLIST PC
+		     , TCODE TC
+     	 WHERE PM.PA_ORDER_NO      = OPM.PA_ORDER_NO
+       	   AND PM.PA_ORDER_SEQ     = OPM.PA_ORDER_SEQ
+           AND PM.PA_CODE          = OPM.PA_CODE
+           AND OPM.PA_ORDER_NO     = PC.ORD_NO
+           AND OPM.PA_ORDER_SEQ    = PC.ORD_SEQ
+           AND PM.PA_CLAIM_NO	   = PC.CLMREQ_SEQ
+           AND PM.PA_CODE IN   ('71', '72')
+           AND PM.PA_ORDER_GB      = '20'
+           AND PM.CREATE_YN        = '0'
+           AND PM.PRE_CANCEL_YN    = '0'
+           AND PM.OUT_BEF_CLAIM_GB in ('1', '2')
+           AND PM.INSERT_DATE > TRUNC(SYSDATE) - 30
+           AND OPM.PA_ORDER_GB     = '10'
+           AND OPM.CREATE_YN       = '1'
+           AND PM.PA_ORDER_NO      = #{paOrderNo  	, jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ     = #{paOrderSeq 	, jdbcType=VARCHAR}
+           AND PM.PA_GROUP_CODE    = #{paGroupCode	, jdbcType=VARCHAR}
+           AND PM.PA_CLAIM_NO 	   = #{paClaimNo	, jdbcType=VARCHAR}
+           AND TC.CODE_LGROUP      = 'O500'
+           AND TC.CODE_MGROUP      = PM.PA_GROUP_CODE
+           AND PC.PA_ORDER_GB      = '20'
+    </select>    
+    
+    <select id="selectClaimCancelTargetDtList" parameterType="hashMap" resultType="hashMap">
+      SELECT /* pagmktclaim.xml : pagmkt.claim.selectClaimCancelTargetDtList by IF_PAGMKTAPI_03_013 */
+             PM.MAPPING_SEQ
+           , OPM.ORDER_NO
+           , OPM.ORDER_G_SEQ
+           , OPM.ORDER_W_SEQ
+           , PM.PA_PROC_QTY
+		   , NVL( (SELECT A.CS_LMS_CODE FROM TCSKINDS A WHERE A.CS_LMS_CODE = '6507' ||  PC.CLM_RSN_TP ) , '650799')   AS CLAIM_CODE
+           , OPM.PRE_CANCEL_YN
+           , PM.PA_ORDER_GB
+           , '' AS CLAIM_DESC
+           , '' AS RETURN_NAME
+           , '' AS RETURN_TEL
+           , '' AS RETURN_HP
+           , '' AS RETURN_ADDR
+           , '' AS OUT_BEF_CLAIM_GB
+           , '' AS RCVR_MAIL_NO
+           , '' AS RCVR_BASE_ADDR
+           , '' AS RCVR_DTLS_ADDR
+           , '' AS CLAIM_CODE
+           , 0 AS CLM_LST_DLV_CST
+           , TC.CODE_SNAME AS SITE_GB
+        FROM TPAORDERM PM   /*반품취소건*/
+           , TPAORDERM OPM  /*원 반품건*/
+           , TPAINTPCLAIMLIST PC
+           , TCODE            TC
+       WHERE PM.PA_ORDER_NO      = OPM.PA_ORDER_NO
+         AND PM.PA_ORDER_SEQ     = OPM.PA_ORDER_SEQ
+         AND PM.PA_CODE          = OPM.PA_CODE
+         AND PM.PA_CLAIM_NO      = OPM.PA_CLAIM_NO  
+         AND TC.CODE_LGROUP      = 'O500'
+         AND TC.CODE_MGROUP      = PM.PA_GROUP_CODE
+         AND PM.PA_ORDER_GB      = '31'
+         AND PM.OUT_BEF_CLAIM_GB = '0'
+         AND PM.CREATE_YN        = '0'
+         AND PM.PRE_CANCEL_YN    = '0'
+         AND PM.INSERT_DATE > TRUNC(SYSDATE) - 30
+         AND OPM.PA_ORDER_GB     = '30'
+         AND OPM.CREATE_YN       = '1'
+         AND PM.PA_ORDER_NO      = PC.ORD_NO
+         AND PM.PA_ORDER_SEQ     = PC.ORD_SEQ
+         AND PM.PA_CLAIM_NO      = PC.CLM_NO
+         AND PM.PA_ORDER_GB      = PC.PA_ORDER_GB
+         AND PM.PA_CODE 		 = #{paCode     , jdbcType=VARCHAR}
+         AND PM.PA_ORDER_NO      = #{paOrderNo  , jdbcType=VARCHAR}
+         AND PM.PA_ORDER_SEQ     = #{paOrderSeq , jdbcType=VARCHAR}
+         AND PM.PA_CLAIM_NO      = #{paClaimNo  , jdbcType=VARCHAR}
+         
+    UNION ALL
+      
+      SELECT PM.MAPPING_SEQ
+           , '' AS ORDER_NO
+           , '' AS ORDER_G_SEQ
+           , '' AS ORDER_W_SEQ
+           , '' AS PA_PROC_QTY
+           , '' AS CANCEL_CODE 
+           , '1' AS PRE_CANCEL_YN
+           , PM.PA_ORDER_GB
+           , '' AS CLAIM_DESC
+           , '' AS RETURN_NAME
+           , '' AS RETURN_TEL
+           , '' AS RETURN_HP
+           , '' AS RETURN_ADDR
+           , '' AS OUT_BEF_CLAIM_GB
+           , '' AS RCVR_MAIL_NO
+           , '' AS RCVR_BASE_ADDR
+           , '' AS RCVR_DTLS_ADDR
+           , '' AS CLAIM_CODE
+           , 0 AS CLM_LST_DLV_CST
+           , TC.CODE_SNAME AS SITE_GB
+        FROM TPAORDERM PM
+           , TCODE     TC
+       WHERE PM.PA_ORDER_GB         = '31'
+         AND PM.CREATE_YN           = '0'
+         AND PM.PRE_CANCEL_YN       = '0'        
+         AND TC.CODE_LGROUP         = 'O500'
+         AND TC.CODE_MGROUP         = PM.PA_GROUP_CODE
+         AND PM.PA_CODE             = #{paCode    	, jdbcType=VARCHAR}
+         AND PM.PA_ORDER_NO         = #{paOrderNo	  , jdbcType=VARCHAR}
+         AND PM.PA_ORDER_SEQ        = #{paOrderSeq  , jdbcType=VARCHAR} 
+         AND PM.PA_CLAIM_NO         = #{paClaimNo   , jdbcType=VARCHAR}
+         AND NOT EXISTS (SELECT 'x' 
+                         FROM TPAINTPCLAIMLIST CL
+                        WHERE PM.PA_ORDER_NO  = CL.ORD_NO 
+                          AND PM.PA_ORDER_SEQ = CL.ORD_SEQ
+                          AND PM.PA_CLAIM_NO  = CL.CLM_NO
+                          AND CL.PA_ORDER_GB  = '30')
+    </select>
+
+    <select id="selectOrderChangeTargetDtList" parameterType="hashMap" resultType="hashMap">
+	    SELECT /* paintpclaim.xml : paintp.claim.selectOrderChangeTargetDtList by PaIntpClaimController */
+	           PM.MAPPING_SEQ
+             , PM.PA_ORDER_GB AS CLAIM_GB
+             , OPM.ORDER_NO
+             , OPM.ORDER_G_SEQ
+             , PM.CHANGE_GOODSDT_CODE AS EXCH_GOODSDT_CODE
+             , PM.PA_PROC_QTY AS PA_PROC_QTY
+             , PC.CLM_RSN_DTL AS CLAIM_DESC
+             , NVL( (SELECT A.CS_LMS_CODE FROM TCSKINDS A WHERE A.CS_LMS_CODE = '6407' ||  PC.CLM_RSN_TP ) , '640799')   AS CLAIM_CODE
+             , PC.CLM_RCVR_NM AS RETURN_NAME
+             , CWARE_ENC_DEC(PC.CLM_RCVR_TEL,'D')    AS RETURN_TEL
+             , CWARE_ENC_DEC(PC.CLM_RCVR_MOBILE,'D') AS RETURN_HP
+             , DECODE(NVL(CWARE_ENC_DEC(PC.CLM_RCVR_ADDR1_DORO ,'D'), '') , '', CWARE_ENC_DEC(PC.CLM_RCVR_ZIP ,'D')  , CWARE_ENC_DEC(PC.CLM_RCVR_ZIP_DORO ,'D')) AS RCVR_MAIL_NO
+             , NVL(CWARE_ENC_DEC(PC.CLM_RCVR_ADDR1_DORO,'D') , CWARE_ENC_DEC(PC.CLM_RCVR_ADDR1,'D')) AS RCVR_BASE_ADDR
+             , NVL(CWARE_ENC_DEC(PC.CLM_RCVR_ADDR2_DORO,'D') , CWARE_ENC_DEC(PC.CLM_RCVR_ADDR2,'D')) AS RCVR_DTLS_ADDR
+             , NVL(CWARE_ENC_DEC(PC.CLM_RCVR_ADDR1_DORO,'D') , CWARE_ENC_DEC(PC.CLM_RCVR_ADDR1,'D')) || ' ' || NVL(CWARE_ENC_DEC(PC.CLM_RCVR_ADDR2_DORO,'D') , CWARE_ENC_DEC(PC.CLM_RCVR_ADDR2,'D')) AS RETURN_ADDR
+             <!-- , DECODE(U.USER_GB, '02', '1', '0') AS ADMIN_PROC_YN 인터파크 교환은 따로 상담원의 승인이 필요없다.(교환거부는 OB로 하기로 함)-->
+             , '1' AS ADMIN_PROC_YN
+             , PM.PA_ORDER_GB
+             , PM.OUT_BEF_CLAIM_GB
+             <!--, ABS(PC.RT_HDELV_AMT) AS CLM_LST_DLV_CST -->
+             , 0 AS CLM_LST_DLV_CST 
+             , TC.CODE_SNAME AS SITE_GB
+             , PM.PA_ORDER_NO
+             , PM.PA_ORDER_SEQ
+             , PM.PA_CLAIM_NO
+             , PM.PA_ORDER_GB             
+	      FROM TPAORDERM PM  /* 교환접수 건 */
+	         , TPAORDERM OPM /* 원주문 건*/
+	         , TPAINTPCLAIMLIST PC
+	         <!--  TUSER U -->
+	         , TCODE TC
+	     WHERE PM.PA_ORDER_NO      = OPM.PA_ORDER_NO
+	       AND PM.PA_ORDER_SEQ     = OPM.PA_ORDER_SEQ
+	       AND PM.PA_CODE          = OPM.PA_CODE
+	       AND PM.PA_ORDER_NO      = PC.ORD_NO
+	       AND PM.PA_ORDER_SEQ     = PC.ORD_SEQ
+	       AND PM.PA_CLAIM_NO      = PC.CLM_NO
+	       <!-- AND PM.MODIFY_ID        = U.USER_ID -->
+	       AND PM.PA_CODE 		IN ('71', '72')
+	       AND PM.PA_ORDER_GB 	IN ('40', '45')
+	       AND OPM.PA_ORDER_GB     = '10'
+	       AND PC.PA_ORDER_GB      = '40'
+	       AND PM.CREATE_YN        = '0'
+	       AND PM.PRE_CANCEL_YN    = '0'
+	       AND PM.OUT_BEF_CLAIM_GB = '0'
+	       AND TC.CODE_LGROUP      = 'O500'
+	       AND TC.CODE_MGROUP      = PM.PA_GROUP_CODE
+	      <!-- AND PM.CHANGE_FLAG IN ('01', '02') -->
+	       AND PM.MODIFY_DATE > TRUNC(SYSDATE) - 30
+	       AND PM.PA_ORDER_NO      =  #{paOrderNo  	, jdbcType=VARCHAR}
+	       AND PM.PA_ORDER_SEQ     =  #{paOrderSeq 	, jdbcType=VARCHAR}
+	       AND PM.PA_CLAIM_NO 	   =  #{paClaimNo	, jdbcType=VARCHAR}
+	       ORDER BY PM.PA_ORDER_GB ASC
+    </select>
+    
+    <select id="selectChangeCancelTargetDtList" parameterType="hashMap" resultType="hashMap">
+		SELECT MAPPING_SEQ
+		     , PA_ORDER_GB
+		     , ORDER_NO
+		     , ORDER_G_SEQ
+		     , ORDER_D_SEQ
+		     , ORDER_W_SEQ
+		     , PA_PROC_QTY
+		     , CLAIM_CODE
+		     , PRE_CANCEL_YN
+		     , CLM_LST_DLV_CST
+		     , SITE_GB
+		     , OUT_BEF_CLAIM_GB
+          FROM (
+	    	    SELECT /* paintp.claim.selectChangeCancelTargetDtList by PaIntpClaimController  */
+	    		       PM.MAPPING_SEQ
+       		         , PM.PA_ORDER_GB
+		             , OPM1.ORDER_NO
+		             , OPM1.ORDER_G_SEQ
+		             , OPM1.ORDER_D_SEQ
+		             , DECODE(PM.PA_ORDER_GB, '41', OPM1.ORDER_W_SEQ, '46', OPM2.ORDER_W_SEQ) AS ORDER_W_SEQ
+		             , PM.PA_PROC_QTY
+ 					 , NVL( (SELECT A.CS_LMS_CODE FROM TCSKINDS A WHERE A.CS_LMS_CODE = '6607' ||  PC.CLM_RSN_TP ) , '660799')   AS CLAIM_CODE
+		             , OPM1.PRE_CANCEL_YN
+		             , 0 AS CLM_LST_DLV_CST
+		             , TC.CODE_SNAME AS SITE_GB
+		             , PM.OUT_BEF_CLAIM_GB
+		         FROM TPAORDERM PM 			/* 교환취소건 	 */
+		            , TPAORDERM OPM1 		/* 원교환배송 건 */
+		            , TPAORDERM OPM2 		/* 원교환회수 건 */
+		            , TPAINTPCLAIMLIST PC 	/* 원교환배송 건 */
+		            , TCODE TC
+		        WHERE PM.PA_ORDER_NO    = OPM1.PA_ORDER_NO
+		          AND PM.PA_ORDER_SEQ   = OPM1.PA_ORDER_SEQ
+		          AND PM.PA_CLAIM_NO    = OPM1.PA_CLAIM_NO
+		          AND PM.PA_CODE 	    = OPM1.PA_CODE
+		          AND PM.PA_ORDER_NO    = OPM2.PA_ORDER_NO
+		          AND PM.PA_ORDER_SEQ   = OPM2.PA_ORDER_SEQ
+		          AND PM.PA_CLAIM_NO    = OPM2.PA_CLAIM_NO
+		          AND PM.PA_CODE 	    = OPM2.PA_CODE
+		          AND OPM1.PA_ORDER_NO  = PC.ORD_NO
+		          AND OPM1.PA_ORDER_SEQ = PC.ORD_SEQ
+		          AND OPM1.PA_CLAIM_NO  = PC.CLM_NO
+		          AND OPM1.PA_ORDER_GB  = PC.PA_ORDER_GB
+           		  AND TC.CODE_LGROUP   = 'O500'
+           		  AND TC.CODE_MGROUP   =  PM.PA_GROUP_CODE
+           		  AND PM.PA_CODE IN ('71', '72')
+		          AND PM.PA_ORDER_GB IN ('41', '46')
+		          AND OPM1.PA_ORDER_GB 	= '40'
+		          AND OPM2.PA_ORDER_GB 	= '45'
+		          AND OPM1.CREATE_YN 	= '1'
+		          AND OPM2.CREATE_YN 	= '1'
+		          AND PM.CREATE_YN 		= '0'
+		          AND PM.PRE_CANCEL_YN 	= '0'
+		          AND PM.INSERT_DATE > TRUNC(SYSDATE) - 5
+			      AND PM.PA_ORDER_NO 	= #{paOrderNo	, jdbcType=VARCHAR}
+			      AND PM.PA_ORDER_SEQ 	= #{paOrderSeq	, jdbcType=VARCHAR}
+			      AND PM.PA_CLAIM_NO 	= #{paClaimNo	, jdbcType=VARCHAR}
+			   
+			UNION ALL
+			
+			    SELECT PM.MAPPING_SEQ
+			         , PM.PA_ORDER_GB
+			         , '' AS ORDER_NO
+			         , '' AS ORDER_G_SEQ
+			         , '' AS ORDER_D_SEQ
+			         , '' AS ORDER_W_SEQ
+			         , '' AS CLAIM_QTY
+			         , '' AS CLAIM_CODE
+			         , '1' AS PRE_CANCEL_YN
+			         , 0  AS CLM_LST_DLV_CST
+			         , TC.CODE_SNAME AS SITE_GB
+			         , '0'  AS OUT_BEF_CLAIM_GB
+			     FROM TPAORDERM PM /* 교환취소건 */
+			     	, TCODE TC
+			    WHERE PM.PA_CODE IN ('71', '72')
+			      AND PM.CREATE_YN 		= '0'
+			      AND PM.PRE_CANCEL_YN 	= '0'
+			      AND PM.PA_ORDER_GB IN ('41', '46')
+			      AND TC.CODE_LGROUP    = 'O500'
+           		  AND TC.CODE_MGROUP    =  PM.PA_GROUP_CODE
+			      AND PM.INSERT_DATE > TRUNC(SYSDATE) - 7
+			      AND PM.PA_ORDER_NO 	= #{paOrderNo	, jdbcType=VARCHAR}
+			      AND PM.PA_ORDER_SEQ 	= #{paOrderSeq	, jdbcType=VARCHAR}
+			      AND PM.PA_CLAIM_NO 	= #{paClaimNo	, jdbcType=VARCHAR}
+			      AND NOT EXISTS (  SELECT 'x'
+			                          FROM TPAORDERM OPM
+			                         WHERE OPM.PA_ORDER_NO   = PM.PA_ORDER_NO
+			                           AND OPM.PA_ORDER_SEQ	 = PM.PA_ORDER_SEQ
+			                           AND OPM.PA_CLAIM_NO 	 = PM.PA_CLAIM_NO
+			                           AND OPM.PA_CODE		 = PM.PA_CODE
+			                           AND OPM.PA_ORDER_GB 	 = '40'))
+		ORDER BY PA_ORDER_GB ASC
+    </select>
+    
+	<select id="selectPaIntpCliamOrdMappingSeq"  parameterType="hashMap"  resultType="String">
+		SELECT /* paintpclaim.xml : paintp.claim.selectPaIntpCliamOrdMappingSeq  by PaIntpClaimController */ 
+				MAX(PM.MAPPING_SEQ) MAPPING_SEQ
+		  FROM  TPAORDERM PM
+		      , TCLAIMDT CD             
+		      , TCODE TC
+		  WHERE CD.ORDER_NO     = PM.ORDER_NO
+		    AND CD.ORDER_G_SEQ  = PM.ORDER_G_SEQ
+		    AND CD.ORDER_D_SEQ  = PM.ORDER_D_SEQ
+		    AND CD.ORDER_W_SEQ  = PM.ORDER_W_SEQ
+		    AND TC.CODE_LGROUP  = 'O501'
+		    AND TC.CODE_GROUP   = '07'
+		    AND TC.USE_YN       = '1'
+            AND PM.PA_ORDER_NO  = #{ paOrderNo 	, jdbcType=VARCHAR}
+            AND PM.PA_ORDER_SEQ = #{ paOrderSeq , jdbcType=VARCHAR}
+            AND PM.PA_CLAIM_NO  = #{ paClaimNo	, jdbcType=VARCHAR}
+            AND PM.PA_CODE 		= #{ paCode 	, jdbcType=VARCHAR} 
+		    AND PM.PA_DO_FLAG  &lt; '60'
+		    AND PM.PA_ORDER_GB  = #{ paOrderGb 	, jdbcType=VARCHAR}
+		    AND CD.CLAIM_GB     = #{ paOrderGb	, jdbcType=VARCHAR}
+    </select>
+    
+    <update id="updatePaOrdermResult" parameterType="com.cware.netshopping.domain.model.Paorderm">
+        UPDATE TPAORDERM /* paintpclaim.xml : paintp.claim.updatePaOrdermResult  by PaIntpClaimController  */
+           SET API_RESULT_CODE 	  = #{apiResultCode 	, jdbcType=VARCHAR}
+             , API_RESULT_MESSAGE = #{apiResultMessage  , jdbcType=VARCHAR}
+             <if test='apiResultCode == "0"'>
+             , PA_DO_FLAG = #{paDoFlag , jdbcType=VARCHAR}
+             , PROC_DATE  = #{procDate , jdbcType=TIMESTAMP}
+             </if>
+         WHERE 1=1
+         AND PA_ORDER_GB  = #{paOrderGb , jdbcType=VARCHAR}
+         AND PA_ORDER_NO  = #{paOrderNo , jdbcType=VARCHAR}
+         AND PA_CLAIM_NO  = #{paClaimNo , jdbcType=VARCHAR}         
+         AND PA_CODE 	  = #{paCode 	, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectReturnOkList" resultType="hashMap">
+    	SELECT  PA_ORDER_NO
+    	      , PA_DELY_GB
+    	      , MAX(SLIP_NO) AS SLIP_NO
+    	      , CLM_NO
+    	      , CLM_SEQ
+    	      , PA_ORDER_GB
+    	      , PA_CODE
+    	      , PA_DO_FLAG
+    	      , PA_INTP_ORDER_GB
+		  FROM (		
+				SELECT /* paintpclaim.xml : paintp.claim.selectReturnOkList by PaIntpClaimController  */ 
+					   PM.PA_ORDER_NO
+		             , SM.SLIP_NO
+		             , (SELECT PDG.PA_DELY_GB FROM TPADELYGB PDG WHERE PDG.DELY_GB = SM.DELY_GB AND PDG.PA_CODE = '07') PA_DELY_GB
+		             , TM.CLM_NO 
+		             , TM.CLM_SEQ
+		             , PM.PA_ORDER_GB
+		             , PM.PA_CODE
+		             , PM.PA_DO_FLAG
+		             , DECODE( PM.PA_ORDER_GB , '30', '02', '03') AS PA_INTP_ORDER_GB
+		          FROM TPAORDERM PM
+		             , TCLAIMDT CD             
+		             , TCODE TC
+		             , TPAINTPCLAIMLIST TM
+		             , TSLIPM SM
+		             , TSLIPDT SD
+		         WHERE CD.ORDER_NO     = PM.ORDER_NO
+		           AND CD.ORDER_G_SEQ  = PM.ORDER_G_SEQ
+		           AND CD.ORDER_D_SEQ  = PM.ORDER_D_SEQ
+		           AND CD.ORDER_W_SEQ  = PM.ORDER_W_SEQ
+		           AND PM.PA_ORDER_NO  = TM.ORD_NO
+		           AND PM.PA_ORDER_SEQ = TM.ORD_SEQ
+		           AND PM.PA_CLAIM_NO  = TM.CLM_NO
+		           AND SM.SLIP_I_NO    = SD.SLIP_I_NO 
+		           AND SD.ORDER_NO     = PM.ORDER_NO
+		           AND SD.ORDER_G_SEQ  = PM.ORDER_G_SEQ
+		           AND SD.ORDER_D_SEQ  = PM.ORDER_D_SEQ
+		           AND SD.ORDER_W_SEQ  = PM.ORDER_W_SEQ 
+		           AND PM.PA_CODE      = TC.CODE_MGROUP
+		           AND TC.CODE_LGROUP  = 'O501'
+		           AND TC.CODE_GROUP   = '07'
+		           AND TC.USE_YN       = '1'
+		           AND PM.PA_ORDER_GB  IN ('30','45')
+		           AND PM.PA_DO_FLAG   &lt; '60'
+		           AND CD.CLAIM_GB     IN ('30','45')
+		           AND CD.DO_FLAG      = '60'
+		           AND PM.PA_CODE      IN ('71','72')
+		           AND CD.LAST_PROC_DATE  > SYSDATE - 30)
+		GROUP BY PA_ORDER_NO
+			   , PA_DELY_GB
+			   , CLM_NO
+			   , CLM_SEQ
+			   , PA_ORDER_GB
+			   , PA_CODE
+			   , PA_DO_FLAG
+			   , PA_INTP_ORDER_GB
+    </select>
+    
+    <select id="selectExchangeSlipList" resultType="hashMap">
+    	SELECT /* paintpclaim.xml : paintp.claim.selectExchangeSlipList  by PaIntpClaimController */ 
+               PA_ORDER_NO             
+             , PA_CLAIM_NO
+             , PA_DELY_GB
+             , MAX(SLIP_NO)  AS SLIP_NO
+             , DELY_GB
+             , PA_CODE
+             , CLM_NO
+             , CLM_SEQ
+             , PA_DO_FLAG
+             , PA_ORDER_GB
+          FROM (
+          	    SELECT 
+		               PM.PA_ORDER_NO             
+		             , PM.PA_CLAIM_NO
+		             , (SELECT PDG.PA_DELY_GB FROM TPADELYGB PDG WHERE PDG.DELY_GB = SM.DELY_GB AND PDG.PA_CODE = '07') AS PA_DELY_GB
+		             , SM.SLIP_NO
+		             , SM.DELY_GB
+		             , PM.PA_CODE
+		             , TM.CLM_NO
+		             , TM.CLM_SEQ
+		             , PM.PA_DO_FLAG
+		             , PM.PA_ORDER_GB
+		          FROM TPAORDERM PM
+		             , TCLAIMDT  CD
+		             , TSLIPDT   SD
+		             , TSLIPM    SM
+		             , TCODE     TC
+		             , TPAINTPCLAIMLIST TM
+		         WHERE CD.ORDER_NO    = PM.ORDER_NO
+		           AND CD.ORDER_G_SEQ = PM.ORDER_G_SEQ
+		           AND CD.ORDER_D_SEQ = PM.ORDER_D_SEQ
+		           AND CD.ORDER_W_SEQ = PM.ORDER_W_SEQ
+		           AND PM.ORDER_NO    = SD.ORDER_NO
+		           AND PM.ORDER_G_SEQ = SD.ORDER_G_SEQ
+		           AND PM.ORDER_D_SEQ = SD.ORDER_D_SEQ
+		           AND PM.ORDER_W_SEQ = SD.ORDER_W_SEQ
+		           AND SD.SLIP_I_NO   = SM.SLIP_I_NO
+		           AND PM.PA_CODE     = TC.CODE_MGROUP
+		           AND PM.PA_ORDER_NO = TM.ORD_NO
+		           AND PM.PA_ORDER_SEQ = TM.ORD_SEQ
+		           AND PM.PA_CLAIM_NO = TM.CLM_NO 
+		           AND SM.SLIP_FLAG   = '1'
+		           AND SM.SLIP_GB     = '104'
+		           AND TC.CODE_LGROUP = 'O501'
+		           AND TC.CODE_GROUP  = '07'
+		           AND TC.USE_YN      = '1'
+		           AND PM.PA_ORDER_GB = '40'
+		           AND PM.PA_DO_FLAG  = '20'
+		           AND CD.CLAIM_GB    = '40'
+		           AND CD.DO_FLAG     >= '40'
+		           AND PM.PA_CODE     IN ('71','72')
+		           AND CD.LAST_PROC_DATE  > SYSDATE - 30)
+		GROUP BY PA_ORDER_NO             
+               , PA_CLAIM_NO
+               , PA_DELY_GB
+               , DELY_GB
+               , PA_CODE
+               , CLM_NO
+               , CLM_SEQ
+               , PA_DO_FLAG
+               , PA_ORDER_GB
+    </select>
+
+    <update id="updatePreCancelYn" parameterType="hashMap">
+    	UPDATE TPAORDERM /* paintpclaim.xml : paintp.claim.updatePreCancelYn by PaIntpClaimController */
+    	   SET PRE_CANCEL_YN 		= #{preCancelYn		, jdbcType=VARCHAR}
+    	     , PRE_CANCEL_REASON 	= #{preCancelReason	, jdbcType=VARCHAR}
+    	 WHERE MAPPING_SEQ 			= #{mappingSeq		, jdbcType=VARCHAR}
+    	   AND CREATE_YN = '0'
+    	   AND PRE_CANCEL_YN = '0'
+    </update>
+    
+    <select id="selectGoodsdtInfoCount" resultType="int" parameterType="hashMap">
+	    SELECT /* paintpclaim.xml: paintp.claim.selectGoodsdtInfoCount by PaIntpClaimController */
+	    	   COUNT(1) 
+	      FROM TPAGOODSDTMAPPING PGD
+	     WHERE PGD.PA_CODE    =  #{paCode			, jdbcType=VARCHAR}    
+	       AND PGD.GOODS_CODE =  #{goodsCode		, jdbcType=VARCHAR}
+    </select>
+    <!-- 
+    <select id="selectReturnInfo" parameterType="com.cware.netshopping.domain.PaIntpClaimlistVO" resultType="hashMap">
+        SELECT /* paintpclaim.xml : paintp.claim.selectReturnInfo by IF_PAINTPAPI_03_018 */
+               OL.ORD_NM
+		     , CWARE_ENC_DEC(OL.ORD_TLPHN_NO, 'D') AS ORD_TLPHN_NO
+		     , CWARE_ENC_DEC(OL.ORD_PRTBL_TEL, 'D') AS ORD_PRTBL_TEL
+		     , CWARE_ENC_DEC(OL.RCVR_BASE_ADDR, 'D') AS RCVR_BASE_ADDR
+		     , CWARE_ENC_DEC(OL.RCVR_DTLS_ADDR, 'D') AS RCVR_DTLS_ADDR
+		  FROM TPAINTPORDERLIST OL
+		 WHERE OL.PA_ORDER_GB 	= '10'
+		   AND OL.ORD_NO 		= #{ordNo, jdbcType=VARCHAR}
+		   AND OL.ORD_PRD_SEQ 	= #{ordPrdSeq, jdbcType=VARCHAR}
+    </select>
+    -->
+    
+    <select id="selectPaIntpOrderCanceDone" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaIntpCancellist">
+        SELECT /* paintporder.xml : paintp.claim.selectPaIntpOrderCanceDone by PaIntpClaimController */
+               PM.PA_ORDER_NO
+             , PM.PA_SHIP_NO
+             , PM.PA_ORDER_SEQ
+             , PAO.PA_ORDER_GB
+             , PAO.DELVSETL_SEQ
+             , PAO.CLMREQ_SEQ
+             , PAO.CLMREQ_QTY
+             , PAO.ORD_SEQ
+             , PAO.OPT_PRD_TP
+             , PAO.WITHDRAW_YN
+             , OD.DO_FLAG
+             , PM.MAPPING_SEQ
+             , PM.PA_CODE
+             , SM.SLIP_NO
+             , PDG.PA_DELY_GB
+             , TO_DATE(SM.OUT_CLOSE_DATE) AS SHIP_START_DATE
+             , PM.ORDER_NO
+             , PM.ORDER_G_SEQ
+             , PM.ORDER_D_SEQ
+             , PM.ORDER_W_SEQ
+             , OD.GOODS_GB
+             , SM.SLIP_I_NO
+             , OD.GOODS_CODE
+             , OD.GOODSDT_CODE
+             , SM.DELY_GB
+          FROM TPAORDERM        PM
+             , TPAINTPORDERLIST PAO
+             , TORDERDT         OD
+             , TSLIPM           SM
+             , TSLIPDT          SD
+             , TPADELYGB        PDG
+         WHERE PM.PA_ORDER_GB  = '10'
+           AND PM.PA_ORDER_NO  = PAO.ORD_NO
+           AND PM.PA_ORDER_SEQ = PAO.ORD_SEQ
+           AND PM.PA_SHIP_NO   = PAO.DELVSETL_SEQ
+           AND PAO.CLMREQ_STAT = '1'
+           AND PAO.PROC_FLAG   = '10'
+           AND PAO.PA_ORDER_GB = '20'
+           AND PAO.WITHDRAW_YN = '0' 
+           AND PM.ORDER_NO     = OD.ORDER_NO
+           AND PM.ORDER_G_SEQ  = OD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ  = OD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ  = OD.ORDER_W_SEQ
+           AND PM.ORDER_NO     = SD.ORDER_NO(+)
+           AND PM.ORDER_G_SEQ  = SD.ORDER_G_SEQ(+)
+           AND PM.ORDER_D_SEQ  = SD.ORDER_D_SEQ(+)
+           AND PM.ORDER_W_SEQ  = SD.ORDER_W_SEQ(+)
+           AND SD.SLIP_I_NO    = SM.SLIP_I_NO(+)
+           AND SM.DELY_GB      = PDG.DELY_GB(+)
+           AND PDG.PA_CODE(+)  = '07'
+           AND PAO.ORD_NO	   = #{ordNo			, jdbcType=VARCHAR}   
+           AND PAO.ORD_SEQ	   = #{ordSeq			, jdbcType=VARCHAR}   
+    </select>
+    
+    <select id="selectMaxClmReqSeq" parameterType="hashMap" resultType="String">
+     SELECT /* paintpclaim.xml: paintp.claim.selectMaxClmReqSeq by PaIntpClaimController */
+	    	   NVL(TO_NUMBER(MAX(PAO.CLMREQ_SEQ)) +1, 1) AS CLMREQ_SEQ
+	      FROM TPAINTPORDERLIST PAO
+	     WHERE PAO.PA_ORDER_GB = '20'
+           AND PAO.ORD_NO	   = #{ordNo			, jdbcType=VARCHAR}   
+           AND PAO.ORD_SEQ	   = #{ordSeq			, jdbcType=VARCHAR}   
+    </select> 
+    
+    
+</mapper>

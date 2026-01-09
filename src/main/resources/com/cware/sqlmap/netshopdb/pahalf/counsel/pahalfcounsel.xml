@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pahalf.counsel">
+<select id="selectPaHalfCs" resultType="com.cware.netshopping.domain.PaqnamVO" parameterType="String">
+        SELECT /* pahalfcounsel.xml : pahalf.pahalfcounsel.selectPaHalfCs */
+               PQ.PA_COUNSEL_SEQ
+             , PQ.PROC_GB
+             , PQ.PA_CODE
+             , PQ.PA_COUNSEL_NO
+             , PQ.COUNSEL_SEQ
+             , PQ.COUNSEL_DATE
+             , PQ.COUNSEL_GB
+             , PQ.PA_GOODS_CODE
+             , PQ.PA_ORDER_NO
+             , (SELECT A.ORDER_NO
+             	  FROM TPAORDERM A
+             	 WHERE A.PA_CODE = PQ.PA_CODE
+             	   AND A.PA_ORDER_NO = PQ.PA_ORDER_NO
+             	   AND ROWNUM = 1
+             ) AS REF_NO
+             , PQ.DISPLAY_YN
+             , PQ.CUST_NAME
+             , PQ.CUST_TEL
+             , PQ.TRANS_YN
+             , PQ.TRANS_DATE
+             , PQ.INSERT_DATE
+             , PQ.INSERT_ID
+             , PQ.MODIFY_DATE
+             , PQ.MODIFY_ID
+             , PD.PA_COUNSEL_DT_SEQ
+             , PD.TITLE
+             , PQ.MSG_GB
+             , PD.PROC_NOTE
+             , PG.GOODS_CODE
+             , PG.ENTP_CODE
+             , NVL((SELECT OM.CUST_NO
+                      FROM TPAORDERM PM
+                         , TPAHALFORDERLIST HO
+                         , TORDERM OM
+                     WHERE PM.PA_ORDER_NO       = HO.ORD_NO
+                       AND PM.PA_SHIP_NO        = HO.BASKET_NO
+                       AND PM.PA_ORDER_SEQ      = HO.ORD_NO_NM
+                       AND PM.PA_CODE           = PQ.PA_CODE
+                       AND HO.ORD_NO            = PQ.PA_ORDER_NO 
+                       AND PM.PA_ORDER_GB       ='10'
+                       AND PM.ORDER_NO          = OM.ORDER_NO
+                       AND ROWNUM               = 1) 
+                  ,(SELECT TO_CHAR(CODE_NAME)
+                      FROM TCODE TC
+                     WHERE TC.CODE_LGROUP = 'O511'
+                       AND TC.REMARK1     = '12'
+                       AND ROWNUM         = 1)) AS CUST_NO
+             , CK.CS_SGROUP
+             , CK.CS_LMS_CODE
+          FROM TPAQNAM PQ
+             , TPAQNADT PD
+             , TPAPRODUCT PG
+             , TPAHALFGOODS HG
+             , TCSKINDS CK
+         WHERE PQ.PA_COUNSEL_SEQ = PD.PA_COUNSEL_SEQ
+           AND PQ.PROC_GB = PD.PROC_GB
+           AND PQ.PA_GOODS_CODE = HG.PRODUCT_NO(+)
+           AND HG.GOODS_CODE = PG.GOODS_CODE(+)
+           AND PQ.COUNSEL_SEQ IS NULL
+           AND PQ.PROC_GB = '10'
+           AND PQ.TRANS_YN = '0'
+           AND PQ.TRANS_DATE IS NULL
+           AND PD.PA_COUNSEL_DT_SEQ = '1'
+           AND PQ.PA_CODE IN ('C1', 'C2')
+           AND PQ.INSERT_DATE > TRUNC(SYSDATE) - 3
+           AND PQ.MSG_GB = '10'
+           AND CK.CS_LGROUP = '60'
+           AND CK.CS_MGROUP = '12'
+           AND CK.CS_SGROUP = '27'
+    </select>
+    
+	<select id="selectPaHalfQna" resultType="com.cware.netshopping.domain.PaqnamVO" parameterType="String">
+        SELECT /* pahalfcounsel.xml : pahalf.pahalfcounsel.selectPaHalfQna */
+               PQ.PA_COUNSEL_SEQ
+             , PQ.PROC_GB
+             , PQ.PA_CODE
+             , PQ.PA_COUNSEL_NO
+             , PQ.COUNSEL_SEQ
+             , PQ.COUNSEL_DATE
+             , PQ.COUNSEL_GB
+             , PQ.PA_GOODS_CODE
+             , PQ.PA_ORDER_NO
+             , (SELECT A.ORDER_NO
+             	  FROM TPAORDERM A
+             	 WHERE A.PA_CODE = PQ.PA_CODE
+             	   AND A.PA_ORDER_NO = PQ.PA_ORDER_NO
+             	   AND ROWNUM = 1
+             ) AS REF_NO
+             , PQ.DISPLAY_YN
+             , PQ.CUST_NAME
+             , PQ.CUST_TEL
+             , PQ.TRANS_YN
+             , PQ.TRANS_DATE
+             , PQ.INSERT_DATE
+             , PQ.INSERT_ID
+             , PQ.MODIFY_DATE
+             , PQ.MODIFY_ID
+             , PD.PA_COUNSEL_DT_SEQ
+             , PD.TITLE
+             , PQ.MSG_GB
+             , PD.PROC_NOTE
+             , PG.GOODS_CODE
+             , PG.ENTP_CODE
+             , NVL((SELECT OM.CUST_NO
+                      FROM TPAORDERM PM
+                         , TPAHALFORDERLIST HO
+                         , TORDERM OM
+                     WHERE PM.PA_ORDER_NO       = HO.ORD_NO
+                       AND PM.PA_SHIP_NO        = HO.BASKET_NO
+                       AND PM.PA_ORDER_SEQ      = HO.ORD_NO_NM
+                       AND PM.PA_CODE           = PQ.PA_CODE
+                       AND HO.ORD_NO            = PQ.PA_ORDER_NO 
+                       AND PM.PA_ORDER_GB       ='10'
+                       AND PM.ORDER_NO          = OM.ORDER_NO
+                       AND ROWNUM               = 1) 
+                  ,(SELECT TO_CHAR(CODE_NAME)
+                      FROM TCODE TC
+                     WHERE TC.CODE_LGROUP = 'O511'
+                       AND TC.REMARK1     = '12'
+                       AND ROWNUM         = 1)) AS CUST_NO
+             , CK.CS_SGROUP
+             , CK.CS_LMS_CODE
+          FROM TPAQNAM PQ
+             , TPAQNADT PD
+             , TPAPRODUCT PG
+             , TPAHALFGOODS HG
+             , TCSKINDS CK
+         WHERE PQ.PA_COUNSEL_SEQ = PD.PA_COUNSEL_SEQ
+           AND PQ.PROC_GB = PD.PROC_GB
+           AND PQ.PA_GOODS_CODE = HG.PRODUCT_NO
+           AND HG.GOODS_CODE = PG.GOODS_CODE
+           AND PQ.COUNSEL_SEQ IS NULL
+           AND PQ.PROC_GB = '10'
+           AND PQ.TRANS_YN = '0'
+           AND PQ.TRANS_DATE IS NULL
+           AND PD.PA_COUNSEL_DT_SEQ = '1'
+           AND PQ.PA_CODE IN ('C1', 'C2')
+           AND PQ.INSERT_DATE > TRUNC(SYSDATE) - 3
+           AND PQ.MSG_GB = '00'
+           AND CK.CS_LGROUP = '60'
+           AND CK.CS_MGROUP = '12'
+           AND CK.CS_SGROUP = DECODE(PQ.TOKEN, 'MB082001', '22',
+           									   'MB082002', '28',
+                               				   'MB082003', '23',
+                      						   'MB082004', '24',
+                      						   'MB082005', '25',
+                      						   'MB082006', '26',
+                      						   'MB082007', '29',
+           									   'MB083003', '16',
+           									   'MB084002', '17',
+           									   'MB085001', '18',
+           									   'MB085002', '19',
+           									   'MB086002', '20',
+           									   'MB089001', '21',
+           									   			   '98')
+    </select>
+	
+	<update id="updatePaQnaTrans" parameterType="com.cware.netshopping.domain.PaqnamVO">
+        UPDATE TPAQNAM /* pahalfcounsel.xml : pahalf.counsel.updatePaQnaTrans */
+           SET TRANS_YN 	= '1'
+             , PROC_GB 		= '40'
+             , TRANS_DATE 	= #{modifyDate, 	 jdbcType=TIMESTAMP}
+             , MODIFY_ID 	= #{modifyId, 		 jdbcType=VARCHAR}
+             , MODIFY_DATE 	= #{modifyDate, 	 jdbcType=TIMESTAMP}
+         WHERE PA_COUNSEL_SEQ  = #{paCounselSeq, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectPaQnaDtMaxSeq" parameterType="com.cware.netshopping.domain.PaqnamVO" resultType="String">
+          SELECT /* pahalfcounsel.xml : pahalf.counsel.selectPaQnaDtMaxSeq */
+                 MAX(P.PA_COUNSEL_DT_SEQ) + 1 
+            FROM TPAQNADT P 
+           WHERE P.PA_COUNSEL_SEQ = #{paCounselSeq, jdbcType=VARCHAR}
+    </select>   
+	
+	<insert id="insertPaQnaDt" parameterType="com.cware.netshopping.domain.PaqnamVO">
+          INSERT INTO TPAQNADT( /* pahalfcounsel.xml : pahalf.counsel.insertPaQnaDt */
+                        PA_COUNSEL_SEQ
+                      , PA_COUNSEL_DT_SEQ
+                      , PROC_GB
+                      , TITLE
+                      , PROC_NOTE
+                      , PROC_DATE
+                      , PROC_ID)
+                    VALUES (
+                        #{paCounselSeq, jdbcType=VARCHAR}
+                      , #{paCounselDtSeq, jdbcType=VARCHAR}
+                      , #{procGb, jdbcType=VARCHAR}
+                      , #{title, jdbcType=VARCHAR}
+                      , #{procNote, jdbcType=VARCHAR}
+                      , SYSDATE
+                      , #{procId, jdbcType=VARCHAR})
+    </insert>
+	
+    <select id="selectPaHalfAnsQna" resultType="com.cware.netshopping.domain.PaqnamVO" parameterType="hashMap">
+		SELECT /* pahalfcounsel.xml : pahalf.pahalfcounsel.selectPaHalfAnsQna */
+    		   SQ.PA_COUNSEL_SEQ
+    	     , SQ.PA_COUNSEL_NO
+    	     , SQ.PA_GOODS_CODE
+	         , CD.PROC_NOTE
+	         , CD.TITLE
+	         , SQ.PA_CODE
+	         , CD.PROC_ID
+	   	  FROM TPAQNAM SQ
+	      	 , TCUSTCOUNSELM CM
+	      	 , TCUSTCOUNSELDT CD
+	  	 WHERE SQ.COUNSEL_SEQ = CM.COUNSEL_SEQ
+	       AND CM.COUNSEL_SEQ = CD.COUNSEL_SEQ
+	       AND CD.DO_FLAG     = '40'
+	       AND CD.PROC_DATE   > SYSDATE - 3
+	       AND SQ.TRANS_YN    = '0'
+	       AND SQ.MSG_GB	  = #{msgGb, jdbcType=VARCHAR}
+	       AND SQ.PA_GROUP_CODE = '12' 
+
+    </select>
+</mapper>

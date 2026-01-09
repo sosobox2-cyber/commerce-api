@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.cware.netshopping.paqeen.repository.PaQeenCommonMapper">
+
+    <select id="selectQeenShipCost" resultType="com.cware.netshopping.domain.PaQeenShipCostVO">
+   		SELECT /* paqeencommon.xml : paqeen.PaQeenCommonMapper.selectQeenShipCost */
+   			   QC.*,
+   			   NVL(E1.STD_ROAD_POST_ADDR1,E1.STD_POST_ADDR1) || ' ' || NVL(E1.STD_ROAD_POST_ADDR2,E1.STD_POST_ADDR2) AS SHIP_ADDRESS,
+   			   NVL(E2.STD_ROAD_POST_ADDR1,E2.STD_POST_ADDR1) || ' ' || NVL(E2.STD_ROAD_POST_ADDR2,E2.STD_POST_ADDR2) AS RETURN_ADDRESS
+   		 FROM TPAQEENSHIPCOST QC, TENTPUSER E1 , TENTPUSER E2
+		 WHERE QC.ENTP_CODE = E1.ENTP_CODE
+		   AND QC.SHIP_MAN_SEQ = E1.ENTP_MAN_SEQ
+           AND QC.ENTP_CODE = E2.ENTP_CODE 
+           AND QC.RETURN_MAN_SEQ = E2.ENTP_MAN_SEQ 
+		   AND QC.PA_CODE = #{paCode, jdbcType=VARCHAR}
+		   AND QC.ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+		   AND QC.SHIP_MAN_SEQ = #{shipManSeq, jdbcType=VARCHAR}
+		   AND QC.RETURN_MAN_SEQ = #{returnManSeq, jdbcType=VARCHAR}
+		   AND QC.SHIP_COST_CODE = #{shipCostCode, jdbcType=VARCHAR}
+		  <if test='registerYn != null and registerYn == "1"'>
+		   AND QC.PA_SHIPCOST_ID IS NULL
+	      </if>
+	      <if test='registerYn != null and registerYn == "0"'>
+		   AND QC.PA_SHIPCOST_ID IS NOT NULL
+	      </if>
+	       AND QC.TRANS_TARGET_YN = '1'
+
+    </select>
+        
+        
+    <update id="updatePaQeenShipCost" parameterType="com.cware.netshopping.domain.model.PaQeenShipCost">
+        UPDATE /* paqeencommon.xml : paqeen.PaQeenCommonMapper.updatePaQeenShipCost */
+               TPAQEENSHIPCOST
+           SET TRANS_TARGET_YN = #{transTargetYn, jdbcType=VARCHAR}
+		     , PA_SHIPCOST_ID = #{paShipcostId, jdbcType=VARCHAR}
+             , MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+             , MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+         WHERE PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+           AND SHIP_MAN_SEQ = #{shipManSeq, jdbcType=VARCHAR}
+           AND RETURN_MAN_SEQ = #{returnManSeq, jdbcType=VARCHAR}
+           AND SHIP_COST_CODE = #{shipCostCode, jdbcType=VARCHAR}
+    </update>
+</mapper>

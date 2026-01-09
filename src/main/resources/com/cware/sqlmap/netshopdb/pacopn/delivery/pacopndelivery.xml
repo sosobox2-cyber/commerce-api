@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+        
+<mapper namespace="pacopn.delivery">
+	<select id="selectPaCopnOrderListExists" parameterType="com.cware.netshopping.domain.PacopnorderlistVO" resultType="int">
+		SELECT /* pacopndelivery.xml: pacopn.delivery.selectPaCopnOrderListExists by PaCopnDeliveryController*/
+			   COUNT(1) AS CNT
+		  FROM TPACOPNORDERLIST COL
+		 WHERE SHIPMENT_BOX_ID = #{shipmentBoxId, jdbcType=VARCHAR}
+		   AND ORDER_ID        = #{orderId      , jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectPaCopnOrderItemListExists" parameterType="com.cware.netshopping.domain.model.Pacopnorderitemlist" resultType="int">
+		SELECT /* pacopndelivery.xml: pacopn.delivery.selectPaCopnOrderListExists by PaCopnDeliveryController*/
+			   COUNT(1) AS CNT
+		  FROM TPACOPNORDERITEMLIST COL
+		 WHERE ORDER_ID        = #{orderId      , jdbcType=VARCHAR}
+		   AND VENDOR_ITEM_ID  = #{vendorItemId , jdbcType=VARCHAR}
+	</select>
+	
+	<insert id="insertPaCopnOrderList" parameterType="com.cware.netshopping.domain.PacopnorderlistVO">
+		INSERT INTO TPACOPNORDERLIST( /* pacopndelivery.xml: pacopn.delivery.insertPaCopnOrderList by PaCopnDeliveryController */
+			   SHIPMENT_BOX_ID
+			 , ORDER_ID
+			 , ORDERED_AT
+			 , ORDERER_NAME
+			 , ORDERER_EMAIL
+			 , ORDERER_SAFE_NUMBER
+			 , PAID_AT
+			 , STATUS
+			 , SHIPPING_PRICE
+			 , REMOTE_PRICE
+			 , REMOTE_AREA
+			 , PARCEL_PRINT_MESSAGE
+			 , SPLIT_SHIPPING
+			 , ABLE_SPLIT_SHIPPING
+			 , RECEIVER_NAME
+			 , RECEIVER_SAFE_NUMBER
+			 , RECEIVER_ADDR1
+			 , RECEIVER_ADDR2
+			 , RECEIVER_POST_CODE
+			 , OVERSEA_SHIPPING_INFO_DTO
+			 , DELIVERY_COMPANY_NAME
+			 , INVOICE_NUMBER
+			 , REFER
+			 , MODIFY_DATE
+			 , INSERT_DATE)
+		VALUES(#{shipmentBoxId         , jdbcType=VARCHAR}
+		     , #{orderId               , jdbcType=VARCHAR}
+		     , #{orderedAt             , jdbcType=TIMESTAMP}
+		     , #{ordererName           , jdbcType=VARCHAR}
+		     , #{ordererEmail          , jdbcType=VARCHAR}
+		     , #{ordererSafeNumber     , jdbcType=VARCHAR}
+		     , #{paidAt                , jdbcType=TIMESTAMP}
+		     , FUN_TCODE_MGROUP('O650', #{status, jdbcType=VARCHAR})
+		     , #{shippingPrice         , jdbcType=NUMERIC}
+		     , #{remotePrice           , jdbcType=NUMERIC}
+		     , #{remoteArea            , jdbcType=VARCHAR}
+		     , #{parcelPrintMessage    , jdbcType=VARCHAR}
+		     , #{splitShipping         , jdbcType=VARCHAR}
+		     , #{ableSplitShipping     , jdbcType=VARCHAR}
+		     , #{receiverName          , jdbcType=VARCHAR}
+		     , CWARE_ENC_DEC(#{receiverSafeNumber, jdbcType=VARCHAR}, 'E')
+		     , CWARE_ENC_DEC(#{receiverAddr1     , jdbcType=VARCHAR}, 'E')
+		     , CWARE_ENC_DEC(#{receiverAddr2     , jdbcType=VARCHAR}, 'E')
+		     , #{receiverPostCode      , jdbcType=VARCHAR}
+		     , #{overseaShippingInfoDTO, jdbcType=VARCHAR}
+		     , #{deliveryCompanyName   , jdbcType=VARCHAR}
+		     , #{invoiceNumber         , jdbcType=VARCHAR}
+		     , #{refer                 , jdbcType=VARCHAR}
+		     , #{modifyDate            , jdbcType=TIMESTAMP}
+		     , #{insertDate            , jdbcType=TIMESTAMP})
+	</insert>
+	
+	<insert id="insertPaCopnOrderitemList" parameterType="com.cware.netshopping.domain.model.Pacopnorderitemlist">
+		INSERT INTO TPACOPNORDERITEMLIST( /* pacopndelivery.xml: pacopn.delivery.insertPaCopnOrderitemList by PaCopnDeliveryController */
+			   SHIPMENT_BOX_ID
+			 , ORDER_ID
+			 , ITEM_SEQ
+			 , VENDOR_ITEM_PACKAGE_ID
+			 , VENDOR_ITEM_PACKAGE_NAME
+			 , PRODUCT_ID
+			 , VENDOR_ITEM_ID
+			 , VENDOR_ITEM_NAME
+			 , SHIPPING_COUNT
+			 , SALES_PRICE
+			 , ORDER_PRICE
+			 , DISCOUNT_PRICE
+			 , EXTERNAL_VENDOR_SKU_CODE
+			 , ETC_INFO_HEADER
+			 , ETC_INFO_VALUE
+			 , ETC_INFO_VALUES
+			 , SELLER_PRODUCT_ID
+			 , SELLER_PRODUCT_NAME
+			 , SELLER_PRODUCT_ITEM_NAME
+			 , FIRST_SELLER_PRODUCT_ITEM_NAME
+			 , CANCEL_COUNT
+			 , HOLD_COUNT_FOR_CANCEL
+			 , ESTIMATED_SHIPPING_DATE
+			 , PLANNED_SHIPPING_DATE
+			 , INVOICE_NUMBER_UPLOAD_DATE
+			 , EXTRA_PROPERTIES
+			 , PRICING_BADGE
+			 , USED_PRODUCT
+			 , CONFIRM_DATE
+			 , DELIVERY_CHARGE_TYPE_NAME
+			 , CANCELED
+			 , INSERT_DATE
+			 , INSTANT_COUPON_DISCOUNT)
+		VALUES(#{shipmentBoxId             , jdbcType=VARCHAR}
+		     , #{orderId                   , jdbcType=VARCHAR}
+		     , #{itemSeq                   , jdbcType=VARCHAR}
+		     , #{vendorItemPackageId       , jdbcType=VARCHAR}
+		     , #{vendorItemPackageName     , jdbcType=VARCHAR}
+		     , #{productId                 , jdbcType=VARCHAR}
+		     , #{vendorItemId              , jdbcType=VARCHAR}
+		     , #{vendorItemName            , jdbcType=VARCHAR}
+		     , #{shippingCount             , jdbcType=NUMERIC}
+		     , #{salesPrice                , jdbcType=NUMERIC}
+		     , #{orderPrice                , jdbcType=NUMERIC}
+		     , #{discountPrice             , jdbcType=NUMERIC}
+		     , #{externalVendorSkuCode     , jdbcType=VARCHAR}
+		     , #{etcInfoHeader             , jdbcType=VARCHAR}
+		     , #{etcInfoValue              , jdbcType=VARCHAR}
+		     , #{etcInfoValues             , jdbcType=VARCHAR}
+		     , #{sellerProductId           , jdbcType=VARCHAR}
+		     , #{sellerProductName         , jdbcType=VARCHAR}
+		     , #{sellerProductItemName     , jdbcType=VARCHAR}
+		     , #{firstSellerProductItemName, jdbcType=VARCHAR}
+		     , #{cancelCount               , jdbcType=NUMERIC}
+		     , #{holdCountForCancel        , jdbcType=NUMERIC}
+		     , #{estimatedShippingDate     , jdbcType=TIMESTAMP}
+		     , #{plannedShippingDate       , jdbcType=TIMESTAMP}
+		     , #{invoiceNumberUploadDate   , jdbcType=TIMESTAMP}
+		     , #{extraProperties           , jdbcType=VARCHAR}
+		     , #{pricingBadge              , jdbcType=VARCHAR}
+		     , #{usedProduct               , jdbcType=VARCHAR}
+		     , #{confirmDate               , jdbcType=TIMESTAMP}
+		     , #{deliveryChargeTypeName    , jdbcType=VARCHAR}
+		     , #{canceled                  , jdbcType=VARCHAR}
+		     , #{insertDate                , jdbcType=TIMESTAMP}
+		     , #{instantCouponDiscount	   , jdbcType=NUMERIC})
+	</insert>
+	
+	<select id="selectBeforeInvoiceList" resultType="hashMap">
+		SELECT /* apcopndelivery.xml: pacopn.delivery.selectBeforeInvoiceList by PaCopnDeliveryController */
+		       DISTINCT PM.PA_SHIP_NO
+		     , PM.PA_CODE
+		     , COUNT(PM.PA_SHIP_NO) AS TARGET_CNT
+		  FROM TPAORDERM PM
+		     , TSLIPM SM
+		     , TSLIPDT SD
+		     , TORDERGOODS OG 
+		 WHERE SM.SLIP_I_NO   = SD.SLIP_I_NO
+		   AND PM.ORDER_NO    = SD.ORDER_NO
+		   AND PM.ORDER_G_SEQ = SD.ORDER_G_SEQ
+		   AND PM.ORDER_D_SEQ = SD.ORDER_D_SEQ
+		   AND PM.ORDER_W_SEQ = SD.ORDER_W_SEQ
+		   AND PM.PA_DO_FLAG  = '30' 
+		   AND PM.PA_ORDER_GB = '10'
+		   AND PM.PA_CODE     IN ('51', '52')
+		   AND PM.ORDER_NO    = OG.ORDER_NO
+           AND PM.ORDER_G_SEQ = OG.ORDER_G_SEQ
+		   AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0 
+		   AND SM.SLIP_PROC    >= 40
+		   AND SM.SLIP_GB      = '101'
+		   AND SM.SLIP_NO IS NOT NULL /*운송장이 있는 주문 건*/
+		 GROUP BY PM.PA_SHIP_NO, PM.PA_CODE
+	</select>
+	
+	<select id="selectBeforeInvoiceDtList" parameterType="String" resultType="hashMap">
+		SELECT /* pacopndelivery.xml: pacopn.delivery.selectBeforeInvoiceDtList by PaCopnDeliveryController */
+		       POM.MAPPING_SEQ    AS MAPPING_SEQ
+		     , POM.PA_SHIP_NO     AS PA_SHIP_NO
+		     , POM.PA_ORDER_NO    AS PA_ORDER_NO
+		     , COI.VENDOR_ITEM_ID AS VENDOR_ITEM_ID
+		     , NVL((SELECT PDG.PA_DELY_GB FROM TPADELYGB PDG WHERE PDG.PA_CODE = '05' AND SM.DELY_GB = PDG.DELY_GB), 'CJGLS') AS PA_DELY_GB
+		     , SM.SLIP_NO         AS SLIP_NO
+		     , SM.SLIP_I_NO       AS SLIP_I_NO
+		     , POM.PA_CODE        AS PA_CODE
+		     , TRUNC(SYSDATE + 3) AS ESTIMATED_DELIVERY_TIME
+		     , NVL(SM.SLIP_PROC, '00') AS SLIP_PROC
+		  FROM TPAORDERM            POM
+		     , TPACOPNORDERITEMLIST COI
+		     , TSLIPDT              SD
+		     , TSLIPM               SM
+		     , TORDERGOODS          OG
+		 WHERE POM.PA_ORDER_GB  = '10'
+		   AND POM.PA_SHIP_NO   = COI.SHIPMENT_BOX_ID
+		   AND POM.PA_ORDER_NO  = COI.ORDER_ID
+		   AND POM.PA_ORDER_SEQ = COI.ITEM_SEQ
+		   AND POM.ORDER_NO     = SD.ORDER_NO(+)
+		   AND POM.ORDER_G_SEQ  = SD.ORDER_G_SEQ(+)
+		   AND POM.ORDER_D_SEQ  = SD.ORDER_D_SEQ(+)
+		   AND POM.ORDER_W_SEQ  = SD.ORDER_W_SEQ(+)
+		   AND SD.SLIP_I_NO     = SM.SLIP_I_NO(+)
+		   AND POM.ORDER_NO     = OG.ORDER_NO
+		   AND POM.ORDER_G_SEQ  = OG.ORDER_G_SEQ
+		   AND POM.PA_CODE      IN ('51', '52')
+		   AND POM.PA_DO_FLAG   &lt;'40'
+		   AND SM.SLIP_GB(+)    = '101'
+		   AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+		   AND POM.PA_SHIP_NO   = #{shipmentBoxId, jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectInvoicesPerShipmentBoxId" parameterType="String" resultType="int">
+		SELECT /* pacopndelivery.xml: pacopn.delivery.selectInvoicesPerShipmentBoxId by PaCopnDeliveryController */
+		       COUNT(DISTINCT SM.DELY_GB || SM.SLIP_NO || PM.PA_DO_FLAG) AS INVOICE_PER_SHIPMENTBOXID
+		  FROM TPAORDERM   PM
+		     , TSLIPM      SM
+		     , TSLIPDT     SD
+		     , TORDERGOODS OG
+		 WHERE PM.PA_ORDER_GB = '10'
+		   AND PM.ORDER_NO    = SD.ORDER_NO(+)
+           AND PM.ORDER_G_SEQ = SD.ORDER_G_SEQ(+)
+           AND PM.ORDER_D_SEQ = SD.ORDER_D_SEQ(+)
+           AND PM.ORDER_W_SEQ = SD.ORDER_W_SEQ(+)
+           AND SD.SLIP_I_NO   = SM.SLIP_I_NO(+)
+           AND PM.ORDER_NO    = OG.ORDER_NO
+           AND PM.ORDER_G_SEQ = OG.ORDER_G_SEQ
+           AND SM.SLIP_GB(+)  = '101'
+           AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) &gt; 0
+           AND PM.PA_CODE     IN ('51', '52')
+           AND PM.PA_SHIP_NO  = #{shipmentBoxId, jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectAlreadyExecuteShipping" parameterType="String" resultType="int">
+		SELECT /* pacopndelivery.xml: pacopn.delivery.selectAlreadyExecuteShipping by PaCopnDeliveryController */
+		       COUNT(1) AS CNT
+		  FROM TPAORDERM POM
+		     , TSLIPDT   SD
+		     , TSLIPM    SM
+		     , TORDERGOODS OG
+		 WHERE POM.ORDER_NO     = SD.ORDER_NO
+		   AND POM.ORDER_G_SEQ  = SD.ORDER_G_SEQ
+		   AND POM.ORDER_D_SEQ  = SD.ORDER_D_SEQ
+		   AND POM.ORDER_W_SEQ  = SD.ORDER_W_SEQ
+		   AND SD.SLIP_I_NO     = SM.SLIP_I_NO
+		   AND POM.ORDER_NO     = OG.ORDER_NO
+           AND POM.ORDER_G_SEQ  = OG.ORDER_G_SEQ
+		   AND SM.SLIP_GB       = '101'
+		   AND SM.SLIP_PROC     >= '40'
+		   AND POM.PA_DO_FLAG   = '40'
+		   AND POM.MAPPING_SEQ  = #{mappingSeq, jdbcType=VARCHAR}
+	</select>
+	
+	<update id="updatePaOrderResult" parameterType="com.cware.netshopping.domain.model.Paorderm">
+		UPDATE TPAORDERM /* pacopndelivery.xml: pacopn.delivery.updatePaOrderResult by PaCopnDeliveryController */
+		   SET API_RESULT_CODE    = #{apiResultCode, jdbcType=VARCHAR}
+		     , API_RESULT_MESSAGE = #{apiResultMessage, jdbcType=VARCHAR}
+		     <if test='apiResultCode == "200"'>
+		     , PA_DO_FLAG         = #{paDoFlag, jdbcType=VARCHAR}
+		     , PROC_DATE          = #{procDate, jdbcType=TIMESTAMP}
+		     </if>
+		 WHERE MAPPING_SEQ        = #{mappingSeq, jdbcType=VARCHAR}
+	</update>
+	
+	<select id="selectShippingComplete" parameterType="hashMap" resultType="hashMap">
+		SELECT /* pacopndelivery.xml: pacopn.delivery.selectShippingComplete by PaCopnDeliveryController */
+		       PM.MAPPING_SEQ
+		     , PM.PA_ORDER_NO
+		     , PM.PA_SHIP_NO
+		     , SM.SLIP_NO
+		     , PM.PA_CODE
+		  FROM TPAORDERM PM
+		     , TSLIPDT   SD
+		     , TSLIPM    SM
+		     , TPADELYGB GB
+		     , TCODE     CD
+		 WHERE PM.ORDER_NO     = SD.ORDER_NO
+		   AND PM.ORDER_G_SEQ  = SD.ORDER_G_SEQ
+		   AND SD.SLIP_I_NO    = SM.SLIP_I_NO
+		   AND SM.DELY_GB      = GB.DELY_GB
+		   AND GB.DELY_GB      = CD.CODE_MGROUP
+		   AND PM.PA_CODE      IN ('51', '52')
+		   AND PM.PA_ORDER_GB  = '10'
+		   AND PM.PA_DO_FLAG   = '40'
+		   AND PM.PA_PROC_QTY  > 0
+		   AND NVL(PM.API_RESULT_MESSAGE,' ') NOT LIKE 'ALREADY_CANCEL_RETURN%'
+   		   AND NVL(PM.API_RESULT_MESSAGE,' ') NOT LIKE '%NONE_TRACKING%'
+		   AND SM.SLIP_PROC    = '80'
+		   AND GB.PA_DELY_GB   != 'DIRECT'
+		   AND GB.PA_CODE      = '05'
+		   AND CD.CODE_LGROUP  = 'B005'
+		   AND TRUNC(SYSDATE) BETWEEN SM.CREATE_DATE + #{addFromDay, jdbcType=VARCHAR} AND SM.CREATE_DATE + #{addToDay, jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectDeliveryCompleteList" resultType="hashMap">
+		SELECT /* pacopndelivery.xml: pacopn.delivery.selectDeliveryCompleteList by PaCopnDeliveryController */
+		       POM.MAPPING_SEQ
+		     , POM.PA_ORDER_NO
+		     , POM.PA_ORDER_SEQ
+		     , POM.PA_SHIP_NO
+		     , POM.PA_CODE
+		     , COL.VENDOR_ITEM_ID
+		  FROM TPAORDERM POM
+		     , TSLIPDT   TSD
+		     , TSLIPM    TSM
+		     , TPACOPNORDERITEMLIST COL
+		 WHERE POM.ORDER_NO    = TSD.ORDER_NO
+		   AND POM.ORDER_G_SEQ = TSD.ORDER_G_SEQ
+		   AND POM.ORDER_D_SEQ = TSD.ORDER_D_SEQ
+		   AND POM.ORDER_W_SEQ = TSD.ORDER_W_SEQ
+		   AND TSD.SLIP_I_NO   = TSM.SLIP_I_NO
+		   AND POM.PA_ORDER_NO = COL.ORDER_ID
+       	   AND POM.PA_SHIP_NO = COL.SHIPMENT_BOX_ID
+       	   AND POM.PA_ORDER_SEQ = COL.ITEM_SEQ
+		   AND POM.PA_CODE     IN ('51', '52')
+		   AND POM.PA_DO_FLAG  = '40'
+		   AND POM.PA_ORDER_GB = '10'
+		   AND POM.PA_PROC_QTY &gt; 0
+		   AND TSM.SLIP_PROC   = '80'
+		   AND NVL(POM.API_RESULT_MESSAGE,' ') NOT LIKE 'ALREADY_CANCEL_RETURN%'
+		   AND NVL(POM.API_RESULT_MESSAGE,' ') NOT LIKE 'NONE_TRACKING%'
+		   AND TSM.SLIP_PROC_DATE >= TRUNC(SYSDATE) - 15
+		 ORDER BY POM.MAPPING_SEQ
+	</select>
+	
+	<update id="updateDeliveryComplete" parameterType="com.cware.netshopping.domain.model.Paorderm">
+		UPDATE TPAORDERM /* pacopndelivery.xml: pacopn.delivery.updateDeliveryComplete by PaCopnDeliveryController */
+		   SET API_RESULT_CODE    = #{apiResultCode   , jdbcType=VARCHAR}
+		     , API_RESULT_MESSAGE = #{apiResultMessage, jdbcType=VARCHAR}
+		     , MODIFY_ID          = #{modifyId        , jdbcType=VARCHAR}
+		     , MODIFY_DATE        = SYSDATE
+		     <if test='apiResultMessage == "배송완료 처리 성공"'>
+		     , PA_DO_FLAG         = '80'
+		     , PROC_DATE          = #{procDate        , jdbcType=TIMESTAMP}
+		     </if>
+		 WHERE PA_CODE            IN ('51', '52')
+		   AND PA_ORDER_NO        = #{paOrderNo       , jdbcType=VARCHAR}
+		   AND PA_ORDER_SEQ       = #{paOrderSeq      , jdbcType=VARCHAR}
+		   AND PA_SHIP_NO         = #{paShipNo        , jdbcType=VARCHAR}
+		   AND PA_ORDER_GB        = '10'
+		   AND PA_DO_FLAG         = '40'
+		   AND PRE_CANCEL_YN      = '0'
+		   AND CREATE_YN          = '1'
+		   AND PA_PROC_QTY        &gt; 0
+	</update>
+	
+	<select id="selectShippingUpdateList" resultType="hashMap">
+	  SELECT /* apcopndelivery.xml: pacopn.delivery.selectShippingUpdateList by PaCopnDeliveryController */
+	           PM.PA_SHIP_NO
+	         , PM.PA_CODE
+	      FROM TPAORDERM PM
+	         , TPASLIPINFO SP
+	         , TSLIPM SM
+	         , TSLIPDT SD
+	         , TORDERGOODS OG 
+	     WHERE PM.MAPPING_SEQ 	= SP.MAPPING_SEQ
+	       AND SP.PA_GROUP_CODE = PM.PA_GROUP_CODE
+	       AND SM.SLIP_I_NO   	= SD.SLIP_I_NO
+	       AND PM.ORDER_NO    	= SD.ORDER_NO
+	       AND PM.ORDER_G_SEQ 	= SD.ORDER_G_SEQ
+	       AND PM.ORDER_D_SEQ 	= SD.ORDER_D_SEQ
+	       AND PM.ORDER_W_SEQ 	= SD.ORDER_W_SEQ
+	       AND PM.PA_DO_FLAG  	= '40' 
+	       AND PM.PA_ORDER_GB 	= '10'
+	       AND PM.PA_CODE     IN ('51', '52')
+	       AND PM.ORDER_NO    	= OG.ORDER_NO
+	       AND PM.ORDER_G_SEQ 	= OG.ORDER_G_SEQ
+	       AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0 
+	       AND SM.SLIP_PROC     = '40'
+	       AND SM.SLIP_GB       = '101'
+	       AND SM.SLIP_NO IS NOT NULL
+	       AND SP.LAST_YN       = '1'
+	       AND SP.INSERT_DATE > SYSDATE - 10
+	       AND SP.SLIP_NO      != SM.SLIP_NO
+	     GROUP BY PM.PA_SHIP_NO, PM.PA_CODE
+	</select>
+	
+	<select id="selectSendInvoicesPerShipmentBoxId" parameterType="String" resultType="int">
+		SELECT /* apcopndelivery.xml: pacopn.delivery.selectSendInvoicesPerShipmentBoxId by PaCopnDeliveryController */
+				(SELECT COUNT(SP.TRANS_PA_DELY_GB || SP.TRANS_SLIP_NO)  AS INVOICE_PER_SHIPMENTBOXID
+				  FROM TPAORDERM   PM
+		 			 , TPASLIPINFO SP
+				     , TORDERGOODS OG
+				 WHERE PM.PA_ORDER_GB 	= '10'
+				   AND PM.PA_DO_FLAG  	= '40'
+		           AND PM.PA_CODE     IN ('51', '52')
+		           AND PM.ORDER_NO    	= OG.ORDER_NO
+		           AND PM.ORDER_G_SEQ 	= OG.ORDER_G_SEQ
+				   AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+				   AND SP.MAPPING_SEQ 	= PM.MAPPING_SEQ
+				   AND SP.PA_GROUP_CODE = PM.PA_GROUP_CODE
+				   AND SP.ROWID 		= (SELECT XX.ROWID 
+						   				     FROM ( SELECT SP2.ROWID
+						   							  FROM TPASLIPINFO SP2
+						   							 WHERE SP2.MAPPING_SEQ   = SP.MAPPING_SEQ  
+						   					  		   AND SP2.TRANS_YN 	 = '1'
+						   					  		   AND SP2.PA_GROUP_CODE = PM.PA_GROUP_CODE
+						   					  		   AND SP2.INSERT_DATE   > SYSDATE - 10
+						   					  		 ORDER BY SP2.SEQ DESC) XX
+						   					WHERE ROWNUM = 1 )			
+		           AND PM.PA_SHIP_NO  	= #{shipmentBoxId, jdbcType=VARCHAR})
+		           
+		           +
+		           
+		           (SELECT COUNT(1)
+		              FROM TPAORDERM PM2
+		                 , TORDERGOODS OG2
+		             WHERE PM2.PA_ORDER_GB  = '10'
+		               AND PM2.PA_CODE     IN ('51', '52') 
+		               AND PM2.PA_DO_FLAG  != '40'
+	           		   AND PM2.ORDER_NO     = OG2.ORDER_NO
+		           	   AND PM2.ORDER_G_SEQ  = OG2.ORDER_G_SEQ
+				   	   AND (OG2.ORDER_QTY - OG2.CANCEL_QTY - OG2.CLAIM_QTY + OG2.CLAIM_CAN_QTY) > 0
+		               AND PM2.PA_SHIP_NO   = #{shipmentBoxId, jdbcType=VARCHAR})
+          FROM DUAL
+	</select>
+	
+	<select id="selectUpdatingInvoiceDtList" parameterType="String" resultType="hashMap">
+		SELECT /* pacopndelivery.xml: pacopn.delivery.selectUpdatingInvoiceDtList by PaCopnDeliveryController */
+		       POM.MAPPING_SEQ    AS MAPPING_SEQ
+		     , POM.PA_SHIP_NO     AS PA_SHIP_NO
+		     , POM.PA_ORDER_NO    AS PA_ORDER_NO
+		     , COI.VENDOR_ITEM_ID AS VENDOR_ITEM_ID
+		     , PDG.PA_DELY_GB	  AS PA_DELY_GB
+		     , SM.SLIP_NO         AS INVOICE_NO
+		     , SM.SLIP_I_NO       AS SLIP_I_NO
+		     , POM.PA_CODE        AS PA_CODE
+		     , PDG.PA_DELY_GB  	  AS PA_DELY_GB_ORG
+		     , SM.SLIP_NO         AS INVOICE_NO_ORG
+		  FROM TPAORDERM            POM
+		     , TPACOPNORDERITEMLIST COI
+		     , TSLIPDT              SD
+		     , TSLIPM               SM
+		     , TORDERGOODS          OG
+		     , TPASLIPINFO 			SP
+		     , TPADELYGB			PDG
+		 WHERE POM.MAPPING_SEQ 	 = SP.MAPPING_SEQ
+		   AND POM.PA_GROUP_CODE = SP.PA_GROUP_CODE
+		   AND POM.PA_ORDER_GB   = '10'
+		   AND PDG.PA_CODE 		 = '05' 
+		   AND SM.DELY_GB 		 = PDG.DELY_GB
+		   AND POM.PA_SHIP_NO    = COI.SHIPMENT_BOX_ID
+		   AND POM.PA_ORDER_NO   = COI.ORDER_ID
+		   AND POM.PA_ORDER_SEQ  = COI.ITEM_SEQ
+		   AND POM.ORDER_NO      = SD.ORDER_NO(+)
+		   AND POM.ORDER_G_SEQ   = SD.ORDER_G_SEQ(+)
+		   AND POM.ORDER_D_SEQ   = SD.ORDER_D_SEQ(+)
+		   AND POM.ORDER_W_SEQ   = SD.ORDER_W_SEQ(+)
+		   AND SD.SLIP_I_NO      = SM.SLIP_I_NO(+)
+		   AND POM.ORDER_NO      = OG.ORDER_NO
+		   AND POM.ORDER_G_SEQ   = OG.ORDER_G_SEQ
+		   AND POM.PA_CODE      IN ('51', '52')
+		   AND POM.PA_DO_FLAG    = '40'
+		   AND SM.SLIP_PROC      = '40'
+		   AND SM.SLIP_GB(+)     = '101'
+		   AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+		   AND SP.SLIP_NO       != SM.SLIP_NO
+		   AND SP.INSERT_DATE    > SYSDATE - 10
+		   AND SP.LAST_YN        = '1'
+		   
+		   <!--  
+		   AND SP.ROWID = (SELECT XX.ROWID 
+			   		         FROM ( SELECT SP2.ROWID
+				   				      FROM TPASLIPINFO SP2
+				   					 WHERE SP2.MAPPING_SEQ  = SP.MAPPING_SEQ  
+				   					   AND SP2.TRANS_YN 	= '1'
+				   					   AND SP2.INSERT_DATE > SYSDATE - 10
+				   					 ORDER BY SP2.SEQ DESC) XX
+				   		    WHERE ROWNUM = 1 )			   
+		    -->
+		   AND POM.PA_SHIP_NO   = #{shipmentBoxId, jdbcType=VARCHAR}
+	</select>	
+	
+	
+	
+	
+</mapper>

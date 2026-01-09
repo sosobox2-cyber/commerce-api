@@ -1,0 +1,622 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+	"http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="panaver.v3.goods">     
+	<select id="selectWearSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.Wear">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040106') AS MATERIAL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040107') AS COLOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040108') AS "SIZE"
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040109') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040110') AS CAUTION
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040111') AS PACK_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040112') AS PACK_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040113') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040114') AS AFTER_SERVICE_DIRECTOR
+	    FROM DUAL
+	</select>
+
+	<select id="selectShoesSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.Shoes">
+		SELECT '상품상세 참조' AS NO_REFUND_REASON
+		     , '상품상세 참조' AS RETURN_COST_REASON
+		     , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+		     , '상품상세 참조' AS COMPENSATION_PROCEDURE
+		     , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS		     
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040206') AS MATERIAL
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040207') AS COLOR
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040208') AS "SIZE"
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040209') AS HEIGHT
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040210') AS MANUFACTURER
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040211') AS CAUTION
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040212') AS WARRANTY_POLICY
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040213') AS AFTER_SERVICE_DIRECTOR
+		FROM DUAL
+	</select>
+    
+	<select id="selectBagSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.Bag">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040306') AS TYPE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040307') AS MATERIAL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040308') AS COLOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040309') AS "SIZE"
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040310') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040311') AS CAUTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040312') AS WARRANTY_POLICY 
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040313') AS AFTER_SERVICE_DIRECTOR 
+	    FROM DUAL
+	</select>
+    
+	<select id="selectFashionItemsSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.FashionItems">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040406') AS TYPE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040407') AS MATERIAL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040408') AS "SIZE"
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040409') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040410') AS CAUTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040411') AS WARRANTY_POLICY 
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040412') AS AFTER_SERVICE_DIRECTOR
+	    FROM DUAL
+	</select>
+    
+	<select id="selectSleepingGearSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.SleepingGear">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040506') AS MATERIAL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040507') AS COLOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040508') AS "SIZE" 
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040509') AS COMPONENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040510') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040511') AS CAUTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040512') AS WARRANTY_POLICY
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040513') AS AFTER_SERVICE_DIRECTOR
+	    FROM DUAL
+	</select>
+
+	<select id="selectFurnitureSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.Furniture">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040606') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040607') AS CERTIFICATION_TYPE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040608') AS COLOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040609') AS COMPONENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040610') AS MATERIAL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040611') AS MANUFACTURER 
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040612') AS IMPORTER 
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040613') AS PRODUCER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040614') AS "SIZE"
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040615') AS INSTALLED_CHARGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040616') AS WARRANTY_POLICY
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040617') AS AFTER_SERVICE_DIRECTOR
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040618') AS REFURB
+	    FROM DUAL
+	</select>
+    
+	<select id="selectImageAppliancesSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.ImageAppliances">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040706') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040707') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040708') AS CERTIFICATION_TYPE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040709') AS RATED_VO_LTAGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040710') AS POWER_CONSUMPTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040711') AS ENERGY_EFFICIENCY_RATING
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040712') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040713') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040714') AS MANUFACTURER	         
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040715') AS "SIZE"
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040716') AS DISPLAY_SPECIFICATION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040717') AS WARRANTY_POLICY
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040718') AS AFTER_SERVICE_DIRECTOR
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040719') AS ADDITIONAL_COST
+	    FROM DUAL
+	</select>
+    
+	<select id="selectHomeAppliancesSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.HomeAppliances">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040804') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040805') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040806') AS CERTIFICATION_TYPE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040807') AS RATED_VOLTAGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040808') AS POWER_CONSUMPTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040809') AS ENERGY_EFFICIENCY_RATING
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040810') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040811') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040812') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040813') AS "SIZE"
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040814') AS WARRANTY_POLICY
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040815') AS AFTER_SERVICE_DIRECTOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040816') AS ADDITIONAL_COST
+	    FROM DUAL
+	</select>
+
+	<select id="selectSeasonAppliancesSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.SeasonAppliances">
+    	
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040906') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040907') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040908') AS CERTIFICATION_TYPE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040909') AS RATED_VOLTAGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040910') AS POWER_CONSUMPTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040911') AS ENERGY_EFFICIENCY_RATING
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040912') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040913') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040914') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040915') AS "SIZE"
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040916') AS AREA
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040917') AS INSTALLED_CHARGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040918') AS WARRANTY_POLICY
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040919') AS AFTER_SERVICE_DIRECTOR
+	    FROM DUAL
+	</select>
+   
+	<select id="selectOfficeAppliancesSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.OfficeAppliances">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041006') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041007') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041008') AS CERTIFICATION_TYPE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041009') AS RATED_VOLTAGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041010') AS POWER_CONSUMPTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041011') AS ENERGY_EFFICIENCY_RATING
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041012') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041013') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041014') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041015') AS "SIZE"
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041016') AS WEIGHT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041017') AS SPECIFICATION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041018') AS WARRANTY_POLICY
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041019') AS AFTER_SERVICE_DIRECTOR
+	    FROM DUAL
+	</select>
+    
+	<select id="selectOpticsAppliancesSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.OpticsAppliances">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041106') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041107') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041108') AS CERTIFICATION_TYPE 
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041109') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041110') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041111') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041112') AS "SIZE"
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041113') AS WEIGHT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041114') AS SPECIFICATION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041115') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041116') AS AFTER_SERVICE_DIRECTOR
+	    FROM DUAL
+	</select>
+    
+	<select id="selectMicroElectronicsSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.MicroElectronics">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041206') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041207') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041208') AS CERTIFICATION_TYPE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041209') AS RATED_VOLTAGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041210') AS POWER_CONSUMPTION
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041211') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041212') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041213') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041214') AS "SIZE"
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041215') AS WEIGHT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041216') AS SPECIFICATION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041217') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041218') AS AFTER_SERVICE_DIRECTOR
+	    FROM DUAL
+	</select>
+    
+	<select id="selectNavigationSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.Navigation">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041406') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041407') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041408') AS CERTIFICATION_TYPE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041409') AS RATED_VOLTAGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041410') AS POWER_CONSUMPTION
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041411') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041412') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041413') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041414') AS "SIZE"
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041415') AS WEIGHT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041416') AS SPECIFICATION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041417') AS UPDATE_COST
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041418') AS FREE_COST_PERIOD
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041419') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041420') AS AFTER_SERVICE_DIRECTOR
+	    FROM DUAL
+	</select>
+    
+	<select id="selectCarArticlesSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.CarArticles">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041506') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041507') AS MODEL_NAME
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041508') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041509') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041510') AS CERTIFICATION_TYPE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041511') AS CAUTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041512') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041513') AS "SIZE"
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041514') AS APPLY_MODEL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041515') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041516') AS AFTER_SERVICE_DIRECTOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041517') AS ROAD_WORTHY_CERTIFICATION
+	    FROM DUAL
+	</select>
+    
+	<select id="selectMedicalAppliancesSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.MedicalAppliances">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041606') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041607') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041608') AS LICENCE_NO
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041609') AS ADVERTISING_CERTIFICATION_TYPE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041610') AS RATED_VOLTAGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041611') AS POWER_CONSUMPTION
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041612') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041613') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041614') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041615') AS PURPOSE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041616') AS USAGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041617') AS CAUTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041618') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041619') AS AFTER_SERVICE_DIRECTOR
+	    FROM DUAL
+	</select>
+    
+	<select id="selectKitchenUtensilsSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.KitchenUtensils">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041706') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041707') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041708') AS MATERIAL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041709') AS COMPONENT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041710') AS "SIZE"
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041711') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041712') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041713') AS MANUFACTURER
+	         , 'FALSE' AS IMPORT_DECLARATION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041715') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041716') AS AFTER_SERVICE_DIRECTOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041717') AS PRODUCER
+	    FROM DUAL
+	</select>
+    
+	<select id="selectCosmeticSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.Cosmetic">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041806') AS CAPACITY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041807') AS SPECIFICATION
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041808') AS EXPIRATION_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041809') AS EXPIRATION_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041810') AS USAGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041811') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041812') AS DISTRIBUTOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041813') AS MAIN_INGREDIENT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041814') AS CERTIFICATION_TYPE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041815') AS CAUTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041816') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041817') AS CUSTOMER_SERVICE_PHONE_NUMBER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041818') AS PRODUCER
+			 , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041819') AS CUSTOMIZED_DISTRIBUTOR
+	    FROM DUAL
+	</select>
+    
+	<select id="selectJewellerySummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.Jewellery">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041906') AS MATERIAL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041907') AS PURITY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041908') AS BAND_MATERIAL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041909') AS WEIGHT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041910') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041911') AS PRODUCER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041912') AS "SIZE"
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041913') AS CAUTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041914') AS SPECIFICATION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041915') AS PROVIDE_WARRANTY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041916') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041917') AS AFTER_SERVICE_DIRECTOR
+	    FROM DUAL
+	</select>
+    
+	<select id="selectFoodSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.Food">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042006') AS WEIGHT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042007') AS AMOUNT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042008') AS "SIZE"
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042009') AS PACK_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042010') AS PACK_DATE_TEXT
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042011') AS EXPIRATION_DATE-->
+	    <!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042012') AS EXPIRATION_DATE_TEXT-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042013') AS PRODUCER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042014') AS RELEVANT_LAW_CONTENT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042015') AS PRODUCT_COMPOSITION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042016') AS KEEP
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042017') AS CUSTOMER_SERVICE_PHONE_NUMBER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042018') AS FOOD_ITEM
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042019') AS AD_CAUTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042020') AS CONSUMPTION_DATE_TEXT
+	    FROM DUAL
+	</select>
+    
+	<select id="selectGeneralFoodSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.GeneralFood">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042106') AS FOOD_TYPE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042107') AS PRODUCER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042108') AS LOCATION
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042109') AS PACK_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042110') AS PACK_DATE_TEXT
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042111') AS EXPIRATION_DATE-->
+	    <!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042112') AS EXPIRATION_DATE_TEXT-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042113') AS WEIGHT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042114') AS AMOUNT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042115') AS INGREDIENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042116') AS NUTRITION_FACTS
+	         , 'FALSE' AS GENETICALLY_MODIFIED
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042118') AS BABY_OR_DIET_AD_DELIBERATION
+	         , 'FALSE' AS IMPORT_DECLARATION_CHECK
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042120') AS CUSTOMER_SERVICE_PHONE_NUMBER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042121') AS PRODUCT_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042122') AS CONSUMER_SAFETY_CAUTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042123') AS CONSUMPTION_DATE_TEXT
+	    FROM DUAL
+	</select>
+	
+	<select id="selectDietFoodSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.DietFood">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042207') AS PRODUCER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042208') AS LOCATION
+	    <!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042210') AS PACK_DATE_TEXT -->
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042211') AS EXPIRATION_DATE-->
+	    <!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042212') AS EXPIRATION_DATE_TEXT-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042213') AS WEIGHT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042214') AS AMOUNT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042215') AS INGREDIENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042216') AS NUTRITION_FACTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042217') AS SPECIFICATION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042218') AS CAUTION_AND_SIDE_EFFECT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042219') AS NON_MEDICINAL_USES_MESSAGE
+	         , 'FALSE' AS GENETICALLY_MODIFIED
+	         <!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042221') AS ADVERTISING_CERTIFIED -->
+	         , 'FALSE' AS IMPORT_DECLARATION_CHECK
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042223') AS CUSTOMER_SERVICE_PHONE_NUMBER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042224') AS PRODUCT_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042225') AS CONSUMER_SAFETY_CAUTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042226') AS STORAGE_METHOD
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042227') AS CONSUMPTION_DATE_TEXT
+	    FROM DUAL
+	</select>
+    
+	<select id="selectKidsSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.Kids">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042306') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042307') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042308') AS CERTIFICATION_TYPE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042309') AS "SIZE"
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042310') AS WEIGHT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042311') AS COLOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042312') AS MATERIAL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042313') AS RECOMMENDED_AGE
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042314') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042315') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042316') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042317') AS CAUTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042318') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042319') AS AFTER_SERVICE_DIRECTOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042320') AS NUMBER_LIMIT
+	    FROM DUAL
+	</select>
+    
+	<select id="selectMusicalInstrumentSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.MusicalInstrument">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042406') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042407') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042408') AS "SIZE"
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042409') AS COLOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042410') AS MATERIAL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042411') AS COMPONENTS
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042412') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042413') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042414') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042415') AS DETAIL_CONTENT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042416') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042417') AS AFTER_SERVICE_DIRECTOR
+	    FROM DUAL
+	</select>
+    
+	<select id="selectSportsEquipmentSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.SportsEquipment">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042506') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042507') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042508') AS "SIZE"
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042509') AS WEIGHT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042510') AS COLOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042511') AS MATERIAL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042512') AS COMPONENTS
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042513') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042514') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042515') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042516') AS DETAIL_CONTENT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042517') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042518') AS AFTER_SERVICE_DIRECTOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042519') AS CERTIFICATION_TYPE
+	    FROM DUAL
+	</select>
+    
+	<select id="selectBooksSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.Books">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042606') AS TITLE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042607') AS AUTHOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042608') AS PUBLISHER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042609') AS "SIZE"
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042610') AS PAGES
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042611') AS COMPONENTS
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042612') AS PUBLISH_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042613') AS PUBLISH_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042614') AS DESCRIPTION
+	    FROM DUAL
+	</select>
+    
+	<select id="selectRentalEtcSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.RentalEtc">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043106') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043107') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043108') AS OWNERSHIP_TRANSFER_CONDITION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043109') AS PAYING_FOR_LOSS_OR_DAMAGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043110') AS REFUND_POLICY_FOR_CANCEL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043111') AS CUSTOMER_SERVICE_PHONE_NUMBER
+	    FROM DUAL
+	</select>
+    
+	<select id="selectDigitalContentsSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.DigitalContents">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043306') AS PRODUCER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043307') AS TERMS_OF_USE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043308') AS USE_PERIOD
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043309') AS MEDIUM
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043310') AS REQUIREMENT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043311') AS CANCELATION_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043312') AS CUSTOMER_SERVICE_PHONE_NUMBER
+	    FROM DUAL
+	</select>
+  
+	<select id="selectEtcServiceSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.EtcService">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043706') AS SERVICE_PROVIDER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043707') AS CERTIFICATE_DETAILS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043708') AS USABLE_CONDITION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043709') AS CANCELATION_STANDARD
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043710') AS CANCELATION_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043711') AS CUSTOMER_SERVICE_PHONE_NUMBER
+	    FROM DUAL
+	</select>
+    
+	<select id="selectEtcSummary" parameterType="hashMap" resultType="com.cware.netshopping.panaver.v3.domain.Etc">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043806') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043807') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043808') AS CERTIFICATE_DETAILS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043809') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043810') AS AFTER_SERVICE_DIRECTOR
+	         <!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043811') AS CUSTOMER_SERVICE_PHONE_NUMBER (AFTER_SERVICE_DIRECTOR 중 하나만 입력) -->
+	    FROM DUAL
+	</select>
+ 
+	<select id="selectPaGoodsImage" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaGoodsImage">
+       SELECT GI.IMAGE_URL AS IMAGE_URL
+            , GI.IMAGE_G AS IMAGE_P
+            , GI.IMAGE_AG AS IMAGE_AP
+            , GI.IMAGE_BG AS IMAGE_BP
+            , GI.IMAGE_CG AS IMAGE_CP
+            , GI.IMAGE_DG AS IMAGE_DP
+            , PG.LAST_SYNC_DATE
+        FROM TPAGOODSIMAGE PG
+            ,TGOODSIMAGE GI
+        WHERE PG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+        AND PG.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+        AND GI.GOODS_CODE = PG.GOODS_CODE
+    </select>
+    
+</mapper>

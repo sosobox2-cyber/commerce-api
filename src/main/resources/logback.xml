@@ -1,0 +1,521 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- appender :: console -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{35} - %X{dd.trace_id} %X{dd.span_id} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- appender :: info -->
+    <appender name="info-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${catalina.base}/logs/open-api/info.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/open-api/info.%d{yyyy-MM-dd}.log</fileNamePattern>            
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{35} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>  
+
+    <!-- appender :: sql -->
+    <appender name="sql-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${catalina.base}/logs/open-api/sql.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/open-api/sql.%d{yyyy-MM-dd}.log</fileNamePattern>            
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{35} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>    
+
+    <!-- appender :: Request Parameter -->
+    <appender name="parameter-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${catalina.base}/logs/open-api/parameter.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/open-api/parameter.%d{yyyy-MM-dd}.log</fileNamePattern>            
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{5} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>    
+    
+    <!-- appender :: 11번가 Log -->
+    <appender name="pa11st-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${catalina.base}/logs/open-api/pa11st.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/open-api/pa11st.%d{yyyy-MM-dd}.log</fileNamePattern>            
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{5} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+    <!-- appender :: 11번가 V2 Log -->
+    <appender name="pa11stv2-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${catalina.base}/logs/open-api/pa11stv2.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/open-api/pa11stv2.%d{yyyy-MM-dd}.log</fileNamePattern>            
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{5} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+    
+    <!-- appender :: G마켓 Log -->
+    <!-- <appender name="pagmkt-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${catalina.base}/logs/open-api/pagmkt.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/open-api/pagmkt.%d{yyyy-MM-dd}.log</fileNamePattern>            
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{5} - %msg%n
+            </pattern>
+        </encoder>
+    </appender> -->
+    
+    <!-- appender :: G마켓v2 Log -->
+    <appender name="pagmktv2-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${catalina.base}/logs/open-api/pagmktv2.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/open-api/pagmkt.%d{yyyy-MM-dd}.log</fileNamePattern>            
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{5} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+    <!-- appender :: 이베이 V2 Log -->
+    <appender name="paebayv2-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${catalina.base}/logs/open-api/paebayv2.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/open-api/paebayv2.%d{yyyy-MM-dd}.log</fileNamePattern>            
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{5} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+    
+    <!-- appender :: 네이버  Log -->
+    <appender name="panaver-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${catalina.base}/logs/open-api/panaver.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/open-api/panaver.%d{yyyy-MM-dd}.log</fileNamePattern>            
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{5} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+    
+    <!-- appender :: 쿠팡  Log -->
+    <appender name="pacopn-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${catalina.base}/logs/open-api/pacopn.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/open-api/pacopn.%d{yyyy-MM-dd}.log</fileNamePattern>            
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{5} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+    <!-- appender :: 쿠팡 V2 Log -->
+    <appender name="pacopnv2-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${catalina.base}/logs/open-api/pacopnv2.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/open-api/pacopnv2.%d{yyyy-MM-dd}.log</fileNamePattern>            
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{5} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+    
+    <!-- appender :: 위메프  Log -->
+    <appender name="pawemp-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${catalina.base}/logs/open-api/pawemp.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/open-api/pawemp.%d{yyyy-MM-dd}.log</fileNamePattern>            
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{5} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+    <!-- appender :: 위메프 V2 Log -->
+    <appender name="pawempv2-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${catalina.base}/logs/open-api/pawempv2.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/open-api/pawempv2.%d{yyyy-MM-dd}.log</fileNamePattern>            
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{5} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+    
+    <!-- appender :: 인터파크 V2 Log -->
+    <appender name="paintpv2-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${catalina.base}/logs/open-api/paintpv2.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/open-api/paintpv2.%d{yyyy-MM-dd}.log</fileNamePattern>            
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{5} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+    
+    <!-- appender :: 롯데온 V2 Log -->
+    <appender name="paltonv2-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${catalina.base}/logs/open-api/paltonv2.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/open-api/paltonv2.%d{yyyy-MM-dd}.log</fileNamePattern>            
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{5} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+    
+    <!-- appender :: 티몬 V2 Log -->
+    <appender name="patmonv2-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${catalina.base}/logs/open-api/patmonv2.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/open-api/patmonv2.%d{yyyy-MM-dd}.log</fileNamePattern>            
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{5} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+    
+    <!-- appender :: 네이버 V2 Log -->
+    <appender name="panaverv2-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${catalina.base}/logs/open-api/panaverv2.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/open-api/panaverv2.%d{yyyy-MM-dd}.log</fileNamePattern>            
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{5} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+    
+    <!-- appender :: SSG V2 Log -->
+    <appender name="passgv2-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${catalina.base}/logs/open-api/passgv2.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/open-api/passgv2.%d{yyyy-MM-dd}.log</fileNamePattern>            
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{5} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+    
+    <!-- appender :: 카카오 V2 Log -->
+    <appender name="pakakaov2-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${catalina.base}/logs/open-api/pakakaov2.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/open-api/pakakaov2.%d{yyyy-MM-dd}.log</fileNamePattern>            
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{5} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+    
+    <!-- appender :: Tdeal Log -->
+    <appender name="paTdeal-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${catalina.base}/logs/open-api/paTdeal.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/open-api/paTdeal.%d{yyyy-MM-dd}.log</fileNamePattern>            
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{5} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+    
+    <!-- appender :: Faple Log -->
+    <appender name="paFaple-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${catalina.base}/logs/open-api/paFaple.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/open-api/paFaple.%d{yyyy-MM-dd}.log</fileNamePattern>            
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{5} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+    
+    <!-- appender :: Qeen Log -->
+    <appender name="paQeen-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${catalina.base}/logs/open-api/paQeen.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/open-api/paQeen.%d{yyyy-MM-dd}.log</fileNamePattern>            
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{5} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+    
+    <!-- SQL logger -->
+    <logger name="jdbc.resultsettable" additivity="false">
+        <level value="off" />
+        <appender-ref ref="console" />
+        <!-- <appender-ref ref="sql-appender"/> -->
+    </logger>
+    <logger name="jdbc.audit" additivity="false">
+        <level value="warn" />
+        <appender-ref ref="console" />
+        <!-- <appender-ref ref="sql-appender"/>  -->
+    </logger>
+    <logger name="jdbc.resultset" additivity="false">
+        <level value="warn" />
+        <appender-ref ref="console" />
+        <!-- <appender-ref ref="sql-appender"/>  -->
+    </logger>
+    <logger name="jdbc.sqlonly" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console" />
+        <appender-ref ref="sql-appender"/>
+    </logger>
+    <logger name="jdbc.sqltiming" additivity="false">
+        <level value="off" />
+        <appender-ref ref="console" />
+        <!-- <appender-ref ref="sql-appender"/>  -->
+    </logger>
+    <logger name="jdbc.connection" additivity="false">
+        <level value="warn" />
+        <appender-ref ref="console" />
+        <!-- <appender-ref ref="sql-appender"/>  -->
+    </logger>
+
+    <!-- 3rdparty Loggers -->
+    <logger name="org.springframework">
+        <level value="error" />
+    </logger>
+
+    <!-- Netshopping -->
+    <logger name="com.cware" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="info-appender"/>
+    </logger>    
+    
+    <!-- 11번가 logger --> 
+    <logger name="com.cware.api.pa11st.controller" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="pa11st-appender"/>
+    </logger>
+    <!-- 11번가V2 logger -->
+    <logger name="com.cware.api.pa11st.controller.v2" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="pa11stv2-appender"/>
+    </logger>
+    <logger name="com.cware.netshopping.pa11st.v2" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="pa11stv2-appender"/>
+    </logger>
+    
+    <!-- G마켓 logger -->
+    <!-- <logger name="com.cware.api.pagmkt.controller" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="pagmkt-appender"/>
+    </logger> -->
+    <!-- G마켓v2 logger -->
+    <logger name="com.cware.api.pagmktv2.controller" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="pagmktv2-appender"/>
+    </logger>
+    
+    <!-- 이베이V2 logger -->
+    <logger name="com.cware.api.pagmktv2.controller.v2" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="paebayv2-appender"/>
+    </logger>
+    <logger name="com.cware.netshopping.pagmkt.v2" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="paebayv2-appender"/>
+    </logger>
+    
+    <!-- 네이버 logger -->
+    <logger name="com.cware.api.panaver.controller" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="panaver-appender"/>
+    </logger>
+    
+    <!-- 쿠팡 logger -->
+    <logger name="com.cware.api.pacopn.controller" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="pacopn-appender"/>
+    </logger>
+    
+    <!-- 쿠팡V2 logger -->
+    <logger name="com.cware.api.pacopn.controller.v2" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="pacopnv2-appender"/>
+    </logger>
+    <logger name="com.cware.netshopping.pacopn.v2" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="pacopnv2-appender"/>
+    </logger>
+    <logger name="com.cware.netshopping.pacommon.v2" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="pacopnv2-appender"/>
+    </logger>
+    
+    <!-- 위메프 logger -->
+    <logger name="com.cware.api.pawemp.controller" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="pawemp-appender"/>
+    </logger>
+    
+    <!-- 위메프V2 logger -->
+    <logger name="com.cware.api.pawemp.controller.v2" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="pawempv2-appender"/>
+    </logger>
+    <logger name="com.cware.netshopping.pawemp.v2" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="pawempv2-appender"/>
+    </logger>
+    
+    <!-- 인터파크V2 logger -->
+    <logger name="com.cware.api.paintp.controller.v2" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="paintpv2-appender"/>
+    </logger>
+    <logger name="com.cware.netshopping.paintp.v2" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="paintpv2-appender"/>
+    </logger>
+    
+    <!-- 롯데온V2 logger -->
+    <logger name="com.cware.api.palton.controller.v2" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="paltonv2-appender"/>
+    </logger>
+    <logger name="com.cware.netshopping.palton.v2" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="paltonv2-appender"/>
+    </logger>
+    
+    <!-- 티몬V2 logger -->
+    <logger name="com.cware.api.patmon.controller.v2" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="patmonv2-appender"/>
+    </logger>
+    <logger name="com.cware.netshopping.patmon.v2" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="patmonv2-appender"/>
+    </logger>
+    
+    <!-- 네이버V2 logger -->
+    <logger name="com.cware.api.panaver.controller.v2" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="panaverv2-appender"/>
+    </logger>
+    <logger name="com.cware.netshopping.panaver.v2" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="panaverv2-appender"/>
+    </logger>
+    
+    <!-- SSGV2 logger -->
+    <logger name="com.cware.api.passg.controller.v2" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="passgv2-appender"/>
+    </logger>
+    <logger name="com.cware.netshopping.passg.v2" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="passgv2-appender"/>
+    </logger>
+    
+    <!-- 카카오V2 logger -->
+    <logger name="com.cware.api.pakakao.controller.v2" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="pakakaov2-appender"/>
+    </logger>
+    <logger name="com.cware.netshopping.pakakao.v2" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="pakakaov2-appender"/>
+    </logger>
+    
+    <!-- Tdeal logger -->
+    <logger name="com.cware.api.patdeal.controller" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="paTdeal-appender"/>
+    </logger>
+    <logger name="com.cware.netshopping.patdeal" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="paTdeal-appender"/>
+    </logger>
+    
+    <!-- Faple logger -->
+    <logger name="com.cware.api.pafaple.controller" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="paFaple-appender"/>
+    </logger>
+    <logger name="com.cware.netshopping.pafaple" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="paFaple-appender"/>
+    </logger>
+    
+     <!-- Qeen logger -->
+    <logger name="com.cware.api.paqeen.controller" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="paQeen-appender"/>
+    </logger>
+    <logger name="com.cware.netshopping.paqeen" additivity="false">
+        <level value="info" />
+        <appender-ref ref="console"/>
+        <appender-ref ref="paQeen-appender"/>
+    </logger>
+    
+    <!-- root -->
+    <root level="info">
+        <appender-ref ref="console" />
+        <appender-ref ref="info-appender"/>   
+    </root>    
+</configuration>

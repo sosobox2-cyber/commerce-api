@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pa11st.counsel">
+    
+    <select id="selectPa11stQna" resultType="com.cware.netshopping.domain.PaqnamVO">
+    	SELECT /* pa11stcounsel.xml : pa11stcounsel.counsel.selectPa11stQna */
+               PQ.PA_COUNSEL_SEQ
+             , PQ.PROC_GB
+             , PQ.PA_CODE
+             , PQ.PA_COUNSEL_NO
+             , PQ.COUNSEL_SEQ
+             , PQ.COUNSEL_DATE
+             , PQ.COUNSEL_GB
+             , PQ.PA_GOODS_CODE
+             , PQ.PA_GOODS_DT_CODE
+             , PQ.PA_ORDER_NO
+             , (SELECT PM.ORDER_NO 
+                  FROM TPAORDERM PM 
+                 WHERE PM.PA_CODE = PQ.PA_CODE
+                   AND PM.PA_ORDER_NO = PQ.PA_ORDER_NO 
+                   AND PM.PA_ORDER_GB ='10' 
+                   AND ROWNUM = 1 ) AS REF_NO
+             , PQ.ORDER_YN
+             , PQ.DISPLAY_YN
+             , PQ.PA_CUST_NO
+             , PQ.CUST_NAME
+             , PQ.CUST_TEL
+             , PQ.RECEIPT_DATE
+             , PQ.TRANS_YN
+             , PQ.TRANS_DATE
+             , PQ.INSERT_DATE
+             , PQ.INSERT_ID
+             , PQ.MODIFY_DATE
+             , PQ.MODIFY_ID
+             , PD.PA_COUNSEL_DT_SEQ
+             , PD.TITLE
+             , PD.PROC_NOTE
+             , PG.GOODS_CODE
+             , PG.ENTP_CODE
+             , (SELECT CODE_MGROUP
+                  FROM TCODE TC
+                 WHERE TC.CODE_GROUP = '01'
+                   AND TC.CODE_LGROUP = (SELECT TC1.REMARK FROM TCODE TC1 WHERE TC1.CODE_LGROUP = 'C031' AND TC1.CODE_MGROUP = '40')
+                   AND TC.REMARK = PQ.COUNSEL_GB
+                   AND ROWNUM = 1
+                ) AS OUT_MGROUP_CODE
+             , NVL((SELECT OM.CUST_NO
+			               FROM TPAORDERM PM, TORDERM OM
+			              WHERE PQ.PA_ORDER_NO = PM.PA_ORDER_NO
+			                AND PM.ORDER_NO = OM.ORDER_NO
+			                AND ROWNUM = 1
+			             ) ,(SELECT TO_CHAR(CODE_NAME)
+			                FROM TCODE TC
+			               WHERE TC.CODE_LGROUP = 'O511'
+			                 AND TC.REMARK1 = '01'
+		                 ) ) AS CUST_NO
+          FROM TPAQNAM PQ
+             , TPAQNADT PD
+             , TPAPRODUCT PG
+             , TPA11STGOODS PGM
+         WHERE PQ.PA_COUNSEL_SEQ = PD.PA_COUNSEL_SEQ
+           AND PQ.PROC_GB = PD.PROC_GB
+           AND PQ.PA_CODE IN ('11','12')
+           AND PQ.PA_GOODS_CODE = PGM.PRODUCT_NO
+           AND PQ.PA_CODE = PGM.PA_CODE
+           AND PG.GOODS_CODE = PGM.GOODS_CODE
+           AND PQ.COUNSEL_SEQ IS NULL
+           AND PQ.PROC_GB = '10'
+           AND PQ.TRANS_YN = '0'
+           AND PQ.TRANS_DATE IS NULL
+           AND PD.PA_COUNSEL_DT_SEQ = '1'
+           AND PQ.INSERT_DATE > TRUNC(SYSDATE) - 3
+       <!-- 제휴OUT상품연동 REQ_PRM_041 : S -->    
+       UNION ALL
+       SELECT
+               PQ.PA_COUNSEL_SEQ
+             , PQ.PROC_GB
+             , PQ.PA_CODE
+             , PQ.PA_COUNSEL_NO
+             , PQ.COUNSEL_SEQ
+             , PQ.COUNSEL_DATE
+             , PQ.COUNSEL_GB
+             , PQ.PA_GOODS_CODE
+             , PQ.PA_GOODS_DT_CODE
+             , PQ.PA_ORDER_NO
+             , (SELECT PM.ORDER_NO 
+                  FROM TPAORDERM PM 
+                 WHERE PM.PA_CODE = PQ.PA_CODE
+                   AND PM.PA_ORDER_NO = PQ.PA_ORDER_NO 
+                   AND PM.PA_ORDER_GB ='10' 
+                   AND ROWNUM = 1 ) AS REF_NO
+             , PQ.ORDER_YN
+             , PQ.DISPLAY_YN
+             , PQ.PA_CUST_NO
+             , PQ.CUST_NAME
+             , PQ.CUST_TEL
+             , PQ.RECEIPT_DATE
+             , PQ.TRANS_YN
+             , PQ.TRANS_DATE
+             , PQ.INSERT_DATE
+             , PQ.INSERT_ID
+             , PQ.MODIFY_DATE
+             , PQ.MODIFY_ID
+             , PD.PA_COUNSEL_DT_SEQ
+             , PD.TITLE
+             , PD.PROC_NOTE
+             , PG.GOODS_CODE
+             , PG.ENTP_CODE
+             , (SELECT CODE_MGROUP
+                  FROM TCODE TC
+                 WHERE TC.CODE_GROUP = '01'
+                   AND TC.CODE_LGROUP = (SELECT TC1.REMARK FROM TCODE TC1 WHERE TC1.CODE_LGROUP = 'C031' AND TC1.CODE_MGROUP = '40')
+                   AND TC.REMARK = PQ.COUNSEL_GB
+                   AND ROWNUM = 1
+                ) AS OUT_MGROUP_CODE
+             , NVL((SELECT OM.CUST_NO
+			               FROM TPAORDERM PM, TORDERM OM
+			              WHERE PQ.PA_ORDER_NO = PM.PA_ORDER_NO
+			                AND PM.ORDER_NO = OM.ORDER_NO
+			                AND ROWNUM = 1
+			             ) ,(SELECT TO_CHAR(CODE_NAME)
+			                FROM TCODE TC
+			               WHERE TC.CODE_LGROUP = 'O511'
+			                 AND TC.REMARK1 = '01'
+		                 ) ) AS CUST_NO
+          FROM TPAQNAM PQ
+             , TPAQNADT PD
+             , TPAPRODUCT PG
+             , TGDS_ALCOUT_DEAL_GOODS_MAPP ADGM
+         WHERE PQ.PA_COUNSEL_SEQ = PD.PA_COUNSEL_SEQ
+           AND PQ.PROC_GB = PD.PROC_GB
+           AND PQ.PA_CODE IN ('11','12')
+           AND PQ.PA_CODE = ADGM.PA_CODE
+           AND PQ.PA_GOODS_CODE = ADGM.PA_GOODS_CODE
+           AND ADGM.PA_OPTION_CODE =  ( SELECT
+           									MAX(T1.PA_OPTION_CODE) 
+           								FROM TGDS_ALCOUT_DEAL_GOODS_MAPP T1 
+           								LEFT OUTER JOIN TGDS_ALCOUT_DEAL_GOODS T2
+           										ON T1.ALCOUT_DEAL_CODE = T2.ALCOUT_DEAL_CODE AND T1.GOODS_CODE = T2.GOODS_CODE AND T2.MASTER_YN = '1'
+           								WHERE 1=1
+									    AND T1.ALCOUT_DEAL_CODE = ADGM.ALCOUT_DEAL_CODE
+									    AND T1.PA_GOODS_CODE = ADGM.PA_GOODS_CODE )
+           AND PG.GOODS_CODE = ADGM.GOODS_CODE
+           AND PQ.COUNSEL_SEQ IS NULL
+           AND PQ.PROC_GB = '10'
+           AND PQ.TRANS_YN = '0'
+           AND PQ.TRANS_DATE IS NULL
+           AND PD.PA_COUNSEL_DT_SEQ = '1'
+           AND PQ.INSERT_DATE > TRUNC(SYSDATE) - 3
+       <!-- 제휴OUT상품연동 REQ_PRM_041 : E -->
+    </select>
+    
+    <select id="selectPa11stUrgentQna" resultType="com.cware.netshopping.domain.PaqnamVO">
+        SELECT /* pa11stcounsel.xml : pa11stcounsel.counsel.selectPa11stUrgentQna */
+               PQ.PA_COUNSEL_SEQ
+             , PQ.PROC_GB
+             , PQ.PA_CODE
+             , PQ.PA_COUNSEL_NO
+             , PQ.COUNSEL_SEQ
+             , PQ.COUNSEL_DATE
+             , PQ.COUNSEL_GB
+             , PQ.PA_GOODS_CODE
+             , PQ.PA_GOODS_DT_CODE
+             , PQ.PA_ORDER_NO
+             , (SELECT PM.ORDER_NO 
+                  FROM TPAORDERM PM 
+                 WHERE PM.PA_CODE = PQ.PA_CODE
+                   AND PM.PA_ORDER_NO = PQ.PA_ORDER_NO 
+                   AND PM.PA_ORDER_GB ='10' 
+                   AND ROWNUM = 1 ) AS REF_NO
+             , PQ.ORDER_YN
+             , PQ.DISPLAY_YN
+             , PQ.PA_CUST_NO
+             , PQ.CUST_NAME
+             , PQ.CUST_TEL
+             , PQ.RECEIPT_DATE
+             , PQ.TRANS_YN
+             , PQ.TRANS_DATE
+             , PQ.INSERT_DATE
+             , PQ.INSERT_ID
+             , PQ.MODIFY_DATE
+             , PQ.MODIFY_ID
+             , PD.PA_COUNSEL_DT_SEQ
+             , PD.TITLE
+             , PD.PROC_NOTE
+             , '' GOODS_CODE
+             , '' ENTP_CODE
+             , (SELECT CODE_MGROUP
+                  FROM TCODE TC
+                 WHERE TC.CODE_GROUP = '01'
+                   AND TC.CODE_LGROUP = (SELECT TC1.REMARK FROM TCODE TC1 WHERE TC1.CODE_LGROUP = 'C031' AND TC1.CODE_MGROUP = '40')
+                   AND TC.REMARK = PQ.COUNSEL_GB
+                   AND ROWNUM = 1
+                ) AS OUT_MGROUP_CODE
+             , NVL((SELECT OM.CUST_NO
+			               FROM TPAORDERM PM, TORDERM OM
+			              WHERE PQ.PA_ORDER_NO = PM.PA_ORDER_NO
+			                AND PM.ORDER_NO = OM.ORDER_NO
+			                AND ROWNUM = 1
+			             ) ,(SELECT TO_CHAR(CODE_NAME)
+			                FROM TCODE TC
+			               WHERE TC.CODE_LGROUP = 'O511'
+			                 AND TC.REMARK1 = '01'
+		                 ) ) AS CUST_NO
+          FROM TPAQNAM PQ
+             , TPAQNADT PD          
+         WHERE PQ.PA_COUNSEL_SEQ = PD.PA_COUNSEL_SEQ
+           AND PQ.PROC_GB = PD.PROC_GB
+           AND PQ.PA_CODE IN ('11','12')
+           AND PQ.COUNSEL_SEQ IS NULL
+           AND PQ.PROC_GB = '10'
+           AND PQ.TRANS_YN = '0'
+           AND PQ.TRANS_DATE IS NULL
+           AND PD.PA_COUNSEL_DT_SEQ = '1'
+           AND PQ.INSERT_DATE > TRUNC(SYSDATE) - 3
+    </select>
+    
+    <select id="selectPa11stAnsQna" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaqnamVO">
+    	SELECT /* pa11stcounsel.xml : pa11stcounsel.counsel.selectPa11stAnsQna */
+    	       SQ.PA_COUNSEL_SEQ
+	         , SQ.PA_COUNSEL_NO
+	         , SQ.PA_GOODS_CODE
+	         , CM.GOODS_CODE
+	         , CD.TITLE
+	         , CD.PROC_NOTE
+	         , CD.PROC_ID
+	         , CD.PROC_DATE
+	         , DECODE(TC.CODE_MGROUP,'11','PA_BROAD','12','PA_ONLINE') AS PA_API_KEY
+	         , SUBSTR(SQ.PA_COUNSEL_NO,1,LENGTH(SQ.PA_COUNSEL_NO)-3) AS ORIGIN_PA_COUNSEL_NO
+	   	  FROM TPAQNAM SQ
+	      	 , TCUSTCOUNSELM CM
+	      	 , TCUSTCOUNSELDT CD
+	      	 , TCODE TC
+	  	 WHERE SQ.COUNSEL_SEQ = CM.COUNSEL_SEQ
+	       AND CM.COUNSEL_SEQ = CD.COUNSEL_SEQ
+	       AND SQ.PA_CODE = TC.CODE_MGROUP
+	       AND TC.CODE_LGROUP = 'O501'
+	       AND TC.CODE_GROUP  = '01'
+	       AND TC.USE_YN      = '1'
+	       AND CD.DO_FLAG     = '40'
+	       AND CD.PROC_DATE > SYSDATE - 3
+	       AND SQ.TRANS_YN    = '0'
+	       AND SQ.MSG_GB = #{msgGb, jdbcType=VARCHAR} 
+	       AND SQ.PA_CODE IN ('11', '12')
+    </select>
+    
+    <update id="updatePaQnaTrans" parameterType="com.cware.netshopping.domain.PaqnamVO">
+    	UPDATE TPAQNAM /* pa11stcounsel.xml : pa11stcounsel.counsel.updatePaQnaTrans */
+           SET TRANS_YN = '1'
+             , PROC_GB = '40'
+             , TRANS_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+             , MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+             , MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE PA_COUNSEL_SEQ  = #{paCounselSeq, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectPaQnaDtMaxSeq" parameterType="com.cware.netshopping.domain.PaqnamVO" resultType="String">
+    	SELECT /* pa11stcounsel.xml : pa11stcounsel.counsel.selectPaQnaDtMaxSeq */
+    		   MAX(P.PA_COUNSEL_DT_SEQ) + 1 
+    	  FROM TPAQNADT P 
+    	 WHERE P.PA_COUNSEL_SEQ = #{paCounselSeq, jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertPaQnaDt" parameterType="com.cware.netshopping.domain.PaqnamVO">
+    	INSERT INTO TPAQNADT( /* pa11stcounsel.xml : pa11stcounsel.counsel.insertPaQnaDt */
+			PA_COUNSEL_SEQ
+		  , PA_COUNSEL_DT_SEQ
+		  , PROC_GB
+		  , TITLE
+		  , PROC_NOTE
+		  , PROC_DATE
+		  , PROC_ID) 
+		VALUES (
+		    #{paCounselSeq, jdbcType=VARCHAR}
+		  , #{paCounselDtSeq, jdbcType=VARCHAR}
+		  , #{procGb, jdbcType=VARCHAR}
+		  , #{title, jdbcType=VARCHAR}
+		  , #{procNote, jdbcType=VARCHAR}
+		  , #{procDate, jdbcType=TIMESTAMP}
+		  , #{procId, jdbcType=VARCHAR})
+    </insert>
+    
+    <insert id="insertPaMonitering" parameterType="com.cware.netshopping.domain.PaqnamVO">
+    INSERT INTO TPAMONITERING /* pa11stcounsel.xml : pa11stcounsel.counsel.insertPaMonitering - pa11stCounsel-deleteQna*/
+           ( MONITERING_SEQ
+            ,CHECK_GB  
+            ,CHECK_NO  
+            ,CHECK_TXT  
+            ,GOODS_CODE  
+            ,PA_GOODS_CODE    
+            ,INSERT_DATE
+            ,INSERT_ID
+            ,MODIFY_DATE
+            ,MODIFY_ID
+           ) 
+            VALUES 
+          (TO_CHAR(SYSDATE, 'YYYYMMDD') || LTRIM(TO_CHAR(SEQ_PA_MONITERING_SEQ.NEXTVAL, '000000')) 
+          ,'30'
+          ,#{paCounselNo, jdbcType=VARCHAR}
+          ,'상담삭제건 처리프로세스'
+          ,#{goodsCode, jdbcType=VARCHAR}
+          ,#{paGoodsCode, jdbcType=VARCHAR}
+          ,SYSDATE
+          ,'999999'
+          ,SYSDATE
+          ,'999999'
+          )
+    </insert>
+    
+    <select id="selectCheckPacounsel" parameterType="hashMap" resultType="String">
+    SELECT /* pa11stcounsel.xml : pa11stcounsel.counsel.selectCheckPacounsel */
+           DECODE(MAX(QM.PA_COUNSEL_NO),NULL,'0','1') CHK               
+      FROM TPAQNAM QM
+         , TPAQNADT QD
+     WHERE SUBSTR(QM.PA_COUNSEL_NO,1,LENGTH(PA_COUNSEL_NO)-3) = #{emerNtceSeq, jdbcType=VARCHAR} /*상담번호*/   
+       AND QM.PA_COUNSEL_SEQ = QD.PA_COUNSEL_SEQ
+       AND QM.MSG_GB = '10' /*긴급메세지*/
+       AND QD.PROC_GB = '10'
+       AND QM.PA_CODE IN ('11','12')
+       AND SUBSTR(QD.PROC_NOTE, 0, 650) = SUBSTR(#{emerCtnt, jdbcType=VARCHAR}, 0, 650)    
+    </select>
+    
+    <select id="selectGetMaxPacounselSeq" parameterType="hashMap" resultType="String">
+    SELECT /* pa11stcounsel.xml : pa11stcounsel.counsel.selectGetMaxPacounselSeq */
+           COUNT(PA_COUNSEL_NO) MAX_CNT                           
+      FROM TPAQNAM QM
+         , TPAQNADT QD
+     WHERE SUBSTR(QM.PA_COUNSEL_NO,1,LENGTH(PA_COUNSEL_NO)-3) = #{emerNtceSeq, jdbcType=VARCHAR} /*상담번호*/   
+       AND QM.PA_COUNSEL_SEQ = QD.PA_COUNSEL_SEQ
+       AND QM.MSG_GB = '10' /*긴급메세지*/       
+       AND QM.PA_CODE IN ('11','12')
+    </select>
+</mapper>

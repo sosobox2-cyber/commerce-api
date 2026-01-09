@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="paqeen.counsel">
+
+    <select id="selectProposalId" parameterType="String" resultType="String">
+ 		SELECT PG.PRODUCT_PROPOSAL_ID /* paqeencounsel.xml : paqeen.counsel.selectProposalId */
+ 		  FROM TPAQEENORDERLIST OL, TPAQEENGOODS PG
+ 		 WHERE OL.ORDER_LINE_ID = #{orderLineId, jdbcType=VARCHAR}
+ 		   AND OL.PRODUCT_ID =PG.REIFIED_PRODUCT_ID
+	</select>
+	
+	
+	<select id="selectPaQnaCount" parameterType="hashMap" resultType="int">
+		SELECT /* paqeencounsel.xml : paqeen.counsel.selectPaqnaCount */
+		       COUNT(1) AS CNT 
+		  FROM TPAQNAM PQ
+		 WHERE PQ.PA_COUNSEL_NO = #{paCounselNo, jdbcType=VARCHAR}
+		   AND PQ.MSG_GB 		= #{msgGb	   , jdbcType=VARCHAR}
+		   AND PQ.TOKEN	= #{token , jdbcType=VARCHAR}
+		   AND PQ.PA_CODE IN ('F1','F2')
+	</select>
+	
+	
+	<select id="selectPaQeenCsQna" resultType="com.cware.netshopping.domain.PaqnamVO">
+		SELECT /* paqeencounsel.xml : paqeen.councel.selectPaQeenCsQna */
+             PQ.PA_COUNSEL_SEQ
+           , PQ.PROC_GB
+           , PQ.PA_CODE
+           , PQ.PA_COUNSEL_NO
+           , PQ.COUNSEL_SEQ
+           , PQ.COUNSEL_DATE
+           , PQ.COUNSEL_GB
+           , PQ.PA_GOODS_DT_CODE
+           , PQ.PA_ORDER_NO
+           , (SELECT PM.ORDER_NO 
+                FROM TPAORDERM PM 
+               WHERE PM.PA_CODE = PQ.PA_CODE
+                 AND PM.PA_ORDER_NO = PQ.PA_ORDER_NO 
+                 AND PM.PA_ORDER_GB ='10' 
+                 AND ROWNUM = 1 ) AS REF_NO
+           , PQ.ORDER_YN
+           , PQ.DISPLAY_YN
+           , PQ.PA_CUST_NO
+           , PQ.CUST_NAME
+           , PQ.CUST_TEL
+           , PQ.RECEIPT_DATE
+           , PQ.TRANS_YN
+           , PQ.TRANS_DATE
+           , PQ.INSERT_DATE
+           , PQ.INSERT_ID
+           , PQ.MODIFY_DATE
+           , PQ.MODIFY_ID
+           , PD.PA_COUNSEL_DT_SEQ
+           , PD.TITLE
+           , PD.PROC_NOTE
+           , PG.GOODS_CODE AS GOODS_CODE
+           , PGM.PRODUCT_PROPOSAL_ID AS PA_GOODS_CODE
+           , PG.ENTP_CODE
+           , NVL((SELECT OM.CUST_NO
+                   FROM TPAORDERM PM, TORDERM OM
+                  WHERE PQ.PA_ORDER_NO = PM.PA_ORDER_NO
+                    AND PM.ORDER_NO = OM.ORDER_NO
+                    AND PM.PA_CODE = PQ.PA_CODE
+                    AND ROWNUM = 1
+                 ) ,(SELECT TO_CHAR(CODE_NAME)
+                    FROM TCODE TC
+                   WHERE TC.CODE_LGROUP = 'O511'
+                     AND TC.REMARK1 = '15'
+                     AND ROWNUM = 1
+                   ) ) AS CUST_NO
+        FROM TPAQNAM PQ
+           , TPAQNADT PD
+           , TPAPRODUCT PG
+           , TPAQEENGOODS PGM
+       WHERE PQ.PA_COUNSEL_SEQ = PD.PA_COUNSEL_SEQ
+         AND PQ.PROC_GB = PD.PROC_GB
+         AND PQ.PA_CODE IN ('F1','F2')
+         AND PQ.PA_GOODS_CODE = PGM.PRODUCT_PROPOSAL_ID(+)
+         AND PQ.PA_CODE = PGM.PA_CODE(+)
+         AND PGM.GOODS_CODE = PG.GOODS_CODE(+)
+         AND PQ.COUNSEL_SEQ IS NULL
+         AND PQ.PROC_GB = '10'
+         AND PQ.TRANS_YN = '0'
+         AND PQ.TRANS_DATE IS NULL 
+         AND PQ.MSG_GB = '10'
+         AND PQ.INSERT_DATE > TRUNC(SYSDATE) - 3
+         AND PD.PA_COUNSEL_DT_SEQ = '1'
+    </select>
+    
+    
+    <select id="selectCsAnsList" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaqnamVO">
+    	SELECT /* paqeencounsel.xml : paqeen.counsel.selectCsAnsList */
+	          SQ.PA_COUNSEL_NO
+	        , SQ.PA_COUNSEL_SEQ
+	        , SQ.PA_GOODS_CODE
+	        , SQ.PA_GOODS_DT_CODE
+	        , CD.PROC_NOTE
+	        , SQ.PA_CODE
+	        , CD.PROC_ID
+	     FROM TPAQNAM SQ
+	        , TCUSTCOUNSELM CM
+	        , TCUSTCOUNSELDT CD
+	    WHERE SQ.COUNSEL_SEQ = CM.COUNSEL_SEQ
+	      AND CM.COUNSEL_SEQ = CD.COUNSEL_SEQ
+	      AND CD.DO_FLAG     = '40'
+	      AND CD.PROC_DATE   > SYSDATE - 3
+	      AND SQ.TRANS_YN    = '0'
+	      AND SQ.MSG_GB    = '10'
+	      AND SQ.PA_GROUP_CODE = '15'
+        <if test='paCounselNo != null and paCounselNo != ""'>
+           AND SQ.PA_COUNSEL_NO = #{paCounselNo, jdbcType=VARCHAR}
+        </if>
+       
+    </select>
+	
+
+    <update id="updatePaQnaTrans" parameterType="com.cware.netshopping.domain.PaqnamVO">
+    	UPDATE TPAQNAM /* paqeencounsel.xml : paqeen.counsel.updatePaQnaTrans */
+           SET TRANS_YN = '1'
+             , PROC_GB = '40'
+             , TRANS_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+             , MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+             , MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE PA_COUNSEL_SEQ  = #{paCounselSeq, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectPaQnaDtMaxSeq" parameterType="com.cware.netshopping.domain.PaqnamVO" resultType="String">
+    	SELECT /* paqeencounsel.xml : paqeen.counsel.selectPaQnaDtMaxSeq */
+    		   MAX(P.PA_COUNSEL_DT_SEQ) + 1 
+    	  FROM TPAQNADT P 
+    	 WHERE P.PA_COUNSEL_SEQ = #{paCounselSeq, jdbcType=VARCHAR}
+	</select>
+	
+	<insert id="insertPaQnaDt" parameterType="com.cware.netshopping.domain.PaqnamVO">
+    	INSERT INTO TPAQNADT( /* paqeencounsel.xml : paqeen.counsel.insertPaQnaDt */
+			PA_COUNSEL_SEQ
+		  , PA_COUNSEL_DT_SEQ
+		  , PROC_GB
+		  , TITLE
+		  , PROC_NOTE
+		  , PROC_DATE
+		  , PROC_ID) 
+		VALUES (
+		    #{paCounselSeq, jdbcType=VARCHAR}
+		  , #{paCounselDtSeq, jdbcType=VARCHAR}
+		  , #{procGb, jdbcType=VARCHAR}
+		  , #{title, jdbcType=VARCHAR}
+		  , #{procNote, jdbcType=VARCHAR}
+		  , SYSDATE
+		  , #{procId, jdbcType=VARCHAR})
+	</insert>
+	
+	    
+    <select id="selectPaQeenOrderLineGoodsInfo" parameterType="hashMap" resultType="hashMap">
+		SELECT /* paqeencounsel.xml : paqeen.counsel.selectPaQeenOrderLineGoodsInfo */
+			 DM.GOODS_CODE
+		   , DM.GOODSDT_CODE
+		   , DM.GOODSDT_INFO
+		   , PG.GOODS_NAME
+		   , OL.PRODUCT_ITEM_ID
+		FROM TPAQEENORDERLIST OL , TPAQEENGOODS PG, TPAQEENGOODSDTMAPPING DM
+		WHERE OL.ORDER_ID =  #{orderId, jdbcType=VARCHAR}
+		AND OL.ORDER_LINE_ID = #{orderLineId, jdbcType=VARCHAR}
+		AND OL.PRODUCT_ID =PG.REIFIED_PRODUCT_ID
+		AND PG.GOODS_CODE = DM.GOODS_CODE
+		AND OL.PRODUCT_ITEM_ID = DM.PA_OPTION_CODE
+		AND DM.USE_YN ='1'
+		AND PG.PA_CODE = DM.PA_CODE
+		AND 1 &lt; ( SELECT COUNT(DISTINCT OL2.PRODUCT_ITEM_ID)  
+	                   FROM TPAQEENORDERLIST OL2  
+	                  WHERE OL2.ORDER_ID = #{orderId, jdbcType=VARCHAR})
+    </select>
+    
+</mapper>

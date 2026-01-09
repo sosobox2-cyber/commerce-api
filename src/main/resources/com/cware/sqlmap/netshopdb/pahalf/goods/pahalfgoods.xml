@@ -1,0 +1,698 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pahalf.goods">
+	<select id="selectPaHalfSellStateList" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaHalfGoods">
+		SELECT /* pahalfgoods.xml :pahalf.goods.selectPaHalfSellStateList by PaHalfGoodsController*/
+			TG.PA_CODE
+			, TG.GOODS_CODE
+			, TG.PRODUCT_NO
+			, TG.PA_SALE_GB
+		FROM TPAHALFGOODS TG
+		WHERE TG.TRANS_SALE_YN = '1'
+			AND TG.PRODUCT_NO IS NOT NULL
+		    AND TG.PA_STATUS IN ('30', '90')
+			<if test='goodsCode != null and goodsCode != ""'>
+			AND TG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+			</if>
+			<if test='paCode != null and paCode != ""'>
+			AND TG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+			</if>
+	</select>
+	
+	<update id="updatePaHalfGoodsSellState" parameterType="com.cware.netshopping.domain.model.PaHalfGoods">
+		UPDATE /* pahalfgoods.xml :pahalf.goods.updatePaHalfGoodsSellState by PaHalfGoodsController*/		
+				TPAHALFGOODS PG
+			SET PG.MODIFY_ID       = 'PAHALF'
+		        , PG.MODIFY_DATE   = SYSDATE
+		        , PG.TRANS_SALE_YN = #{transSaleYn, jdbcType = VARCHAR}
+		        <if test='paSaleGb != null and paSaleGb != ""'>
+		        , PG.PA_SALE_GB    = #{paSaleGb, 	jdbcType = VARCHAR}
+		        </if>
+		  WHERE PG.GOODS_CODE = #{goodsCode, jdbcType = VARCHAR}
+		    AND PG.PA_CODE 	  = #{paCode, 	 jdbcType = VARCHAR}
+	</update>
+	
+	<select id="selectPaHalfGoodsdtMappingStockList" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaHalfGoodsdtMappingVO">
+        SELECT /* pahalfgoods.xml : pahalf.goods.selecthalfGoodsdtMappingStockList by PaHalfGoodsController-goodsStockModify */
+              DISTINCT PD.GOODS_CODE 
+			, PM.PA_CODE
+			, HG.PRODUCT_NO
+		  FROM TPAPRODUCTOPTION  PD
+		     , TPAHALFGOODSDTMAPPING PM
+		     , TPAHALFGOODS      HG
+		     , TGOODS            GD
+		     , TCODE             TC
+		     , TGOODSDT          GT
+		 WHERE PD.GOODS_CODE = PM.GOODS_CODE
+		   AND PD.GOODSDT_CODE = PM.GOODSDT_CODE
+		   AND PM.GOODS_CODE = HG.GOODS_CODE
+		   AND PM.PA_CODE = HG.PA_CODE
+		   AND GD.GOODS_CODE = HG.GOODS_CODE
+		   AND TC.CODE_LGROUP = 'O505'
+		   AND TC.CODE_MGROUP = HG.PA_CODE
+		   AND HG.PA_SALE_GB = '20'
+		   AND HG.PA_STATUS = '30'
+		   AND GT.GOODS_CODE = PD.GOODS_CODE
+		   AND GT.GOODSDT_CODE = PD.GOODSDT_CODE
+		   AND PM.TRANS_ORDER_ABLE_QTY != DECODE(GT.SALE_GB,  00, CEIL(FUN_GET_ORDER_ABLE_QTY(PD.GOODS_CODE, PD.GOODSDT_CODE, GD.WH_CODE) * TC.CODE_GROUP),0)  
+		   AND PM.GOODSDT_SEQ = (SELECT MAX(PHD.GOODSDT_SEQ)
+        						   FROM TPAHALFGOODSDTMAPPING PHD
+       							  WHERE PHD.GOODS_CODE   = PM.GOODS_CODE
+         						    AND PHD.GOODSDT_CODE = PM.GOODSDT_CODE
+         							AND PHD.PA_CODE      = PM.PA_CODE)
+		   <if test='goodsCode != null and goodsCode != ""'>
+           AND PM.GOODS_CODE    = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           <if test='paCode != null and paCode != ""'>
+           AND PM.PA_CODE       = #{paCode, jdbcType=VARCHAR}
+           </if>
+           <if test='goodsCode == null or goodsCode == ""'>
+           AND EXISTS ( SELECT 'X'
+                         FROM TPAPRODUCT P
+                        WHERE P.GOODS_CODE = HG.GOODS_CODE
+                          AND P.SALE_GB = '00')
+           </if>
+           AND ROWNUM &lt; 10000
+    </select>
+
+	<select id="selectCheckPaOptionCode" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaHalfGoodsdtMapping">
+		SELECT DISTINCT
+			HG.GOODS_CODE
+			, HG.PA_CODE
+		FROM 
+			TPAHALFGOODS HG
+			, TPAHALFGOODSDTMAPPING TM
+			, TGOODSDT DT
+		WHERE  
+			HG.GOODS_CODE = TM.GOODS_CODE
+			AND HG.GOODS_CODE = DT.GOODS_CODE
+			AND TM.GOODSDT_CODE = DT.GOODSDT_CODE
+			AND HG.PA_SALE_GB = '20'
+			AND HG.PA_STATUS = '30'
+			AND HG.PRODUCT_NO IS NOT NULL
+			AND TM.PA_CODE = HG.PA_CODE
+          	AND TM.PA_OPTION_CODE IS NULL
+          	AND DT.SALE_GB = '00'
+       		AND TM.GOODSDT_SEQ = (SELECT MAX(PHD.GOODSDT_SEQ)
+                       				FROM TPAHALFGOODSDTMAPPING PHD
+			                      WHERE PHD.GOODS_CODE   = TM.GOODS_CODE
+			                        AND PHD.GOODSDT_CODE = TM.GOODSDT_CODE
+			                      	AND PHD.PA_CODE      = TM.PA_CODE)
+			          	
+          	<if test='goodsCode != null and goodsCode != ""'>
+	      	AND HG.GOODS_CODE  = #{goodsCode, jdbcType=VARCHAR}
+	      	</if>
+	      	 <choose>
+            <when test='paCode != null and paCode != ""'>
+            AND TM.PA_CODE = #{paCode, jdbcType=VARCHAR}
+            </when>
+            <otherwise>
+            AND TM.PA_CODE in ('C1', 'C2')
+            </otherwise>
+           </choose>
+	</select>
+	
+	<update id="updateTpaGoodsdtMapping" parameterType="com.cware.netshopping.domain.model.PaHalfGoodsdtMapping">
+		UPDATE /* pahalfgoods.xml :pahalf.goods.updateTpaGoodsdtMapping by PaHalfGoodsController*/	
+			   TPAHALFGOODSDTMAPPING PD
+		   SET PD.MODIFY_ID   = 'PAHALF'
+		     <if test='paOptionCode != null and paOptionCode !=""'>
+		     , PD.PA_OPTION_CODE = #{paOptionCode, jdbcType=VARCHAR}
+		     </if>
+		     <if test='transOrderAbleQty != null and transOrderAbleQty != ""'>
+             , PD.TRANS_ORDER_ABLE_QTY = #{transOrderAbleQty, jdbcType=NUMERIC}
+             </if>
+             , PD.MODIFY_DATE = SYSDATE
+         WHERE PD.GOODS_CODE   = #{goodsCode	, jdbcType=VARCHAR}
+           AND PD.GOODSDT_CODE = #{goodsdtCode	, jdbcType=VARCHAR}
+           AND PD.GOODSDT_SEQ  = #{goodsdtSeq	, jdbcType=VARCHAR}
+           AND PD.PA_CODE 	   = #{paCode		, jdbcType=VARCHAR}	
+	</update>
+
+    <select id="selectPaHalfStockInfoList" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* pahalfgoods.xml : pahalf.goods.selectPaHalfStockInfoList by PaHalfGoodsController */    
+	       	   DM.PA_OPTION_CODE AS STOCK_NO
+	     	 , DECODE(DT.SALE_GB, '00', NVL(CEIL(FUN_GET_ORDER_ABLE_QTY(PD.GOODS_CODE,PD.GOODSDT_CODE,GD.WH_CODE) * TC.CODE_GROUP), 0),0) AS REAL_STCK_QTY      
+	     	 , DECODE(DT.SALE_GB, '00', NVL(CEIL(FUN_GET_ORDER_ABLE_QTY(PD.GOODS_CODE,PD.GOODSDT_CODE,GD.WH_CODE) * TC.CODE_GROUP), 0),0) AS TEMP_STCK_QTY   
+	     	 , PD.GOODS_CODE 
+         	 , DM.PA_CODE
+         	 , PD.GOODSDT_CODE
+         	 , DM.GOODSDT_SEQ
+		 FROM TPAPRODUCTOPTION  PD
+		    , TPAHALFGOODSDTMAPPING DM
+		    , TGOODS            GD
+		    , TCODE             TC
+		    , TGOODSDT          DT
+		WHERE PD.GOODS_CODE 	= DM.GOODS_CODE
+		  AND PD.GOODSDT_CODE 	= DM.GOODSDT_CODE
+		  AND PD.GOODS_CODE 	= GD.GOODS_CODE
+		  AND TC.CODE_LGROUP 	= 'O505'
+		  AND TC.CODE_MGROUP 	= DM.PA_CODE
+		  AND DT.GOODS_CODE 	= PD.GOODS_CODE
+		  AND DT.GOODSDT_CODE 	= PD.GOODSDT_CODE
+		  AND DM.PA_CODE 		= #{paCode		, jdbcType=VARCHAR}
+		  AND GD.GOODS_CODE  	= #{goodsCode	, jdbcType=VARCHAR}
+		  AND PD.SALE_GB		= '00'
+		  AND DM.PA_OPTION_CODE IS NOT NULL
+          AND DM.GOODSDT_SEQ    = (SELECT MAX(PHD.GOODSDT_SEQ)
+                                	 FROM TPAHALFGOODSDTMAPPING PHD
+                            	 	WHERE PHD.GOODS_CODE   = DM.GOODS_CODE
+                              	   	  AND PHD.GOODSDT_CODE = DM.GOODSDT_CODE
+                                   	  AND PHD.PA_CODE      = DM.PA_CODE)
+		 ORDER BY PD.GOODS_CODE, PD.GOODSDT_CODE
+    </select>
+    
+    <update id="updatePaHalfGoodsdtStock"  parameterType="hashMap">
+        UPDATE /* pahalfgoods.xml : pahalf.goods.updatePaHalfGoodsdtOrderAbleQty by PaHalfGoodsController */
+               TPAHALFGOODSDTMAPPING PD
+           SET PD.TRANS_ORDER_ABLE_QTY 	= #{realStckQty, jdbcType=NUMERIC}
+             , PD.MODIFY_ID 			= #{modifyId, jdbcType=VARCHAR}
+             , PD.MODIFY_DATE 			= SYSDATE
+         WHERE PD.GOODS_CODE 	= #{goodsCode	, jdbcType=VARCHAR}
+           AND PD.GOODSDT_CODE 	= #{goodsdtCode	, jdbcType=VARCHAR}
+           AND PD.GOODSDT_SEQ 	= #{goodsdtSeq	, jdbcType=VARCHAR} 
+           AND PD.PA_CODE 		= #{paCode		, jdbcType=VARCHAR}           
+    </update>
+    
+    <update id="updatePaHalfGoods"  parameterType="com.cware.netshopping.domain.PaHalfGoodsVO">
+        UPDATE /* pahalfgoods.xml : pahalf.goods.updatePaHalfGoods */
+        	   TPAHALFGOODS PG
+           SET PG.MODIFY_ID   = 'PAHALF' 
+           	 , PG.RETURN_NOTE		= #{returnNote		, jdbcType=VARCHAR} 
+           	  <if test='paStatus != null and paStatus != ""'>
+           	 , PG.PA_STATUS   		= #{paStatus	    , jdbcType=VARCHAR} 
+           	 , PG.TRANS_TARGET_YN	= '0'
+           	  </if>
+           	  <if test='paShipCostCode != null and paShipCostCode != ""'>
+           	 , PG.PA_SHIP_COST_CODE = #{paShipCostCode	, jdbcType=VARCHAR}  
+           	  </if>
+           	  <if test='productNo != null and productNo != ""'>
+           	 , PG.PRODUCT_NO  	 = #{productNo		, jdbcType=VARCHAR}
+           	  </if>
+           	  <if test='prdPrcNo != null and prdPrcNo != ""'>
+           	 , PG.PRD_PRC_NO  	 = #{prdPrcNo		, jdbcType=VARCHAR}
+           	  </if>
+           	  <if test='paSaleGb != null and paSaleGb != ""'>
+           	 , PG.PA_SALE_GB  	 = #{paSaleGb		, jdbcType=VARCHAR}
+           	  </if>
+           	  <if test='transSaleYn != null and transSaleYn != ""'>
+           	 , PG.TRANS_SALE_YN  = #{transSaleYn 	, jdbcType=VARCHAR}
+           	  </if>
+           	  <!--
+           	  <if test='paBrandNo != null and paBrandNo != ""'>
+           	 , PG.PA_BRAND_NO  = #{paBrandNo 	, jdbcType=VARCHAR}
+           	  </if>
+           	   -->
+             , PG.MODIFY_DATE 	  = SYSDATE
+         WHERE PG.GOODS_CODE  	  = #{goodsCode		, jdbcType=VARCHAR}  
+           AND PG.PA_CODE     	  = #{paCode		, jdbcType=VARCHAR}  
+
+    </update>
+    
+    <select id="selectPaShipCostCode" parameterType="com.cware.netshopping.domain.PaHalfGoodsVO" resultType="String">
+    	SELECT /* pahalfgoods.xml : pahalf.goods.selectPaShipCostCode by PaHalfGoodsController */
+    		   PS.PA_SHIP_COST_CODE
+    	  FROM TPAHALFSHIPINFO PS
+    	     , TGOODS GD
+    	     , TPAHALFGOODS PG
+    	 WHERE PS.ENTP_CODE      	  = DECODE(GD.DELY_TYPE, '10', '100001', GD.ENTP_CODE)
+    	   AND PS.SHIP_MAN_SEQ   	  = DECODE(GD.DELY_TYPE, '10', '003', GD.SHIP_MAN_SEQ)
+    	   AND PS.RETURN_MAN_SEQ 	  = DECODE(GD.DELY_TYPE, '10', '002', GD.RETURN_MAN_SEQ)
+    	   AND PS.SHIP_COST_CODE 	  = GD.SHIP_COST_CODE
+    	   AND PS.NO_SHIP_JEJU_ISLAND = #{noShipJejuIsland, jdbcType=VARCHAR}
+    	   AND GD.GOODS_CODE	 	  = PG.GOODS_CODE
+    	   AND PS.PA_CODE		 	  = PG.PA_CODE
+    	   AND PG.GOODS_CODE	 	  = #{goodsCode	, jdbcType=VARCHAR}
+    	   AND PG.PA_CODE		 	  = #{paCode		, jdbcType=VARCHAR}
+    	   
+    </select>
+    
+    <select id="selectPaHalfGoodsImageList" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaHalfGoodsVO">
+        SELECT /* pahalfgoods.xml : pahalf.goods.selectPaHalfGoodsImageList by PaHalfGoodsController */
+			   HG.GOODS_CODE
+             , HG.PRODUCT_NO
+             , HG.PA_CODE
+             , HG.PA_GROUP_CODE
+             , PI.IMAGE_URL
+             , TI.IMAGE_G  AS IMAGE_P
+             , TI.IMAGE_AG AS IMAGE_AP
+             , TI.IMAGE_BG AS IMAGE_BP
+             , TI.IMAGE_CG AS IMAGE_CP
+             , TI.IMAGE_DG AS IMAGE_DP         
+          FROM TPAGOODSIMAGE PI, TPAHALFGOODS HG, TGOODSIMAGE TI
+         WHERE HG.GOODS_CODE = PI.GOODS_CODE
+           AND HG.GOODS_CODE = TI.GOODS_CODE
+           <if test='goodsCode != null and goodsCode != ""'>
+           AND HG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           AND HG.PA_SALE_GB = '20'
+           AND HG.PA_STATUS = '30'
+           AND HG.TRANS_TARGET_YN = '1'
+           AND PI.TRANS_TARGET_YN = '1'
+           AND PI.PA_GROUP_CODE = '12'
+    </select>
+    
+    <update id="updatePaHalfGoodsImage"  parameterType="com.cware.netshopping.domain.PaHalfGoodsVO">
+        UPDATE /* pahalfgoods.xml : pahalf.goods.updatePaHalfGoodsImage by PaHalfGoodsController */
+               TPAGOODSIMAGE PI
+           SET PI.TRANS_TARGET_YN 	= '0'
+             , PI.MODIFY_ID 		= 'PAHALF'
+             , PI.MODIFY_DATE 		= SYSDATE
+         WHERE PI.GOODS_CODE 		= #{goodsCode	, jdbcType=VARCHAR}  
+           AND PI.PA_GROUP_CODE 	= #{paGroupCode	, jdbcType=VARCHAR}  
+    </update>
+    
+    <update id="updatePaGoodsPrice"  parameterType="com.cware.netshopping.domain.PaHalfGoodsVO">
+    	UPDATE /* pahalfgoods.xml : pahalf.goods.updatePaGoodsPrice by PaHalfGoodsController */
+    		   TPAGOODSPRICEAPPLY PP
+    	   SET PP.TRANS_DATE  		= SYSDATE
+             , PP.TRANS_ID    		='PAHALF'
+    	 WHERE PP.PA_CODE 	 		= #{paCode			, jdbcType=VARCHAR}
+    	   AND PP.GOODS_CODE 		= #{goodsCode		, jdbcType=VARCHAR}
+    	   AND PP.PA_GROUP_CODE		= #{paGroupCode		, jdbcType=VARCHAR}
+    	   AND PP.APPLY_DATE 		= #{applyDate		, jdbcType=TIMESTAMP}
+    	   AND PP.PRICE_APPLY_SEQ 	= #{priceApplySeq	, jdbcType=NUMERIC}
+    	   AND PP.TRANS_DATE IS NULL
+    </update>
+    
+    <select id="selectPaHalfGoodsTrans" parameterType="String" resultType="hashMap">
+        SELECT /* pahalfgoods.xml : pahalf.goods.selectPaHalfGoodsTrans by PaHalfGoodsController */ 
+               TG.GOODS_CODE
+             , PG.PA_CODE
+          FROM TPAHALFGOODS  PG
+             , TPAPRODUCT    TG
+             , TGOODS        GD
+         WHERE TG.GOODS_CODE  = PG.GOODS_CODE
+           AND TG.GOODS_CODE  = GD.GOODS_CODE
+           <if test='goodsCode != null and goodsCode != ""'>
+           AND PG.GOODS_CODE  = #{goodsCode , jdbcType=VARCHAR}
+           </if>
+           <if test='paCode != null and paCode != ""'>
+           AND PG.PA_CODE     = #{paCode	, jdbcType=VARCHAR}
+           </if>
+           AND GD.SIGN_GB 	 		= '80'
+           AND GD.GIFT_YN 	 		= '0'
+           AND PG.PA_STATUS  		= '10'
+           AND PG.PA_SALE_GB 		= '20'
+           AND GD.INVI_GOODS_TYPE 	= '00'
+           AND PG.PRODUCT_NO IS NULL
+           AND PG.INSERT_DATE &lt; SYSDATE - 1/24
+           <!-- AND GD.DELY_TYPE != '10' -->
+           AND EXISTS ( SELECT 'X' 
+                          FROM TPAGOODSTARGET PGT 
+                         WHERE PGT.PA_GROUP_CODE = '12'
+                           AND PGT.GOODS_CODE 	 = PG.GOODS_CODE
+                           AND PGT.PA_CODE	 	 = PG.PA_CODE)
+           AND EXISTS ( SELECT 'X' 
+                          FROM TDESCRIBE DB 
+                         WHERE DB.GOODS_CODE = GD.GOODS_CODE 
+                           AND DB.DESCRIBE_CODE IN ('998','999')
+                           AND DB.DESCRIBE_EXT IS NOT NULL)
+           AND EXISTS ( SELECT 'X'
+               FROM ( SELECT NVL(IMAGE_C,IMAGE_G) AS IMAGE
+                               , ROWID
+                             FROM TGOODSIMAGE GI
+                               WHERE GI.GOODS_CODE = GD.GOODS_CODE)
+                         WHERE IMAGE IS NOT NULL)
+           <!-- 도서산간제주배송불가 연동 제외 밑 직매입(당사배송) 연동 제외  하프클럽 완료될때 추가                         
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TDELYNOAREA GG
+                            WHERE GG.GOODS_CODE =  GD.GOODS_CODE  ) -->
+           <!-- 2022.07.10 수기 입점 완료되면 삭제 예정 -->
+           AND PG.INSERT_ID NOT IN ('HSBAEK','YJAHN','JUNGYJ')
+           AND ROWNUM &lt; 2000
+    </select>
+    
+    <select id="selectGoodsEntpSlip" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* pahalfgoods.xml : pahalf.goods.selectGoodsEntpSlip by PaHalfGoodsController */	 
+			   DECODE(GD.DELY_TYPE, '10', '100001', GD.ENTP_CODE) 	AS ENTP_CODE
+			 , DECODE(GD.DELY_TYPE, '10', '003', GD.SHIP_MAN_SEQ) 	AS SHIP_MAN_SEQ
+			 , DECODE(GD.DELY_TYPE, '10', '002', GD.RETURN_MAN_SEQ) AS RETURN_MAN_SEQ
+			 , GD.SHIP_COST_CODE
+			 , GD.GOODS_CODE
+			 , #{paCode, jdbcType=VARCHAR} AS PA_CODE
+		 FROM TGOODS GD
+		WHERE GD.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+    </select>
+       
+    <select id="selectPaHalfGoodsdtInfoList" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaHalfGoodsdtMapping">
+    	SELECT /* pahalfgoods.xml : pahalf.goods.selectPaHalfGoodsdtInfoList by PaHalfGoodsController */	 
+    		   PD.GOODS_CODE 
+             , DM.PA_CODE
+             , PD.GOODSDT_CODE
+             , DM.GOODSDT_SEQ
+             , DECODE(DM.GOODSDT_INFO,'없음','단일상품',DM.GOODSDT_INFO) AS GOODSDT_INFO
+             , DECODE(PD.GOODSDT_INFO_KIND,'없음','단일상품',PD.GOODSDT_INFO_KIND) AS GOODSDT_INFO_KIND
+             , DECODE(DT.SALE_GB, '00', NVL(CEIL(FUN_GET_ORDER_ABLE_QTY(PD.GOODS_CODE, PD.GOODSDT_CODE, GD.WH_CODE) * TC.CODE_GROUP),0), 0) AS TRANS_ORDER_ABLE_QTY
+             , PD.SORT_TYPE 
+             , DM.PA_OPTION_CODE
+             , PD.SALE_GB
+             , DM.USE_YN
+          FROM TPAPRODUCTOPTION  PD
+             , TPAHALFGOODSDTMAPPING DM
+             , TGOODS GD
+             , TCODE TC
+             , TGOODSDT DT
+         WHERE PD.GOODS_CODE   = DM.GOODS_CODE
+           AND PD.GOODSDT_CODE = DM.GOODSDT_CODE
+           AND PD.GOODS_CODE   = GD.GOODS_CODE
+           AND TC.CODE_LGROUP  = 'O505'
+           AND TC.CODE_MGROUP  = DM.PA_CODE
+           AND DT.GOODS_CODE   = PD.GOODS_CODE
+           AND DT.GOODSDT_CODE = PD.GOODSDT_CODE
+           AND DM.PA_CODE 	   = #{paCode,    jdbcType=VARCHAR}
+           AND GD.GOODS_CODE   = #{goodsCode, jdbcType=VARCHAR}
+         ORDER BY PD.GOODS_CODE
+                , PD.GOODSDT_CODE
+    </select>
+    
+    <select id="selectPaHalfGoodsOfferList" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaGoodsOffer">
+    	SELECT /* pahalfgoods.xml : pahalf.goods.selectPaHalfGoodsOfferList by PaHalfGoodsController */	 
+    		   PO.GOODS_CODE
+             , PO.PA_GROUP_CODE
+             , PO.PA_OFFER_TYPE
+             , PO.PA_OFFER_CODE 
+             , PO.PA_OFFER_EXT
+             , PC.REMARK AS REMARK1
+             , PO.REMARK2
+             , PC.PA_OFFER_TYPE_NAME
+             , PC.PA_OFFER_CODE_NAME
+          FROM TPAGOODSOFFER PO
+             , TPAOFFERCODE PC
+         WHERE PO.PA_GROUP_CODE = PC.PA_GROUP_CODE  
+           AND PO.PA_OFFER_TYPE = PC.PA_OFFER_TYPE 
+           AND PO.PA_OFFER_CODE = PC.PA_OFFER_CODE  
+           AND PO.GOODS_CODE 	= #{goodsCode,   jdbcType=VARCHAR}
+           AND PO.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+           AND PO.USE_YN 		= '1'
+    </select>
+    
+    <update id="updatePaGoodsTarget" parameterType="com.cware.netshopping.domain.PaHalfGoodsVO">
+        UPDATE TPAGOODSTARGET PGT /* pahalfgoods.xml : pahalf.pahalfgoods.updatePaGoodsTarget by PaHalfGoodsController */ 
+           SET PGT.PA_GOODS_CODE = #{productNo, jdbcType=VARCHAR}
+             , PGT.PA_SALE_GB 	 = '20'
+             , PGT.MODIFY_ID 	 = 'PAHALF'
+             , PGT.MODIFY_DATE 	 = SYSDATE
+         WHERE PGT.PA_CODE 	  	 = #{paCode, 	 jdbcType=VARCHAR}
+           AND PGT.GOODS_CODE 	 = #{goodsCode, jdbcType=VARCHAR}
+           AND PGT.PA_GOODS_CODE IS NULL
+    </update>
+    
+    <select id="selectPaHalfGoodsInfo" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaHalfGoodsVO">
+        SELECT /* pahalfgoods.xml : pahalf.goods.selectPaHalfGoodsInfo by PaHalfGoodsController */ 
+               TG.GOODS_CODE
+			 , TG.GOODS_NAME
+			 , TG.TAX_YN
+			 , TG.ORDER_MAX_QTY
+			 , TG.SHIP_COST_CODE
+			 , HG.PA_CODE
+			 , HG.PA_GROUP_CODE
+			 , HG.PA_STATUS
+			 , HG.PA_LMSD_KEY
+			 , HG.PA_BRAND_NO
+			 , HG.PRODUCT_NO
+			 , HG.ORIGIN_CODE
+			 , HG.PRD_PRC_NO
+			 , HG.PA_SHIP_COST_CODE
+			 , PP.SALE_PRICE
+		     , PP.ARS_DC_AMT
+		     , PP.COUPON_DC_AMT
+		     , PP.LUMP_SUM_DC_AMT
+		     , PP.LUMP_SUM_OWN_DC_AMT
+		     , PP.LUMP_SUM_ENTP_DC_AMT
+		     , PP.APPLY_DATE
+		     , PP.PRICE_APPLY_SEQ
+		     , TO_CHAR(T.SALE_START_DATE, 'YYYY') AS SALE_START_DATE
+		     , T.WEIGHT
+		  FROM TPAPRODUCT  	 TG
+		     , TPAHALFGOODS  HG
+		     , TGOODS T
+		     , TPAGOODSPRICEAPPLY PP
+		 WHERE TG.GOODS_CODE 	= HG.GOODS_CODE
+		   AND HG.GOODS_CODE    = T.GOODS_CODE
+		   AND HG.GOODS_CODE 	= PP.GOODS_CODE
+		   AND HG.PA_CODE 		= PP.PA_CODE
+		   AND (PP.APPLY_DATE, PP.PRICE_APPLY_SEQ) = (SELECT /*+ INDEX_DESC (PP2 PK_TPAGOODSPRICEAPPLY)*/
+																 PP2.APPLY_DATE, PP2.PRICE_APPLY_SEQ
+															FROM TPAGOODSPRICEAPPLY PP2
+														   WHERE PP2.GOODS_CODE = PP.GOODS_CODE
+															 AND PP2.PA_GROUP_CODE = PP.PA_GROUP_CODE
+															 AND PP2.PA_CODE = PP.PA_CODE
+															 AND PP2.APPLY_DATE &lt;= SYSDATE
+															 AND rownum = 1 )
+		<if test='goodsCode != null and goodsCode != ""'>
+		   AND TG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+		</if>
+		<if test='paCode != null and paCode != ""'>
+		   AND HG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+		</if>
+		<if test='modCase == "MODIFY"'>
+		   AND (HG.TRANS_TARGET_YN  = '1' OR PP.TRANS_DATE IS NULL)
+		   AND HG.PA_SALE_GB 		= '20'
+		   AND HG.PA_STATUS 		= '30'
+		   AND HG.PRODUCT_NO IS NOT NULL
+		</if>		
+		<if test='modCase == "INSERT"'>
+		   AND TG.SALE_GB	= '00'
+		</if>
+		   AND ROWNUM &lt; 50000
+    </select>   
+     
+    <select id="selectPaHalfGoodsContentsInfo" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaHalfGoodsVO">
+        SELECT /* pahalfgoods.xml : pahalf.goods.selectPaHalfGoodsContentsInfo by PaHalfGoodsController */ 
+               TG.GOODS_CODE
+             , HG.PRODUCT_NO
+			 , TG.ADULT_YN
+			 , HG.PA_CODE
+			 , HG.PA_GROUP_CODE
+			 , HG.ORIGIN_CODE
+			 <!--,  HG.ORIGIN_TYPE -->
+			 , PI.IMAGE_URL
+			 , TI.IMAGE_G  AS IMAGE_P
+             , TI.IMAGE_AG AS IMAGE_AP
+             , TI.IMAGE_BG AS IMAGE_BP
+             , TI.IMAGE_CG AS IMAGE_CP
+             , TI.IMAGE_DG AS IMAGE_DP         
+			 , (SELECT CODE_NAME FROM TCODE C1 WHERE C1.CODE_LGROUP = 'O507' AND C1.CODE_MGROUP = HG.PA_CODE) AS TOP_IMAGE
+		     , (SELECT CODE_NAME FROM TCODE C1 WHERE C1.CODE_LGROUP = 'O507' AND C1.CODE_MGROUP = DECODE(HG.PA_CODE, 'C1', 'C3', 'C4')) AS BOTTOM_IMAGE
+		     , NVL((SELECT REPLACE (DS.DESCRIBE_EXT, CHR(10), '')
+		              FROM TDESCRIBE DS
+		             WHERE DS.DESCRIBE_CODE = '998'
+		               AND DS.GOODS_CODE = TG.GOODS_CODE)
+		          ,(SELECT DECODE(DS.WEB_FLAG, '1',  REPLACE(DS.DESCRIBE_EXT, CHR(10), ''), DS.DESCRIBE_NOTE)
+		              FROM TDESCRIBE DS
+		             WHERE DS.DESCRIBE_CODE = '999'
+		               AND DS.GOODS_CODE = TG.GOODS_CODE)) AS DESCRIBE_EXT
+		     , NVL((SELECT TSB.DESCRIBE_NOTE
+			          FROM TDESCRIBE TSB
+			         WHERE TSB.GOODS_CODE = TG.GOODS_CODE
+			           AND TSB.DESCRIBE_CODE = '200'), '') AS GOODS_COM
+             , NVL(DECODE(T.COLLECT_YN,'0','',(SELECT CODE_NAME
+                                                  FROM TCODE C1
+                                                 WHERE C1.CODE_LGROUP = 'O507'
+                                                   AND C1.CODE_MGROUP = '99')), '') AS COLLECT_IMAGE
+                                                   
+             , DECODE( (SELECT '1' FROM TDELYNOAREA DN WHERE DN.GOODS_CODE = T.GOODS_CODE AND ROWNUM = 1) , '1' , (SELECT CODE_NAME
+																                                                     FROM TCODE C1
+																                                                    WHERE C1.CODE_LGROUP = 'O507'
+																                                                      AND C1.CODE_MGROUP = '98' ), '') AS DELY_NO_IMAGE                                       
+			 , NVL((SELECT /*+ INDEX_DESC (TNM IDX_TPANOTICEM_03)*/
+             			   TNM.NOTICE_EXT
+					  FROM TPANOTICEM TNM
+					     , TPANOTICETARGET TNT
+					     , TPANOTICEAPPLY TNA
+					 WHERE TNM.NOTICE_NO  = TNT.NOTICE_NO
+					   AND TNT.GOODS_CODE = TG.GOODS_CODE
+					   AND TNM.USE_CODE   = '00'
+					   AND INSTR(TNM.PA_GROUP_CODE, HG.PA_GROUP_CODE) > 0
+					   AND TNT.NOTICE_NO  = TNA.NOTICE_NO
+					   AND TNT.GOODS_CODE = TNA.GOODS_CODE
+					   AND TNA.PA_GROUP_CODE = HG.PA_GROUP_CODE
+					   AND ROWNUM = 1), '') AS NOTICE_EXT
+			 , T.LGROUP 
+		  FROM TPAPRODUCT  	 TG
+		     , TPAHALFGOODS  HG
+		     , TPAGOODSIMAGE PI
+		     , TGOODSIMAGE   TI
+		     , TGOODS T
+		 WHERE TG.GOODS_CODE 	= HG.GOODS_CODE
+		   AND HG.GOODS_CODE    = PI.GOODS_CODE
+		   AND HG.PA_GROUP_CODE = PI.PA_GROUP_CODE
+		   AND HG.GOODS_CODE    = T.GOODS_CODE
+		   AND TG.GOODS_CODE	= TI.GOODS_CODE
+		<if test='goodsCode != null and goodsCode != ""'>
+		   AND TG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+		</if>
+		<if test='paCode != null and paCode != ""'>
+		   AND HG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+		</if>
+		<if test='modCase == "MODIFY"'>
+		   AND HG.TRANS_TARGET_YN   = '1'
+		   AND HG.PA_SALE_GB 		= '20'
+		   AND HG.PA_STATUS 		= '30'
+		</if>		
+		<if test='modCase == "INSERT"'>
+		   AND TG.SALE_GB	= '00'
+		</if>
+    </select>
+    
+    <select id="selectGoodsResetCount" parameterType="hashMap" resultType="int">
+    	SELECT /* pahalfgoods.xml : pahalf.goods.selectGoodsResetCount by PaHalfGoodsController */ 
+    		   COUNT(1)
+    	  FROM TPAGOODSTRANSLOG GT
+     	 WHERE GT.GOODS_CODE 	= #{goodsCode,  jdbcType=VARCHAR}
+    	   AND GT.PA_CODE 		= #{paCode, 	jdbcType=VARCHAR}
+    	   AND GT.RTN_MSG  LIKE #{prgId, jdbcType=VARCHAR} ||'%'
+    	   AND GT.PROC_DATE 	> SYSDATE - 3
+    </select>
+    
+    <update id="updatePaHalfGoodsOffer"  parameterType="com.cware.netshopping.domain.PaHalfGoodsVO">
+        UPDATE /* pahalfgoods.xml : pahalf.pahalfgoods.updatePaHalfGoodsOffer by PaHalfGoodsController */
+               TPAGOODSOFFER PO
+           SET PO.TRANS_TARGET_YN = '0'
+             , PO.MODIFY_ID 	  = 'PAHALF'
+             , PO.MODIFY_DATE 	  = SYSDATE
+         WHERE PO.GOODS_CODE 	= #{goodsCode  , jdbcType=VARCHAR}  
+           AND PO.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+    </update>
+    
+    <!-- TODO
+    <select id="selectPaHalfBrandNo" parameterType="com.cware.netshopping.domain.PaHalfGoodsVO" resultType="String">
+    	   SELECT /* pahalfgoods.xml : pahalf.goods.selectPaHalfBrandNo by PaHalfGoodsController */
+    			  PB.PA_BRAND_NO
+ 			 FROM TPAHALFBRANDMAPPING PB
+ 			WHERE (PB.BRAND_CODE, PB.PA_CODE, PB.RETURN_NO_YN ) = (SELECT GD.BRAND_CODE ,HG.PA_CODE, GD.RETURN_NO_YN
+                                                            		 FROM TGOODS GD
+                                                            	        , TPAHALFGOODS HG
+                                                           		    WHERE GD.GOODS_CODE =  HG.GOODS_CODE
+                                                             		  AND HG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}  
+                                                             		  AND HG.PA_CODE    = #{paCode,    jdbcType=VARCHAR} )
+    </select>
+    -->
+    
+    <select id="selectPrdPrcNoList" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaHalfGoodsVO">
+    	   SELECT /* pahalfgoods.xml : pahalf.goods.selectPrdPrcNoList by PaHalfGoodsController */
+    			 HG.PRODUCT_NO
+    			 , HG.PA_CODE
+    			 , HG.GOODS_CODE
+    		FROM TPAHALFGOODS HG
+    	   WHERE HG.PRODUCT_NO IS NOT NULL
+    	   	 AND HG.PRD_PRC_NO IS NULL
+    	   	<if test='goodsCode != null and goodsCode != ""'>
+		   	 AND HG.GOODS_CODE = #{goodsCode,  jdbcType=VARCHAR}
+			</if>
+			<if test='paCode != null and paCode != ""'>
+		   	 AND HG.PA_CODE = #{paCode,  jdbcType=VARCHAR}
+			</if>
+    </select>
+    
+    <update id="updatePaHalfGoodsReset" parameterType="com.cware.netshopping.domain.PaHalfGoodsVO">
+    	UPDATE /* pahalfgoods.xml : pahalf.goods.updatePaHalfGoodsReset */
+        	   TPAHALFGOODS PG
+           SET PG.MODIFY_ID   		= 'PAHALF'
+           	 <if test='returnNote != null and returnNote != ""'>
+           	 , PG.RETURN_NOTE		= #{returnNote, jdbcType=VARCHAR}
+           	 </if>
+           	 , PG.PA_STATUS   		= '10'
+           	 , PG.PRODUCT_NO  	 	= #{productNo		, jdbcType=VARCHAR}
+           	 , PG.PRD_PRC_NO  	 	= #{prdPrcNo		, jdbcType=VARCHAR}
+             , PG.MODIFY_DATE 		= SYSDATE
+         WHERE PG.GOODS_CODE  = #{goodsCode		, jdbcType=VARCHAR}  
+           AND PG.PA_CODE     = #{paCode		, jdbcType=VARCHAR}  
+    </update>
+    
+    <update id="rejectTransTarget" parameterType="com.cware.netshopping.domain.PaHalfGoodsVO">
+        UPDATE /* pahalfgoods.xml : pahalf.goods.rejectTransTarget */
+               TPAHALFGOODS PG
+           SET PG.MODIFY_ID           = 'PAHALF'
+              <if test='returnNote != null and returnNote != ""'>
+             , PG.RETURN_NOTE        = #{returnNote, jdbcType=VARCHAR}
+              </if>
+             , PG.PA_STATUS           = '20'
+             , PG.TRANS_TARGET_YN     = '0'
+             , PG.PRODUCT_NO          = #{productNo        , jdbcType=VARCHAR}
+             , PG.PRD_PRC_NO          = #{prdPrcNo        , jdbcType=VARCHAR}
+             , PG.MODIFY_DATE         = SYSDATE
+         WHERE PG.GOODS_CODE  = #{goodsCode		, jdbcType=VARCHAR}  
+           AND PG.PA_CODE     = #{paCode		, jdbcType=VARCHAR}  
+     </update>
+           
+    
+    <update id="updatePaGoodsdtMappingReset" parameterType="hashMap">
+    	UPDATE /* pahalfgoods.xml : pahalf.goods.updatePaGoodsdtMappingReset */
+        	   TPAHALFGOODSDTMAPPING DM
+           SET DM.MODIFY_ID   		= 'PAHALF'
+           	 , DM.MODIFY_DATE		= SYSDATE
+           	 , DM.PA_OPTION_CODE    = ''
+         WHERE DM.GOODS_CODE  = #{goodsCode		, jdbcType=VARCHAR}  
+           AND DM.PA_CODE     = #{paCode		, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectDelyNoAreaGb" parameterType="hashMap" resultType="String">
+		SELECT /* pahalfgoods.xml : pahalf.goods.selectDelyNoAreaGb */
+			   CASE WHEN COUNT(1) > 0 THEN '1'
+		       ELSE '0' END AS NO_SHIP_JEJU_ISLAND
+		  FROM TDELYNOAREA DA
+		 WHERE DA.GOODS_CODE = #{goodsCode	, jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectPaHalfGoodsStatus" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaHalfGoodsVO">
+		SELECT /* pahalfgoods.xml : pahalf.goods.selectPaHalfGoodsStatus */
+			   PG.PRODUCT_NO
+			  ,PG.PA_STATUS
+		  FROM TPAHALFGOODS PG
+		 WHERE PG.GOODS_CODE = #{goodsCode	, jdbcType=VARCHAR}
+		   AND PG.PA_CODE    = #{paCode		, jdbcType=VARCHAR}
+    </select>
+    
+    <update id="updateProceeding" parameterType="hashMap">
+    	UPDATE /* pahalfgoods.xml : pahalf.goods.updateProceeding */
+        	   TPAHALFGOODS PG
+           SET PG.PA_STATUS         = '15'
+             , PG.MODIFY_ID   		= 'PAHALF'
+           	 , PG.MODIFY_DATE		= SYSDATE
+         WHERE PG.GOODS_CODE  = #{goodsCode		, jdbcType=VARCHAR}  
+           AND PG.PA_CODE     = #{paCode		, jdbcType=VARCHAR}
+           AND PG.PA_STATUS  IN ('10','20')
+    </update>
+    
+    <update id="updateClearProceeding" parameterType="hashMap">
+    	UPDATE /* pahalfgoods.xml : pahalf.goods.updateClearProceeding */
+        	   TPAHALFGOODS PG
+           SET PG.PA_STATUS         = '10'
+             , PG.MODIFY_ID   		= 'PAHALF'
+           	 , PG.MODIFY_DATE		= SYSDATE
+         WHERE PG.GOODS_CODE  = #{goodsCode		, jdbcType=VARCHAR}  
+           AND PG.PA_CODE     = #{paCode		, jdbcType=VARCHAR}
+           AND PG.PA_STATUS   = '15'
+    </update>
+    
+    <update id="updatePaGoodsTargetReset" parameterType="com.cware.netshopping.domain.PaHalfGoodsVO">
+        UPDATE TPAGOODSTARGET PGT /* pahalfgoods.xml : pahalf.pahalfgoods.updatePaGoodsTargetReset by PaHalfGoodsController */ 
+           SET PGT.PA_GOODS_CODE = null
+             , PGT.PA_SALE_GB    = '10'
+             , PGT.MODIFY_ID     = 'PAHALF'
+             , PGT.MODIFY_DATE   = SYSDATE
+         WHERE PGT.PA_CODE       = #{paCode,      jdbcType=VARCHAR}
+           AND PGT.GOODS_CODE    = #{goodsCode, jdbcType=VARCHAR}
+     </update>
+     
+     <update id="stopTransTarget" parameterType="com.cware.netshopping.domain.PaHalfGoodsVO">
+        UPDATE /* pahalfgoods.xml : pahalf.goods.stopTransTarget */
+               TPAHALFGOODS PG
+           SET PG.MODIFY_ID     = 'PAHALF'
+              <if test='returnNote != null and returnNote != ""'>
+             , PG.RETURN_NOTE   = #{returnNote, jdbcType=VARCHAR}
+              </if>
+             , PG.PA_STATUS     = '90'
+             , PG.PA_SALE_GB    = '30'
+             , PG.TRANS_SALE_YN = '1'
+             , PG.MODIFY_DATE   = SYSDATE
+         WHERE PG.GOODS_CODE  = #{goodsCode		, jdbcType=VARCHAR}  
+           AND PG.PA_CODE     = #{paCode		, jdbcType=VARCHAR}  
+           AND PG.PA_STATUS  >= '30'
+     </update>
+              
+</mapper>

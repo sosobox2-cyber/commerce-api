@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pa11st.stockCheck">
+
+    <resultMap id="stockCheck-result" type="com.cware.netshopping.domain.StockCheckVO">
+        <result property="prdNo" column="PRD_NO" />        
+        <result property="stockNo" column="STOCK_NO" />
+        <result property="addPrc" column="ADD_PRC" />
+        <result property="stockStat" column="STOCK_STAT" />        
+    </resultMap>
+    
+    <select id="selectStockCheck" parameterType="hashMap" resultMap="stockCheck-result">
+        SELECT /* pa11ststockCheck.xml : pa11st.stockCheck.selectStockCheck by Pa11stStockCheckController */
+               CASE WHEN CEIL(fun_get_order_able_qty(P.GOODS_CODE,PM.GOODSDT_CODE,GD.WH_CODE)*T.CODE_GROUP) > 0 
+             AND CEIL(fun_get_order_able_qty(P.GOODS_CODE,PM.GOODSDT_CODE,GD.WH_CODE)*T.CODE_GROUP) &gt;= #{ordQty, jdbcType=VARCHAR} THEN '01' 
+
+            WHEN CEIL(fun_get_order_able_qty(P.GOODS_CODE,PM.GOODSDT_CODE,GD.WH_CODE)*T.CODE_GROUP) = 0 THEN '02' 
+
+            WHEN CEIL(fun_get_order_able_qty(P.GOODS_CODE,PM.GOODSDT_CODE,GD.WH_CODE)*T.CODE_GROUP) &gt; 0 
+             AND   CEIL(fun_get_order_able_qty(P.GOODS_CODE,PM.GOODSDT_CODE,GD.WH_CODE)*T.CODE_GROUP) &lt; #{ordQty, jdbcType=VARCHAR} THEN '03' END STOCK_STAT
+                         
+         , P.PRODUCT_NO PRD_NO
+         , PM.PA_OPTION_CODE STOCK_NO
+         , fun_get_goods_price(GD.GOODS_CODE, SYSDATE, '6') ADD_PRC
+      FROM TPA11STGOODS P
+         , TPAGOODSDTMAPPING PM
+         , TGOODS GD
+         , (SELECT CODE_GROUP FROM TCODE WHERE CODE_LGROUP = 'O505' AND CODE_MGROUP = '11') T
+    
+     WHERE 1=1
+       AND P.GOODS_CODE = PM.GOODS_CODE
+       AND P.GOODS_CODE = GD.GOODS_CODE
+       AND P.PRODUCT_NO = #{prdNo, jdbcType=VARCHAR} 
+       AND PM.PA_OPTION_CODE = #{stockNo, jdbcType=VARCHAR}
+       <!-- 제휴OUT상품연동 REQ_PRM_041 : S -->
+       UNION ALL
+       SELECT
+			CASE 
+				WHEN CEIL(fun_get_order_able_qty(ADGM.GOODS_CODE, ADGM.GOODSDT_CODE, GD.WH_CODE)*T.CODE_GROUP) > 0 
+     				AND CEIL(fun_get_order_able_qty(ADGM.GOODS_CODE, ADGM.GOODSDT_CODE, GD.WH_CODE)*T.CODE_GROUP) &gt;= #{ordQty, jdbcType=VARCHAR} THEN '01' 
+	            WHEN CEIL(fun_get_order_able_qty(ADGM.GOODS_CODE, ADGM.GOODSDT_CODE, GD.WH_CODE)*T.CODE_GROUP) = 0 THEN '02' 
+	            WHEN CEIL(fun_get_order_able_qty(ADGM.GOODS_CODE, ADGM.GOODSDT_CODE, GD.WH_CODE)*T.CODE_GROUP) &gt; 0 
+	             	AND CEIL(fun_get_order_able_qty(ADGM.GOODS_CODE, ADGM.GOODSDT_CODE, GD.WH_CODE)*T.CODE_GROUP) &lt; #{ordQty, jdbcType=VARCHAR} THEN '03'
+			END STOCK_STAT
+			, ADGM.PA_GOODS_CODE AS PRD_NO
+			, ADGM.PA_OPTION_CODE AS STOCK_NO
+			, FUN_GET_GOODS_PRICE(GD.GOODS_CODE, SYSDATE, '6') ADD_PRC
+		FROM TGDS_ALCOUT_DEAL_GOODS_MAPP ADGM
+	         , TGOODS GD
+	         , (SELECT CODE_GROUP FROM TCODE WHERE CODE_LGROUP = 'O505' AND CODE_MGROUP = '11') T
+		WHERE 1=1
+		AND ADGM.GOODS_CODE = GD.GOODS_CODE
+		AND ADGM.PA_GOODS_CODE = #{prdNo, jdbcType=VARCHAR} 
+		AND ADGM.PA_OPTION_CODE = #{stockNo, jdbcType=VARCHAR}
+		<!-- 제휴OUT상품연동 REQ_PRM_041 : E -->
+     </select>
+     
+     <select id="selectCheckOpenApiCode" parameterType="hashMap" resultType="String">
+     SELECT cware_enc_dec( CODE_NAME, 'E')
+       FROM TCODE 
+      WHERE CODE_LGROUP = 'B713' 
+        AND CODE_MGROUP = '11ST'
+     </select>
+    
+</mapper>

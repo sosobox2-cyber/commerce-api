@@ -1,0 +1,1163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="passg.claim">
+
+	<select id="countOrderList" parameterType="com.cware.netshopping.domain.PaSsgCancelListVO" resultType="int">
+        SELECT /* passgclaim.xml : passg.claim.countOrderList by PaSsgClaimController */
+		       COUNT(1) AS CNT
+		  FROM TPASSGORDERLIST OL
+		     , TPAORDERM PM
+		 WHERE OL.ORORD_NO       = PM.PA_ORDER_NO
+		   AND OL.ORORD_ITEM_SEQ = PM.PA_ORDER_SEQ
+		   AND PM.PA_ORDER_GB    = '10'
+		   AND PM.CREATE_YN	     = '1'
+		   AND OL.ORORD_NO       = #{orordNo 		, jdbcType=VARCHAR}
+		   AND OL.ORORD_ITEM_SEQ = #{orordItemSeq	, jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectPaSsgCancelListCount" parameterType="com.cware.netshopping.domain.PaSsgCancelListVO" resultType="int">
+        SELECT /* passgclaim.xml : passg.claim.selectPaSsgCancelListCount by PaSsgClaimController */
+        	   COUNT(1) AS CNT
+          FROM TPASSGCANCELLIST CL
+         WHERE CL.ORORD_NO       = #{orordNo , jdbcType=VARCHAR}
+           AND CL.ORORD_ITEM_SEQ = #{orordItemSeq , jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectPaSsgCancelMListCount" parameterType="com.cware.netshopping.domain.PaSsgCancelListVO" resultType="int">
+        SELECT /* passgclaim.xml : passg.claim.selectPaSsgCancelMListCount by PaSsgClaimController */
+        	   COUNT(1) AS CNT
+          FROM TPASSGCANCELLIST CL
+         WHERE CL.ORORD_NO       = #{orordNo , jdbcType=VARCHAR}
+           AND CL.ORORD_ITEM_SEQ = #{orordItemSeq , jdbcType=VARCHAR}
+           AND NOT EXISTS(SELECT 1
+		                    FROM TPAORDERM PM
+		                   WHERE PM.PA_ORDER_NO = CL.ORORD_NO
+		                     AND PM.PA_ORDER_SEQ = CL.ORORD_ITEM_SEQ
+		                     AND PM.PA_ORDER_GB = '20'
+		        )
+	</select>
+	
+	<select id="selectPaSsgCancelInfo" resultType="hashMap" parameterType="com.cware.netshopping.domain.PaSsgCancelListVO">
+	    SELECT /* passgclaim.xml : passg.claim.selectPaSsgCancelInfo by PaSsgClaimController */
+	   	       OD.DO_FLAG
+		  FROM TPASSGCANCELLIST SC
+		     , TPAORDERM PM
+		     , TORDERDT OD
+		 WHERE SC.ORORD_NO     	 = #{orordNo, jdbcType=VARCHAR}
+		   AND SC.ORORD_ITEM_SEQ = #{orordItemSeq, jdbcType=VARCHAR}
+		   AND SC.ORORD_NO       = PM.PA_ORDER_NO
+		   AND SC.ORORD_ITEM_SEQ = PM.PA_ORDER_SEQ
+		   AND PM.PA_ORDER_GB  	 = '10'
+		   AND PM.PA_CODE 	  	IN ('A1', 'A2')
+		   AND PM.ORDER_NO 	   	 = OD.ORDER_NO
+		   AND PM.ORDER_G_SEQ  	 = OD.ORDER_G_SEQ
+		   AND PM.ORDER_D_SEQ  	 = OD.ORDER_D_SEQ
+		   AND PM.ORDER_W_SEQ  	 = OD.ORDER_W_SEQ  
+    </select>
+	
+	<insert id="insertTpaSsgCancelList" parameterType="com.cware.netshopping.domain.PaSsgCancelListVO">
+        INSERT /* passgclaim.xml : passg.claim.insertTpaSsgCancelList by PaSsgClaimController */
+          INTO TPASSGCANCELLIST(
+		       ORORD_NO              , ORORD_ITEM_SEQ			  , ORD_NO                , ORD_ITEM_SEQ
+		     , CLM_DEMND_DTS		 , ITEM_ID					  , ITEM_NM				  , UITEM_ID
+			 , UITEM_NM				 , EXCH_TGT_UITEM_ID		  , PROC_ORD_QTY		  , SHPPCST_BDN_MAIN_CD
+			 , CLM_RSN_CD			 , CLM_RSN_CNTT				  , WITHDRAW_YN			  , WITHDRAW_DATE
+			 , PROC_FLAG			 , CANCEL_PROC_NOTE			  , CANCEL_PROC_ID		  , PROC_NOTE
+			 
+			 , ORDPE_NM              , ORD_CNCL_DTS          	  , CNCL_ITEM_QTY		  , ORD_RCP_DTS
+			 , DIRC_ITEM_QTY         , CLM_RSN_NM 				  , ORD_RCP_MEDIA_CD      , ORD_RCP_MEDIA_NM      	  
+             , ORD_ITEM_STAT_CD 	 , ORD_ITEM_STAT_NM           , IMPT_DIV_CD 		  , INSERT_DATE
+             , MODIFY_DATE
+		 )
+		VALUES
+		    (
+		       #{orordNo       , jdbcType=VARCHAR}     										, #{orordItemSeq      , jdbcType=VARCHAR}							  , #{ordNo      	, jdbcType=VARCHAR}   	, #{ordItemSeq  	, jdbcType=VARCHAR}
+		     , TO_DATE(#{clmDemndDts    , jdbcType=VARCHAR}, 'YYYY-MM-DD HH24:MI:SS')		, #{itemId  		, jdbcType=VARCHAR}		                          , #{itemNm  	    , jdbcType=VARCHAR}	    , #{uitemId  		  , jdbcType=VARCHAR}
+		     , #{uitemNm  		, jdbcType=VARCHAR}											, #{exchTgtUitemId  , jdbcType=VARCHAR}		                          , #{procOrdQty    , jdbcType=NUMERIC}	    , #{shppcstBdnMainCd  , jdbcType=VARCHAR}
+		     , #{clmRsnCd  		, jdbcType=VARCHAR}											, #{clmRsnCntt  	, jdbcType=VARCHAR}		                          , '0'	    								, #{withdrawDate  	  , jdbcType=TIMESTAMP}
+		     , #{procFlag  		, jdbcType=VARCHAR}											, #{cancelProcNote  , jdbcType=VARCHAR}		                          , #{cancelProcId  , jdbcType=VARCHAR}	    , #{procNote  		  , jdbcType=VARCHAR}	
+		     
+             , #{ordpeNm         , jdbcType=VARCHAR}    									, TO_DATE(#{ordCnclDts , jdbcType=VARCHAR},'YYYY-MM-DD HH24:MI:SS')   , #{cnclItemQty    , jdbcType=NUMERIC} 	, TO_DATE(#{ordRcpDts , jdbcType=VARCHAR},'YYYY-MM-DD HH24:MI:SS')   
+             , #{dircItemQty     , jdbcType=NUMERIC}   										, #{clmRsnNm        , jdbcType=VARCHAR} 							  , #{ordRcpMediaCd  , jdbcType=VARCHAR}    , #{ordRcpMediaNm     , jdbcType=VARCHAR}   				   		    
+             , #{ordItemStatCd   , jdbcType=VARCHAR} 										, #{ordItemStatNm   , jdbcType=VARCHAR}     						  , #{imptDivCd      , jdbcType=VARCHAR} 	, #{insertDate 		  , jdbcType=TIMESTAMP} 	    
+		     , #{modifyDate 	 , jdbcType=TIMESTAMP}	
+		 )
+     </insert>
+	
+	<select id="countClaimList" parameterType="com.cware.netshopping.domain.PaSsgClaimListVO" resultType="int">
+        SELECT /* passgclaim.xml : passg.claim.countClaimList by PaSsgClaimController */
+           	   COUNT(1) AS CNT
+          FROM TPASSGCLAIMLIST CL
+         WHERE CL.ORD_NO       = #{ordNo , jdbcType=VARCHAR}
+           AND CL.ORD_ITEM_SEQ = #{ordItemSeq , jdbcType=VARCHAR}
+           AND CL.PA_ORDER_GB  = #{paClaimGb  , jdbcType=VARCHAR}
+	</select>
+	
+	<insert id="insertPaSsgClaimList" parameterType="com.cware.netshopping.domain.PaSsgClaimListVO">
+        INSERT /* passgclaim.xml : passg.claim.insertPaSsgClaimList by PaSsgClaimController */
+          INTO TPASSGCLAIMLIST(
+	       ORD_NO                   	, ORD_ITEM_SEQ                   , SHPP_NO                          , SHPP_SEQ
+	     , PA_ORDER_GB              	, ITEM_ID                        , UITEM_ID                         , DIRC_ITEM_QTY
+	     , PROC_ITEM_QTY            	, REFUS_RET_PROC_QTY             , ORORD_NO                        , ORORD_ITEM_SEQ
+	     , CLM_RSN_CD               	, CLM_RSN_NM                     , CLM_RSN_CNTT                     , ORSHPP_NO
+	     , ORSHPP_SEQ               	, SHPP_VEN_ID                    , SPL_VEN_NM                       , LRNK_SPL_VEN_NM
+	     , BF_ORDER_ID              	, BF_ORDER_SEQ                   , SHPP_DIV_DTL_CD                  , SHPP_DIV_DTL_NM
+	     , BF_SHPP_NO               	, BF_SHPP_SEQ                    , ITEM_NM                          , SPL_VEN_ITEM_ID
+	     , U_SPL_VEN_ITEM_ID        	, UITEM_NM                       , MDL_NM                           , FREBIE_NM
+	     , SHPPCST_BDN_MAIN_CD			, SHPPCST_BDN_MAIN_NM      		 ,RCOV_MTHD_CD 						, RCOV_MTHD_NM       
+	     , LAST_SHPP_PROG_STAT_DTL_CD   , LAST_SHPP_PROG_STAT_DTL_NM     , RET_PROC_STAT_NM 				, SHPP_TYPE_DTL_CD         		
+	     , SHPP_TYPE_DTL_NM		        , DELICO_VEN_ID 				 , DELICO_VEN_NM                    , WBL_NO                           
+	     , RESELL_PSBL_YN               , RET_IMPT_MAIN_NM         		 , SHPPCST_ADD_PAYMT_NM           	, REFUND_YN                        
+	     , RET_REFUS_RSN_NM 			, RET_PROC_MEMO_CNTT       		 , RET_PROC_MEMO_REGPE_ID         	, MEMO_CNTT                        
+	     , RCOV_DIRC_DT 				, RCOV_CNF_DT              		 , RCOV_CMPL_DEFER_DT             	, RCOV_CMPL_DT                     
+	     , RCOV_RVK_DT 					, ORDPE_NM                 		 , RCPTPE_NM                        , SHPPLOC_ADDR                     
+	     , SHPPLOC_ZIPCD 				, SHPPLOC_OLD_ZIPCD        		 , RCPTPE_HPNO                    	, RCPTPE_TELNO                     
+	     , SELLPRC 		 				, RLORD_AMT						 , DC_AMT						 	, SHPPLOC_BASC_ADDR        		
+	     , SHPPLOC_DTL_ADDR             , MALL_TYPE_CD             		 , ORD_TYPE_CD06_YN				 	, ORD_ITEM_CERT_NO_YN      		
+	     , SHPP_STAT_CD	 				, SHPP_STAT_NM					 , REJECT_YN						, INSERT_DATE
+	     , MODIFY_DATE
+	     )
+	VALUES
+	  (
+	     #{ordNo          		 , jdbcType=VARCHAR}   	 , #{ordItemSeq      	   , jdbcType=VARCHAR}   , #{shppNo          	  , jdbcType=VARCHAR}   , #{shppSeq         , jdbcType=VARCHAR}
+	   , #{paOrderGb        	 , jdbcType=VARCHAR}   	 , #{itemId        	       , jdbcType=VARCHAR}   , #{uitemId         	  , jdbcType=VARCHAR}   , #{dircItemQty     , jdbcType=NUMERIC}
+	   , #{procItemQty      	 , jdbcType=NUMERIC}   	 , #{refusRetProcQty       , jdbcType=NUMERIC}   , #{orordNo         	  , jdbcType=VARCHAR}   , #{orordItemSeq    , jdbcType=VARCHAR}
+	   , #{clmRsnCd         	 , jdbcType=VARCHAR}   	 , #{clmRsnNm      	  	   , jdbcType=VARCHAR}   , #{clmRsnCntt        	  , jdbcType=VARCHAR}   , #{orshppNo        , jdbcType=VARCHAR}
+	   , #{orshppSeq        	 , jdbcType=VARCHAR}   	 , #{shppVenId      	   , jdbcType=VARCHAR}   , #{splVenNm        	  , jdbcType=VARCHAR}   , #{lrnkSplVenNm    , jdbcType=VARCHAR}
+	   , #{bfOrderId        	 , jdbcType=VARCHAR}   	 , #{bfOrderSeq      	   , jdbcType=VARCHAR}   , #{shppDivDtlCd         , jdbcType=VARCHAR}   , #{shppDivDtlNm    , jdbcType=VARCHAR}
+	   , #{bfShppNo         	 , jdbcType=VARCHAR}   	 , #{bfShppSeq     	  	   , jdbcType=VARCHAR}   , #{itemNm          	  , jdbcType=VARCHAR}   , #{splVenItemId    , jdbcType=VARCHAR}
+	   , #{uSplVenItemId    	 , jdbcType=VARCHAR}   	 , #{uitemNm       	  	   , jdbcType=VARCHAR}   , #{mdlNm           	  , jdbcType=VARCHAR}   , #{frebieNm        , jdbcType=VARCHAR}
+	   , #{shppcstBdnMainCd 	 , jdbcType=VARCHAR}	 , #{shppcstBdnMainNm 	   , jdbcType=VARCHAR}   , #{rcovMthdCd     	  , jdbcType=VARCHAR}	, #{rcovMthdNm      , jdbcType=VARCHAR}   
+	   , #{lastShppProgStatDtlCd , jdbcType=VARCHAR} 	 , #{lastShppProgStatDtlNm , jdbcType=VARCHAR}   , #{retProcStatNm   	  , jdbcType=VARCHAR}   , #{shppTypeDtlCd  	, jdbcType=VARCHAR}   
+	   , #{shppTypeDtlNm  		 , jdbcType=VARCHAR}	 , #{delicoVenId     	   , jdbcType=VARCHAR}   , #{delicoVenNm     	  , jdbcType=VARCHAR}   , #{wblNo         	, jdbcType=VARCHAR}
+	   , #{resellPsblYn    		 , jdbcType=VARCHAR}	 , #{retImptMainNm  	   , jdbcType=VARCHAR}   , #{shppcstAddPaymtNm    , jdbcType=VARCHAR}   , #{refundYn        , jdbcType=VARCHAR}   
+	   , #{retRefusRsnNm   		 , jdbcType=VARCHAR}     , #{retProcMemoCntt  	   , jdbcType=VARCHAR}   , #{retProcMemoRegpeId   , jdbcType=VARCHAR}   , #{memoCntt        , jdbcType=VARCHAR} 
+	   , TO_DATE(#{rcovDircDt , jdbcType=VARCHAR},'YYYY-MM-DD HH24:MI:SS')    , TO_DATE(#{rcovCnfDt , jdbcType=VARCHAR},'YYYY-MM-DD HH24:MI:SS')   , TO_DATE(#{rcovCmplDeferDt , jdbcType=VARCHAR},'YYYY-MM-DD HH24:MI:SS')   , TO_DATE(#{rcovCmplDt , jdbcType=VARCHAR},'YYYY-MM-DD HH24:MI:SS')  
+	   , TO_DATE(#{rcovRvkDt  , jdbcType=VARCHAR},'YYYY-MM-DD HH24:MI:SS')    , #{ordpeNm      	, jdbcType=VARCHAR}   , #{rcptpeNm      	  , jdbcType=VARCHAR}   , #{shpplocAddr       	  , jdbcType=VARCHAR} 
+	   , #{shpplocZipcd    		 , jdbcType=VARCHAR}	 , #{shpplocOldZipcd  	   , jdbcType=VARCHAR}   , #{rcptpeHpno      	  , jdbcType=VARCHAR}   , #{rcptpeTelno     , jdbcType=VARCHAR} 
+	   , #{sellprc         		 , jdbcType=NUMERIC}     , #{rlordAmt         	   , jdbcType=NUMERIC}   , #{dcAmt         	  	  , jdbcType=NUMERIC} 	, #{shpplocBascAddr , jdbcType=VARCHAR} 
+	   , #{shpplocDtlAddr  		 , jdbcType=VARCHAR}     , #{mallTypeCd       	   , jdbcType=VARCHAR}   , #{ordTypeCd06Yn   	  , jdbcType=VARCHAR} 	, #{ordItemCertNoYn , jdbcType=VARCHAR}  
+	   , #{shppStatCd  	  		 , jdbcType=VARCHAR}	 , #{shppStatNm  	  	   , jdbcType=VARCHAR}	 , #{rejectYn      	  	  , jdbcType=VARCHAR}	, #{insertDate      , jdbcType=TIMESTAMP}
+	   , #{modifyDate      		 , jdbcType=TIMESTAMP}
+	   )
+     </insert>
+     
+     <select id="selectSsgExchangeGoodsInfo" resultType="hashMap" parameterType="hashMap">
+	    SELECT /* passgclaim.xml : passg.claim.selectSsgExchangeGoodsInfo by PaSsgClaimController */
+	    	   PGD.GOODS_CODE
+	    	 , PGD.GOODSDT_CODE
+	      FROM TPASSGGOODSDTMAPPING PGD
+	      	 , TPASSGGOODS PSG
+	     WHERE PGD.GOODS_CODE 	  = PSG.GOODS_CODE
+	       AND PGD.PA_CODE    	  = #{paCode	 , jdbcType=VARCHAR} 
+	       AND PSG.ITEM_ID 		  = #{itemId	 , jdbcType=VARCHAR}
+	       AND PGD.PA_OPTION_CODE = #{uitemId	 , jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectClaimTargetList" parameterType="int" resultType="hashMap">
+       SELECT /* passgclaim.xml : passg.claim.selectClaimTargetList by PaSsgClaimController */
+              PM.PA_ORDER_NO
+            , PM.PA_CLAIM_NO
+            , PM.PA_SHIP_NO
+            , PM.PA_SHIP_SEQ
+            , PM.PA_ORDER_SEQ
+            , PM.PA_ORDER_GB            
+            , PM.ORDER_NO
+            , PM.PA_CODE
+            , PM.PA_GROUP_CODE
+            , TC.CODE_SNAME AS SITE_GB
+		 FROM TPAORDERM PM
+		    , TCODE TC
+		WHERE TC.CODE_MGROUP   	=  PM.PA_GROUP_CODE
+		  AND PM.PA_CODE 		IN ('A1', 'A2')
+		  AND PM.CREATE_YN 		= '0'
+		  AND PM.PRE_CANCEL_YN 	= '0'
+		  AND TC.CODE_LGROUP   	= 'O500'
+		  AND PM.INSERT_DATE &gt; TRUNC(SYSDATE) - 30
+		  <choose>	  	
+		  	 <when test='paOrderGb =="20"'>
+			  	 AND PM.PA_ORDER_GB  	 = '20'
+			  	 AND PM.OUT_BEF_CLAIM_GB = '0'
+		  	 </when> 
+		  	 <when test='paOrderGb =="30" or paOrderGb == "60"'>
+		  	 	 AND ( (PM.PA_ORDER_GB  = '30' AND (PM.PA_DO_FLAG = '20' OR PM.PA_DO_FLAG = '60') )
+		  	             OR (PM.PA_ORDER_GB = '20' AND PM.OUT_BEF_CLAIM_GB = '1' AND PM.PA_DO_FLAG = '60') )
+		  	 </when>
+		  	 <when test='paOrderGb =="31"'>
+			  	 AND PM.PA_ORDER_GB   	 = '31'
+			  	 AND EXISTS(
+		             SELECT 1
+		               FROM TPASSGCLAIMLIST PC
+		              WHERE PC.ORD_NO 		  = PM.PA_CLAIM_NO
+		                AND PC.ORORD_NO 	  = PM.PA_ORDER_NO
+		                AND PC.ORORD_ITEM_SEQ = PM.PA_ORDER_SEQ
+		                AND PC.SHPP_NO	      = PM.PA_SHIP_NO
+		                AND PC.SHPP_SEQ		  = PM.PA_SHIP_SEQ
+		                AND PC.PA_ORDER_GB	  = '30'
+	             )
+		  	 </when>
+		  	 <when test='paOrderGb =="45"'>
+			  	 AND PM.PA_ORDER_GB  	 = '45'
+			  	 AND PM.CHANGE_FLAG IN ('01', '02') 
+			  	 AND EXISTS(SELECT 1
+			                  FROM TPAORDERM RPM
+			                 WHERE RPM.PA_CLAIM_NO  = PM.PA_CLAIM_NO
+			                   AND RPM.PA_ORDER_NO  = PM.PA_ORDER_NO
+			                   AND RPM.PA_ORDER_SEQ = PM.PA_ORDER_SEQ
+			                   AND RPM.PA_CODE      = PM.PA_CODE
+			                   AND RPM.PA_ORDER_GB  = '40'
+			                   AND RPM.PA_DO_FLAG   = '10' --교환배송대기
+                 			)
+		  	 </when>
+		  	 <when test='paOrderGb =="46"'>
+		  	 	  AND PM.PA_ORDER_GB  	 = '46'
+		  	 	  AND EXISTS ( SELECT 1 
+		  	 	  				 FROM TPAORDERM RPM
+                             	WHERE RPM.PA_CLAIM_NO   = PM.PA_CLAIM_NO
+		                          AND RPM.PA_ORDER_NO   = PM.PA_ORDER_NO
+		                          AND RPM.PA_ORDER_SEQ  = PM.PA_ORDER_SEQ
+		                          AND RPM.PA_CODE       = PM.PA_CODE
+		                          AND RPM.PA_ORDER_GB   IN ('40', '45')
+		                          AND RPM.CREATE_YN     = '1'
+		                          AND RPM.PRE_CANCEL_YN = '0' )
+		  	 </when>
+		  </choose>
+    </select>
+    
+    <select id="selectCancelInputTargetDtList" resultType="hashMap" parameterType="hashMap">	
+	       SELECT /* passgclaim.xml : passg.claim.selectCancelInputTargetDtList by PaSsgClaimController */
+	              PM.MAPPING_SEQ
+	            , OPM.ORDER_NO
+	            , OPM.ORDER_G_SEQ
+	            , PM.PA_PROC_QTY
+	            , NVL((SELECT CS_LGROUP || CS_MGROUP || CS_SGROUP
+					     FROM TPACLAIMCODE PC
+					    WHERE PC.PA_CLAIM_CODE = PC.CLM_RSN_CD
+					      AND PC.PA_CODE = '10'
+					      AND CLAIM_GB = '20'
+					      AND ROWNUM = 1), '621035') AS CANCEL_CODE
+             	, OPM.PRE_CANCEL_YN
+	         FROM TPAORDERM         PM   /*취소건*/
+	            , TPAORDERM         OPM  /*원주문건*/
+	            , TPASSGCANCELLIST  PC
+	            , TORDERDT          OD
+            WHERE PM.PA_ORDER_NO 	  = OPM.PA_ORDER_NO
+			  AND PM.PA_ORDER_SEQ 	  = OPM.PA_ORDER_SEQ
+			  AND PM.PA_CODE 		  = OPM.PA_CODE
+			  AND OPM.PA_ORDER_GB 	  = '10'
+			  AND OPM.CREATE_YN 	  = '1'
+			  AND PM.PA_ORDER_GB 	  = '20'
+			  AND PM.CREATE_YN 		  = '0'
+			  AND PM.PRE_CANCEL_YN 	  = '0'
+			  AND PM.OUT_BEF_CLAIM_GB = '0'
+			  AND PM.PA_DO_FLAG 	  = '20'
+			  AND PM.PA_ORDER_NO 	  = PC.ORORD_NO
+			  AND PM.PA_ORDER_SEQ 	  = PC.ORORD_ITEM_SEQ
+			  AND OPM.ORDER_NO 		  = OD.ORDER_NO
+			  AND OPM.ORDER_G_SEQ 	  = OD.ORDER_G_SEQ
+			  AND OPM.ORDER_D_SEQ 	  = OD.ORDER_D_SEQ
+			  AND OPM.ORDER_W_SEQ 	  = OD.ORDER_W_SEQ
+			  AND PM.INSERT_DATE &gt; SYSDATE - 5
+			  AND (OPM.CREATE_YN = '1' OR OPM.PRE_CANCEL_YN = '1')
+	          AND OD.DO_FLAG          &lt; '30'
+	          AND PM.PA_CODE          = #{paCode	 , jdbcType=VARCHAR}
+	          AND PM.PA_ORDER_NO      = #{paOrderNo  , jdbcType=VARCHAR}
+	          AND PM.PA_ORDER_SEQ     = #{paOrderSeq , jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectOrderChangeTargetDtList" parameterType="hashMap" resultType="hashMap">
+    	SELECT  PM.MAPPING_SEQ
+    		  , PM.PA_CODE
+              , PM.PA_ORDER_GB AS CLAIM_GB
+              , OPM.ORDER_NO
+              , OPM.ORDER_G_SEQ
+              , PM.PA_PROC_QTY AS PA_PROC_QTY
+              , PM.CHANGE_GOODS_CODE AS EXCH_GOODS_CODE
+              , PM.CHANGE_GOODSDT_CODE AS EXCH_GOODSDT_CODE
+              , PC.CLM_RSN_CNTT AS CLAIM_DESC
+              , NVL( (SELECT A.CS_LMS_CODE FROM TCSKINDS A WHERE A.CS_LMS_CODE = '6410' || PCC.CS_SGROUP) , '641022') AS CLAIM_CODE 
+              , PC.RCPTPE_NM AS RETURN_NAME
+              , PC.RCPTPE_TELNO AS RETURN_TEL
+              , PC.RCPTPE_HPNO AS RETURN_HP
+              , PC.SHPPLOC_ZIPCD AS RCVR_MAIL_NO
+              , PC.SHPPLOC_BASC_ADDR AS RCVR_BASE_ADDR
+              , PC.SHPPLOC_DTL_ADDR AS RCVR_DTLS_ADDR
+              , PC.SHPPLOC_BASC_ADDR || PC.SHPPLOC_DTL_ADDR AS RETURN_ADDR
+              , '0' AS ADMIN_PROC_YN
+              , PM.PA_ORDER_GB
+              , PM.OUT_BEF_CLAIM_GB
+              , TC.CODE_SNAME AS SITE_GB
+              , PM.PA_ORDER_NO
+              , PM.PA_ORDER_SEQ
+              , PM.PA_CLAIM_NO
+              , PCC.SHIPCOST_CHARGE_YN AS CLM_LST_DLV_CST
+		  FROM TPAORDERM PM
+		     , TPAORDERM OPM
+		     , TPASSGCLAIMLIST PC
+		     , TPASSGORDERLIST OPO
+		     , TCODE TC
+		     , TPACLAIMCODE PCC
+		 WHERE PM.PA_CODE          = OPM.PA_CODE
+		   AND PM.PA_ORDER_NO      = OPM.PA_ORDER_NO
+		   AND PM.PA_ORDER_SEQ     = OPM.PA_ORDER_SEQ
+		   AND PM.PA_CLAIM_NO      = PC.ORD_NO
+		   AND PM.PA_SHIP_NO       = PC.SHPP_NO
+		   AND PM.PA_SHIP_SEQ      = PC.SHPP_SEQ
+		   AND PM.PA_ORDER_NO      = PC.ORORD_NO
+		   AND PM.PA_ORDER_SEQ     = PC.ORORD_ITEM_SEQ
+		   AND PC.ORORD_NO        = OPO.ORORD_NO
+		   AND PC.ORORD_ITEM_SEQ   = OPO.ORORD_ITEM_SEQ
+		   AND TC.CODE_LGROUP      = 'O500'
+		   AND TC.CODE_MGROUP      = PM.PA_GROUP_CODE
+		   AND PM.PA_CODE          IN ('A1', 'A2')
+		   AND PM.PA_ORDER_GB      = '45'
+		   AND PC.PA_ORDER_GB      = '45'
+		   AND OPM.PA_ORDER_GB     = '10'
+		   AND OPM.CREATE_YN       = '1'
+		   AND OPM.PA_ORDER_NO     = OPO.ORORD_NO
+		   AND OPM.PA_ORDER_SEQ    = OPO.ORORD_ITEM_SEQ
+		   AND OPM.PA_SHIP_NO      = OPO.SHPP_NO
+		   AND OPM.PA_SHIP_SEQ     = OPO.SHPP_SEQ
+		   AND PM.CREATE_YN        = '0'
+		   AND PM.PRE_CANCEL_YN    = '0'
+		   AND PM.OUT_BEF_CLAIM_GB = '0' 
+		   AND PM.MODIFY_DATE 	   &gt; TRUNC(SYSDATE) - 30
+		   AND PM.PA_ORDER_NO      = #{paOrderNo  , jdbcType=VARCHAR}
+		   AND PM.PA_ORDER_SEQ     = #{paOrderSeq , jdbcType=VARCHAR}
+		   AND PM.PA_CLAIM_NO      = #{paClaimNo  , jdbcType=VARCHAR}
+	       AND PC.CLM_RSN_CD  	   = PCC.PA_CLAIM_CODE
+		   AND PCC.PA_CODE         = '10'
+   
+  UNION ALL
+ 
+	    SELECT  PM.MAPPING_SEQ
+	    	  , PM.PA_CODE
+	          , PM.PA_ORDER_GB
+	          , OPM.ORDER_NO
+	          , OPM.ORDER_G_SEQ
+	          , PM.PA_PROC_QTY
+	          , PM.CHANGE_GOODS_CODE
+	          , PM.CHANGE_GOODSDT_CODE
+	          , PC.CLM_RSN_CNTT AS CLAIM_DESC
+	          , NVL( (SELECT A.CS_LMS_CODE FROM TCSKINDS A WHERE A.CS_LMS_CODE = '6410' || PCC.CS_SGROUP) , '641022')
+	          , PO.RCPTPE_NM
+	          , PO.RCPTPE_TELNO
+	          , PO.RCPTPE_HPNO
+	          , PO.SHPPLOC_ZIPCD
+	          , PO.SHPPLOC_BASC_ADDR
+	          , PO.SHPPLOC_DTL_ADDR
+	          , PO.SHPPLOC_BASC_ADDR || PO.SHPPLOC_DTL_ADDR
+	          , '0' AS ADMIN_PROC_YN
+	          , PM.PA_ORDER_GB
+	          , PM.OUT_BEF_CLAIM_GB
+	          , TC.CODE_SNAME
+	          , PM.PA_ORDER_NO
+	          , PM.PA_ORDER_SEQ
+	          , PM.PA_CLAIM_NO
+	          , PCC.SHIPCOST_CHARGE_YN
+		  FROM TPAORDERM PM
+		     , TPAORDERM OPM
+		     , TPASSGORDERLIST PO
+		     , TPASSGORDERLIST OPO
+		     , TPASSGCLAIMLIST PC
+		     , TCODE TC
+		     , TPACLAIMCODE PCC
+		 WHERE PM.PA_CODE          = OPM.PA_CODE
+		   AND PM.PA_ORDER_NO      = OPM.PA_ORDER_NO
+		   AND PM.PA_ORDER_SEQ     = OPM.PA_ORDER_SEQ
+		   AND PM.PA_CLAIM_NO      = PO.ORD_NO
+		   AND PM.PA_SHIP_NO       = PO.SHPP_NO
+		   AND PM.PA_SHIP_SEQ      = PO.SHPP_SEQ
+		   AND PM.PA_ORDER_NO      = PO.ORORD_NO
+		   AND PM.PA_ORDER_SEQ     = PO.ORORD_ITEM_SEQ
+		   AND PO.ORORD_NO        = OPO.ORORD_NO
+		   AND PO.ORORD_ITEM_SEQ   = OPO.ORORD_ITEM_SEQ
+		   AND TC.CODE_LGROUP      = 'O500'
+		   AND TC.CODE_MGROUP      = PM.PA_GROUP_CODE
+		   AND PM.PA_CODE          IN ('A1', 'A2')
+		   AND PM.PA_ORDER_GB      = '40'
+		   AND PO.shpp_Div_Dtl_Cd  = '15' --교환출고
+		   AND OPM.PA_ORDER_GB     = '10'
+		   AND OPM.CREATE_YN       = '1'
+		   AND OPM.PA_ORDER_NO     = OPO.ORORD_NO
+		   AND OPM.PA_ORDER_SEQ    = OPO.ORORD_ITEM_SEQ
+		   AND OPM.PA_SHIP_NO      = OPO.SHPP_NO
+		   AND OPM.PA_SHIP_SEQ     = OPO.SHPP_SEQ
+		   AND PM.CREATE_YN        = '0'
+		   AND PM.PRE_CANCEL_YN    = '0'
+		   AND PM.OUT_BEF_CLAIM_GB = '0' 
+		   AND PM.MODIFY_DATE 	   &gt; TRUNC(SYSDATE) - 30
+		   AND PC.PA_ORDER_GB      = '45'
+		   AND PC.ORD_NO           = PO.ORD_NO
+		   AND PC.ORORD_NO         = PO.ORORD_NO
+		   AND PC.ORORD_ITEM_SEQ   = PO.ORORD_ITEM_SEQ
+		   AND PM.PA_ORDER_NO      = #{paOrderNo  , jdbcType=VARCHAR}
+	       AND PM.PA_ORDER_SEQ     = #{paOrderSeq , jdbcType=VARCHAR}
+	       AND PM.PA_CLAIM_NO      = #{paClaimNo  , jdbcType=VARCHAR}
+		   AND PC.CLM_RSN_CD  	   = PCC.PA_CLAIM_CODE
+		   AND PCC.PA_CODE         = '10'
+	  ORDER BY PA_ORDER_GB ASC
+    </select>
+    
+    <select id="compareAddress" resultType="String" parameterType="hashMap">
+        SELECT /* passgclaim.xml : passg.claim.compareAddress by PaSsgClaimController */
+               COUNT(1) AS CNT
+          FROM (
+                SELECT OC.ORD_DORO_ADR1 AS ORD_ADR1
+                     , OC.ORD_DORO_ADR2 AS ORD_ADR2
+                     , OC.CLM_DORO_ADR1 AS CLM_ADR1
+                     , OC.CLM_DORO_ADR2 AS CLM_ADR2
+                     , OC.ORD_NAME      AS ORD_NAME
+                     , OC.CLM_NAME      AS CLM_NAME  
+                  FROM(
+                       SELECT UPPER(REPLACE(OL.SHPPLOC_BASC_ADDR, ' ', '')) AS ORD_DORO_ADR1
+                            , UPPER(REPLACE(OL.SHPPLOC_DTL_ADDR, ' ', '')) AS ORD_DORO_ADR2
+                            , UPPER(REPLACE(CL.SHPPLOC_BASC_ADDR, ' ', '')) AS CLM_DORO_ADR1
+                            , UPPER(REPLACE(CL.SHPPLOC_DTL_ADDR, ' ', '')) AS CLM_DORO_ADR2
+                            , OL.RCPTPE_NM AS ORD_NAME
+                            , CL.RCPTPE_NM AS CLM_NAME
+                         FROM TPASSGORDERLIST OL
+                            , TPASSGCLAIMLIST CL
+                        WHERE OL.ORD_NO         = CL.ORORD_NO
+                          AND OL.ORD_ITEM_SEQ   = CL.ORORD_ITEM_SEQ
+                          AND CL.PA_ORDER_GB 	= #{PA_ORDER_GB  , jdbcType=VARCHAR}
+                          AND OL.ORD_NO         = #{PA_ORDER_NO  , jdbcType=VARCHAR}
+                          AND CL.ORD_NO         = #{PA_CLAIM_NO  , jdbcType=VARCHAR} ) OC
+               ) TB
+         WHERE TB.ORD_ADR1 = TB.CLM_ADR1
+           AND TB.ORD_ADR2 = TB.CLM_ADR2
+    </select>
+    
+    <update id="updatePaOrdermChangeFlag" parameterType="hashMap">
+        UPDATE TPAORDERM /* passgclaim.xml : passg.claim.updatePaOrdermChangeFlag by PaSsgClaimController */
+           SET CHANGE_FLAG = #{changeFlag , jdbcType=VARCHAR}
+         WHERE MAPPING_SEQ = #{mappingSeq , jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectOrderCalimTargetDt30List" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* passgclaim.xml : passg.claim.selectOrderCalimTargetDt30List by PaSsgClaimController */
+               DECODE(PM.REMARK1_V, '출고전반품 대상', '20', PM.PA_ORDER_GB) AS PA_ORDER_GB
+             , PM.MAPPING_SEQ
+             , PM.PA_ORDER_NO
+             , PM.PA_ORDER_SEQ
+             , PM.PA_CLAIM_NO
+             , OPM.ORDER_NO
+             , OPM.ORDER_G_SEQ
+             , OPM.ORDER_W_SEQ
+             , PM.PA_PROC_QTY
+             , DECODE(PM.REMARK1_V, '출고전반품 대상', '1', PM.OUT_BEF_CLAIM_GB) AS OUT_BEF_CLAIM_GB
+             , DECODE(PC.SHPP_DIV_DTL_NM ,'SSG취소(당사)', NVL( (SELECT A.CS_LMS_CODE FROM TCSKINDS A WHERE A.CS_LMS_CODE = '6210' ||  PCC.CS_SGROUP ), '621035')
+             				, NVL( (SELECT A.CS_LMS_CODE FROM TCSKINDS A WHERE A.CS_LMS_CODE = '6310' || PCC.CS_SGROUP) , '631040')) AS CLAIM_CODE
+             , PC.CLM_RSN_CNTT AS CLAIM_DESC
+             , PC.RCPTPE_NM AS RETURN_NAME
+             , PC.RCPTPE_TELNO AS RETURN_TEL
+             , PC.RCPTPE_HPNO AS RETURN_HP
+             , PC.SHPPLOC_ADDR AS RETURN_ADDR
+             , PC.SHPPLOC_ZIPCD AS RCVR_MAIL_NO
+             , PC.SHPPLOC_BASC_ADDR AS RCVR_BASE_ADDR
+             , PC.SHPPLOC_DTL_ADDR AS RCVR_DTLS_ADDR
+             , DECODE(PC.SHPP_DIV_DTL_NM ,'SSG취소(당사)', '0', PCC.SHIPCOST_CHARGE_YN) AS CLM_LST_DLV_CST 
+             , TC.CODE_SNAME AS SITE_GB
+             , 0  AS ADMIN_PROC_YN
+          	 , '' AS EXCH_GOODSDT_CODE
+         FROM TPAORDERM         PM  /*반품접수건*/
+            , TPAORDERM         OPM /*원주문건*/
+            , TPASSGCLAIMLIST  PC
+            , TPASSGORDERLIST  PO
+            , TCODE             TC
+            , TPACLAIMCODE      PCC
+        WHERE PM.PA_ORDER_NO    = OPM.PA_ORDER_NO
+          AND PM.PA_ORDER_SEQ   = OPM.PA_ORDER_SEQ
+          AND PM.PA_CODE        = OPM.PA_CODE
+          AND PM.PA_ORDER_NO    = PC.ORORD_NO
+          AND PM.PA_ORDER_SEQ   = PC.ORORD_ITEM_SEQ
+          AND PM.PA_CLAIM_NO    = PC.ORD_NO
+          AND PM.PA_ORDER_GB    = PC.PA_ORDER_GB
+          AND PM.PA_SHIP_NO     = PC.SHPP_NO
+          AND PM.PA_SHIP_SEQ    = PC.SHPP_SEQ
+          AND PM.PA_CODE    	IN ('A1', 'A2')
+          AND (PM.PA_DO_FLAG     = '20' 
+               OR PM.PA_DO_FLAG     = '60') 
+          AND PM.PA_ORDER_GB    = '30'
+          AND PM.CREATE_YN      = '0'
+          AND PM.PRE_CANCEL_YN  = '0'
+          AND PM.INSERT_DATE 	&gt; TRUNC(SYSDATE) - 30
+          AND OPM.PA_ORDER_GB   = '10'
+          AND OPM.CREATE_YN     = '1'
+          AND PC.ORORD_NO  		= PO.ORORD_NO
+          AND PC.ORORD_ITEM_SEQ = PO.ORORD_ITEM_SEQ
+          AND TC.CODE_LGROUP    = 'O500'
+          AND TC.CODE_MGROUP    = PM.PA_GROUP_CODE
+          AND PC.CLM_RSN_CD 	= PCC.PA_CLAIM_CODE
+          AND PM.PA_ORDER_NO    = #{paOrderNo   , jdbcType=VARCHAR}
+          AND PM.PA_ORDER_SEQ   = #{paOrderSeq  , jdbcType=VARCHAR}
+          AND PM.PA_GROUP_CODE  = #{paGroupCode , jdbcType=VARCHAR}
+          AND PM.PA_CLAIM_NO    = #{paClaimNo  , jdbcType=VARCHAR}
+          AND PCC.PA_CODE       = '10'
+    </select>
+    
+    <select id="selectOrderCalimTargetDt20List" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* passgclaim.xml : passg.claim.selectOrderCalimTargetDt20List by PaSsgClaimController */
+	           PM.PA_ORDER_GB
+	         , PM.MAPPING_SEQ  
+	         , PM.PA_ORDER_NO
+	         , PM.PA_ORDER_SEQ
+	         , PM.PA_CLAIM_NO
+	         , OPM.ORDER_NO
+	         , OPM.ORDER_G_SEQ
+	         , OPM.ORDER_D_SEQ
+	         , OPM.ORDER_W_SEQ
+	         , PM.PA_PROC_QTY
+	         , NVL( (SELECT A.CS_LMS_CODE FROM TCSKINDS A WHERE A.CS_LMS_CODE = '6210' ||  PCC.CS_SGROUP ), '621035') AS CLAIM_CODE
+	         , PC.CLM_RSN_CNTT AS CLAIM_DESC
+	         , '' AS RETURN_NAME
+	         , '' AS RETURN_TEL
+	         , '' AS RETURN_HP
+	         , '' AS RETURN_ADDR
+	         , PM.OUT_BEF_CLAIM_GB AS OUT_BEF_CLAIM_GB
+	         , '' AS RCVR_MAIL_NO
+	         , '' AS RCVR_BASE_ADDR
+	         , '' AS RCVR_DTLS_ADDR
+	         , 0  AS CLM_LST_DLV_CST
+	         , TC.CODE_SNAME AS SITE_GB
+	         , 0  AS ADMIN_PROC_YN
+	         , '' AS EXCH_GOODSDT_CODE
+	      FROM TPAORDERM PM   /* 출하지시 이후 취소 접수건 */
+	         , TPAORDERM OPM  /* 원주문건 */
+	         , TPASSGCANCELLIST PC
+	         , TCODE       TC
+	         , TPACLAIMCODE      PCC
+         WHERE PM.PA_ORDER_NO      = OPM.PA_ORDER_NO
+           AND PM.PA_ORDER_SEQ     = OPM.PA_ORDER_SEQ
+           AND PM.PA_CODE          = OPM.PA_CODE
+           AND PM.PA_ORDER_NO      = PC.ORORD_NO
+           AND PM.PA_ORDER_SEQ     = PC.ORORD_ITEM_SEQ
+           AND PM.PA_CODE          IN ('A1', 'A2')
+           AND PM.CREATE_YN        = '0'
+           AND PM.PRE_CANCEL_YN    = '0'
+           AND PM.OUT_BEF_CLAIM_GB = '1'
+           AND PM.INSERT_DATE 	   &gt; TRUNC(SYSDATE) - 30
+           AND OPM.PA_ORDER_GB     = '10'
+           AND OPM.CREATE_YN       = '1'
+           AND PM.PA_ORDER_NO      = #{paOrderNo    , jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ     = #{paOrderSeq   , jdbcType=VARCHAR}
+           AND PM.PA_GROUP_CODE    = #{paGroupCode  , jdbcType=VARCHAR}
+           AND TC.CODE_LGROUP      = 'O500'
+           AND TC.CODE_MGROUP      = PM.PA_GROUP_CODE
+           AND PC.CLM_RSN_CD  	   = PCC.PA_CLAIM_CODE
+           AND PCC.PA_CODE         = '10'
+    </select>
+    
+    <select id="selectPaSsgRecoveryList" parameterType="hashMap" resultType="hashMap">
+	    SELECT /* passgclaim.xml : passg.claim.selectPaSsgRecoveryList by PaSsgClaimController */
+               PM.PA_CODE
+             , PM.PA_ORDER_NO
+             , PM.PA_ORDER_SEQ
+             , PM.PA_ORDER_GB
+             , PM.PA_CLAIM_NO
+             , PM.PA_SHIP_NO
+             , PM.PA_SHIP_SEQ
+             , PM.PA_PROC_QTY
+             , DG.PA_DELY_GB
+             , SM.SLIP_NO
+             , 'Y' AS RESELL_PSBL_YN 
+             , PC.SHPPCST_BDN_MAIN_CD AS RET_IMPT_MAIN_CD
+             , SM.SLIP_I_NO
+          FROM TPAORDERM    PM
+             , TPASSGCLAIMLIST PC
+             , TCLAIMDT     CD
+             , TSLIPM       SM
+             , TSLIPDT      SD
+             , TPADELYGB    DG
+         WHERE PM.PA_CLAIM_NO   = PC.ORD_NO
+           AND PM.PA_ORDER_NO   = PC.ORORD_NO
+           AND PM.PA_ORDER_SEQ  = PC.ORORD_ITEM_SEQ
+           AND PM.PA_SHIP_NO    = PC.SHPP_NO
+           AND PM.PA_SHIP_SEQ   = PC.SHPP_SEQ
+           AND PM.PA_ORDER_GB = PC.PA_ORDER_GB
+           AND PM.PA_CODE       IN ('A1','A2')
+           AND PM.PA_ORDER_GB   IN ('30','45')
+           AND PM.ORDER_NO      = CD.ORDER_NO
+           AND PM.ORDER_G_SEQ   = CD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ   = CD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ   = CD.ORDER_W_SEQ
+           AND CD.SYSLAST       &gt; 0
+           AND CD.ORDER_NO      = SD.ORDER_NO
+           AND CD.ORDER_G_SEQ   = SD.ORDER_G_SEQ
+           AND CD.ORDER_D_SEQ   = SD.ORDER_D_SEQ
+           AND CD.ORDER_W_SEQ   = SD.ORDER_W_SEQ
+           AND SM.SLIP_I_NO     = SD.SLIP_I_NO
+           AND DG.PA_CODE       = PM.PA_GROUP_CODE
+           AND DG.DELY_GB       = SM.DELY_GB
+           AND SM.SLIP_PROC     = '60'
+           AND SM.SLIP_GB       IN ('201', '203')
+		<choose>	  	
+			<when test='status != null and status == "confirm"'>
+				AND PM.PA_DO_FLAG    = '20'
+			</when> 
+			<when test='status != null and status == "complete"'>
+				AND PM.PA_DO_FLAG    = '55'
+			</when>
+		</choose>
+     </select>
+        
+     <select id="selectClaimCancelTargetDtList" parameterType="hashMap" resultType="hashMap">
+	     SELECT /* passgclaim.xml : passg.claim.selectClaimCancelTargetDtList by PaSsgClaimController */
+	            PM.MAPPING_SEQ
+	          , OPM.ORDER_NO
+	          , OPM.ORDER_G_SEQ
+	          , OPM.ORDER_W_SEQ
+	          , PM.PA_PROC_QTY
+	          , NVL( (SELECT A.CS_LMS_CODE FROM TCSKINDS A WHERE A.CS_LMS_CODE = '6310' || 
+	                 (SELECT PCC.CS_SGROUP FROM TPACLAIMCODE PCC WHERE PCC.PA_CODE = '10' AND PCC.PA_CLAIM_CODE = PC.CLM_RSN_CD)) , '631040') AS CLAIM_CODE
+	          , OPM.PRE_CANCEL_YN
+	          , PM.PA_ORDER_GB
+	          , '' AS CLAIM_DESC
+	          , '' AS RETURN_NAME
+	          , '' AS RETURN_TEL
+	          , '' AS RETURN_HP
+	          , '' AS RETURN_ADDR
+	          , '' AS OUT_BEF_CLAIM_GB
+	          , '' AS RCVR_MAIL_NO
+	          , '' AS RCVR_BASE_ADDR
+	          , '' AS RCVR_DTLS_ADDR
+	          , '' AS CLAIM_CODE
+	          , 0 AS CLM_LST_DLV_CST
+	          , TC.CODE_SNAME AS SITE_GB
+	       FROM TPAORDERM PM   /*반품취소건*/
+	          , TPAORDERM OPM  /*원 반품건*/
+	          , TPASSGCLAIMLIST PC
+	          , TCODE            TC
+	      WHERE PM.PA_ORDER_NO      = OPM.PA_ORDER_NO
+	        AND PM.PA_ORDER_SEQ     = OPM.PA_ORDER_SEQ
+	        AND PM.PA_CODE          = OPM.PA_CODE
+	        AND PM.PA_CLAIM_NO      = OPM.PA_CLAIM_NO
+	        AND TC.CODE_LGROUP      = 'O500'
+	        AND TC.CODE_MGROUP      = PM.PA_GROUP_CODE
+	        AND PM.PA_ORDER_GB      = '31'
+	        AND PM.OUT_BEF_CLAIM_GB = '0'
+	        AND PM.CREATE_YN        = '0'
+	        AND PM.PRE_CANCEL_YN    = '0'
+	        AND PM.INSERT_DATE &gt; TRUNC(SYSDATE) - 30
+	        AND OPM.PA_ORDER_GB     = '30'
+	        AND OPM.CREATE_YN       = '1'
+	        AND PM.PA_ORDER_NO      = PC.ORORD_NO
+	        AND PM.PA_ORDER_SEQ     = PC.ORORD_ITEM_SEQ
+	        AND PM.PA_CLAIM_NO      = PC.ORD_NO
+	        AND (PM.PA_ORDER_GB      = PC.PA_ORDER_GB 
+	        	OR (PC.REJECT_YN = '1' AND PC.PA_ORDER_GB = '30')) /*자동환불 거절 건*/
+	        AND PM.PA_SHIP_NO     = PC.SHPP_NO
+	        AND PM.PA_SHIP_SEQ    = PC.SHPP_SEQ
+	        AND PM.PA_CODE          = #{paCode     , jdbcType=VARCHAR}
+	        AND PM.PA_ORDER_NO      = #{paOrderNo  , jdbcType=VARCHAR}
+	        AND PM.PA_ORDER_SEQ     = #{paOrderSeq , jdbcType=VARCHAR}
+	        AND PM.PA_CLAIM_NO      = #{paClaimNo  , jdbcType=VARCHAR}
+	            
+	  UNION ALL
+	         
+	     SELECT PM.MAPPING_SEQ
+	          , '' AS ORDER_NO
+	          , '' AS ORDER_G_SEQ
+	          , '' AS ORDER_W_SEQ
+	          , '' AS PA_PROC_QTY
+	          , '' AS CANCEL_CODE 
+	          , '1' AS PRE_CANCEL_YN
+	          , PM.PA_ORDER_GB
+	          , '' AS CLAIM_DESC
+	          , '' AS RETURN_NAME
+	          , '' AS RETURN_TEL
+	          , '' AS RETURN_HP
+	          , '' AS RETURN_ADDR
+	          , '' AS OUT_BEF_CLAIM_GB
+	          , '' AS RCVR_MAIL_NO
+	          , '' AS RCVR_BASE_ADDR
+	          , '' AS RCVR_DTLS_ADDR
+	          , '' AS CLAIM_CODE
+	          , 0 AS CLM_LST_DLV_CST
+	          , TC.CODE_SNAME AS SITE_GB
+	       FROM TPAORDERM PM
+	          , TCODE     TC
+	      WHERE PM.PA_ORDER_GB    = '31'
+	        AND PM.CREATE_YN      = '0'
+	        AND PM.PRE_CANCEL_YN  = '0'        
+	        AND TC.CODE_LGROUP    = 'O500'
+	        AND TC.CODE_MGROUP    = PM.PA_GROUP_CODE
+	        AND PM.PA_CODE        = #{paCode      , jdbcType=VARCHAR}
+	        AND PM.PA_ORDER_NO    = #{paOrderNo    , jdbcType=VARCHAR}
+	        AND PM.PA_ORDER_SEQ   = #{paOrderSeq  , jdbcType=VARCHAR} 
+	        AND PM.PA_CLAIM_NO    = #{paClaimNo   , jdbcType=VARCHAR}
+	        AND NOT EXISTS (SELECT 'x' 
+	                          FROM TPASSGCLAIMLIST  CL
+	                         WHERE PM.PA_ORDER_NO  = CL.ORORD_NO
+	                           AND PM.PA_ORDER_SEQ = CL.ORORD_ITEM_SEQ
+	                           AND PM.PA_CLAIM_NO  = CL.ORD_NO
+	                           AND PM.PA_SHIP_NO = CL.SHPP_NO
+	                           AND PM.PA_SHIP_SEQ = CL.SHPP_SEQ
+	                           AND CL.PA_ORDER_GB  = '30')
+    </select>
+    
+    <select id="selectChangeCancelTargetDtList" parameterType="hashMap" resultType="hashMap">
+	            SELECT /* passgclaim.xml : passg.claim.selectChangeCancelTargetDtList by PaSsgClaimController */
+               MAPPING_SEQ
+             , PA_ORDER_GB
+             , ORDER_NO
+             , ORDER_G_SEQ
+             , ORDER_D_SEQ
+             , ORDER_W_SEQ
+             , PA_PROC_QTY
+             , CLAIM_CODE
+             , PRE_CANCEL_YN
+             , CLM_LST_DLV_CST
+             , SITE_GB
+             , OUT_BEF_CLAIM_GB
+          FROM ( 
+           SELECT 
+                  PM.MAPPING_SEQ
+                , PM.PA_ORDER_GB
+                , OPM1.ORDER_NO
+                , OPM1.ORDER_G_SEQ
+                , OPM1.ORDER_D_SEQ
+                , OPM1.ORDER_W_SEQ
+                , PM.PA_PROC_QTY
+                , '999' AS CLAIM_CODE
+                , OPM1.PRE_CANCEL_YN
+                , 0 AS CLM_LST_DLV_CST
+                , TC.CODE_SNAME AS SITE_GB
+                , PM.OUT_BEF_CLAIM_GB
+             FROM TPAORDERM PM          /* 교환취소건   */
+                , TPAORDERM OPM1        /* 원교환배송 건 */
+                , TCODE TC
+            WHERE PM.PA_ORDER_NO    = OPM1.PA_ORDER_NO
+              AND PM.PA_ORDER_SEQ   = OPM1.PA_ORDER_SEQ
+              AND PM.PA_CLAIM_NO    = OPM1.PA_CLAIM_NO
+              AND PM.PA_CODE        = OPM1.PA_CODE
+              AND PM.PA_SHIP_NO     = OPM1.PA_SHIP_NO
+              AND PM.PA_SHIP_SEQ    = OPM1.PA_SHIP_SEQ
+              AND TC.CODE_LGROUP    = 'O500'
+              AND TC.CODE_MGROUP    =  PM.PA_GROUP_CODE
+              AND PM.PA_CODE        IN ('A1', 'A2')
+              AND PM.PA_ORDER_GB    = ('41')
+              AND OPM1.PA_ORDER_GB  = '40'
+              AND OPM1.CREATE_YN    = '1'
+              AND PM.CREATE_YN      = '0'
+              AND PM.PRE_CANCEL_YN  = '0'
+              AND PM.INSERT_DATE    &gt; TRUNC(SYSDATE) - 7
+              AND PM.PA_ORDER_NO    = #{paOrderNo  , jdbcType=VARCHAR}
+              AND PM.PA_ORDER_SEQ   = #{paOrderSeq , jdbcType=VARCHAR}
+              AND PM.PA_CLAIM_NO    = #{paClaimNo  , jdbcType=VARCHAR}
+            
+         UNION ALL
+         
+          SELECT  PM.MAPPING_SEQ
+                , PM.PA_ORDER_GB
+                , OPM2.ORDER_NO
+                , OPM2.ORDER_G_SEQ
+                , OPM2.ORDER_D_SEQ
+                , OPM2.ORDER_W_SEQ AS ORDER_W_SEQ
+                , PM.PA_PROC_QTY
+                , '999' AS CLAIM_CODE
+                , OPM2.PRE_CANCEL_YN
+                , 0 AS CLM_LST_DLV_CST
+                , TC.CODE_SNAME AS SITE_GB
+                , PM.OUT_BEF_CLAIM_GB
+             FROM TPAORDERM PM          /* 교환취소건   */
+                , TPAORDERM OPM2        /* 원교환회수 건 */
+                , TCODE TC
+            WHERE PM.PA_ORDER_NO    = OPM2.PA_ORDER_NO
+              AND PM.PA_ORDER_SEQ   = OPM2.PA_ORDER_SEQ
+              AND PM.PA_CLAIM_NO    = OPM2.PA_CLAIM_NO
+              AND PM.PA_CODE        = OPM2.PA_CODE
+              AND PM.PA_SHIP_NO     = OPM2.PA_SHIP_NO
+              AND PM.PA_SHIP_SEQ    = OPM2.PA_SHIP_SEQ
+              AND TC.CODE_LGROUP    = 'O500'
+              AND TC.CODE_MGROUP    =  PM.PA_GROUP_CODE
+              AND PM.PA_CODE        IN ('A1', 'A2')
+              AND PM.PA_ORDER_GB    = '46'
+              AND OPM2.PA_ORDER_GB  = '45'
+              AND OPM2.CREATE_YN    = '1'
+              AND PM.CREATE_YN      = '0'
+              AND PM.PRE_CANCEL_YN  = '0'
+              AND PM.INSERT_DATE    &gt; TRUNC(SYSDATE) - 7
+              AND PM.PA_ORDER_NO    = #{paOrderNo  , jdbcType=VARCHAR}
+              AND PM.PA_ORDER_SEQ   = #{paOrderSeq , jdbcType=VARCHAR}
+              AND PM.PA_CLAIM_NO    = #{paClaimNo  , jdbcType=VARCHAR}
+             
+       UNION ALL
+            
+            SELECT PM.MAPPING_SEQ
+                 , PM.PA_ORDER_GB
+                 , '' AS ORDER_NO
+                 , '' AS ORDER_G_SEQ
+                 , '' AS ORDER_D_SEQ
+                 , '' AS ORDER_W_SEQ
+                 , '' AS CLAIM_QTY
+                 , '' AS CLAIM_CODE
+                 , '1' AS PRE_CANCEL_YN
+                 , 0  AS CLM_LST_DLV_CST
+                 , TC.CODE_SNAME AS SITE_GB
+                 , '0' AS OUT_BEF_CLAIM_GB
+              FROM TPAORDERM PM /* 교환취소건 */
+                 , TCODE TC
+             WHERE PM.PA_CODE      IN ('A1', 'A2')
+               AND PM.CREATE_YN      = '0'
+               AND PM.PRE_CANCEL_YN  = '0'
+               AND PM.PA_ORDER_GB    IN ('41', '46')
+               AND TC.CODE_LGROUP    = 'O500'
+               AND TC.CODE_MGROUP    =  PM.PA_GROUP_CODE
+               AND PM.INSERT_DATE    &gt; TRUNC(SYSDATE) - 7
+               AND PM.PA_ORDER_NO    = #{paOrderNo  , jdbcType=VARCHAR}
+               AND PM.PA_ORDER_SEQ   = #{paOrderSeq , jdbcType=VARCHAR}
+               AND PM.PA_CLAIM_NO    = #{paClaimNo  , jdbcType=VARCHAR}
+               AND NOT EXISTS ( SELECT 'x'
+                                  FROM TPAORDERM OPM
+                                 WHERE OPM.PA_ORDER_NO  = PM.PA_ORDER_NO
+                                   AND OPM.PA_ORDER_SEQ = PM.PA_ORDER_SEQ
+                                   AND OPM.PA_CLAIM_NO  = PM.PA_CLAIM_NO
+                                   AND OPM.PA_CODE      = PM.PA_CODE
+                                   AND OPM.PA_ORDER_GB  IN ('40', '45')))
+        ORDER BY PA_ORDER_GB ASC
+    </select>
+    
+    <update id="updatePaOrderMDoFlag" parameterType="hashMap">
+        UPDATE /* passgclaim.xml : passg.claim.updatePaOrderMDoFlag by PaSsgClaimController */
+        	   TPAORDERM
+           SET 
+           	   PROC_DATE		  = SYSDATE
+           <if test="PA_DO_FLAG != null and PA_DO_FLAG != ''">
+             , PA_DO_FLAG		  = #{PA_DO_FLAG		 , jdbcType=VARCHAR}
+           </if>
+           	 , API_RESULT_CODE	  = #{API_RESULT_CODE	 , jdbcType=VARCHAR}
+           	 , API_RESULT_MESSAGE = #{API_RESULT_MESSAGE , jdbcType=VARCHAR}
+             , MODIFY_DATE		  = SYSDATE
+         WHERE PA_CLAIM_NO 		  = #{PA_CLAIM_NO		 , jdbcType=VARCHAR}
+           AND PA_CODE			  = #{PA_CODE			 , jdbcType=VARCHAR}
+           AND PA_ORDER_NO		  = #{PA_ORDER_NO		 , jdbcType=VARCHAR}
+           AND PA_ORDER_SEQ		  = #{PA_ORDER_SEQ		 , jdbcType=VARCHAR}
+           AND PA_SHIP_NO		  = #{PA_SHIP_NO		 , jdbcType=VARCHAR}
+           AND PA_SHIP_SEQ		  = #{PA_SHIP_SEQ		 , jdbcType=VARCHAR}
+           AND PA_ORDER_GB		  = #{PA_ORDER_GB		 , jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectPaSsgOrderCancelList" resultType="hashMap">
+	    SELECT PAO.ORORD_NO
+	         , PAO.ORORD_ITEM_SEQ
+	         , PM.PA_CODE
+	         , CASE WHEN TO_NUMBER(OD.DO_FLAG) > 30 THEN '40'
+	                WHEN TO_NUMBER(OD.DO_FLAG) = 30 THEN '30'
+	                ELSE '20' END AS DO_FLAG
+	         , PM.PA_PROC_QTY - PAO.PROC_ORD_QTY AS PARTIAL_QTY
+	         , SM.SLIP_NO 
+	      FROM TPAORDERM         PM
+	         , TPASSGCANCELLIST PAO
+	         , TORDERDT          OD
+             , TSLIPM 			 SM
+             , TSLIPDT 			 SD
+	     WHERE PM.PA_ORDER_GB  = '10'
+	       AND PM.PA_ORDER_NO  = PAO.ORORD_NO
+	       AND PM.PA_ORDER_SEQ = PAO.ORORD_ITEM_SEQ
+	       AND PM.ORDER_NO     = OD.ORDER_NO
+	       AND PM.ORDER_G_SEQ  = OD.ORDER_G_SEQ
+	       AND PM.ORDER_D_SEQ  = OD.ORDER_D_SEQ
+	       AND PM.ORDER_W_SEQ  = OD.ORDER_W_SEQ
+           AND PM.ORDER_NO     = SD.ORDER_NO(+)
+           AND PM.ORDER_G_SEQ  = SD.ORDER_G_SEQ(+)
+           AND PM.ORDER_D_SEQ  = SD.ORDER_D_SEQ(+)
+           AND PM.ORDER_W_SEQ  = SD.ORDER_W_SEQ(+)
+           AND SD.SLIP_I_NO    = SM.SLIP_I_NO(+)
+	       AND PAO.WITHDRAW_YN = '0'
+	       AND PAO.PROC_FLAG   IN ('00', '90')
+	       AND PM.PA_CODE      IN ('A1', 'A2')
+	       AND PM.INSERT_DATE  &gt; SYSDATE - 15
+    </select>
+    
+    <update id="updatePaSsgCancelList"  parameterType="hashMap">
+        UPDATE /* passgclaim.xml : passg.claim.updatePaSsgCancelList by PaSsgClaimController */
+        	   TPASSGCANCELLIST
+           SET PROC_NOTE 	  = #{message	   , jdbcType=VARCHAR} 
+       	   <if test="procFlag != null and procFlag != ''">
+	         , PROC_FLAG	  = #{procFlag	   , jdbcType=VARCHAR}
+           </if>
+             , MODIFY_DATE    = SYSDATE
+         WHERE ORORD_NO  	  = #{orordNo  	   , jdbcType=VARCHAR}
+           AND ORORD_ITEM_SEQ = #{orordItemSeq   , jdbcType=VARCHAR}
+           AND PROC_FLAG	  NOT IN ('10','20')          
+    </update>
+    
+    <select id="selectPaSsgCancelList" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaSsgCancelListVO">
+        SELECT /* passgclaim.xml : passg.claim.selectPaSsgCancelList by PaSsgClaimController */
+        	   A.PROC_ORD_QTY
+			 , '20' AS PA_ORDER_GB
+			 , #{outBefClaimGb , jdbcType=VARCHAR} AS OUT_BEF_CLAIM_GB
+			 , #{paCode        , jdbcType=VARCHAR} AS PA_CODE
+			 , A.ORORD_NO
+			 , A.ORORD_ITEM_SEQ
+		  FROM TPASSGCANCELLIST A
+		 WHERE A.ORORD_NO  		  = #{orordNo  , jdbcType=VARCHAR}
+           AND A.ORORD_ITEM_SEQ   = #{orordItemSeq	   , jdbcType=VARCHAR}
+    </select>
+    
+    <select id="countOrgClaimList" parameterType="com.cware.netshopping.domain.PaSsgClaimListVO" resultType="int">
+        SELECT /* passgclaim.xml : passg.claim.countOrgClaimList by PaSsgClaimController */
+           	   COUNT(1) AS CNT
+          FROM TPASSGCLAIMLIST CL
+         WHERE CL.ORD_NO       = #{ordNo , jdbcType=VARCHAR}
+           AND CL.ORD_ITEM_SEQ = #{ordItemSeq , jdbcType=VARCHAR}
+           <choose>
+	           <when test='paClaimGb =="31"'>
+	           		AND CL.PA_ORDER_GB  = '30'
+	           </when>
+	           <when test='paClaimGb =="46"'>
+	           		AND CL.PA_ORDER_GB  = '45'
+	           </when>
+           </choose>
+	</select>
+	
+	<select id="selectSsgExchangeDeliveryDt" resultType="hashMap" parameterType="com.cware.netshopping.domain.PaSsgClaimListVO">
+	    SELECT /* passgclaim.xml : passg.claim.selectSsgExchangeDeliveryDt by PaSsgClaimController */
+	    	   PO.PA_SHIP_NO
+	    	 , PO.PA_SHIP_SEQ
+	      FROM TPAORDERM PO
+	     WHERE PO.PA_CODE    	  = #{paCode	 	 , jdbcType=VARCHAR}
+	       AND PO.PA_CLAIM_NO	  = #{ordNo		 	 , jdbcType=VARCHAR}
+	       AND PO.PA_ORDER_NO	  = #{orordNo	 	 , jdbcType=VARCHAR}
+	       AND PO.PA_ORDER_SEQ    = #{orordItemSeq	 , jdbcType=VARCHAR}
+	       AND PO.PA_ORDER_GB     = '40'
+    </select>
+    
+    <update id="updatePaSsgCancelList4Withdraw" parameterType="hashMap">
+        UPDATE /* passgclaim.xml : passg.claim.updatePaSsgCancelList4Withdraw by PaSsgClaimController */
+        	   TPASSGCANCELLIST
+           SET WITHDRAW_YN 	 = '1'
+             , WITHDRAW_DATE = SYSDATE
+             , MODIFY_DATE   = SYSDATE
+         WHERE ORORD_NO 		= #{orordNo 		 , jdbcType=VARCHAR}
+           AND ORORD_ITEM_SEQ	= #{orordItemSeq	 , jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updatePaSsgCancelComplete"  parameterType="com.cware.netshopping.domain.PaSsgCancelListVO">
+        UPDATE /* passgclaim.xml : passg.claim.updatePaSsgCancelComplete by PaSsgClaimController */
+        	   TPASSGCANCELLIST
+           SET PROC_NOTE 	  = '취소완료'
+	         , PROC_FLAG	  = '10'
+             , MODIFY_DATE    = SYSDATE
+         WHERE ORORD_NO  	  = #{orordNo  	   , jdbcType=VARCHAR}
+           AND ORORD_ITEM_SEQ = #{orordItemSeq   , jdbcType=VARCHAR}          
+    </update>
+    
+    <select id="selectPaSsgClaimCompleteCount" parameterType="com.cware.netshopping.domain.PaSsgClaimListVO" resultType="int">
+        SELECT /* passgclaim.xml : passg.claim.selectPaSsgClaimCompleteCount by PaSsgClaimController */
+        	   COUNT(1) AS CNT
+          FROM TPAORDERM PM
+         WHERE PM.PA_CLAIM_NO	 = #{ordNo		  , jdbcType=VARCHAR}
+           AND PM.PA_ORDER_NO    = #{orordNo 	  , jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ   = #{orordItemSeq , jdbcType=VARCHAR}
+           AND PM.PA_SHIP_NO	 = #{shppNo		  , jdbcType=VARCHAR}
+           AND PM.PA_SHIP_SEQ	 = #{shppSeq	  , jdbcType=VARCHAR}
+           AND PM.PA_CODE		 = #{paCode		  , jdbcType=VARCHAR}
+           AND PM.CREATE_YN		 = '1'
+           AND PM.PA_ORDER_GB    = '30'
+           AND PM.PA_DO_FLAG	&lt; '60'
+	</select>
+	
+	<select id="selectPaSsgClaimInfo" resultType="hashMap" parameterType="com.cware.netshopping.domain.PaSsgClaimListVO">
+        SELECT /* passgclaim.xml : passg.claim.selectPaSsgClaimInfo by PaSsgClaimController */
+               OD.DO_FLAG
+             , OD.DELY_GB
+          FROM TPASSGCLAIMLIST SC
+             , TPAORDERM PM
+             , TORDERDT OD
+         WHERE SC.ORD_NO       = #{ordNo, jdbcType=VARCHAR}
+           AND SC.ORORD_ITEM_SEQ = #{orordItemSeq, jdbcType=VARCHAR}
+           AND SC.PA_ORDER_GB    = '30'
+           AND SC.ORORD_NO       = PM.PA_ORDER_NO
+           AND SC.ORORD_ITEM_SEQ = PM.PA_ORDER_SEQ
+           AND PM.PA_ORDER_GB    = '10'
+           AND PM.PA_CODE       IN ('A1', 'A2')
+           AND PM.ORDER_NO       = OD.ORDER_NO
+           AND PM.ORDER_G_SEQ    = OD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ    = OD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ    = OD.ORDER_W_SEQ  
+    </select>
+
+	<select id="selectDelyType" parameterType="String" resultType="String">
+        SELECT /* passgclaim.xml : passg.claim.selectDelyType by PaSsgClaimController */
+               TG.DELY_TYPE
+		  FROM TGOODS       TG
+		     , TPASSGGOODS  PG
+		 WHERE TG.GOODS_CODE = PG.GOODS_CODE 
+		   AND PG.ITEM_ID = #{itemId, jdbcType = VARCHAR}
+    </select>  
+    
+    <select id="selectPaSsgCancelListProcFlag" parameterType="com.cware.netshopping.domain.PaSsgCancelListVO" resultType="String">
+        SELECT /* passgclaim.xml : passg.claim.selectPaSsgCancelListProcFlag by PaSsgClaimController */
+               PL.PROC_FLAG
+		  FROM TPASSGCANCELLIST  PL
+		 WHERE PL.ORORD_NO = #{orordNo, jdbcType = VARCHAR}
+		   AND PL.ORORD_ITEM_SEQ = #{orordItemSeq, jdbcType = VARCHAR}
+    </select>  
+    
+    <select id="selectOrderdtDoFlag" parameterType="com.cware.netshopping.domain.PaSsgCancelListVO" resultType="String">
+       SELECT /* passgclaim.xml : passg.claim.selectOrderdtDoFlag by PaSsgClaimController */
+	   	       OD.DO_FLAG
+		  FROM TPAORDERM PM
+		     , TORDERDT OD
+		 WHERE PM.PA_ORDER_NO  	 = #{orordNo, jdbcType=VARCHAR}
+		   AND PM.PA_ORDER_SEQ   = #{orordItemSeq, jdbcType=VARCHAR}
+		   AND PM.PA_ORDER_GB  	 = '10'
+		   AND PM.PA_CODE 	  	IN ('A1', 'A2')
+		   AND PM.ORDER_NO 	   	 = OD.ORDER_NO
+		   AND PM.ORDER_G_SEQ  	 = OD.ORDER_G_SEQ
+		   AND PM.ORDER_D_SEQ  	 = OD.ORDER_D_SEQ
+		   AND PM.ORDER_W_SEQ  	 = OD.ORDER_W_SEQ  
+    </select>  
+    
+    <select id="selectPaSsgOrderList" parameterType="com.cware.netshopping.domain.PaSsgCancelListVO" resultType="com.cware.netshopping.domain.PaSsgOrderListVO">
+       SELECT /* passgclaim.xml : passg.claim.selectPaSsgOrderList by PaSsgClaimController */
+	   	       PL.RCPTPE_NM
+	   	     , PL.RCPTPE_HPNO
+	   	     , PL.RCPTPE_TELNO
+	   	     , PL.SHPPLOC_ADDR
+	   	     , PL.SHPPLOC_ZIPCD
+	   	     , PL.SHPPLOC_OLD_ZIPCD
+	   	     , PL.SHPPLOC_ROAD_ADDR
+	   	     , PL.SHPPLOC_BASC_ADDR
+	   	     , PL.SHPPLOC_DTL_ADDR
+	   	     , PL.SHPP_NO
+	   	     , PL.SHPP_SEQ
+	   	     , PL.ORD_CMPL_DTS
+	   	     , PL.DIRC_ITEM_QTY
+		  FROM TPASSGORDERLIST PL
+		 WHERE PL.ORORD_NO       = #{orordNo, jdbcType = VARCHAR}
+		   AND PL.ORORD_ITEM_SEQ = #{orordItemSeq, jdbcType = VARCHAR}
+    </select>  
+    
+   <select id="selectPaMobileOrderAutoCancelList" parameterType="hashMap" resultType="hashMap">
+        SELECT /* passgclaim.xml : passg.claim.selectPaMobileOrderAutoCancelList by PaSsgClaimController */
+               A.ORDER_NO
+             , A.ORDER_G_SEQ
+             , A.ORDER_DATE
+             , PM.PA_ORDER_NO
+             , PM.PA_ORDER_SEQ
+             , PM.PA_CODE
+			 , SOL.SHPP_NO
+             , SOL.ITEM_ID
+             , SOL.SHPP_SEQ
+          FROM TORDERDT A
+               LEFT OUTER JOIN TMOBILEGOODSDELYPLAN B
+                 ON A.ORDER_NO = B.ORDER_NO
+                AND A.ORDER_G_SEQ = B.ORDER_G_SEQ
+                AND A.ORDER_D_SEQ = B.ORDER_D_SEQ
+                AND A.ORDER_W_SEQ = B.ORDER_W_SEQ
+             , TORDERPROC C
+             , TGOODS D
+               LEFT OUTER JOIN TGOODSADDINFO E
+                 ON D.GOODS_CODE = E.GOODS_CODE
+               LEFT OUTER JOIN TLGS_ORDER_CANCEL_EXCEPT_FIX EF
+                 ON D.GOODS_CODE = EF.GOODS_CODE
+               LEFT OUTER JOIN TLGS_ORDER_CANCEL_EXCEPT_PLAN EP
+                 ON D.GOODS_CODE = EP.GOODS_CODE
+                AND TRUNC(SYSDATE) BETWEEN EP.EXCEPT_FROM_DATE AND EP.EXCEPT_TO_DATE
+                AND EP.STATUS = '10'
+             , TENTERPRISE F
+	         	LEFT OUTER JOIN TMOBILEENTPEXCEPT ME
+		             ON F.ENTP_CODE = ME.ENTP_CODE
+                LEFT OUTER JOIN TLGS_MOBILE_ENTP_EXCEPT_PLAN MP
+                     ON F.ENTP_CODE = MP.ENTP_CODE
+                    AND TRUNC(SYSDATE) BETWEEN MP.EXCEPT_FROM_DATE AND MP.EXCEPT_TO_DATE
+                    AND MP.STATUS = '10'
+             , TMD G
+             , TPAORDERM PM
+			 , TPASSGORDERLIST SOL
+         WHERE A.DO_FLAG > '20'
+           AND A.DO_FLAG &lt; '40'
+           AND A.GOODS_CODE = D.GOODS_CODE
+           AND A.ORDER_NO = C.ORDER_NO
+           AND A.ORDER_G_SEQ = C.ORDER_G_SEQ
+           AND A.ORDER_D_SEQ = C.ORDER_D_SEQ
+           AND A.ORDER_W_SEQ = C.ORDER_W_SEQ
+           AND C.DO_FLAG = '25' 
+           AND D.ENTP_CODE = F.ENTP_CODE
+           AND D.MD_CODE = G.MD_CODE
+           AND A.ORDER_NO = PM.ORDER_NO
+           AND A.ORDER_G_SEQ = PM.ORDER_G_SEQ
+           AND A.ORDER_D_SEQ = PM.ORDER_D_SEQ
+           AND A.ORDER_W_SEQ = PM.ORDER_W_SEQ
+		   AND PM.PA_ORDER_NO  = SOL.ORORD_NO
+           AND PM.PA_ORDER_SEQ = SOL.ORORD_ITEM_SEQ
+           AND PM.PA_SHIP_NO   = SOL.SHPP_NO
+           AND PM.PA_SHIP_SEQ  = SOL.SHPP_SEQ
+           AND PM.PA_CODE IN ('A1','A2')
+           AND PM.PA_ORDER_GB IN ('10', '40')
+           AND PM.REMARK3_N IS NULL
+           AND D.SOURCING_MEDIA = '61'
+           AND E.TV_LIVE_GB = '2'
+           AND NVL(EP.EXCEPT_GB, NVL(EF.EXCEPT_GB, NVL(MP.MOBILE_EXCEPT_GB, NVL(ME.MOBILE_EXCEPT_GB, '1')))) = '1' 
+           AND EXISTS (SELECT 'X'
+                         FROM TENTERPRISE W, TMD E
+                        WHERE D.ENTP_CODE = W.ENTP_CODE
+                          AND W.MD_CODE = E.MD_CODE
+                          AND E.SOURCING_MEDIA = '61')
+           AND D.GIFT_YN = '0'
+           AND D.INSTALL_YN = '0'
+           AND D.INVI_GOODS_TYPE = '00'
+           AND NVL(E.ORDER_CREATE_YN, '0') = '0'
+           AND A.MEDIA_CODE = 'EX11'
+           AND NVL(E.RESERVE_YN, '0') = '0' /*예약상품제외*/
+           AND E.DAWN_YN != '1' /*새벽배송 동원홈푸드 상품제외*/
+           AND NVL(A.APPN_DAY_OUT_YN, '0') != '1' /* 지정일 출고는 당사만 하기때문에 제외 */
+           AND NVL(A.RESERV_ORD_YN, '0')   != '1' /* 예약주문은 당사만 하기때문에 제외 */
+           AND A.ORDER_DATE &lt; TRUNC(SYSDATE) - INTERVAL '2' DAY
+           AND C.PROC_DATE >= TRUNC(ADD_MONTHS(SYSDATE - INTERVAL '2' DAY,-1))
+           AND C.PROC_DATE &lt; TRUNC(SYSDATE) - INTERVAL '2' DAY
+	       AND E.GLOBAL_DELY_YN = '0'
+	       AND E.EM_MULTI_GOODS_YN = '0'
+           /*현재일이 배송예정일 마감일 당일인 주문 처리
+           AND (CASE
+                 WHEN B.DELY_PLAN_DELAY_DATE IS NOT NULL THEN
+                  TRUNC(B.DELY_PLAN_DELAY_DATE)
+                 ELSE
+		          (FUN_GET_DELYDAY_HOLI_DATE_MOB('10',
+                                  TRUNC(C.PROC_DATE),
+                                 '1',
+                                 NVL(ME.BASE_DELY_DAY,3))) END) = TRUNC(SYSDATE)*/
+           /*현재일이 배송예정일 마감일 당일인 주문 처리 or 배송예정일 마감일이 당일 이전인 지난 주문까지 처리 시 사용*/
+           AND (CASE
+                 WHEN B.DELY_PLAN_DELAY_DATE IS NOT NULL THEN
+                  TRUNC(B.DELY_PLAN_DELAY_DATE)
+                 ELSE
+		          (FUN_GET_DELYDAY_HOLI_DATE_ENTP('10',
+                                  TRUNC(C.PROC_DATE),
+                                 '1',
+                                 NVL(EP.EXCEPT_DELY_DAY, NVL(EF.EXCEPT_DELY_DAY, NVL(MP.BASE_DELY_DAY, NVL(ME.BASE_DELY_DAY, 3)))),
+                                 D.ENTP_CODE))  END) &lt;= TRUNC(SYSDATE)
+           AND (EXISTS (SELECT 'X'
+                          FROM TMOBILEENTPEXCEPT W
+                         WHERE W.ENTP_CODE = D.ENTP_CODE
+                           AND W.MOBILE_EXCEPT_GB = '1') OR
+                EXISTS (SELECT 'X'
+                          FROM TLGS_MOBILE_ENTP_EXCEPT_PLAN MP
+                         WHERE D.ENTP_CODE = MP.ENTP_CODE
+                           AND TRUNC(SYSDATE) BETWEEN MP.EXCEPT_FROM_DATE AND MP.EXCEPT_TO_DATE
+                           AND MP.STATUS = '10' ) OR
+                EXISTS (SELECT 'X'
+                          FROM TLGS_ORDER_CANCEL_EXCEPT_FIX EF
+                         WHERE EF.GOODS_CODE = D.GOODS_CODE) OR
+                EXISTS (SELECT 'X'
+                          FROM TLGS_ORDER_CANCEL_EXCEPT_PLAN EP
+                         WHERE D.GOODS_CODE = EP.GOODS_CODE
+                           AND TRUNC(SYSDATE) BETWEEN EP.EXCEPT_FROM_DATE AND EP.EXCEPT_TO_DATE
+                           AND EP.STATUS = '10'  ) )
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TCLAIMDT W
+                            WHERE W.ORDER_NO = A.ORDER_NO
+                              AND W.CUST_NO = A.CUST_NO)
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TCANCELDT W
+                            WHERE W.ORDER_NO = A.ORDER_NO
+                              AND W.CUST_NO = A.CUST_NO)  
+         GROUP BY A.ORDER_NO, A.ORDER_G_SEQ, A.ORDER_DATE, PM.PA_ORDER_NO, PM.PA_ORDER_SEQ, PM.PA_CODE, SOL.SHPP_NO, SOL.ITEM_ID, SOL.SHPP_SEQ
+         ORDER BY A.ORDER_DATE ASC
+    </select>  
+</mapper>

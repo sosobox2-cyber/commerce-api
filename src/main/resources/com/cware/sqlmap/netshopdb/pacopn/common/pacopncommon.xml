@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pacopn.common">
+	<select id="selectcategoryList" resultType="com.cware.netshopping.domain.model.PaCopnLmsdKeyOption">
+        SELECT PA_LMSD_KEY FROM TPAGOODSKINDS
+         WHERE PA_GROUP_CODE = '05'
+          <!-- AND ROWNUM &lt;= 100 -->
+    </select>
+    
+    <insert id="insertPaCopnOption" parameterType="com.cware.netshopping.domain.model.PaCopnOption">
+		INSERT
+		INTO TPACOPNCTGRUNITLIST
+		( PA_LMSD_KEY
+		, ATTRIBUTE_SEQ
+		, INSERT_SEQ
+		, ATTRIBUTE_TYPE_NAME
+		, BASIC_UNIT
+		, USABLE_UNITS
+		, REQUIRED_YN
+		, DATA_TYPE
+		, GROUP_NUMBER
+		, EXPOSED_TYPE
+		, NOTICE_CATEGORY_NAME
+		, INSERT_ID
+		, INSERT_DATE
+		 )
+		VALUES
+		( #{paLmsdKey, jdbcType=VARCHAR}
+		, #{attrSeq, jdbcType=VARCHAR}
+		, #{insertSeq, jdbcType=VARCHAR}
+		, #{attrTypeNm, jdbcType=VARCHAR}
+		, #{basicUnit, jdbcType=VARCHAR}
+		, #{usableUnits, jdbcType=VARCHAR}
+		, #{requiredYn, jdbcType=VARCHAR}
+		, #{dataType, jdbcType=VARCHAR}
+		, #{groupNum, jdbcType=VARCHAR}
+		, #{exposedType, jdbcType=VARCHAR}
+		, #{noticeCategoryNm, jdbcType=VARCHAR}
+		, 'PACOPN'
+		, SYSDATE
+		)
+	</insert>
+	
+	<insert id="insertPaCopnDocument" parameterType="com.cware.netshopping.domain.model.PaCopnDocment">
+		INSERT
+		INTO TPACOPNCTGRDOCSLIST
+		( PA_LMSD_KEY
+		, DOCS_SEQ
+		, TEMPLATE_NAME
+		, REQUIRED_YN
+		, INSERT_ID
+		, INSERT_DATE
+		 )
+		VALUES
+		( #{paLmsdKey, jdbcType=VARCHAR}
+		, #{docsSeq, jdbcType=VARCHAR}
+		, #{templeteNm, jdbcType=VARCHAR}
+		, #{requiredYn, jdbcType=VARCHAR}
+		, 'PACOPN'
+		, SYSDATE )
+	</insert>
+	
+	<insert id="insertPaCopnCertification" parameterType="com.cware.netshopping.domain.model.PaCopnCertification">
+		INSERT
+		INTO TPACOPNCTGRCERTILIST
+		( PA_LMSD_KEY
+		, CERTI_SEQ
+		, CERTIFICATION_TYPE
+		, NAMES
+		, DATA_TYPE
+		, REQUIRED_YN
+		, INSERT_ID
+		, INSERT_DATE
+		 )
+		VALUES
+		( #{paLmsdKey, jdbcType=VARCHAR}
+		, #{sertiSeq, jdbcType=VARCHAR}
+		, #{certiType, jdbcType=VARCHAR}
+		, #{names, jdbcType=VARCHAR}
+		, #{dataType, jdbcType=VARCHAR}
+		, #{requiredYn, jdbcType=VARCHAR}
+		, 'PACOPN'
+		, SYSDATE )
+	</insert>
+	
+	<select id="selectEntpShipInsertList" resultType="hashMap" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">
+        SELECT /* pacopncommon.xml : pacopn.pacopncommon.selectEntpShipInsertList by PaCopnCommonController-selectEntpShipInsertList	*/
+               EU.POST_NO
+             , EU.POST_SEQ
+             , NVL(EU.STD_POST_ADDR1,EU.POST_ADDR) AS ADDRESS1
+             , NVL(EU.STD_POST_ADDR2,EU.ADDR) AS ADDRESS2
+             , EU.ENTP_CODE
+             , EU.ENTP_MAN_SEQ
+             , EU.ENTP_MAN_GB 
+             , EU.ENTP_MAN_NAME
+             , EU.ENTP_MAN_DDD || '-' || EU.ENTP_MAN_TEL1 || '-' || EU.ENTP_MAN_TEL2 AS ENTP_MAN_TEL
+             , EU.ENTP_MAN_HP1 || DECODE(EU.ENTP_MAN_HP1, NULL, '', '-') || EU.ENTP_MAN_HP2 || DECODE(EU.ENTP_MAN_HP2, NULL, '', '-') || EU.ENTP_MAN_HP3 AS ENTP_MAN_HP
+             , TO_CHAR(EU.MODIFY_DATE, 'YYYY/MM/DD HH24:MI:SS') MODIFY_DATE
+             , REPLACE(EP.ENTP_NAME,'&amp;','') ENTP_NAME
+          FROM TENTPUSER EU
+             , TENTERPRISE EP
+         WHERE EU.ENTP_CODE = EP.ENTP_CODE           
+           AND EU.ENTP_CODE  = #{entpCode, jdbcType=VARCHAR}
+           AND EU.ENTP_MAN_SEQ = #{entpManSeq, jdbcType=VARCHAR}
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TPAENTPSLIP PL               
+                            WHERE EU.ENTP_CODE = PL.ENTP_CODE
+                              AND EU.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+                              AND PL.PA_CODE = #{paCode, jdbcType=VARCHAR})
+    </select>
+    
+    <insert id="insertPaCopnEntpSlip" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">
+        INSERT /* pacopncommon.xml : pacopn.pacopncommon.insertPaCopnEntpSlip by PaCopnCommonController-entpShipInsert */
+          INTO TPAENTPSLIP
+             ( ENTP_CODE
+             , ENTP_MAN_SEQ
+             , PA_CODE
+             , PA_ADDR_SEQ
+             , PA_ADDR_GB
+             , TRANS_TARGET_YN
+             , LAST_SYNC_DATE
+             , INSERT_DATE
+             , INSERT_ID
+             , MODIFY_DATE
+             , MODIFY_ID )
+        VALUES 
+             ( #{entpCode, jdbcType=VARCHAR}
+             , #{entpManSeq, jdbcType=VARCHAR}
+             , #{paCode, jdbcType=VARCHAR}
+             , #{paAddrSeq, jdbcType=VARCHAR}
+             , #{paAddrGb, jdbcType=VARCHAR}
+             , #{transTargetYn, jdbcType=VARCHAR}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{insertId, jdbcType=VARCHAR}
+             , #{modifyDate, jdbcType=TIMESTAMP}
+             , #{modifyId, jdbcType=VARCHAR}
+             )  
+    </insert>
+    
+    <select id="selectEntpShipUpdateList" resultType="hashMap" parameterType="String">
+        SELECT /* pacopncommon.xml : pacopn.pacopncommon.selectEntpShipUpdateList by PaCopnCommonController-entpShipUpdate */
+               EU.POST_NO
+             , EU.POST_SEQ
+             , NVL(EU.STD_POST_ADDR1,EU.POST_ADDR) AS ADDRESS1
+             , NVL(EU.STD_POST_ADDR2,EU.ADDR) AS ADDRESS2
+             , EU.ENTP_CODE
+             , EU.ENTP_MAN_SEQ
+             , EU.ENTP_MAN_GB 
+             , EU.ENTP_MAN_NAME
+             , EU.ENTP_MAN_DDD || '-' || EU.ENTP_MAN_TEL1 || '-' || EU.ENTP_MAN_TEL2 AS ENTP_MAN_TEL
+             , EU.ENTP_MAN_HP1 || DECODE(EU.ENTP_MAN_HP1, NULL, '', '-') || EU.ENTP_MAN_HP2 || DECODE(EU.ENTP_MAN_HP2, NULL, '', '-') || EU.ENTP_MAN_HP3 AS ENTP_MAN_HP
+             , TO_CHAR(EU.MODIFY_DATE, 'YYYY/MM/DD HH24:MI:SS') MODIFY_DATE
+             , REPLACE(EP.ENTP_NAME,'&amp;','') ENTP_NAME
+             , PL.PA_ADDR_SEQ 
+             , PL.PA_CODE
+          FROM TENTPUSER EU
+             , TENTERPRISE EP
+             , TPAENTPSLIP PL
+         WHERE EU.ENTP_CODE = EP.ENTP_CODE
+           AND EU.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+           AND EU.ENTP_CODE = PL.ENTP_CODE 
+           AND PL.PA_CODE IN ('51','52')
+           AND PL.PA_ADDR_GB = #{paAddrGb, jdbcType=VARCHAR}
+           AND PL.TRANS_TARGET_YN = '1'
+    </select>
+    
+    <!-- 쿠팡 연동구조개선 V2 (개별호출로 변경)  -->
+    <select id="selectEntpShipUpdate" resultType="hashMap" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">
+        SELECT /* pacopncommon.xml : pacopn.pacopncommon.selectEntpShipUpdate by PaCopnSellerService*/
+               EU.POST_NO
+             , EU.POST_SEQ
+             , NVL(EU.STD_POST_ADDR1,EU.POST_ADDR) AS ADDRESS1
+             , NVL(EU.STD_POST_ADDR2,EU.ADDR) AS ADDRESS2
+             , EU.ENTP_CODE
+             , EU.ENTP_MAN_SEQ
+             , EU.ENTP_MAN_GB 
+             , EU.ENTP_MAN_NAME
+             , EU.ENTP_MAN_DDD || '-' || EU.ENTP_MAN_TEL1 || '-' || EU.ENTP_MAN_TEL2 AS ENTP_MAN_TEL
+             , EU.ENTP_MAN_HP1 || DECODE(EU.ENTP_MAN_HP1, NULL, '', '-') || EU.ENTP_MAN_HP2 || DECODE(EU.ENTP_MAN_HP2, NULL, '', '-') || EU.ENTP_MAN_HP3 AS ENTP_MAN_HP
+             , TO_CHAR(EU.MODIFY_DATE, 'YYYY/MM/DD HH24:MI:SS') MODIFY_DATE
+             , REPLACE(EP.ENTP_NAME,'&amp;','') ENTP_NAME
+             , PL.PA_ADDR_SEQ 
+             , PL.PA_CODE
+          FROM TENTPUSER EU
+             , TENTERPRISE EP
+             , TPAENTPSLIP PL
+         WHERE EU.ENTP_CODE = EP.ENTP_CODE
+           AND EU.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+           AND EU.ENTP_CODE = PL.ENTP_CODE 
+           AND PL.PA_ADDR_SEQ IS NOT NULL
+           AND PL.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PL.ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+           AND PL.ENTP_MAN_SEQ = #{entpManSeq, jdbcType=VARCHAR}
+           AND PL.TRANS_TARGET_YN = '1'
+    </select>
+    
+    
+    <update id="updatePaCopnEntpSlip" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">
+        UPDATE /* pacopncommon.xml : pacopn.pacopncommon.updatePaCopnEntpSlip by PaCopnCommonController-entpShipUpdate */
+               TPAENTPSLIP
+           SET TRANS_TARGET_YN = #{transTargetYn, jdbcType=VARCHAR}
+             , MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+             , MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+         WHERE ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+           AND ENTP_MAN_SEQ = #{entpManSeq, jdbcType=VARCHAR}
+           AND PA_CODE = #{paCode, jdbcType=VARCHAR}
+    </update>
+</mapper>

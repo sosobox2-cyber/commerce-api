@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pakakao.counsel">
+
+	<select id="checkPaQnam" parameterType="com.cware.netshopping.domain.PaqnamVO" resultType="int">
+		SELECT COUNT(1) AS CNT
+		  FROM TPAQNAM PQ
+		 WHERE PQ.PA_COUNSEL_NO = #{paCounselNo, jdbcType=VARCHAR}
+		   AND PQ.PA_CODE 		= #{paCode	   , jdbcType=VARCHAR}
+		   AND PQ.MSG_GB 		= #{msgGb	   , jdbcType=VARCHAR}
+	</select>
+
+	<insert id="insertPaQnaM" parameterType="com.cware.netshopping.domain.PaqnamVO">
+		INSERT INTO TPAQNAM ( /* pakakaocounsel.xml : pakakao.counsel.insertPaQnaM */
+			   PA_COUNSEL_SEQ
+			 , PROC_GB
+			 , PA_CODE
+			 , PA_COUNSEL_NO
+			 , COUNSEL_DATE
+			 , COUNSEL_GB
+			 , PA_GOODS_CODE
+			 , PA_ORDER_NO
+			 , ORDER_YN
+			 , DISPLAY_YN			 
+			 , MSG_GB
+			 , TRANS_YN
+			 , INSERT_DATE
+			 , INSERT_ID
+			 , MODIFY_DATE
+			 , MODIFY_ID
+			 , PA_GROUP_CODE)
+	   VALUES( #{paCounselSeq	, jdbcType=VARCHAR}
+		 	 , #{procGb 		, jdbcType=VARCHAR}
+			 , #{paCode 		, jdbcType=VARCHAR}
+			 , #{paCounselNo 	, jdbcType=VARCHAR}
+			 , #{counselDate 	, jdbcType=VARCHAR}
+			 , #{counselGb 		, jdbcType=VARCHAR}
+			 , #{paGoodsCode 	, jdbcType=VARCHAR}
+			 , #{paOrderNo 		, jdbcType=VARCHAR}
+			 , #{orderYn 		, jdbcType=VARCHAR}
+			 , #{displayYn 		, jdbcType=VARCHAR}
+			 , #{msgGb 			, jdbcType=VARCHAR}
+			 , #{transYn 		, jdbcType=VARCHAR}
+			 , #{insertDate 	, jdbcType=TIMESTAMP}
+			 , #{insertId		, jdbcType=VARCHAR}
+			 , #{modifyDate 	, jdbcType=TIMESTAMP}
+			 , #{modifyId		, jdbcType=VARCHAR}
+			 , #{paGroupCode 	, jdbcType=VARCHAR}
+		     )
+	</insert>
+	
+	<insert id="insertPaQnaDt" parameterType="com.cware.netshopping.domain.PaqnamVO">
+		INSERT INTO TPAQNADT ( /* pakakaocounsel.xml : pakakao.counsel.insertPaQnaDt */
+			   PA_COUNSEL_SEQ
+			 , PA_COUNSEL_DT_SEQ
+			 , PROC_GB
+			 , TITLE
+			 , PROC_NOTE
+			 , PROC_DATE
+			 , PROC_ID)
+	   VALUES( #{paCounselSeq   , jdbcType=VARCHAR}
+			 , #{paCounselDtSeq , jdbcType=VARCHAR}
+			 , #{procGb 	 	, jdbcType=VARCHAR}
+			 , #{title 			, jdbcType=VARCHAR}
+			 , #{procNote 		, jdbcType=VARCHAR}
+			 , #{procDate 		, jdbcType=TIMESTAMP}
+			 , #{procId			, jdbcType=VARCHAR}
+		     )
+	</insert>
+	
+	<select id="selectCustCounselList" resultType="com.cware.netshopping.domain.PaqnamVO">
+		SELECT /* pakakaocounsel.xml : pakakao.counsel.selectCustCounselList */
+			   NVL((SELECT OM.CUST_NO
+		              FROM TPAORDERM POM, TORDERM OM
+		             WHERE PM.PA_ORDER_NO = POM.PA_ORDER_SEQ
+		               AND POM.ORDER_NO = OM.ORDER_NO
+		               AND ROWNUM = 1
+		            ) ,(SELECT TO_CHAR(CODE_NAME)
+	                      FROM TCODE TC
+	                     WHERE TC.CODE_LGROUP = 'O511'
+	                       AND TC.REMARK1 = '11'
+	                ) ) AS CUST_NO
+			 , PM.PA_ORDER_NO
+			 , CK.CS_LGROUP
+			 , CK.CS_MGROUP
+			 , CK.CS_SGROUP
+			 , CK.CS_LMS_CODE
+			 , CK.CS_MGROUP_NAME
+			 , CK.CS_SGROUP_NAME
+			 , PG.GOODS_CODE
+			 , GD.ENTP_CODE
+			 , PM.PA_CODE
+			 , PD.PROC_NOTE
+			 , PM.INSERT_ID
+			 , PM.INSERT_DATE
+			 , PM.MODIFY_ID
+			 , PM.MODIFY_DATE
+			 , PM.PA_COUNSEL_NO
+			 , PM.PA_COUNSEL_SEQ
+			 , (SELECT POM.ORDER_NO
+		  		  FROM TPAORDERM POM
+		 		 WHERE POM.PA_CODE = PM.PA_CODE
+				   AND POM.PA_ORDER_SEQ = PM.PA_ORDER_NO
+				   AND POM.PA_ORDER_GB ='10'
+				   AND ROWNUM = 1 ) AS REF_NO
+		  FROM TPAQNAM PM
+			 , TPAQNADT PD
+			 , TCSKINDS CK
+			 , TPAKAKAOGOODS PG
+			 , TGOODS GD
+		 WHERE PM.PA_GROUP_CODE		= '11'
+		   AND PM.PA_COUNSEL_SEQ	= PD.PA_COUNSEL_SEQ
+		   AND PM.COUNSEL_SEQ IS NULL
+		   AND CK.CS_LGROUP			= '60'
+		   AND PM.PA_GROUP_CODE		= CK.CS_MGROUP
+		   AND PM.COUNSEL_GB		= CK.CS_SGROUP
+		   AND PM.PA_GOODS_CODE		= PG.PRODUCT_ID
+		   AND PG.GOODS_CODE		= GD.GOODS_CODE
+    </select>
+    
+    <select id="selectPaAnserQnaList" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaqnamVO">
+		SELECT /* pakakaocounsel.xml : pakakao.counsel.selectPaAnserQnaList */
+			   SQ.PA_COUNSEL_NO
+			 , SQ.PA_COUNSEL_SEQ
+			 , CD.PROC_NOTE
+			 , SQ.PA_CODE
+		  FROM TPAQNAM SQ
+			 , TCUSTCOUNSELM CM
+			 , TCUSTCOUNSELDT CD
+		 WHERE SQ.COUNSEL_SEQ = CM.COUNSEL_SEQ
+		   AND CM.COUNSEL_SEQ = CD.COUNSEL_SEQ
+		   AND CD.DO_FLAG = '40'
+		   AND CD.PROC_DATE > SYSDATE - 3
+		   AND SQ.TRANS_YN = '0'
+		   AND SQ.MSG_GB = #{msgGb, jdbcType=VARCHAR}
+		   AND SQ.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+	</select>
+	
+	<update id="updatePaQnaTrans" parameterType="com.cware.netshopping.domain.PaqnamVO">
+		UPDATE TPAQNAM /* pakakaocounsel.xml : pakakao.counsel.updatePaQnaTrans */
+		   SET TRANS_YN 	  = '1'
+			 , PROC_GB 		  = '40'
+			 , TRANS_DATE 	  = #{modifyDate  , jdbcType=TIMESTAMP}
+			 , MODIFY_ID 	  = #{modifyId    , jdbcType=VARCHAR}
+			 , MODIFY_DATE 	  = #{modifyDate  , jdbcType=TIMESTAMP}
+		 WHERE PA_COUNSEL_SEQ = #{paCounselSeq, jdbcType=VARCHAR}
+	</update>
+	
+	<select id="selectPaQnaDtMaxSeq" parameterType="com.cware.netshopping.domain.PaqnamVO" resultType="String">
+		SELECT /* pakakaocounsel.xml : pakakao.counsel.selectPaQnaDtMaxSeq */
+			   MAX(P.PA_COUNSEL_DT_SEQ) + 1
+		  FROM TPAQNADT P
+		 WHERE P.PA_COUNSEL_SEQ = #{paCounselSeq, jdbcType=VARCHAR}
+	</select>
+</mapper>

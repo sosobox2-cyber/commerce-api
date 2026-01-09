@@ -1,0 +1,805 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="palton.delivery">
+   
+    <insert id="insertPaLtonOrderList" parameterType="com.cware.netshopping.domain.PaLtonOrderListVO">
+        INSERT /* paltondelivery.xml : palton.delivery.insertPaLtonOrderList by PaLtonDeliveryController */  
+          INTO TPALTONORDERLIST ( 
+          	   PA_ORDER_GB			, OD_NO					, CLM_NO				
+          	 , OD_SEQ				, OD_TYP_CD				, OD_TYP_DTL_CD			
+          	 , DV_RTRV_DVS_CD		, PROC_SEQ				, ORGL_PROC_SEQ		
+          	 , CH_NO				, CH_DTL_NO				, OD_CMTP_DTTM
+	         , OD_PRGS_STEP_CD		, OD_SL_TYP_CD			, XCHG_DVS_CD			
+	         , CLM_RSN_CD			, CLM_RSN_CNTS			, IMPT_DVS_CD			
+	         , PPR_CRD_MSG_YN		, PPR_CRD_MSG			, PPR_CRD_SNDP_NM		
+	         , PPR_CRD_RCVR_NM		, TR_NO					, TR_NM
+	         , LRTR_NO				, LRTR_NM				, ORD_NM				
+	         , MPHN_NO				, TEL_NO				, EML_ADDR				
+	         , CTRT_TYP_CD			, DV_PD_TYP_CD			, SPD_NO				
+	         , EPD_NO				, SPD_NM				, SITM_NO
+	         , EITM_NO				, SITM_NM				, SL_PRC				
+	         , OD_QTY				, SL_AMT				, CMBN_DV_PSB_YN 		
+	         , CMBN_DV_GRP_NO		, DV_MNS_CD				, HP_DV_DTTM			
+	         , DMST_OVS_DV_DVS_CD	, INDV_CSTM_PCLR_NO		, BRK_HMAP_PKCP_YN
+	         , DV_MSG				, DV_RSV_DVS_CD			, DV_CST				
+	         , OD_CST_TYP_CD		, ADTN_DV_CST			, DVP_CUST_NM			
+	         , DVP_EML_ADDR			, DVP_TEL_NO			, DVP_MPHN_NO			
+	         , SFT_NO				, DVP_ZIP_NO			, DVP_STNM_ZIP_ADDR
+	         , DVP_STNM_DTL_ADDR	, OWHO_DTTM				, RTRP_SI_DTTM			
+	         , INSERT_DATE			, MODIFY_DATE			, PR_SFCO_SHR_AMT_SUM
+	         , PR_ENTP_SHR_AMT_SUM	, SPT_DC_PGM_CMSN_SUM	, FVR_AMT_SUM
+	         , ACTUAL_AMT
+        	) 
+        VALUES(
+              #{paOrderGb	 	, jdbcType=VARCHAR} 	, #{odNo			, jdbcType=VARCHAR} 	, #{clmNo			, jdbcType=VARCHAR} 	
+			, #{odSeq		 	, jdbcType=VARCHAR} 	, #{odTypCd			, jdbcType=VARCHAR} 	, #{odTypDtlCd		, jdbcType=VARCHAR} 	
+			, #{dvRtrvDvsCd	 	, jdbcType=VARCHAR} 	, #{procSeq			, jdbcType=VARCHAR} 	, #{orglProcSeq		, jdbcType=VARCHAR} 
+			, #{chNo		 	, jdbcType=VARCHAR} 	, #{chDtlNo			, jdbcType=VARCHAR} 	, #{odCmptDttm		, jdbcType=VARCHAR} 
+			, #{odPrgsStepCd 	, jdbcType=VARCHAR} 	, #{odSlTypCd		, jdbcType=VARCHAR} 	, #{xchgDvsCd		, jdbcType=VARCHAR} 
+			, #{clmRsnCd	 	, jdbcType=VARCHAR} 	, #{clmRsnCnts		, jdbcType=VARCHAR} 	, #{imptDvsCd		, jdbcType=VARCHAR} 
+			, #{pprCrdMsgYn	 	, jdbcType=VARCHAR} 	, #{pprCrdMsg		, jdbcType=VARCHAR} 	, #{pprCrdSndpNm	, jdbcType=VARCHAR} 
+			, #{pprCrdRcvrNm 	, jdbcType=VARCHAR} 	, #{trNo			, jdbcType=VARCHAR} 	, #{trNm			, jdbcType=VARCHAR}
+			, #{lrtrNo 			, jdbcType=VARCHAR} 	, #{lrtrNm			, jdbcType=VARCHAR} 	, #{odrNm			, jdbcType=VARCHAR}			
+			, #{mphnNo 		 	, jdbcType=VARCHAR} 	, #{telNo			, jdbcType=VARCHAR} 	, #{emlAddr			, jdbcType=VARCHAR}				
+			, #{ctrtTypCd 		, jdbcType=VARCHAR} 	, #{dvPdTypCd		, jdbcType=VARCHAR} 	, #{spdNo			, jdbcType=VARCHAR}		
+			, #{epdNo 	 	 	, jdbcType=VARCHAR} 	, #{spdNm			, jdbcType=VARCHAR} 	, #{sitmNo			, jdbcType=VARCHAR}					
+			, #{eitmNo 	 	 	, jdbcType=VARCHAR} 	, #{sitmNm			, jdbcType=VARCHAR} 	, #{slPrc			, jdbcType=NUMERIC}					
+			, #{odQty 	 	 	, jdbcType=NUMERIC} 	, #{slAmt			, jdbcType=NUMERIC} 	, #{cmbnDvPsbYn		, jdbcType=VARCHAR}					
+			, #{cmbnDvGrpNo	 	, jdbcType=VARCHAR} 	, #{dvMnsCd			, jdbcType=VARCHAR} 	, #{hpDvDttm		, jdbcType=VARCHAR}						
+			, #{dmstOvsDvDvsCd	, jdbcType=VARCHAR} 	, #{indvCstmPclrNo	, jdbcType=VARCHAR} 	, #{brkHmapPkcpYn	, jdbcType=VARCHAR}		
+			, #{dvMsg			, jdbcType=VARCHAR} 	, #{dvRsvDvsCd		, jdbcType=VARCHAR} 	, #{dvCst			, jdbcType=NUMERIC}		
+			, #{odCstTypCd		, jdbcType=VARCHAR} 	, #{adtnDvCst		, jdbcType=NUMERIC} 	, #{dvpCustNm		, jdbcType=VARCHAR}					
+			, #{dvpEmlAddr		, jdbcType=VARCHAR} 	, #{dvpTelNo		, jdbcType=VARCHAR} 	, #{dvpMphnNo		, jdbcType=VARCHAR}				
+			, #{sftNo			, jdbcType=VARCHAR} 	, #{dvpZipNo		, jdbcType=VARCHAR} 	, #{dvpStnmZipAddr	, jdbcType=VARCHAR}				
+			, #{dvpStnmDtlAddr	, jdbcType=VARCHAR} 	, #{owhoDttm		, jdbcType=VARCHAR} 	, #{rtrpSiDttm		, jdbcType=VARCHAR}				
+			, #{insertDate		, jdbcType=TIMESTAMP}	, #{modifyDate		, jdbcType=TIMESTAMP} 	, #{prSfcoShrAmtSum	, jdbcType=NUMERIC}
+			, #{prEntpShrAmtSum	, jdbcType=NUMERIC}		, #{sptDcPgmCmsnSum	, jdbcType=NUMERIC}		, #{fvrAmtSum		, jdbcType=NUMERIC}
+			, #{actualAmt		, jdbcType=NUMERIC}
+        )  
+     </insert>      
+     
+     
+     <select id="countOrderList" parameterType="hashMap" resultType="int">
+        SELECT /* paltondelivery.xml : palton.delivery.countOrderList by PaLtonDeliveryController */
+           	   COUNT(1) AS CNT
+          FROM TPALTONORDERLIST OT
+             , TPAORDERM PM
+         WHERE OT.OD_NO 	  = PM.PA_ORDER_NO
+           AND OT.OD_SEQ 	  = PM.PA_ORDER_SEQ
+           AND OT.OD_TYP_CD   = PM.PA_ORDER_GB
+           AND PM.PA_ORDER_GB = '10'
+           AND PM.CREATE_YN   = '1'
+           AND OT.OD_NO 	  = #{odNo	   , jdbcType=VARCHAR}
+           AND OT.OD_SEQ 	  = #{odSeq	   , jdbcType=VARCHAR}
+           AND OT.PA_ORDER_GB = #{paOrderGb, jdbcType=VARCHAR}
+           <if test="procSeq != null and procSeq != ''">
+             AND OT.PROC_SEQ  = #{procSeq  , jdbcType=VARCHAR}
+           </if>
+	</select>
+	
+	<select id="selectDeliveryReadyList" parameterType="String" resultType="hashMap">
+	    SELECT /* paltondelivery.xml : palton.delivery.selectDeliveryReadyList by PaLtonDeliveryController */
+	           OL.OD_NO
+	         , OL.OD_SEQ
+	         , OL.PROC_SEQ
+	         , PM.PA_SHIP_SEQ  AS ORGL_PROC_SEQ 
+	         , OL.DV_RTRV_DVS_CD
+	         , 'Y' AS IF_CPL_Y_N
+	         , ''  AS IF_FL_RSN_CNTS
+	         , ''  AS CLM_NO
+	         , '10' AS PA_DO_FLAG
+	         , PM.MAPPING_SEQ
+	      FROM TPALTONORDERLIST OL
+	         , TPAORDERM PM
+	     WHERE OL.OD_NO       = PM.PA_ORDER_NO
+	       AND OL.OD_SEQ      = PM.PA_ORDER_SEQ
+	       AND PA_CODE IN ('81','82')
+	       AND PM.PA_DO_FLAG   = '10'
+	       AND PM.PA_ORDER_GB  = '10'
+	       AND OL.PA_ORDER_GB  = '10'
+	</select>
+	
+	<update id="updatePaOrderMDoFlag" parameterType="hashMap">
+        UPDATE /* paltondelivery.xml : palton.delivery.updatePaOrderMDoFlag by PaLtonDeliveryController */
+        	   TPAORDERM
+           SET PA_DO_FLAG 		  = #{paDoFlag			,	jdbcType=VARCHAR}
+           <if test="paHoldYn != null and paHoldYn != ''">
+             , PA_HOLD_YN		  = #{paHoldYn			,	jdbcType=VARCHAR}
+           </if>
+             , API_RESULT_MESSAGE = #{apiResultMesage	,	jdbcType=VARCHAR}
+             , API_RESULT_CODE	  = #{apiResultCode		,	jdbcType=VARCHAR}
+             , MODIFY_DATE		  = SYSDATE
+         WHERE MAPPING_SEQ        = #{mappingSeq		,   jdbcType=VARCHAR}
+    </update>
+                 
+	<select id="selectOrderInputTargetList" parameterType="hashMap" resultType="hashMap">
+        SELECT /* paltondelivery.xml : palton.delivery.selectOrderInputTargetList by PaLtonDeliveryController */
+               AA.PA_ORDER_NO
+             , AA.TARGET_CNT
+          FROM (SELECT POM.PA_ORDER_NO
+                     , COUNT(1) TARGET_CNT
+                  FROM TPAORDERM POM
+                 WHERE POM.PA_CODE        IN ('81','82')
+                   AND POM.PA_ORDER_GB    = '10'
+                   AND POM.CREATE_YN      = '0'
+                   AND POM.PRE_CANCEL_YN  = '0'
+                   AND POM.INSERT_DATE    > TRUNC(SYSDATE)-5
+                   AND POM.PA_DO_FLAG	  = '30'
+                 GROUP BY POM.PA_ORDER_NO
+                 ORDER BY POM.PA_ORDER_NO) AA
+          WHERE 1 = 1 <!-- AA.PA_ORDER_NO = ''  여기다 넣어라-->
+            AND ROWNUM &lt;= #{limitCount, jdbcType=NUMERIC}
+	</select>        
+              
+   	<select id="selectRefusalInfo" parameterType="String" resultType="hashMap">   
+		SELECT /* paltondelivery.xml : palton.delivery.selectRefusalInfo by PaLtonDeliveryController */
+		       OL.OD_SEQ
+		     , OL.PROC_SEQ
+		     , '111' AS SLR_RSN_CD
+		     , '판매자 취소(재고부족)' AS SLR_RSN_CNTS 
+		     , OL.LRTR_NO
+		     , PM.MAPPING_SEQ
+		  FROM TPAORDERM PM
+		     , TPALTONORDERLIST OL
+		 WHERE OL.OD_NO       = PM.PA_ORDER_NO
+		   AND OL.OD_SEQ      = PM.PA_ORDER_SEQ
+		   AND OL.PA_ORDER_GB = PM.PA_ORDER_GB
+		   AND PM.MAPPING_SEQ = #{mappingSeq	,   jdbcType=VARCHAR}
+   	</select>
+   	
+   	
+	<select id="selectSlipOutProcList" resultType="hashMap">   
+	    SELECT /* paltondelivery.xml : selectSlipOutProcList by PaLtonDeliveryController */
+	    	   XX.OD_NO
+	    	 , XX.OD_SEQ 
+	    	 , XX.PROC_SEQ
+	    	 , XX.ORGL_PROC_SEQ
+	    	 , XX.CLM_NO
+	    	 , XX.OD_PRGS_STEP_CD  
+	    	 , XX.DV_TRC_STAT_DTTM
+	    	 , XX.INVC_NBR
+	    	 , XX.INVC_NO
+	    	 , XX.DV_CO_CD
+	    	 , XX.SPD_NO
+	    	 , XX.SITM_NO
+	    	 , XX.SL_QTY
+	    	 , XX.MAPPING_SEQ
+	      FROM (SELECT PO.OD_NO
+		             , PO.OD_SEQ
+		             , PO.PROC_SEQ
+		             , PO.ORGL_PROC_SEQ
+		             , PO.CLM_NO
+		             , '13' AS OD_PRGS_STEP_CD  
+		             , 1 AS INVC_NBR
+		             , CASE WHEN SM.SLIP_PROC = '80' AND SM.SLIP_NO IS NULL THEN SM.SLIP_I_NO
+				       	    ELSE SM.SLIP_NO 
+				       END AS INVC_NO
+				     , CASE WHEN SM.SLIP_PROC = '80' AND SM.SLIP_NO IS NULL THEN (SELECT A.PA_DELY_GB FROM TPADELYGB A WHERE A.PA_CODE = '08' AND A.DELY_GB = '99' AND ROWNUM = 1)
+				       	    ELSE DG.PA_DELY_GB
+				       END AS DV_CO_CD
+				     , CASE WHEN SM.SLIP_PROC = '80' AND SM.SLIP_NO IS NULL THEN TO_CHAR(SYSDATE , 'yyyyMMddhhmmss')
+				     	    ELSE TO_CHAR(SM.SLIP_PROC_DATE, 'yyyyMMddhhmmss')
+				       END AS DV_TRC_STAT_DTTM 
+		             , PO.SPD_NO
+		             , PO.SITM_NO
+		             , PO.OD_QTY AS SL_QTY
+		             , PM.MAPPING_SEQ
+		          FROM TPAORDERM PM
+		             , TPALTONORDERLIST PO
+		             , TSLIPM SM
+		             , TSLIPDT SD
+		             , TORDERGOODS OG
+		             , TPADELYGB DG
+		         WHERE PO.OD_NO       = PM.PA_ORDER_NO
+		           AND PO.OD_SEQ      = PM.PA_ORDER_SEQ
+		           AND PO.PA_ORDER_GB = PM.PA_ORDER_GB
+		           AND PO.OD_TYP_CD   = '10'
+		           AND SM.SLIP_I_NO   = SD.SLIP_I_NO
+		           AND PM.ORDER_NO    = SD.ORDER_NO
+		           AND PM.ORDER_G_SEQ = SD.ORDER_G_SEQ
+		           AND PM.ORDER_D_SEQ = SD.ORDER_D_SEQ
+		           AND PM.ORDER_W_SEQ = SD.ORDER_W_SEQ
+		           AND PM.ORDER_NO    = OG.ORDER_NO
+		           AND PM.ORDER_G_SEQ = OG.ORDER_G_SEQ
+		           AND PM.PA_DO_FLAG  = '30'
+		           AND PM.PA_ORDER_GB = '10'
+		           AND PM.PA_CODE     IN ('81', '82')
+		           AND SM.SLIP_PROC   >= '40'
+		           AND DG.PA_CODE = '08'
+		           AND SM.DELY_GB = DG.DELY_GB
+		           AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0 ) XX
+         WHERE XX.INVC_NO IS NOT NULL
+   	</select>
+   	
+                 
+   	<!-- <select id="selectSlipOutProcList" resultType="hashMap">   
+        SELECT /* paltondelivery.xml : selectSlipOutProcList by PaLtonDeliveryController */
+               PO.OD_NO
+             , PO.OD_SEQ
+             , PO.PROC_SEQ
+             , PO.ORGL_PROC_SEQ
+             , PO.CLM_NO
+             , '13' AS OD_PRGS_STEP_CD  
+             , TO_CHAR(SM.SLIP_PROC_DATE, 'yyyyMMddhhmmss') AS DV_TRC_STAT_DTTM
+             , 1 AS INVC_NBR
+             , SM.SLIP_NO AS INVC_NO
+             , DG.PA_DELY_GB  AS DV_CO_CD  
+             , PO.SPD_NO
+             , PO.SITM_NO
+             , PO.OD_QTY AS SL_QTY
+             , PM.MAPPING_SEQ
+          FROM TPAORDERM PM
+             , TPALTONORDERLIST PO
+             , TSLIPM SM
+             , TSLIPDT SD
+             , TORDERGOODS OG
+             , TPADELYGB DG
+         WHERE PO.OD_NO       = PM.PA_ORDER_NO
+           AND PO.OD_SEQ      = PM.PA_ORDER_SEQ
+           AND PO.PA_ORDER_GB = PM.PA_ORDER_GB
+           AND PO.OD_TYP_CD   = '10'
+           AND SM.SLIP_I_NO   = SD.SLIP_I_NO
+           AND PM.ORDER_NO    = SD.ORDER_NO
+           AND PM.ORDER_G_SEQ = SD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ = SD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ = SD.ORDER_W_SEQ
+           AND PM.ORDER_NO    = OG.ORDER_NO
+           AND PM.ORDER_G_SEQ = OG.ORDER_G_SEQ
+           AND PM.PA_DO_FLAG  = '30'
+           AND PM.PA_ORDER_GB = '10'
+           AND PM.PA_CODE     IN ('81', '82')
+           AND SM.SLIP_PROC   >= '40'
+           AND SM.SLIP_NO IS NOT NULL
+           AND DG.PA_CODE = '08'
+           AND SM.DELY_GB = DG.DELY_GB
+           AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+           AND SM.SLIP_PROC_DATE > SYSDATE - 3
+   	</select>
+   	 -->
+   	<select id="selectDeliveryCompleteList" resultType="hashMap">  
+        SELECT /* paltondelivery.xml : selectDeliveryCompleteList by PaLtonDeliveryController */
+               PO.OD_NO
+             , PO.OD_SEQ
+             , PO.PROC_SEQ
+             , PO.ORGL_PROC_SEQ
+             , PO.CLM_NO
+             , '14' AS OD_PRGS_STEP_CD  
+             , 1 AS INVC_NBR
+			 , CASE WHEN SM.SLIP_PROC = '80' AND SM.SLIP_NO IS NULL THEN TO_CHAR(SYSDATE , 'yyyyMMddhhmmss')
+			   	    ELSE TO_CHAR(SM.SLIP_PROC_DATE, 'yyyyMMddhhmmss')
+			   END AS DV_TRC_STAT_DTTM     
+		     , CASE WHEN SM.SLIP_PROC = '80' AND SM.SLIP_NO IS NULL THEN SM.SLIP_I_NO
+				    ELSE SM.SLIP_NO 
+			   END AS INVC_NO
+             , CASE WHEN SM.SLIP_PROC = '80' AND SM.SLIP_NO IS NULL THEN (SELECT A.PA_DELY_GB FROM TPADELYGB A WHERE A.PA_CODE = '08' AND A.DELY_GB = '99' AND ROWNUM = 1)
+				    ELSE GB.PA_DELY_GB
+			   END AS DV_CO_CD
+             <!--  
+             , SM.SLIP_NO AS INVC_NO
+             , GB.PA_DELY_GB  AS DV_CO_CD  
+             , TO_CHAR(SM.SLIP_PROC_DATE, 'yyyyMMddhhmmss') AS DV_TRC_STAT_DTTM
+             -->
+             , PO.SPD_NO
+             , PO.SITM_NO
+             , PO.OD_QTY AS SL_QTY
+             , PM.MAPPING_SEQ
+         FROM TPAORDERM PM
+            , TPALTONORDERLIST PO
+            , TSLIPM SM
+            , TSLIPDT SD
+            , TPADELYGB GB
+        WHERE PO.OD_NO       = PM.PA_ORDER_NO
+          AND PO.OD_SEQ      = PM.PA_ORDER_SEQ
+          AND PO.PA_ORDER_GB = PM.PA_ORDER_GB
+          AND PO.OD_TYP_CD   = '10'
+          AND SM.SLIP_I_NO   = SD.SLIP_I_NO
+          AND PM.ORDER_NO    = SD.ORDER_NO
+          AND PM.ORDER_G_SEQ = SD.ORDER_G_SEQ
+          AND PM.ORDER_D_SEQ = SD.ORDER_D_SEQ
+          AND PM.ORDER_W_SEQ = SD.ORDER_W_SEQ
+          AND PM.PA_DO_FLAG  = '40'
+          AND PM.PA_ORDER_GB = '10'
+          AND PM.PA_CODE     IN ('81', '82')
+          AND SM.SLIP_PROC   = '80' /* BO배송완료 */
+          AND GB.PA_CODE     = '08'
+          AND SM.DELY_GB     = GB.DELY_GB
+          <!--  AND SM.SLIP_PROC_DATE >= TRUNC(SYSDATE) - 15  TSLIP INDEX RANGE 스캔보다 TPAORDERM_INDEX08 USE 가 더 적합해보임-->
+   	</select> 
+   	   		
+   	 <update id="updatePreCanYn">
+        UPDATE /* paltondelivery.xml : palton.delivery.updatePreCanYn by PaLtonAsyncController*/
+        	   TPAORDERM
+           SET PRE_CANCEL_YN	 	= #{preCanYn			,	jdbcType=VARCHAR}
+             , API_RESULT_MESSAGE	= #{apiResultMessage	,	jdbcType=VARCHAR}
+             <if test="apiResultCode != null and apiResultCode != ''">
+             , API_RESULT_CODE		= #{apiResultCode    	,	jdbcType=VARCHAR}
+             </if>
+             , MODIFY_DATE		 	= SYSDATE
+         WHERE MAPPING_SEQ       	= #{mappingSeq			,   jdbcType=VARCHAR}
+    </update>
+   	   	
+    <!-- 
+    <select id="selectOrderInputTargetDtList" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* paltondelivery.xml : selectOrderInputTargetDtList by PaLtonDeliveryController */
+    	  	   *
+    	  FROM ( 
+		        SELECT PM.PA_ORDER_NO
+		             , PM.PA_CODE
+		             , OL.OD_NO AS PA_ORDER_CODE
+		             , OL.SITM_NO AS PA_GOODS_CODE
+		             , OL.OD_SEQ
+		             , PM.MAPPING_SEQ
+		             , TC.REMARK1 AS MEDIA_CODE
+		             , OL.OD_CMTP_DTTM AS ORDER_DATE
+		             , PGD.GOODS_CODE
+		             , PGD.GOODSDT_CODE
+		             , OL.OD_QTY AS ORDER_QTY
+		             , TO_CHAR(PGP.APPLY_DATE, 'YYYYMMDDHH24MISS') APPLY_DATE
+		             , OL.SL_AMT AS RSALE_AMT
+		             , PGP.SUPPLY_PRICE
+		             , NVL(OL.ORD_NM, OL.DVP_CUST_NM) AS CUST_NAME
+		             , CWARE_ENC_DEC(OL.MPHN_NO,'D') AS CUST_TEL1
+		             , CWARE_ENC_DEC(OL.TEL_NO,'D')    AS CUST_TEL2
+		             , OL.DVP_CUST_NM AS RECEIVER_NAME
+		             , NVL(CWARE_ENC_DEC(OL.DVP_TEL_NO   ,'D') ,  CWARE_ENC_DEC(OL.TEL_NO,'D')    ) AS RECEIVER_TEL
+		             , NVL(CWARE_ENC_DEC(OL.DVP_MPHN_NO,'D')   ,  CWARE_ENC_DEC(OL.MPHN_NO,'D') ) AS RECEIVER_HP
+		             , OL.DVP_ZIP_NO  AS ZIPCODE 
+		             , CWARE_ENC_DEC(OL.DVP_STNM_ZIP_ADDR,'D') || ' ' || CWARE_ENC_DEC(OL.DVP_STNM_DTL_ADDR,'D') AS RECEIVER_ADDR
+		             , CWARE_ENC_DEC(OL.DVP_STNM_ZIP_ADDR,'D') || ' ' || CWARE_ENC_DEC(OL.DVP_STNM_DTL_ADDR,'D') AS FULL_RECEIVER_ADDR    
+		             , NVL((PGP.SALE_PRICE * OL.OD_QTY),0)  - OL.SL_AMT  AS SELLER_DC_AMT
+		             , NVL((PGP.LUMP_SUM_DC_AMT * OL.OD_QTY),0) AS LUMP_SUM_DC_AMT
+		             , NVL((PGP.LUMP_SUM_ENTP_DC_AMT),0) AS LUMP_SUM_ENTP_DC_AMT
+		             , NVL((PGP.LUMP_SUM_OWN_DC_AMT),0) AS LUMP_SUM_OWN_DC_AMT
+		             , OL.DV_MSG AS MSG
+		             , OL.DV_CST + OL.ADTN_DV_CST AS SHP_FEE_COST
+		             , CWARE_ENC_DEC(OL.DVP_STNM_ZIP_ADDR,'D') AS RECEIVER_ADDR1
+		             , CWARE_ENC_DEC(OL.DVP_STNM_DTL_ADDR,'D') AS RECEIVER_ADDR2
+		             , PGP.PRICE_SEQ
+		             , DECODE(PA_DO_FLAG, '10' , '10' ,'20' ) DO_FLAG 
+		             , TC.CODE_SNAME AS SITE_GB
+		             , PGP.SALE_PRICE  
+		             , '99' AS CUST_CHAR
+		             , '65' AS RECEIVE_METHOD
+		             , PGP.DC_AMT
+		             , OL.SL_PRC
+					 , 0 AS SD_PROMO_PRICE
+					 , NVL(NVL(PP.COUPON_DC_AMT,
+					        (SELECT /*+INDEX_DESC (PPT IDX_TPAPROMOTARGET_04)*/
+		                            CASE WHEN  PPT.PROC_GB = 'D' THEN 0
+		                                 WHEN  PPT.PROC_GB = 'U' AND PPT.USE_CODE != '00'  THEN 0
+		                                 ELSE  PPT.DO_AMT
+		                                 END
+		                       FROM TPAPROMOTARGET PPT
+		                          , TPROMOM TB_A
+		                      WHERE PPT.GOODS_CODE 		= PGM.GOODS_CODE
+		                        AND PPT.PA_CODE    		= PGM.PA_CODE
+		                        AND PPT.PROMO_NO 	 	= TB_A.PROMO_NO
+		                        AND TB_A.COUPON_YN 		= '1'
+		                        AND TB_A.IMMEDIATELY_YN = '1'
+		                        AND NVL(TB_A.ALCOUT_PROMO_YN, '0') = '1'
+		                        AND PPT.TRANS_DATE IS NOT NULL
+		                        AND PPT.TRANS_DATE &lt; TO_DATE(OL.OD_CMTP_DTTM, 'YYYYMMDD HH24MISS')
+		                        AND ((TO_DATE(OL.OD_CMTP_DTTM, 'YYYYMMDD HH24MISS') BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE +  #{ papromoAllowTerm, jdbcType=VARCHAR} ) 
+		                        	  OR (TO_DATE(OL.OD_CMTP_DTTM, 'YYYYMMDD HH24MISS') > PPT.PROMO_EDATE AND  PPT.PROC_GB = 'D' )
+		                        	  OR (PM.REMARK4_N IS NOT NULL AND PM.REMARK4_N = 1) )
+		                        AND ROWNUM         = 1 )
+		                        ), 0) AS OUT_PROMO_PRICE
+					 , PM.REMARK4_N
+					 , PP.COUPON_PROMO_NO AS PROMO_NO
+		             , PP.COUPON_OWN_COST AS OWN_COST
+		             , PP.COUPON_ENTP_COST AS ENTP_COST
+		             , PROMO.PROMO_BDATE AS COUPON_PROMO_BDATE
+                     , PROMO.PROMO_EDATE AS COUPON_PROMO_EDATE
+		          FROM TPAORDERM PM
+		             , TPALTONORDERLIST OL
+		             , TCODE TC
+		             , TPALTONGOODS PGM
+		             , TPALTONGOODSDTMAPPING PGD
+		             , TPAGOODSPRICE PGP
+		             , TPAGOODSPRICEAPPLY PP
+		             , TPROMOM PROMO
+		         WHERE PM.PA_ORDER_NO      = OL.OD_NO
+		           AND PM.PA_ORDER_SEQ     = OL.OD_SEQ
+		           AND PM.PA_SHIP_NO       = OL.PROC_SEQ
+		           AND PM.PA_GROUP_CODE    = TC.CODE_MGROUP
+		           AND PGM.GOODS_CODE      = PGD.GOODS_CODE
+		           AND OL.SPD_NO           = PGM.SPD_NO
+		           AND PM.PA_CODE          = PGD.PA_CODE
+		           AND OL.SITM_NO          = PGD.PA_OPTION_CODE
+		           AND PGD.GOODS_CODE      = PGP.GOODS_CODE
+		           AND PM.PA_CODE          = PGP.PA_CODE
+		           AND PGM.PA_GROUP_CODE   = PM.PA_GROUP_CODE
+		           AND PGP.ROWID           = (SELECT /*+ INDEX_DESC (PP PK_TPAGOODSPRICE)*/
+		                                             PP.ROWID
+		                                        FROM TPAGOODSPRICE PP
+		                                       WHERE PP.GOODS_CODE = OL.EPD_NO
+		                                         AND PP.PA_CODE = PM.PA_CODE
+		                                         AND PP.APPLY_DATE &lt; TO_DATE(OL.OD_CMTP_DTTM, 'YYYYMMDD HH24MISS')
+		                                         AND PP.TRANS_DATE &lt; TO_DATE(OL.OD_CMTP_DTTM, 'YYYYMMDD HH24MISS')
+		                                         AND PP.TRANS_DATE IS NOT NULL
+		                                         AND ROWNUM = 1) 
+		           AND PGM.GOODS_CODE    = PP.GOODS_CODE                                 
+		           AND PGM.PA_GROUP_CODE = PP.PA_GROUP_CODE
+		           AND PGM.PA_CODE       = PP.PA_CODE
+		           AND (PP.APPLY_DATE, PP.PRICE_APPLY_SEQ) = (SELECT /*+ INDEX_DESC (PP2 PK_TPAGOODSPRICEAPPLY)*/
+                                                                    PP2.APPLY_DATE, PP2.PRICE_APPLY_SEQ
+                                                                FROM TPAGOODSPRICEAPPLY PP2
+                                                               WHERE PP2.GOODS_CODE = PP.GOODS_CODE
+                                                                 AND PP2.PA_GROUP_CODE = PP.PA_GROUP_CODE
+                                                                 AND PP2.PA_CODE = PP.PA_CODE
+                                                                 AND PP2.APPLY_DATE &lt;= TO_DATE(OL.OD_CMTP_DTTM, 'YYYYMMDD HH24MISS')
+                                                                 /*AND PP2.TRANS_DATE &lt;= TO_DATE(OL.OD_CMTP_DTTM, 'YYYYMMDD HH24MISS')*/
+                                                                 AND ROWNUM = 1 )
+		           AND PP.COUPON_PROMO_NO = PROMO.PROMO_NO(+)
+		           AND TC.CODE_LGROUP      = 'O500'
+		           AND TC.CODE_MGROUP      =  PM.PA_GROUP_CODE 
+		           AND PM.PA_ORDER_GB      = '10'
+		           AND PM.CREATE_YN        = '0'
+		           AND PM.PRE_CANCEL_YN    = '0'
+		           AND PM.PA_CODE          IN ('81','82')
+		           AND PM.PA_ORDER_NO      = #{paOrderNo    , jdbcType=VARCHAR}
+		           )
+         WHERE SALE_PRICE = SL_PRC + DC_AMT + (LUMP_SUM_DC_AMT/ORDER_QTY)  +  SD_PROMO_PRICE + OUT_PROMO_PRICE
+    </select>
+     -->
+     
+    <select id="selectOrderInputTargetDtList" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* paltondelivery.xml : selectOrderInputTargetDtList by PaLtonDeliveryController */
+    		   PM.PA_ORDER_NO
+		     , PM.PA_CODE
+		     , OL.OD_NO AS PA_ORDER_CODE
+		     , OL.SITM_NO AS PA_GOODS_CODE
+		     , OL.OD_SEQ
+		     , PM.MAPPING_SEQ
+		     , TC.REMARK1 AS MEDIA_CODE
+		     , OL.OD_CMTP_DTTM AS ORDER_DATE
+		     , PGD.GOODS_CODE
+		     , PGD.GOODSDT_CODE
+		     , OL.OD_QTY AS ORDER_QTY
+		     , TO_CHAR(PGP.APPLY_DATE, 'YYYYMMDDHH24MISS') APPLY_DATE
+		     , NVL(OL.ACTUAL_AMT, 0 ) AS RSALE_AMT
+		     , PGP.SUPPLY_PRICE
+		     , NVL(OL.ORD_NM, OL.DVP_CUST_NM) AS CUST_NAME
+		     , CWARE_ENC_DEC(OL.MPHN_NO,'D') AS CUST_TEL1
+		     , CWARE_ENC_DEC(OL.TEL_NO,'D')    AS CUST_TEL2
+		     , OL.DVP_CUST_NM AS RECEIVER_NAME
+		     , NVL(CWARE_ENC_DEC(OL.DVP_TEL_NO   ,'D') ,  CWARE_ENC_DEC(OL.TEL_NO,'D')    ) AS RECEIVER_TEL
+		     , NVL(CWARE_ENC_DEC(OL.DVP_MPHN_NO,'D')   ,  CWARE_ENC_DEC(OL.MPHN_NO,'D') ) AS RECEIVER_HP
+		     , OL.DVP_ZIP_NO  AS ZIPCODE 
+		     , CWARE_ENC_DEC(OL.DVP_STNM_ZIP_ADDR,'D') || ' ' || CWARE_ENC_DEC(OL.DVP_STNM_DTL_ADDR,'D') AS RECEIVER_ADDR
+		     , CWARE_ENC_DEC(OL.DVP_STNM_ZIP_ADDR,'D') || ' ' || CWARE_ENC_DEC(OL.DVP_STNM_DTL_ADDR,'D') AS FULL_RECEIVER_ADDR    
+		     , NVL((PGP.LUMP_SUM_DC_AMT * OL.OD_QTY),0) AS LUMP_SUM_DC_AMT
+		     , NVL((PGP.LUMP_SUM_ENTP_DC_AMT),0) AS LUMP_SUM_ENTP_DC_AMT
+		     , NVL((PGP.LUMP_SUM_OWN_DC_AMT),0) AS LUMP_SUM_OWN_DC_AMT
+		     , OL.DV_MSG AS MSG
+		     , OL.DV_CST + OL.ADTN_DV_CST AS SHP_FEE_COST
+		     , CWARE_ENC_DEC(OL.DVP_STNM_ZIP_ADDR,'D') AS RECEIVER_ADDR1
+		     , CWARE_ENC_DEC(OL.DVP_STNM_DTL_ADDR,'D') AS RECEIVER_ADDR2
+		     , PGP.PRICE_SEQ
+		     , DECODE(PA_DO_FLAG, '10' , '10' ,'20' ) DO_FLAG 
+		     , TC.CODE_SNAME AS SITE_GB
+		     , PGP.SALE_PRICE  
+		     , '99' AS CUST_CHAR
+		     , '65' AS RECEIVE_METHOD
+		     , PGP.DC_AMT
+		     , OL.SL_PRC
+			 , NVL(PP.COUPON_DC_AMT, 0) AS OUT_PROMO_PRICE
+			 , PM.REMARK4_N
+		     , PP.COUPON_PROMO_NO AS PROMO_NO
+		     , PP.COUPON_OWN_COST AS OWN_COST
+		     , PP.COUPON_ENTP_COST AS ENTP_COST
+		     , PROMO.PROMO_BDATE AS COUPON_PROMO_BDATE
+             , PROMO.PROMO_EDATE AS COUPON_PROMO_EDATE
+		     , NVL(OL.PR_SFCO_SHR_AMT_SUM , 0 ) AS PA_DC_AMT
+             , NVL(OL.PR_ENTP_SHR_AMT_SUM , 0 ) AS INSTANT_COUPON_DISCOUNT
+             , NVL(OL.SPT_DC_PGM_CMSN_SUM , 0 ) AS SPT_DC_PGM_CMSN_SUM
+             , NVL(OL.FVR_AMT_SUM, 0 ) AS FVR_AMT_SUM
+             , NVL( OL.PR_ENTP_SHR_AMT_SUM + OL.SPT_DC_PGM_CMSN_SUM + ((PGP.SALE_PRICE * OL.OD_QTY)  - OL.SL_AMT ) , 0) AS SELLER_DC_AMT  
+		 	 , TO_CHAR(GP.APPLY_DATE, 'YYYYMMDDHH24MISS') AS STOA_APPLY_DATE
+		  FROM TPAORDERM PM
+		     , TPALTONORDERLIST OL
+		     , TCODE TC
+		     , TPALTONGOODS PGM
+		     , TPALTONGOODSDTMAPPING PGD
+		     , TPAGOODSPRICE PGP
+		     , TPAGOODSPRICEAPPLY PP
+		     , TPROMOM PROMO
+		     , TGOODSPRICE GP
+		 WHERE PM.PA_ORDER_NO      = OL.OD_NO
+		   AND PM.PA_ORDER_SEQ     = OL.OD_SEQ
+		   AND PM.PA_SHIP_NO       = OL.PROC_SEQ
+		   AND PM.PA_GROUP_CODE    = TC.CODE_MGROUP
+		   AND PGM.GOODS_CODE      = PGD.GOODS_CODE
+		   AND OL.SPD_NO           = PGM.SPD_NO
+		   AND PM.PA_CODE          = PGD.PA_CODE
+		   AND OL.SITM_NO          = PGD.PA_OPTION_CODE
+		   AND PGD.GOODS_CODE      = PGP.GOODS_CODE
+		   AND PM.PA_CODE          = PGP.PA_CODE
+		   AND PGM.PA_GROUP_CODE   = PM.PA_GROUP_CODE
+		   AND PGP.ROWID           = (SELECT /*+ INDEX_DESC (PP PK_TPAGOODSPRICE)*/
+		                                     PP.ROWID
+		                                FROM TPAGOODSPRICE PP
+		                               WHERE PP.GOODS_CODE = OL.EPD_NO
+		                                 AND PP.PA_CODE = PM.PA_CODE
+		                                 AND PP.APPLY_DATE &lt; TO_DATE(OL.OD_CMTP_DTTM, 'YYYYMMDD HH24MISS')
+		                                 AND PP.TRANS_DATE &lt; TO_DATE(OL.OD_CMTP_DTTM, 'YYYYMMDD HH24MISS')
+		                                 AND PP.TRANS_DATE IS NOT NULL
+		                                 AND ROWNUM = 1) 
+		   AND PGM.GOODS_CODE    = PP.GOODS_CODE                                 
+		   AND PGM.PA_GROUP_CODE = PP.PA_GROUP_CODE
+		   AND PGM.PA_CODE       = PP.PA_CODE
+		   AND (PP.APPLY_DATE, PP.PRICE_APPLY_SEQ) = (SELECT /*+ INDEX_DESC (PP2 PK_TPAGOODSPRICEAPPLY)*/
+                                                            PP2.APPLY_DATE, PP2.PRICE_APPLY_SEQ
+                                                        FROM TPAGOODSPRICEAPPLY PP2
+                                                       WHERE PP2.GOODS_CODE = PP.GOODS_CODE
+                                                         AND PP2.PA_GROUP_CODE = PP.PA_GROUP_CODE
+                                                         AND PP2.PA_CODE = PP.PA_CODE
+                                                         AND PP2.APPLY_DATE &lt;= TO_DATE(OL.OD_CMTP_DTTM, 'YYYYMMDD HH24MISS')
+                                                         AND PP2.TRANS_DATE &lt;= TO_DATE(OL.OD_CMTP_DTTM, 'YYYYMMDD HH24MISS')
+                                                         AND ROWNUM = 1 )
+		   AND PP.COUPON_PROMO_NO = PROMO.PROMO_NO(+)
+		   AND GP.GOODS_CODE = PGP.GOODS_CODE
+           AND GP.ROWID = (SELECT /*+ INDEX_DESC (GP2 PK_TGOODSPRICE)*/
+                                     GP2.ROWID
+                             FROM TGOODSPRICE GP2
+                            WHERE GP2.GOODS_CODE  = GP.GOODS_CODE
+                              AND GP2.APPLY_DATE &lt; TO_DATE(OL.OD_CMTP_DTTM, 'YYYYMMDD HH24MISS')
+                              AND ROWNUM = 1)
+		   AND TC.CODE_LGROUP      = 'O500'
+		   AND TC.CODE_MGROUP      =  PM.PA_GROUP_CODE 
+		   AND PM.PA_ORDER_GB      = '10'
+		   AND PM.CREATE_YN        = '0'
+		   AND PM.PRE_CANCEL_YN    = '0'
+		   AND PM.PA_CODE          IN ('81','82')
+		   AND PM.PA_ORDER_NO      = #{paOrderNo    , jdbcType=VARCHAR}
+    </select>
+    
+	<select id="selectOrderPromo" parameterType="hashMap" resultType="com.cware.netshopping.domain.OrderpromoVO">
+	    SELECT /* paltondelivery.xml : selectOrderPromo by PaLtonDeliveryController */
+	    	    * 
+	      FROM (     
+		         SELECT PPT.SEQ
+		              , PPT.PROC_GB 
+		              , PM.PROMO_NO AS PROMO_NO
+		              , PPT.PA_CODE
+		              , TG.GOODS_CODE
+		              , PM.DO_TYPE
+		              , PM.COUPON_YN
+		              , PM.MEDIA_CODE
+		              , PM.PROMO_BDATE AS COUPON_PROMO_BDATE
+		              , PM.PROMO_EDATE AS COUPON_PROMO_EDATE
+		              , PPT.DO_AMT AS PROC_COST
+		              , PPT.OWN_COST AS OWN_PROC_COST
+		              , PPT.ENTP_COST AS ENTP_PROC_COST   
+		              , PPT.INSERT_DATE              
+		           FROM TPROMOM          PM
+		              , TPAPROMOTARGET   PPT
+		              , TGOODS           TG
+		              , TPALTONGOODS     IG
+		           WHERE PM.PROMO_NO       = PPT.PROMO_NO
+		             AND PPT.GOODS_CODE    = TG.GOODS_CODE
+		             AND TG.GOODS_CODE     = IG.GOODS_CODE
+		             AND PPT.GOODS_CODE    = #{goodsCode,jdbcType=VARCHAR}
+		             AND PM.COUPON_YN      = '1'
+		             AND PM.APP_TYPE       = '10'
+		             AND PPT.PA_CODE       = IG.PA_CODE
+		             AND PM.IMMEDIATELY_YN = '1'
+		             AND NVL(PM.ALCOUT_PROMO_YN, '0') = #{alcoutPromoYn,	jdbcType=VARCHAR}
+		             AND PM.GOODS_ALL_YN   = '0'
+		             AND ((PPT.USE_CODE       = '00' AND PPT.PROC_GB IN ('I', 'U') )  OR (PPT.PROC_GB = 'D') ) 
+		             AND PPT.TRANS_DATE    IS NOT NULL
+		             AND PPT.TRANS_DATE    &lt; TO_DATE(#{orderDate,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS')
+		             AND (( TO_DATE(#{orderDate,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE )
+		             	   OR ( TO_DATE(#{orderDate,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') >  PPT.PROMO_EDATE AND PPT.PROC_GB = 'D' ) )    
+		             AND TG.GIFT_YN        = '0'            
+		        ORDER BY PPT.TRANS_DATE DESC )
+         WHERE ROWNUM = 1
+    </select>
+                          
+    <select id="selectExchangeHoldList" resultType="hashMap">
+    	SELECT /* paltondelivery.xml : selectExchangeHoldList by PaLtonDeliveryController */
+    	       PM.PA_ORDER_NO AS OD_NO
+    	     , PM.PA_CODE
+    	     , PM.PA_ORDER_SEQ
+    	     , PM.PA_CLAIM_NO
+    	  FROM TPAORDERM PM
+    	 WHERE PM.PA_CODE 		IN ('81', '82')
+    	   AND PM.PA_ORDER_GB 	= '40'
+    	   AND PM.PA_DO_FLAG  	= '20'
+    	   AND PM.PA_HOLD_YN  	= '1'
+    	   AND PM.PRE_CANCEL_YN = '0'
+    	   AND NOT EXISTS ( SELECT 1 /* 찾고자하는 교환보류건에 대한 교환철회 데이터가 없는 거 */
+                              FROM TPAORDERM PM2
+                             WHERE PM2.PA_CODE 		= PM.PA_CODE
+                               AND PM2.PA_ORDER_NO  = PM.PA_ORDER_NO
+                               AND PM2.PA_ORDER_SEQ = PM.PA_ORDER_SEQ
+                               AND PM2.PA_ORDER_GB  = '41'
+                               AND PM2.PA_SHIP_SEQ  = PM.PA_SHIP_NO )
+    </select>
+    
+    <update id="updateExchangeAmt" parameterType="hashMap">
+    	UPDATE /* paltondelivery.xml : updateExchangeAmt by PaLtonDeliveryController */
+    	       TPALTONCLAIMLIST
+    	   SET XCHG_DV_CST	 = #{XCHG_DV_CST,  jdbcType=VARCHAR}
+    	     , MODIFY_DATE   = SYSDATE
+    	 WHERE OD_NO 		 = #{OD_NO, 	   jdbcType=VARCHAR}
+    	   AND OD_SEQ 		 = #{PA_ORDER_SEQ, jdbcType=VARCHAR}
+    	   AND CLM_NO   	 = #{PA_CLAIM_NO,  jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updatePaHoldYn" parameterType="hashMap">
+    	UPDATE /* paltondelivery.xml : updatePaHoldYn by PaLtonDeliveryController */
+    	       TPAORDERM
+    	   SET PA_HOLD_YN 		  = #{PA_HOLD_YN,   	  jdbcType=VARCHAR}
+    	     , API_RESULT_CODE    = #{API_RESULT_CODE,    jdbcType=VARCHAR}
+    	     , API_RESULT_MESSAGE = #{API_RESULT_MESSAGE, jdbcType=VARCHAR}
+    	 WHERE PA_CODE 			  = #{PA_CODE, 	  		  jdbcType=VARCHAR}
+    	   AND PA_ORDER_NO 		  = #{PA_ORDER_NO, 	 	  jdbcType=VARCHAR}
+    	   <if test='flag != null and flag =="EXCHANGE"'>
+    	   	 AND PA_ORDER_GB 	  IN ('40', '45')
+    	   </if>
+    	   <if test='flag != null and flag =="RETRIEVE"'>
+    	   	 AND PA_ORDER_GB 	  = '30'
+    	   </if>
+    	   AND PA_ORDER_SEQ 	  = #{PA_ORDER_SEQ, 	  jdbcType=VARCHAR}
+    	   AND PA_CLAIM_NO 		  = #{PA_CLAIM_NO,  	  jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectRetrievalExceptList" resultType="hashMap">   
+        SELECT /* paltondelivery.xml : selectRetrievalExceptList by PaLtonDeliveryController */
+               'RTRV'                 AS DV_RTRV_DVS_CD
+             , PM.PA_CODE             AS PA_CODE
+             , PM.PA_ORDER_NO         AS OD_NO
+             , PM.PA_ORDER_SEQ        AS OD_SEQ
+             , PM.PA_SHIP_NO          AS PROC_SEQ
+             , PM.PA_SHIP_SEQ         AS ORGL_PROC_SEQ
+             , PM.PA_CLAIM_NO         AS CLM_NO
+             , '03'                   AS EXCP_PROC_DVS_CD
+             , '7일지나회수보류처리'       AS EXCP_PROC_RSN_CNTS
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS DV_TRC_STAT_DTTM
+             , PM.MAPPING_SEQ
+          FROM TPAORDERM 		PM
+             , TCLAIMDT  		CD
+             , TPALTONCLAIMLIST PC
+         WHERE PM.ORDER_NO     = CD.ORDER_NO
+           AND PM.ORDER_G_SEQ  = CD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ  = CD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ  = CD.ORDER_W_SEQ
+           AND PM.PA_ORDER_NO  = PC.OD_NO
+	       AND PM.PA_ORDER_SEQ = PC.OD_SEQ
+	       AND PM.PA_CLAIM_NO  = PC.CLM_NO
+	       AND PM.PA_ORDER_GB  = PC.PA_ORDER_GB
+	       AND PM.PA_SHIP_NO   = PC.PROC_SEQ
+           AND PM.PA_ORDER_GB  = '30'
+           AND PM.PA_DO_FLAG   &lt; '60'
+           AND CD.DO_FLAG      &lt; '60'
+           AND CD.CLAIM_GB     = '30'
+           AND CD.SYSCANCEL    =  0 
+           AND CD.CLAIM_DATE   > SYSDATE - 20
+           AND PM.PA_HOLD_YN   = '0'
+           AND PM.PA_CODE      IN ('81', '82')
+           AND PM.OUT_BEF_CLAIM_GB = '0'
+           AND TRUNC(SYSDATE - TO_DATE(PC.CLM_REQ_DTTM, 'YYYY-MM-DD HH24:MI:SS')) > 7
+           
+	 UNION ALL
+
+        SELECT 'RTRV'                AS DV_RTRV_DVS_CD
+       		 , PM.PA_CODE             AS PA_CODE
+             , PM.PA_ORDER_NO        AS OD_NO
+             , PM.PA_ORDER_SEQ       AS OD_SEQ
+             , PM.PA_SHIP_NO         AS PROC_SEQ
+             , PM.PA_SHIP_SEQ        AS ORGL_PROC_SEQ
+             , PM.PA_CLAIM_NO        AS CLM_NO
+             , '09'                  AS EXCP_PROC_DVS_CD
+             , '보류해제'              AS EXCP_PROC_RSN_CNTS
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS DV_TRC_STAT_DTTM
+             , PM.MAPPING_SEQ
+          FROM TPAORDERM 		PM
+             , TCLAIMDT  		CD
+             , TPALTONCLAIMLIST PC
+         WHERE PM.ORDER_NO     = CD.ORDER_NO
+           AND PM.ORDER_G_SEQ  = CD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ  = CD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ  = CD.ORDER_W_SEQ
+           AND PM.PA_ORDER_NO  = PC.OD_NO
+	       AND PM.PA_ORDER_SEQ = PC.OD_SEQ
+	       AND PM.PA_CLAIM_NO  = PC.CLM_NO
+	       AND PM.PA_ORDER_GB  = PC.PA_ORDER_GB
+	       AND PM.PA_SHIP_NO   = PC.PROC_SEQ
+           AND PM.PA_ORDER_GB  = '30'
+           AND PM.PA_DO_FLAG   &lt; '60'
+           AND CD.DO_FLAG      = '60'
+           AND CD.CLAIM_GB     = '30'
+           AND CD.SYSCANCEL    =  0 
+           AND CD.CLAIM_DATE   > SYSDATE - 20
+           AND PM.PA_HOLD_YN   = '1'
+           AND PM.PA_CODE     IN ('81', '82')
+           AND PM.OUT_BEF_CLAIM_GB = '0'
+   	</select>
+   	
+	<select id="selectSlipUpdateProcList" resultType="hashMap">   
+	 	SELECT /* paltondelivery.xml : selectSlipUpdateProcList by PaLtonDeliveryController */ 
+		       PO.OD_NO
+		     , PO.OD_SEQ
+		     , PO.PROC_SEQ
+		     , PO.ORGL_PROC_SEQ
+		     , PO.CLM_NO
+		     , SP.TRANS_SLIP_NO  AS INVC_NO
+		     , SM.SLIP_NO        AS MOD_INVC_NO
+		     , DG.PA_DELY_GB     AS MOD_DV_CO_CD
+		     , PM.MAPPING_SEQ
+		  FROM TPAORDERM PM
+		     , TPALTONORDERLIST PO
+		     , TSLIPM SM
+		     , TSLIPDT SD
+		     , TORDERGOODS OG
+		     , TPADELYGB DG
+		     , TPASLIPINFO SP
+		 WHERE PO.OD_NO       	= PM.PA_ORDER_NO
+		   AND PO.OD_SEQ      	= PM.PA_ORDER_SEQ
+		   AND PO.PA_ORDER_GB 	= PM.PA_ORDER_GB
+		   AND PO.OD_TYP_CD   	= '10'
+		   AND SM.SLIP_I_NO   	= SD.SLIP_I_NO
+		   AND PM.ORDER_NO    	= SD.ORDER_NO
+		   AND PM.ORDER_G_SEQ 	= SD.ORDER_G_SEQ
+		   AND PM.ORDER_D_SEQ 	= SD.ORDER_D_SEQ
+		   AND PM.ORDER_W_SEQ 	= SD.ORDER_W_SEQ
+		   AND PM.ORDER_NO    	= OG.ORDER_NO
+		   AND PM.ORDER_G_SEQ 	= OG.ORDER_G_SEQ
+		   AND SP.MAPPING_SEQ 	= PM.MAPPING_SEQ
+		   AND SP.PA_GROUP_CODE = PM.PA_GROUP_CODE
+		   AND SP.SLIP_NO 	   != SM.SLIP_NO
+		   AND SP.INSERT_DATE 	> SYSDATE - 10 
+		   AND SP.LAST_YN     	= '1'
+		   AND PM.PA_ORDER_GB 	= '10'
+		   AND PM.PA_CODE      IN ('81', '82')
+		   AND SM.SLIP_PROC   	= '40'
+		   AND PM.PA_DO_FLAG  	= '40'
+		   AND DG.PA_CODE 	  	= '08'
+		   AND SM.DELY_GB 	  	= DG.DELY_GB
+		   AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+   	</select>
+   	
+   	<select id="selectDeliveryDelayProcList" resultType="hashMap">   
+        SELECT /* paltondelivery.xml : selectDeliveryDelayProcList by PaLtonDeliveryController */ 
+               PO.OD_NO
+		     , PO.OD_SEQ
+		     , PO.PROC_SEQ
+		     , 'CUST_REQ' AS SND_DL_RSN_CD
+             , TO_CHAR(FUN_GET_DELYDAY_HOLI_DATE('10', TO_DATE(PO.OWHO_DTTM, 'YYYY-MM-DD HH24:MI:SS')+1, 0, 42), 'YYYYMMDD') || '235959' AS SND_AGRD_DTTM
+		     , PM.MAPPING_SEQ
+		  FROM TPAORDERM PM
+		     , TPALTONORDERLIST PO
+		     , TORDERGOODS OG
+		     , TGOODS TG
+		     , TGOODSADDINFO TAI
+		 WHERE PO.OD_NO         = PM.PA_ORDER_NO
+ 		   AND PO.OD_SEQ        = PM.PA_ORDER_SEQ
+		   AND PO.PA_ORDER_GB   = PM.PA_ORDER_GB
+		   AND PM.ORDER_NO      = OG.ORDER_NO
+		   AND PM.ORDER_G_SEQ   = OG.ORDER_G_SEQ
+		   AND TG.GOODS_CODE    = OG.GOODS_CODE
+		   AND TAI.GOODS_CODE   = TG.GOODS_CODE
+		   AND PO.OD_TYP_CD     = '10'
+		   AND PM.PA_ORDER_GB   = '10'
+		   AND PM.CREATE_YN     = '1'
+		   AND PM.PA_GROUP_CODE = '08'
+		   AND PM.PA_CODE    IN ('81', '82')
+		   AND PM.PA_DO_FLAG &lt; 40
+		   AND PM.REMARK1_V IS NULL
+		   AND (TG.INSTALL_YN = '1' OR TAI.ORDER_CREATE_YN = '1')
+		   AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+		   AND FUN_GET_DELYDAY_HOLI_DATE('10', TO_DATE(PO.OWHO_DTTM, 'YYYY-MM-DD HH24:MI:SS')+1, 0, 30) &lt;= TRUNC(SYSDATE)
+    </select>
+    
+    <update id="updatePaLtonSndAgrdDttm" parameterType="hashMap">
+        UPDATE /* paltondelivery.xml : palton.delivery.updatePaLtonSndAgrdDttm by PaLtonDeliveryController*/
+               TPAORDERM
+           SET REMARK1_V            = #{REMARK1_V,   jdbcType=VARCHAR}
+             , MODIFY_DATE          = SYSDATE
+         WHERE MAPPING_SEQ          = #{MAPPING_SEQ,   jdbcType=VARCHAR}
+    </update>
+   	
+</mapper>

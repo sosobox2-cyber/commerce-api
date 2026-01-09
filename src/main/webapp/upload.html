@@ -1,0 +1,32 @@
+<html>
+<head>
+    <script type="text/javascript">
+        function formSubmit() {
+            var form = document.infoForm;
+            
+            form.action = "";
+            form.submit();
+        }
+    </script>
+</head>
+ <form name="infoForm" method="post" enctype="multipart/form-data" action="http://open-api-dev.shinsegaetvshopping.com/partner/goods/pregoods-image-file">
+<!--<form name="infoForm" method="post" enctype="multipart/form-data" action="http://api2dev.skymall.co.kr/sellerapi/partner/goods/pregoods-image-file">-->
+	연결코드 :  <input name="linkCode"             value="SLINK" />
+    업체사용자 ID :<input name="entpId"               value="DEV_API" />
+    업체 PW : <input name="entpPass"              value="12345678" />
+    업체코드 : <input name="entpCode"              value="400002" />
+    
+    임시상품 코드 : <input name="scmGoodsCode" 				 value="20000487" />
+    처리코드 : <input name="flagGb"               value="I" /></br>
+    
+    메인이미지 <input name="imgFileBase"          type="file" /></br>
+    서브이미지A<input name="imgFileA"          		type="file" /></br>
+    서브이미지B<input name="imgFileB"          		type="file" /></br>
+    서브이미지C<input name="imgFileC"          		type="file" /></br>
+    서브이미지D<input name="imgFileD"          		type="file" /></br>
+    모바일이미지<input name="imgFileE"          		type="file" /></br>
+    
+  	</br>
+		<input type="submit" value="전송~">
+</form>
+</html>

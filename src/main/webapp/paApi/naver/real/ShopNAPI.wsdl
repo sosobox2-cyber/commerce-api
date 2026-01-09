@@ -1,0 +1,1607 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<wsdl:definitions name="ShopNAPI"
+	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	xmlns:tns="http://shopn.platform.nhncorp.com/"
+	targetNamespace="http://shopn.platform.nhncorp.com/"
+>
+
+	<wsdl:types>
+		<xs:schema targetNamespace="http://shopn.platform.nhncorp.com/" elementFormDefault="qualified">
+			<xs:include schemaLocation="ProductServiceMessage.xsd" />
+			<xs:include schemaLocation="DeliveryInfoServiceMessage.xsd" />
+			<xs:include schemaLocation="AddressBookServiceMessage.xsd" />
+			<xs:include schemaLocation="GalleryServiceMessage.xsd" />
+			<xs:include schemaLocation="QuestionAnswerServiceMessage.xsd" />
+			<xs:include schemaLocation="SellerNoticeServiceMessage.xsd" />
+			<xs:include schemaLocation="RegisterSellerServiceMessage.xsd" />
+			<xs:include schemaLocation="AuthenticateSellerServiceMessage.xsd" />
+			<xs:include schemaLocation="ImageServiceMessage.xsd" />
+		</xs:schema>
+	</wsdl:types>
+
+
+	<!-- ProductService Messages -->
+	<wsdl:message name="ProductService.ChangeProductSaleStatusRequest">
+		<wsdl:part name="ChangeProductSaleStatusRequest" element="tns:ChangeProductSaleStatusRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.ChangeProductSaleStatusResponse">
+		<wsdl:part name="ChangeProductSaleStatusResponse" element="tns:ChangeProductSaleStatusResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetAllCategoryListRequest">
+		<wsdl:part name="GetAllCategoryListRequest" element="tns:GetAllCategoryListRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetAllCategoryListResponse">
+		<wsdl:part name="GetAllCategoryListResponse" element="tns:GetAllCategoryListResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetBrandListRequest">
+		<wsdl:part name="GetBrandListRequest" element="tns:GetBrandListRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetBrandListResponse">
+		<wsdl:part name="GetBrandListResponse" element="tns:GetBrandListResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetCategoryInfoRequest">
+		<wsdl:part name="GetCategoryInfoRequest" element="tns:GetCategoryInfoRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetCategoryInfoResponse">
+		<wsdl:part name="GetCategoryInfoResponse" element="tns:GetCategoryInfoResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetManufacturerListRequest">
+		<wsdl:part name="GetManufacturerListRequest" element="tns:GetManufacturerListRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetManufacturerListResponse">
+		<wsdl:part name="GetManufacturerListResponse" element="tns:GetManufacturerListResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetModelListRequest">
+		<wsdl:part name="GetModelListRequest" element="tns:GetModelListRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetModelListResponse">
+		<wsdl:part name="GetModelListResponse" element="tns:GetModelListResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetOptionRequest">
+		<wsdl:part name="GetOptionRequest" element="tns:GetOptionRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetOptionResponse">
+		<wsdl:part name="GetOptionResponse" element="tns:GetOptionResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetOriginAreaListRequest">
+		<wsdl:part name="GetOriginAreaListRequest" element="tns:GetOriginAreaListRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetOriginAreaListResponse">
+		<wsdl:part name="GetOriginAreaListResponse" element="tns:GetOriginAreaListResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetProductRequest">
+		<wsdl:part name="GetProductRequest" element="tns:GetProductRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetProductResponse">
+		<wsdl:part name="GetProductResponse" element="tns:GetProductResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetProductListRequest">
+		<wsdl:part name="GetProductListRequest" element="tns:GetProductListRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetProductListResponse">
+		<wsdl:part name="GetProductListResponse" element="tns:GetProductListResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetSubCategoryListRequest">
+		<wsdl:part name="GetSubCategoryListRequest" element="tns:GetSubCategoryListRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetSubCategoryListResponse">
+		<wsdl:part name="GetSubCategoryListResponse" element="tns:GetSubCategoryListResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetSubOriginAreaListRequest">
+		<wsdl:part name="GetSubOriginAreaListRequest" element="tns:GetSubOriginAreaListRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetSubOriginAreaListResponse">
+		<wsdl:part name="GetSubOriginAreaListResponse" element="tns:GetSubOriginAreaListResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetSupplementProductRequest">
+		<wsdl:part name="GetSupplementProductRequest" element="tns:GetSupplementProductRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetSupplementProductResponse">
+		<wsdl:part name="GetSupplementProductResponse" element="tns:GetSupplementProductResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.ManageOptionRequest">
+		<wsdl:part name="ManageOptionRequest" element="tns:ManageOptionRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.ManageOptionResponse">
+		<wsdl:part name="ManageOptionResponse" element="tns:ManageOptionResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.ManageProductRequest">
+		<wsdl:part name="ManageProductRequest" element="tns:ManageProductRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.ManageProductResponse">
+		<wsdl:part name="ManageProductResponse" element="tns:ManageProductResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.ManageSupplementProductRequest">
+		<wsdl:part name="ManageSupplementProductRequest" element="tns:ManageSupplementProductRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.ManageSupplementProductResponse">
+		<wsdl:part name="ManageSupplementProductResponse" element="tns:ManageSupplementProductResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.DeleteProductRequest">
+		<wsdl:part name="DeleteProductRequest" element="tns:DeleteProductRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.DeleteProductResponse">
+		<wsdl:part name="DeleteProductResponse" element="tns:DeleteProductResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetAllOriginAreaListRequest">
+		<wsdl:part name="GetAllOriginAreaListRequest" element="tns:GetAllOriginAreaListRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetAllOriginAreaListResponse">
+		<wsdl:part name="GetAllOriginAreaListResponse" element="tns:GetAllOriginAreaListResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetModificationRequiredProductListRequest">
+		<wsdl:part name="GetModificationRequiredProductListRequest" element="tns:GetModificationRequiredProductListRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetModificationRequiredProductListResponse">
+		<wsdl:part name="GetModificationRequiredProductListResponse" element="tns:GetModificationRequiredProductListResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.ManageMobileImageInfoRequest">
+		<wsdl:part name="ManageMobileImageInfoRequest" element="tns:ManageMobileImageInfoRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.ManageMobileImageInfoResponse">
+		<wsdl:part name="ManageMobileImageInfoResponse" element="tns:ManageMobileImageInfoResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetMobileImageInfoRequest">
+		<wsdl:part name="GetMobileImageInfoRequest" element="tns:GetMobileImageInfoRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetMobileImageInfoResponse">
+		<wsdl:part name="GetMobileImageInfoResponse" element="tns:GetMobileImageInfoResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.RestoreProductRequest">
+		<wsdl:part name="RestoreProductRequest" element="tns:RestoreProductRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.RestoreProductResponse">
+		<wsdl:part name="RestoreProductResponse" element="tns:RestoreProductResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetStandardOptionCategoryRequest">
+		<wsdl:part name="ManageStandardOptionRequest" element="tns:GetStandardOptionCategoryRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetStandardOptionCategoryResponse">
+		<wsdl:part name="ManageStandardOptionResponse" element="tns:GetStandardOptionCategoryResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.ManageStandardOptionRequest">
+		<wsdl:part name="ManageStandardOptionRequest" element="tns:ManageStandardOptionRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.ManageStandardOptionResponse">
+		<wsdl:part name="ManageStandardOptionResponse" element="tns:ManageStandardOptionResponse" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetStandardOptionRequest">
+		<wsdl:part name="ManageStandardOptionRequest" element="tns:GetStandardOptionRequest" />
+	</wsdl:message>
+	<wsdl:message name="ProductService.GetStandardOptionResponse">
+		<wsdl:part name="ManageStandardOptionResponse" element="tns:GetStandardOptionResponse" />
+	</wsdl:message>
+
+	<!-- DeliveryInfoService Messages -->
+	<wsdl:message name="DeliveryInfoService.GetBundleGroupListRequest">
+		<wsdl:part name="GetBundleGroupListRequest" element="tns:GetBundleGroupListRequest" />
+	</wsdl:message>
+	<wsdl:message name="DeliveryInfoService.GetBundleGroupListResponse">
+		<wsdl:part name="GetBundleGroupListResponse" element="tns:GetBundleGroupListResponse" />
+	</wsdl:message>
+	<wsdl:message name="DeliveryInfoService.GetReturnsCompanyListRequest">
+		<wsdl:part name="GetReturnsCompanyListRequest" element="tns:GetReturnsCompanyListRequest" />
+	</wsdl:message>
+	<wsdl:message name="DeliveryInfoService.GetReturnsCompanyListResponse">
+		<wsdl:part name="GetReturnsCompanyListResponse" element="tns:GetReturnsCompanyListResponse" />
+	</wsdl:message>
+	<wsdl:message name="DeliveryInfoService.ManageBundleGroupRequest">
+		<wsdl:part name="ManageBundleGroupRequest" element="tns:ManageBundleGroupRequest" />
+	</wsdl:message>
+	<wsdl:message name="DeliveryInfoService.ManageBundleGroupResponse">
+		<wsdl:part name="ManageBundleGroupResponse" element="tns:ManageBundleGroupResponse" />
+	</wsdl:message>
+	<wsdl:message name="DeliveryInfoService.GetBundleGroupRequest">
+		<wsdl:part name="GetBundleGroupRequest" element="tns:GetBundleGroupRequest" />
+	</wsdl:message>
+	<wsdl:message name="DeliveryInfoService.GetBundleGroupResponse">
+		<wsdl:part name="GetBundleGroupResponse" element="tns:GetBundleGroupResponse" />
+	</wsdl:message>
+	<wsdl:message name="DeliveryInfoService.GetHopeDeliveryGroupRequest">
+		<wsdl:part name="GetHopeDeliveryGroupRequest" element="tns:GetHopeDeliveryGroupRequest" />
+	</wsdl:message>
+	<wsdl:message name="DeliveryInfoService.GetHopeDeliveryGroupResponse">
+		<wsdl:part name="GetHopeDeliveryGroupResponse" element="tns:GetHopeDeliveryGroupResponse" />
+	</wsdl:message>
+	<wsdl:message name="DeliveryInfoService.GetHopeDeliveryGroupListRequest">
+		<wsdl:part name="GetHopeDeliveryGroupListRequest" element="tns:GetHopeDeliveryGroupListRequest" />
+	</wsdl:message>
+	<wsdl:message name="DeliveryInfoService.GetHopeDeliveryGroupListResponse">
+		<wsdl:part name="GetHopeDeliveryGroupListResponse" element="tns:GetHopeDeliveryGroupListResponse" />
+	</wsdl:message>
+	<wsdl:message name="DeliveryInfoService.ManageHopeDeliveryGroupRequest">
+		<wsdl:part name="ManageHopeDeliveryGroupRequest" element="tns:ManageHopeDeliveryGroupRequest" />
+	</wsdl:message>
+	<wsdl:message name="DeliveryInfoService.ManageHopeDeliveryGroupResponse">
+		<wsdl:part name="ManageHopeDeliveryGroupResponse" element="tns:ManageHopeDeliveryGroupResponse" />
+	</wsdl:message>
+
+	<!-- AddressBookService Messages -->
+	<wsdl:message name="AddressBookService.GetAddressBookListRequest">
+		<wsdl:part name="GetAddressBookListRequest" element="tns:GetAddressBookListRequest" />
+	</wsdl:message>
+	<wsdl:message name="AddressBookService.GetAddressBookListResponse">
+		<wsdl:part name="GetAddressBookListResponse" element="tns:GetAddressBookListResponse" />
+	</wsdl:message>
+
+	<!-- GalleryService Messages -->
+	<wsdl:message name="GalleryService.ApplyGalleryRequest">
+		<wsdl:part name="ApplyGalleryRequest" element="tns:ApplyGalleryRequest" />
+	</wsdl:message>
+	<wsdl:message name="GalleryService.ApplyGalleryResponse">
+		<wsdl:part name="ApplyGalleryResponse" element="tns:ApplyGalleryResponse" />
+	</wsdl:message>
+	<wsdl:message name="GalleryService.GetGalleryRequest">
+		<wsdl:part name="GetGalleryRequest" element="tns:GetGalleryRequest" />
+	</wsdl:message>
+	<wsdl:message name="GalleryService.GetGalleryResponse">
+		<wsdl:part name="GetGalleryResponse" element="tns:GetGalleryResponse" />
+	</wsdl:message>
+	<wsdl:message name="GalleryService.GetGalleryListRequest">
+		<wsdl:part name="GetGalleryListRequest" element="tns:GetGalleryListRequest" />
+	</wsdl:message>
+	<wsdl:message name="GalleryService.GetGalleryListResponse">
+		<wsdl:part name="GetGalleryListResponse" element="tns:GetGalleryListResponse" />
+	</wsdl:message>
+	<wsdl:message name="GalleryService.ManageGalleryRequest">
+		<wsdl:part name="ManageGalleryRequest" element="tns:ManageGalleryRequest" />
+	</wsdl:message>
+	<wsdl:message name="GalleryService.ManageGalleryResponse">
+		<wsdl:part name="ManageGalleryResponse" element="tns:ManageGalleryResponse" />
+	</wsdl:message>
+
+	<!-- QuestionAnswerService Messages -->
+	<wsdl:message name="QuestionAnswerService.GetQuestionAnswerListRequest">
+		<wsdl:part name="GetQuestionAnswerListRequest" element="tns:GetQuestionAnswerListRequest" />
+	</wsdl:message>
+	<wsdl:message name="QuestionAnswerService.GetQuestionAnswerListResponse">
+		<wsdl:part name="GetQuestionAnswerListResponse" element="tns:GetQuestionAnswerListResponse" />
+	</wsdl:message>
+	<wsdl:message name="QuestionAnswerService.GetQuestionAnswerTemplateListRequest">
+		<wsdl:part name="GetQuestionAnswerTemplateListRequest" element="tns:GetQuestionAnswerTemplateListRequest" />
+	</wsdl:message>
+	<wsdl:message name="QuestionAnswerService.GetQuestionAnswerTemplateListResponse">
+		<wsdl:part name="GetQuestionAnswerTemplateListResponse" element="tns:GetQuestionAnswerTemplateListResponse" />
+	</wsdl:message>
+	<wsdl:message name="QuestionAnswerService.ManageQuestionAnswerRequest">
+		<wsdl:part name="ManageQuestionAnswerRequest" element="tns:ManageQuestionAnswerRequest" />
+	</wsdl:message>
+	<wsdl:message name="QuestionAnswerService.ManageQuestionAnswerResponse">
+		<wsdl:part name="ManageQuestionAnswerResponse" element="tns:ManageQuestionAnswerResponse" />
+	</wsdl:message>
+
+	<!-- SellerNoticeService Messages -->
+	<wsdl:message name="SellerNoticeService.ApplySellerNoticeRequest">
+		<wsdl:part name="ApplySellerNoticeRequest" element="tns:ApplySellerNoticeRequest" />
+	</wsdl:message>
+	<wsdl:message name="SellerNoticeService.ApplySellerNoticeResponse">
+		<wsdl:part name="ApplySellerNoticeResponse" element="tns:ApplySellerNoticeResponse" />
+	</wsdl:message>
+	<wsdl:message name="SellerNoticeService.DeleteSellerNoticeRequest">
+		<wsdl:part name="DeleteSellerNoticeRequest" element="tns:DeleteSellerNoticeRequest" />
+	</wsdl:message>
+	<wsdl:message name="SellerNoticeService.DeleteSellerNoticeResponse">
+		<wsdl:part name="DeleteSellerNoticeResponse" element="tns:DeleteSellerNoticeResponse" />
+	</wsdl:message>
+	<wsdl:message name="SellerNoticeService.GetSellerNoticeRequest">
+		<wsdl:part name="GetSellerNoticeRequest" element="tns:GetSellerNoticeRequest" />
+	</wsdl:message>
+	<wsdl:message name="SellerNoticeService.GetSellerNoticeResponse">
+		<wsdl:part name="GetSellerNoticeResponse" element="tns:GetSellerNoticeResponse" />
+	</wsdl:message>
+	<wsdl:message name="SellerNoticeService.GetSellerNoticeListRequest">
+		<wsdl:part name="GetSellerNoticeListRequest" element="tns:GetSellerNoticeListRequest" />
+	</wsdl:message>
+	<wsdl:message name="SellerNoticeService.GetSellerNoticeListResponse">
+		<wsdl:part name="GetSellerNoticeListResponse" element="tns:GetSellerNoticeListResponse" />
+	</wsdl:message>
+	<wsdl:message name="SellerNoticeService.ManageSellerNoticeRequest">
+		<wsdl:part name="ManageSellerNoticeRequest" element="tns:ManageSellerNoticeRequest" />
+	</wsdl:message>
+	<wsdl:message name="SellerNoticeService.ManageSellerNoticeResponse">
+		<wsdl:part name="ManageSellerNoticeResponse" element="tns:ManageSellerNoticeResponse" />
+	</wsdl:message>
+
+	<!-- RegisterSellerService Messages -->
+	<wsdl:message name="RegisterSellerService.RegisterSellerRequest">
+		<wsdl:part name="RegisterSellerRequest" element="tns:RegisterSellerRequest" />
+	</wsdl:message>
+	<wsdl:message name="RegisterSellerService.RegisterSellerResponse">
+		<wsdl:part name="RegisterSellerResponse" element="tns:RegisterSellerResponse" />
+	</wsdl:message>
+
+	<!-- AuthenticateSellerService Messages -->
+	<wsdl:message name="AuthenticateSellerService.AuthenticateSellerRequest">
+		<wsdl:part name="AuthenticateSellerRequest" element="tns:AuthenticateSellerRequest" />
+	</wsdl:message>
+	<wsdl:message name="AuthenticateSellerService.AuthenticateSellerResponse">
+		<wsdl:part name="AuthenticateSellerResponse" element="tns:AuthenticateSellerResponse" />
+	</wsdl:message>
+
+	<!-- ImageService Messages -->
+	<wsdl:message name="ImageService.UploadImageRequest">
+		<wsdl:part name="UploadImageRequest" element="tns:UploadImageRequest" />
+	</wsdl:message>
+	<wsdl:message name="ImageService.UploadImageResponse">
+		<wsdl:part name="UploadImageResponse" element="tns:UploadImageResponse" />
+	</wsdl:message>
+
+
+	<!-- ProductService PortType -->
+	<wsdl:portType name="ProductServicePortType">
+		<wsdl:operation name="ChangeProductSaleStatus">
+			<wsdl:input message="tns:ProductService.ChangeProductSaleStatusRequest" />
+			<wsdl:output message="tns:ProductService.ChangeProductSaleStatusResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetAllCategoryList">
+			<wsdl:input message="tns:ProductService.GetAllCategoryListRequest" />
+			<wsdl:output message="tns:ProductService.GetAllCategoryListResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetBrandList">
+			<wsdl:input message="tns:ProductService.GetBrandListRequest" />
+			<wsdl:output message="tns:ProductService.GetBrandListResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetCategoryInfo">
+			<wsdl:input message="tns:ProductService.GetCategoryInfoRequest" />
+			<wsdl:output message="tns:ProductService.GetCategoryInfoResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetManufacturerList">
+			<wsdl:input message="tns:ProductService.GetManufacturerListRequest" />
+			<wsdl:output message="tns:ProductService.GetManufacturerListResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetModelList">
+			<wsdl:input message="tns:ProductService.GetModelListRequest" />
+			<wsdl:output message="tns:ProductService.GetModelListResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetOption">
+			<wsdl:input message="tns:ProductService.GetOptionRequest" />
+			<wsdl:output message="tns:ProductService.GetOptionResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetOriginAreaList">
+			<wsdl:input message="tns:ProductService.GetOriginAreaListRequest" />
+			<wsdl:output message="tns:ProductService.GetOriginAreaListResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetProduct">
+			<wsdl:input message="tns:ProductService.GetProductRequest" />
+			<wsdl:output message="tns:ProductService.GetProductResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetProductList">
+			<wsdl:input message="tns:ProductService.GetProductListRequest" />
+			<wsdl:output message="tns:ProductService.GetProductListResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetSubCategoryList">
+			<wsdl:input message="tns:ProductService.GetSubCategoryListRequest" />
+			<wsdl:output message="tns:ProductService.GetSubCategoryListResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetSubOriginAreaList">
+			<wsdl:input message="tns:ProductService.GetSubOriginAreaListRequest" />
+			<wsdl:output message="tns:ProductService.GetSubOriginAreaListResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetSupplementProduct">
+			<wsdl:input message="tns:ProductService.GetSupplementProductRequest" />
+			<wsdl:output message="tns:ProductService.GetSupplementProductResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="ManageOption">
+			<wsdl:input message="tns:ProductService.ManageOptionRequest" />
+			<wsdl:output message="tns:ProductService.ManageOptionResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="ManageProduct">
+			<wsdl:input message="tns:ProductService.ManageProductRequest" />
+			<wsdl:output message="tns:ProductService.ManageProductResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="ManageSupplementProduct">
+			<wsdl:input message="tns:ProductService.ManageSupplementProductRequest" />
+			<wsdl:output message="tns:ProductService.ManageSupplementProductResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="DeleteProduct">
+			<wsdl:input message="tns:ProductService.DeleteProductRequest" />
+			<wsdl:output message="tns:ProductService.DeleteProductResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetAllOriginAreaList">
+			<wsdl:input message="tns:ProductService.GetAllOriginAreaListRequest" />
+			<wsdl:output message="tns:ProductService.GetAllOriginAreaListResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetModificationRequiredProductList">
+			<wsdl:input message="tns:ProductService.GetModificationRequiredProductListRequest" />
+			<wsdl:output message="tns:ProductService.GetModificationRequiredProductListResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="ManageMobileImageInfo">
+			<wsdl:input message="tns:ProductService.ManageMobileImageInfoRequest" />
+			<wsdl:output message="tns:ProductService.ManageMobileImageInfoResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetMobileImageInfo">
+			<wsdl:input message="tns:ProductService.GetMobileImageInfoRequest" />
+			<wsdl:output message="tns:ProductService.GetMobileImageInfoResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="RestoreProduct">
+			<wsdl:input message="tns:ProductService.RestoreProductRequest" />
+			<wsdl:output message="tns:ProductService.RestoreProductResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetStandardOptionCategory">
+			<wsdl:input message="tns:ProductService.GetStandardOptionCategoryRequest" />
+			<wsdl:output message="tns:ProductService.GetStandardOptionCategoryResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="ManageStandardOption">
+			<wsdl:input message="tns:ProductService.ManageStandardOptionRequest" />
+			<wsdl:output message="tns:ProductService.ManageStandardOptionResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetStandardOption">
+			<wsdl:input message="tns:ProductService.GetStandardOptionRequest" />
+			<wsdl:output message="tns:ProductService.GetStandardOptionResponse" />
+		</wsdl:operation>
+	</wsdl:portType>
+
+	<!-- DeliveryInfoService PortType -->
+	<wsdl:portType name="DeliveryInfoServicePortType">
+		<wsdl:operation name="GetBundleGroupList">
+			<wsdl:input message="tns:DeliveryInfoService.GetBundleGroupListRequest" />
+			<wsdl:output message="tns:DeliveryInfoService.GetBundleGroupListResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetReturnsCompanyList">
+			<wsdl:input message="tns:DeliveryInfoService.GetReturnsCompanyListRequest" />
+			<wsdl:output message="tns:DeliveryInfoService.GetReturnsCompanyListResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="ManageBundleGroup">
+			<wsdl:input message="tns:DeliveryInfoService.ManageBundleGroupRequest" />
+			<wsdl:output message="tns:DeliveryInfoService.ManageBundleGroupResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetBundleGroup">
+			<wsdl:input message="tns:DeliveryInfoService.GetBundleGroupRequest" />
+			<wsdl:output message="tns:DeliveryInfoService.GetBundleGroupResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetHopeDeliveryGroup">
+			<wsdl:input message="tns:DeliveryInfoService.GetHopeDeliveryGroupRequest" />
+			<wsdl:output message="tns:DeliveryInfoService.GetHopeDeliveryGroupResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetHopeDeliveryGroupList">
+			<wsdl:input message="tns:DeliveryInfoService.GetHopeDeliveryGroupListRequest" />
+			<wsdl:output message="tns:DeliveryInfoService.GetHopeDeliveryGroupListResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="ManageHopeDeliveryGroup">
+			<wsdl:input message="tns:DeliveryInfoService.ManageHopeDeliveryGroupRequest" />
+			<wsdl:output message="tns:DeliveryInfoService.ManageHopeDeliveryGroupResponse" />
+		</wsdl:operation>
+	</wsdl:portType>
+
+	<!-- AddressBookService PortType -->
+	<wsdl:portType name="AddressBookServicePortType">
+		<wsdl:operation name="GetAddressBookList">
+			<wsdl:input message="tns:AddressBookService.GetAddressBookListRequest" />
+			<wsdl:output message="tns:AddressBookService.GetAddressBookListResponse" />
+		</wsdl:operation>
+	</wsdl:portType>
+
+	<!-- GalleryService PortType -->
+	<wsdl:portType name="GalleryServicePortType">
+		<wsdl:operation name="ApplyGallery">
+			<wsdl:input message="tns:GalleryService.ApplyGalleryRequest" />
+			<wsdl:output message="tns:GalleryService.ApplyGalleryResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetGallery">
+			<wsdl:input message="tns:GalleryService.GetGalleryRequest" />
+			<wsdl:output message="tns:GalleryService.GetGalleryResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetGalleryList">
+			<wsdl:input message="tns:GalleryService.GetGalleryListRequest" />
+			<wsdl:output message="tns:GalleryService.GetGalleryListResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="ManageGallery">
+			<wsdl:input message="tns:GalleryService.ManageGalleryRequest" />
+			<wsdl:output message="tns:GalleryService.ManageGalleryResponse" />
+		</wsdl:operation>
+	</wsdl:portType>
+
+	<!-- QuestionAnswerService PortType -->
+	<wsdl:portType name="QuestionAnswerServicePortType">
+		<wsdl:operation name="GetQuestionAnswerList">
+			<wsdl:input message="tns:QuestionAnswerService.GetQuestionAnswerListRequest" />
+			<wsdl:output message="tns:QuestionAnswerService.GetQuestionAnswerListResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetQuestionAnswerTemplateList">
+			<wsdl:input message="tns:QuestionAnswerService.GetQuestionAnswerTemplateListRequest" />
+			<wsdl:output message="tns:QuestionAnswerService.GetQuestionAnswerTemplateListResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="ManageQuestionAnswer">
+			<wsdl:input message="tns:QuestionAnswerService.ManageQuestionAnswerRequest" />
+			<wsdl:output message="tns:QuestionAnswerService.ManageQuestionAnswerResponse" />
+		</wsdl:operation>
+	</wsdl:portType>
+
+	<!-- SellerNoticeService PortType -->
+	<wsdl:portType name="SellerNoticeServicePortType">
+		<wsdl:operation name="ApplySellerNotice">
+			<wsdl:input message="tns:SellerNoticeService.ApplySellerNoticeRequest" />
+			<wsdl:output message="tns:SellerNoticeService.ApplySellerNoticeResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="DeleteSellerNotice">
+			<wsdl:input message="tns:SellerNoticeService.DeleteSellerNoticeRequest" />
+			<wsdl:output message="tns:SellerNoticeService.DeleteSellerNoticeResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetSellerNotice">
+			<wsdl:input message="tns:SellerNoticeService.GetSellerNoticeRequest" />
+			<wsdl:output message="tns:SellerNoticeService.GetSellerNoticeResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="GetSellerNoticeList">
+			<wsdl:input message="tns:SellerNoticeService.GetSellerNoticeListRequest" />
+			<wsdl:output message="tns:SellerNoticeService.GetSellerNoticeListResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="ManageSellerNotice">
+			<wsdl:input message="tns:SellerNoticeService.ManageSellerNoticeRequest" />
+			<wsdl:output message="tns:SellerNoticeService.ManageSellerNoticeResponse" />
+		</wsdl:operation>
+	</wsdl:portType>
+
+	<!-- RegisterSellerService PortType -->
+	<wsdl:portType name="RegisterSellerServicePortType">
+		<wsdl:operation name="RegisterSeller">
+			<wsdl:input message="tns:RegisterSellerService.RegisterSellerRequest" />
+			<wsdl:output message="tns:RegisterSellerService.RegisterSellerResponse" />
+		</wsdl:operation>
+	</wsdl:portType>
+
+	<!-- AuthenticateSellerService PortType -->
+	<wsdl:portType name="AuthenticateSellerServicePortType">
+		<wsdl:operation name="AuthenticateSeller">
+			<wsdl:input message="tns:AuthenticateSellerService.AuthenticateSellerRequest" />
+			<wsdl:output message="tns:AuthenticateSellerService.AuthenticateSellerResponse" />
+		</wsdl:operation>
+	</wsdl:portType>
+
+	<!-- ImageService PortType -->
+	<wsdl:portType name="ImageServicePortType">
+		<wsdl:operation name="UploadImage">
+			<wsdl:input message="tns:ImageService.UploadImageRequest" />
+			<wsdl:output message="tns:ImageService.UploadImageResponse" />
+		</wsdl:operation>
+	</wsdl:portType>
+
+
+	<!-- ProductService SOAP 1.1 Binding -->
+	<wsdl:binding name="ProductServiceSOAP11Binding" type="tns:ProductServicePortType">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="ChangeProductSaleStatus">
+			<soap:operation soapAction="ProductService#ChangeProductSaleStatus" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetAllCategoryList">
+			<soap:operation soapAction="ProductService#GetAllCategoryList" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetBrandList">
+			<soap:operation soapAction="ProductService#GetBrandList" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetCategoryInfo">
+			<soap:operation soapAction="ProductService#GetCategoryInfo" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetManufacturerList">
+			<soap:operation soapAction="ProductService#GetManufacturerList" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetModelList">
+			<soap:operation soapAction="ProductService#GetModelList" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetOption">
+			<soap:operation soapAction="ProductService#GetOption" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetOriginAreaList">
+			<soap:operation soapAction="ProductService#GetOriginAreaList" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetProduct">
+			<soap:operation soapAction="ProductService#GetProduct" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetProductList">
+			<soap:operation soapAction="ProductService#GetProductList" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetSubCategoryList">
+			<soap:operation soapAction="ProductService#GetSubCategoryList" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetSubOriginAreaList">
+			<soap:operation soapAction="ProductService#GetSubOriginAreaList" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetSupplementProduct">
+			<soap:operation soapAction="ProductService#GetSupplementProduct" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ManageOption">
+			<soap:operation soapAction="ProductService#ManageOption" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ManageProduct">
+			<soap:operation soapAction="ProductService#ManageProduct" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ManageSupplementProduct">
+			<soap:operation soapAction="ProductService#ManageSupplementProduct" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="DeleteProduct">
+			<soap:operation soapAction="ProductService#DeleteProduct" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetAllOriginAreaList">
+			<soap:operation soapAction="ProductService#GetAllOriginAreaList" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetModificationRequiredProductList">
+			<soap:operation soapAction="ProductService#GetModificationRequiredProductList" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ManageMobileImageInfo">
+			<soap:operation soapAction="ProductService#ManageMobileImageInfo" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetMobileImageInfo">
+			<soap:operation soapAction="ProductService#GetMobileImageInfo" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="RestoreProduct">
+			<soap:operation soapAction="ProductService#RestoreProduct" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetStandardOptionCategory">
+			<soap:operation soapAction="ProductService#GetStandardOptionCategory" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ManageStandardOption">
+			<soap:operation soapAction="ProductService#ManageStandardOption" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetStandardOption">
+			<soap:operation soapAction="ProductService#GetStandardOption" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+
+	<!-- ProductService SOAP 1.2 Binding -->
+	<wsdl:binding name="ProductServiceSOAP12Binding" type="tns:ProductServicePortType">
+		<soap12:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="ChangeProductSaleStatus">
+			<soap12:operation soapAction="ProductService#ChangeProductSaleStatus" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetAllCategoryList">
+			<soap12:operation soapAction="ProductService#GetAllCategoryList" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetBrandList">
+			<soap12:operation soapAction="ProductService#GetBrandList" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetCategoryInfo">
+			<soap12:operation soapAction="ProductService#GetCategoryInfo" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetManufacturerList">
+			<soap12:operation soapAction="ProductService#GetManufacturerList" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetModelList">
+			<soap12:operation soapAction="ProductService#GetModelList" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetOption">
+			<soap12:operation soapAction="ProductService#GetOption" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetOriginAreaList">
+			<soap12:operation soapAction="ProductService#GetOriginAreaList" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetProduct">
+			<soap12:operation soapAction="ProductService#GetProduct" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetProductList">
+			<soap12:operation soapAction="ProductService#GetProductList" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetSubCategoryList">
+			<soap12:operation soapAction="ProductService#GetSubCategoryList" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetSubOriginAreaList">
+			<soap12:operation soapAction="ProductService#GetSubOriginAreaList" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetSupplementProduct">
+			<soap12:operation soapAction="ProductService#GetSupplementProduct" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ManageOption">
+			<soap12:operation soapAction="ProductService#ManageOption" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ManageProduct">
+			<soap12:operation soapAction="ProductService#ManageProduct" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ManageSupplementProduct">
+			<soap12:operation soapAction="ProductService#ManageSupplementProduct" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="DeleteProduct">
+			<soap12:operation soapAction="ProductService#DeleteProduct" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetAllOriginAreaList">
+			<soap12:operation soapAction="ProductService#GetAllOriginAreaList" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetModificationRequiredProductList">
+			<soap12:operation soapAction="ProductService#GetModificationRequiredProductList" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ManageMobileImageInfo">
+			<soap12:operation soapAction="ProductService#ManageMobileImageInfo" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetMobileImageInfo">
+			<soap12:operation soapAction="ProductService#GetMobileImageInfo" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="RestoreProduct">
+			<soap12:operation soapAction="ProductService#RestoreProduct" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetStandardOptionCategory">
+			<soap12:operation soapAction="ProductService#GetStandardOptionCategory" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ManageStandardOption">
+			<soap12:operation soapAction="ProductService#ManageStandardOption" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetStandardOption">
+			<soap12:operation soapAction="ProductService#GetStandardOption" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+
+	<!-- DeliveryInfoService SOAP 1.1 Binding -->
+	<wsdl:binding name="DeliveryInfoServiceSOAP11Binding" type="tns:DeliveryInfoServicePortType">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="GetBundleGroupList">
+			<soap:operation soapAction="DeliveryInfoService#GetBundleGroupList" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetReturnsCompanyList">
+			<soap:operation soapAction="DeliveryInfoService#GetReturnsCompanyList" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ManageBundleGroup">
+			<soap:operation soapAction="DeliveryInfoService#ManageBundleGroup" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetBundleGroup">
+			<soap:operation soapAction="DeliveryInfoService#GetBundleGroup" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetHopeDeliveryGroup">
+			<soap:operation soapAction="DeliveryInfoService#GetHopeDeliveryGroup" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetHopeDeliveryGroupList">
+			<soap:operation soapAction="DeliveryInfoService#GetHopeDeliveryGroupList" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ManageHopeDeliveryGroup">
+			<soap:operation soapAction="DeliveryInfoService#ManageHopeDeliveryGroup" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+
+	<!-- DeliveryInfoService SOAP 1.2 Binding -->
+	<wsdl:binding name="DeliveryInfoServiceSOAP12Binding" type="tns:DeliveryInfoServicePortType">
+		<soap12:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="GetBundleGroupList">
+			<soap12:operation soapAction="DeliveryInfoService#GetBundleGroupList" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetReturnsCompanyList">
+			<soap12:operation soapAction="DeliveryInfoService#GetReturnsCompanyList" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ManageBundleGroup">
+			<soap12:operation soapAction="DeliveryInfoService#ManageBundleGroup" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetBundleGroup">
+			<soap12:operation soapAction="DeliveryInfoService#GetBundleGroup" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetHopeDeliveryGroup">
+			<soap12:operation soapAction="DeliveryInfoService#GetHopeDeliveryGroup" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetHopeDeliveryGroupList">
+			<soap12:operation soapAction="DeliveryInfoService#GetHopeDeliveryGroupList" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ManageHopeDeliveryGroup">
+			<soap12:operation soapAction="DeliveryInfoService#ManageHopeDeliveryGroup" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+
+	<!-- AddressBookService SOAP 1.1 Binding -->
+	<wsdl:binding name="AddressBookServiceSOAP11Binding" type="tns:AddressBookServicePortType">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="GetAddressBookList">
+			<soap:operation soapAction="AddressBookService#GetAddressBookList" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+
+	<!-- AddressBookService SOAP 1.2 Binding -->
+	<wsdl:binding name="AddressBookServiceSOAP12Binding" type="tns:AddressBookServicePortType">
+		<soap12:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="GetAddressBookList">
+			<soap12:operation soapAction="AddressBookService#GetAddressBookList" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+
+	<!-- GalleryService SOAP 1.1 Binding -->
+	<wsdl:binding name="GalleryServiceSOAP11Binding" type="tns:GalleryServicePortType">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="ApplyGallery">
+			<soap:operation soapAction="GalleryService#ApplyGallery" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetGallery">
+			<soap:operation soapAction="GalleryService#GetGallery" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetGalleryList">
+			<soap:operation soapAction="GalleryService#GetGalleryList" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ManageGallery">
+			<soap:operation soapAction="GalleryService#ManageGallery" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+
+	<!-- GalleryService SOAP 1.2 Binding -->
+	<wsdl:binding name="GalleryServiceSOAP12Binding" type="tns:GalleryServicePortType">
+		<soap12:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="ApplyGallery">
+			<soap12:operation soapAction="GalleryService#ApplyGallery" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetGallery">
+			<soap12:operation soapAction="GalleryService#GetGallery" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetGalleryList">
+			<soap12:operation soapAction="GalleryService#GetGalleryList" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ManageGallery">
+			<soap12:operation soapAction="GalleryService#ManageGallery" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+
+	<!-- QuestionAnswerService SOAP 1.1 Binding -->
+	<wsdl:binding name="QuestionAnswerServiceSOAP11Binding" type="tns:QuestionAnswerServicePortType">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="GetQuestionAnswerList">
+			<soap:operation soapAction="QuestionAnswerService#GetQuestionAnswerList" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetQuestionAnswerTemplateList">
+			<soap:operation soapAction="QuestionAnswerService#GetQuestionAnswerTemplateList" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ManageQuestionAnswer">
+			<soap:operation soapAction="QuestionAnswerService#ManageQuestionAnswer" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+
+	<!-- QuestionAnswerService SOAP 1.2 Binding -->
+	<wsdl:binding name="QuestionAnswerServiceSOAP12Binding" type="tns:QuestionAnswerServicePortType">
+		<soap12:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="GetQuestionAnswerList">
+			<soap12:operation soapAction="QuestionAnswerService#GetQuestionAnswerList" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetQuestionAnswerTemplateList">
+			<soap12:operation soapAction="QuestionAnswerService#GetQuestionAnswerTemplateList" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ManageQuestionAnswer">
+			<soap12:operation soapAction="QuestionAnswerService#ManageQuestionAnswer" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+
+	<!-- SellerNoticeService SOAP 1.1 Binding -->
+	<wsdl:binding name="SellerNoticeServiceSOAP11Binding" type="tns:SellerNoticeServicePortType">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="ApplySellerNotice">
+			<soap:operation soapAction="SellerNoticeService#ApplySellerNotice" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="DeleteSellerNotice">
+			<soap:operation soapAction="SellerNoticeService#DeleteSellerNotice" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetSellerNotice">
+			<soap:operation soapAction="SellerNoticeService#GetSellerNotice" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetSellerNoticeList">
+			<soap:operation soapAction="SellerNoticeService#GetSellerNoticeList" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ManageSellerNotice">
+			<soap:operation soapAction="SellerNoticeService#ManageSellerNotice" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+
+	<!-- SellerNoticeService SOAP 1.2 Binding -->
+	<wsdl:binding name="SellerNoticeServiceSOAP12Binding" type="tns:SellerNoticeServicePortType">
+		<soap12:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="ApplySellerNotice">
+			<soap12:operation soapAction="SellerNoticeService#ApplySellerNotice" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="DeleteSellerNotice">
+			<soap12:operation soapAction="SellerNoticeService#DeleteSellerNotice" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetSellerNotice">
+			<soap12:operation soapAction="SellerNoticeService#GetSellerNotice" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetSellerNoticeList">
+			<soap12:operation soapAction="SellerNoticeService#GetSellerNoticeList" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ManageSellerNotice">
+			<soap12:operation soapAction="SellerNoticeService#ManageSellerNotice" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+
+	<!-- RegisterSellerService SOAP 1.1 Binding -->
+	<wsdl:binding name="RegisterSellerServiceSOAP11Binding" type="tns:RegisterSellerServicePortType">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="RegisterSeller">
+			<soap:operation soapAction="RegisterSellerService#RegisterSeller" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+
+	<!-- RegisterSellerService SOAP 1.2 Binding -->
+	<wsdl:binding name="RegisterSellerServiceSOAP12Binding" type="tns:RegisterSellerServicePortType">
+		<soap12:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="RegisterSeller">
+			<soap12:operation soapAction="RegisterSellerService#RegisterSeller" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+
+	<!-- AuthenticateSellerService SOAP 1.1 Binding -->
+	<wsdl:binding name="AuthenticateSellerServiceSOAP11Binding" type="tns:AuthenticateSellerServicePortType">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="AuthenticateSeller">
+			<soap:operation soapAction="AuthenticateSellerService#AuthenticateSeller" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+
+	<!-- AuthenticateSellerService SOAP 1.2 Binding -->
+	<wsdl:binding name="AuthenticateSellerServiceSOAP12Binding" type="tns:AuthenticateSellerServicePortType">
+		<soap12:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="AuthenticateSeller">
+			<soap12:operation soapAction="AuthenticateSellerService#AuthenticateSeller" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+
+	<!-- ImageService SOAP 1.1 Binding -->
+	<wsdl:binding name="ImageServiceSOAP11Binding" type="tns:ImageServicePortType">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="UploadImage">
+			<soap:operation soapAction="ImageService#UploadImage" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+
+	<!-- ImageService SOAP 1.2 Binding -->
+	<wsdl:binding name="ImageServiceSOAP12Binding" type="tns:ImageServicePortType">
+		<soap12:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="UploadImage">
+			<soap12:operation soapAction="ImageService#UploadImage" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+
+
+	<!-- ProductService -->
+	<wsdl:service name="ProductService">
+		<wsdl:port name="ProductServiceSOAP11port_http" binding="tns:ProductServiceSOAP11Binding">
+			<soap:address location="http://ec.api.naver.com/ShopN/ProductService" />
+		</wsdl:port>
+		<wsdl:port name="ProductServiceSOAP12port_http" binding="tns:ProductServiceSOAP12Binding">
+			<soap12:address location="http://ec.api.naver.com/ShopN/ProductService" />
+		</wsdl:port>
+	</wsdl:service>
+
+	<!-- DeliveryInfoService -->
+	<wsdl:service name="DeliveryInfoService">
+		<wsdl:port name="DeliveryInfoServiceSOAP11port_http" binding="tns:DeliveryInfoServiceSOAP11Binding">
+			<soap:address location="http://ec.api.naver.com/ShopN/DeliveryInfoService" />
+		</wsdl:port>
+		<wsdl:port name="DeliveryInfoServiceSOAP12port_http" binding="tns:DeliveryInfoServiceSOAP12Binding">
+			<soap12:address location="http://ec.api.naver.com/ShopN/DeliveryInfoService" />
+		</wsdl:port>
+	</wsdl:service>
+
+	<!-- AddressBookService -->
+	<wsdl:service name="AddressBookService">
+		<wsdl:port name="AddressBookServiceSOAP11port_http" binding="tns:AddressBookServiceSOAP11Binding">
+			<soap:address location="http://ec.api.naver.com/ShopN/AddressBookService" />
+		</wsdl:port>
+		<wsdl:port name="AddressBookServiceSOAP12port_http" binding="tns:AddressBookServiceSOAP12Binding">
+			<soap12:address location="http://ec.api.naver.com/ShopN/AddressBookService" />
+		</wsdl:port>
+	</wsdl:service>
+
+	<!-- GalleryService -->
+	<wsdl:service name="GalleryService">
+		<wsdl:port name="GalleryServiceSOAP11port_http" binding="tns:GalleryServiceSOAP11Binding">
+			<soap:address location="http://ec.api.naver.com/ShopN/GalleryService" />
+		</wsdl:port>
+		<wsdl:port name="GalleryServiceSOAP12port_http" binding="tns:GalleryServiceSOAP12Binding">
+			<soap12:address location="http://ec.api.naver.com/ShopN/GalleryService" />
+		</wsdl:port>
+	</wsdl:service>
+
+	<!-- QuestionAnswerService -->
+	<wsdl:service name="QuestionAnswerService">
+		<wsdl:port name="QuestionAnswerServiceSOAP11port_http" binding="tns:QuestionAnswerServiceSOAP11Binding">
+			<soap:address location="http://ec.api.naver.com/ShopN/QuestionAnswerService" />
+		</wsdl:port>
+		<wsdl:port name="QuestionAnswerServiceSOAP12port_http" binding="tns:QuestionAnswerServiceSOAP12Binding">
+			<soap12:address location="http://ec.api.naver.com/ShopN/QuestionAnswerService" />
+		</wsdl:port>
+	</wsdl:service>
+
+	<!-- SellerNoticeService -->
+	<wsdl:service name="SellerNoticeService">
+		<wsdl:port name="SellerNoticeServiceSOAP11port_http" binding="tns:SellerNoticeServiceSOAP11Binding">
+			<soap:address location="http://ec.api.naver.com/ShopN/SellerNoticeService" />
+		</wsdl:port>
+		<wsdl:port name="SellerNoticeServiceSOAP12port_http" binding="tns:SellerNoticeServiceSOAP12Binding">
+			<soap12:address location="http://ec.api.naver.com/ShopN/SellerNoticeService" />
+		</wsdl:port>
+	</wsdl:service>
+
+	<!-- RegisterSellerService -->
+	<wsdl:service name="RegisterSellerService">
+		<wsdl:port name="RegisterSellerServiceSOAP11port_http" binding="tns:RegisterSellerServiceSOAP11Binding">
+			<soap:address location="http://ec.api.naver.com/ShopN/RegisterSellerService" />
+		</wsdl:port>
+		<wsdl:port name="RegisterSellerServiceSOAP12port_http" binding="tns:RegisterSellerServiceSOAP12Binding">
+			<soap12:address location="http://ec.api.naver.com/ShopN/RegisterSellerService" />
+		</wsdl:port>
+	</wsdl:service>
+
+	<!-- AuthenticateSellerService -->
+	<wsdl:service name="AuthenticateSellerService">
+		<wsdl:port name="AuthenticateSellerServiceSOAP11port_http" binding="tns:AuthenticateSellerServiceSOAP11Binding">
+			<soap:address location="http://ec.api.naver.com/ShopN/AuthenticateSellerService" />
+		</wsdl:port>
+		<wsdl:port name="AuthenticateSellerServiceSOAP12port_http" binding="tns:AuthenticateSellerServiceSOAP12Binding">
+			<soap12:address location="http://ec.api.naver.com/ShopN/AuthenticateSellerService" />
+		</wsdl:port>
+	</wsdl:service>
+
+	<!-- ImageService -->
+	<wsdl:service name="ImageService">
+		<wsdl:port name="ImageServiceSOAP11port_http" binding="tns:ImageServiceSOAP11Binding">
+			<soap:address location="http://ec.api.naver.com/ShopN/ImageService" />
+		</wsdl:port>
+		<wsdl:port name="ImageServiceSOAP12port_http" binding="tns:ImageServiceSOAP12Binding">
+			<soap12:address location="http://ec.api.naver.com/ShopN/ImageService" />
+		</wsdl:port>
+	</wsdl:service>
+
+</wsdl:definitions>

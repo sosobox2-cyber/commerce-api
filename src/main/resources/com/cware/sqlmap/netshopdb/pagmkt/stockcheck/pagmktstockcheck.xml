@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pagmkt.stockcheck">
+
+    <select id="selectStockCheck" parameterType="com.cware.netshopping.domain.PaGmktGoodsdtMappingVO" resultType="com.cware.netshopping.domain.PaGmktGoodsdtMappingVO">
+        SELECT DISTINCT /* pagmktstockcheck.xml : pagmkt.stockcheck.selectStockCheck by PaGmktStockCheckController */
+               DECODE(GD.SALE_GB, '00', CEIL(FUN_GET_ORDER_ABLE_QTY(PM.GOODS_CODE,PM.GOODSDT_CODE,GS.WH_CODE) * FUN_TCODE_GROUP('O505',PM.PA_CODE)), 0) AS TRANS_ORDER_ABLE_QTY 
+	         , PM.GOODS_CODE
+	         , PM.GOODSDT_CODE
+	         , PM.PA_OPTION_CODE
+	         <!-- , GM.ITEM_NO -->
+	      FROM TPAGOODSDTMAPPING PM
+	         , TPAGMKTGOODS GM
+	         , TGOODSDT GD
+	         , TGOODS GS
+	     WHERE 1=1
+	       AND PM.GOODS_CODE       = GM.GOODS_CODE
+           AND PM.GOODS_CODE       = GD.GOODS_CODE
+           AND PM.GOODSDT_CODE     = GD.GOODSDT_CODE  
+	       AND PM.GOODS_CODE       = GS.GOODS_CODE
+	       AND PM.GOODS_CODE       = #{goodsCode, jdbcType=VARCHAR} 
+	       AND PM.PA_OPTION_CODE   = #{paOptionCode, jdbcType=VARCHAR}
+	       <!-- <if test='paCode != null and paCode != ""'>
+	       AND PM.PA_CODE          = #{paCode, jdbcType=VARCHAR}
+	       </if>
+	       <if test='itemNo != null and itemNo != ""'>
+	       AND GM.ITEM_NO          = #{itemNo, jdbcType=VARCHAR}
+	       </if> -->
+     </select>
+    
+</mapper>

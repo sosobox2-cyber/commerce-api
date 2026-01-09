@@ -1,0 +1,1224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pakakao.claim">
+
+	<select id="countOrderList" parameterType="com.cware.netshopping.domain.PaKakaoOrderListVO" resultType="int">
+        SELECT /* pakakaoclaim.xml : pakakao.claim.countOrderList by PaKakaoClaimController */
+		       COUNT(1) AS CNT
+		  FROM TPAKAKAOORDERLIST OL
+		     , TPAORDERM PM
+		 WHERE OL.PAYMENT_ID 	   = PM.PA_ORDER_NO
+		   AND OL.ID		       = PM.PA_ORDER_SEQ
+		   AND PM.PA_ORDER_GB      = '10'
+		   AND PM.CREATE_YN	       = '1'
+		   AND OL.PAYMENT_ID	   = #{paymentId	, jdbcType=VARCHAR}
+		   AND OL.ID       		   = #{id 			, jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectPaKakaoCancelListCount" parameterType="com.cware.netshopping.domain.PaKakaoOrderListVO" resultType="int">
+        SELECT /* pakakaoclaim.xml : pakakao.claim.selectPaKakaoCancelListCount by PaKakaoClaimController */
+		       COUNT(1) AS CNT
+		  FROM TPAKAKAOCANCELLIST CL
+		 WHERE CL.CLAIM_ID 		   = #{claimId 		, jdbcType=VARCHAR}
+		   AND CL.CLAIM_ITEM_ID    = #{claimItemId	, jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectPaKakaoCancelMListCount" parameterType="com.cware.netshopping.domain.PaKakaoOrderListVO" resultType="int">
+        SELECT /* pakakaoclaim.xml : pakakao.claim.selectPaKakaoCancelMListCount by PaKakaoClaimController */
+        	   COUNT(1) AS CNT
+          FROM TPAKAKAOCANCELLIST CL
+         WHERE CL.CLAIM_ID       = #{claimId , jdbcType=VARCHAR}
+           AND CL.CLAIM_ITEM_ID  = #{claimItemId , jdbcType=VARCHAR}
+           AND NOT EXISTS(SELECT 1
+		                    FROM TPAORDERM PM
+		                   WHERE PM.PA_CLAIM_NO  = CL.CLAIM_ID
+		                     AND PM.PA_ORDER_NO  = CL.PAYMENT_ID
+		                     AND PM.PA_ORDER_SEQ = CL.ID
+		                     AND PM.PA_ORDER_GB  = '20'
+		        )
+	</select>
+	
+	<select id="selectPaKakaoCancelInfo" parameterType="com.cware.netshopping.domain.PaKakaoOrderListVO" resultType="hashMap">
+        SELECT /* pakakaoclaim.xml : pakakao.claim.selectPaKakaoCancelInfo by PaKakaoClaimController */
+        	   OD.DO_FLAG
+		  FROM TPAKAKAOORDERLIST KO
+		     , TPAORDERM PM
+		     , TORDERDT OD
+		 WHERE KO.PAYMENT_ID  = #{paymentId , jdbcType=VARCHAR}
+		   AND KO.ID          = #{id , jdbcType=VARCHAR}
+		   AND KO.PAYMENT_ID  = PM.PA_ORDER_NO
+		   AND KO.ID          = PM.PA_ORDER_SEQ
+		   AND PM.PA_ORDER_GB = '10'
+		   AND PM.PA_CODE 	 IN ('B1', 'B2')
+		   AND PM.ORDER_NO 	  = OD.ORDER_NO
+		   AND PM.ORDER_G_SEQ = OD.ORDER_G_SEQ
+		   AND PM.ORDER_D_SEQ = OD.ORDER_D_SEQ
+		   AND PM.ORDER_W_SEQ = OD.ORDER_W_SEQ  
+	</select>
+	
+	<update id="updatePaKakaoCancelComplete"  parameterType="com.cware.netshopping.domain.PaKakaoOrderListVO">
+        UPDATE /* pakakaoclaim.xml : pakakao.claim.updatePaKakaoCancelComplete by PaKakaoClaimController */
+        	   TPAKAKAOCANCELLIST
+           SET PROC_NOTE 	  = '취소완료'
+	         , PROC_FLAG	  = '10'
+             , MODIFY_DATE    = SYSDATE
+         WHERE CLAIM_ID       = #{claimId , jdbcType=VARCHAR}
+           AND CLAIM_ITEM_ID  = #{claimItemId , jdbcType=VARCHAR} 
+    </update>
+	
+	<insert id="insertTpaKakaoCancelList" parameterType="com.cware.netshopping.domain.PaKakaoOrderListVO">
+		INSERT /* pakakaoclaim.xml : pakakao.claim.insertTpaKakaoCancelList by PaKakaoClaimController */
+		  INTO TPAKAKAOCANCELLIST(
+		       CLAIM_ID                       , CLAIM_ITEM_ID            	    , PAYMENT_ID					  , ID 
+		     , REFER_TYPE                     , ORDER_CLAIM_CANCEL_CREATED_AT   , ORDER_CLAIM_CANCEL_MODIFIED_AT  , REASON_CODE_NAME
+		     , REASON_COMMENT				  , ORDER_BASE_ID                   , GROUP_DISCOUNT_ROOM_ID    	  , STATUS                   
+		     , PAID_AT    					  , DECIDED_AT		                , REFUNDED_AT				      , CANCELED_AT                   
+		     , CREATED_AT         			  , MODIFIED_AT        				, PHONE_NUMBER              	  , ORDER_PRODUCT_ID                
+		     , NAME                           , SELLER_ITEM_NO              	, SELLER_ITEM_OPTION_CODE   	  , OPTION_CONTENT                 
+		     , QUANTITY    			 	  	  , PRODUCT_PRICE                   , OPTION_PRICE    				  , SELLER_DISCOUNT_PRICE        
+		     , SETTLEMENT_BASIC_PRICE         , BASE_FEE   						, DISPLAY_FEE               	  , REFERER_CODE             
+		     , BRAND_NAME               	  , MODEL_NAME                      , DELIVERY_AMOUNT_ORIGIN_ID       , DELIVERY_AMOUNT_PAY_POINT_TIME 
+		     , DELIVERY_AMOUNT_TYPE       	  , DELIVERY_AMOUNT    				, CONFIRMED_AT                    , DELIVERY_COMPANY_CODE          
+		     , DELIVERY_REQUEST_AT    		  , INVOICE_NUMBER      			, SHIPPING_METHOD           	  , RECEIVER_ADDRESS                
+		     , RECEIVER_MOBILE_NUMBER    	  , RECEIVER_NAME            	    , RECEIVER_PHONE_NUMBER      	  , REQUIREMENT       				
+		     , ROAD_ZIP_CODE                  , ZIPCODE           				, WITHDRAW_YN           	 	  , WITHDRAW_DATE                	
+		     , PROC_FLAG      			      , CANCEL_PROC_NOTE                , CANCEL_PROC_ID       		  	  , PROC_NOTE               		
+		     , AREA_ADD_DELIVERY_AMOUNT		  , INSERT_DATE                     , MODIFY_DATE
+		)    
+		VALUES
+		    (
+		       #{claimId        	   , jdbcType=VARCHAR}               					 , #{claimItemId		, jdbcType=VARCHAR}           							 , #{paymentId			   , jdbcType=VARCHAR}									 , #{id					   		, jdbcType=VARCHAR}
+   	         , #{referType			   , jdbcType=VARCHAR}									 , TO_DATE(#{orderClaimCancelCreatedAt, jdbcType=VARCHAR}, 'YYYYMMDDHH24MISS')   , TO_DATE(#{orderClaimCancelModifiedAt, jdbcType=VARCHAR}, 'YYYYMMDDHH24MISS')  , #{reasonCodeName		   		, jdbcType=VARCHAR} 
+   	         , #{reasonComment		   , jdbcType=VARCHAR}    								 , #{orderBaseId	    , jdbcType=VARCHAR}           							 , #{groupDiscountRoomId   , jdbcType=VARCHAR}         							 , #{status						, jdbcType=VARCHAR}                							  
+		     , TO_DATE(#{paidAt		   , jdbcType=VARCHAR}, 'YYYYMMDDHH24MISS')          	 , TO_DATE(#{decidedAt	, jdbcType=VARCHAR}, 'YYYYMMDDHH24MISS')			     , TO_DATE(#{refundedAt	   , jdbcType=VARCHAR}, 'YYYYMMDDHH24MISS')     		 , TO_DATE(#{canceledAt		    , jdbcType=VARCHAR},'YYYYMMDDHH24MISS')                 
+		     , TO_DATE(#{createdAt	   , jdbcType=VARCHAR}, 'YYYYMMDDHH24MISS')            	 , TO_DATE(#{modifiedAt , jdbcType=VARCHAR}, 'YYYYMMDDHH24MISS')       			 , #{phoneNumber		   , jdbcType=VARCHAR}                          		 , #{orderProductId				, jdbcType=VARCHAR}
+		     , #{name				   , jdbcType=VARCHAR}                                   , #{sellerItemNo		, jdbcType=VARCHAR}   									 , #{sellerItemOptionCode  , jdbcType=VARCHAR}   					 			 , #{optionContent				, jdbcType=VARCHAR}                                     
+		     , #{quantity	 		   , jdbcType=NUMERIC}  								 , #{productPrice		, jdbcType=NUMERIC}                                      , #{optionPrice		   , jdbcType=NUMERIC}     					 			 , #{sellerDiscountPrice 		, jdbcType=NUMERIC}                         
+		     , #{settlementBasicPrice  , jdbcType=NUMERIC}       		                     , #{baseFee			, jdbcType=NUMERIC}   									 , #{displayFee			   , jdbcType=NUMERIC}                          		 , #{refererCode				, jdbcType=VARCHAR}           							  
+		     , #{brandName			   , jdbcType=VARCHAR}     								 , #{modelName			, jdbcType=VARCHAR}         							 , #{deliveryAmountOriginId, jdbcType=VARCHAR}  								 , #{deliveryAmountPayPointTime , jdbcType=VARCHAR}                              
+		     , #{deliveryAmountType	   , jdbcType=VARCHAR}      							 , #{deliveryAmount		, jdbcType=NUMERIC}     								 , TO_DATE(#{confirmedAt   , jdbcType=VARCHAR}, 'YYYYMMDDHH24MISS')    			 , #{deliveryCompanyCode 		, jdbcType=VARCHAR}                                     
+		     , TO_DATE(#{deliveryRequestAt, jdbcType=VARCHAR}, 'YYYYMMDDHH24MISS')     		 , #{invoiceNumber		, jdbcType=VARCHAR}                            			 , #{shippingMethod		   , jdbcType=VARCHAR} 									 , #{receiverAddress			, jdbcType=VARCHAR}                                      
+		     , #{receiverMobileNumber  , jdbcType=VARCHAR}  			  					 , #{receiverName		, jdbcType=VARCHAR}                              		 , #{receiverPhoneNumber   , jdbcType=VARCHAR}                                	 , #{requirement				, jdbcType=VARCHAR}  									 
+		     , #{roadZipCode		   , jdbcType=VARCHAR}                          		 , #{zipcode			, jdbcType=VARCHAR}               						 , #{withdrawYn		       , jdbcType=VARCHAR}									 , #{withdrawDate				, jdbcType=TIMESTAMP}                                    
+		     , #{procFlag			   , jdbcType=VARCHAR}    								 , #{cancelProcNote		, jdbcType=VARCHAR}                                      , #{cancelProcId		   , jdbcType=VARCHAR}              					 , #{procNote					, jdbcType=VARCHAR}      								 
+		     , #{areaAdditionalDeliveryAmount , jdbcType=NUMERIC}							 , #{insertDate		    , jdbcType=TIMESTAMP}                        			 , #{modifyDate			   , jdbcType=TIMESTAMP}
+		)
+	</insert>
+	
+	<select id="selectPaKakaoOrderCancelList" resultType="hashMap">
+	    SELECT /* pakakaoclaim.xml : pakakao.claim.selectPaKakaoOrderCancelList by PaKakaoClaimController */
+	    	   PAO.ID
+			 , PAO.CLAIM_ID
+			 , PAO.PAYMENT_ID
+			 , PM.PA_CODE
+			 , SM.SLIP_NO
+			 , (SELECT DG.PA_DELY_GB 
+				  FROM TPADELYGB DG 
+				  WHERE DG.PA_CODE = '11' 
+					AND PM.PA_GROUP_CODE = DG.PA_CODE 
+					AND SM.DELY_GB = DG.DELY_GB) AS PA_DELY_GB
+			 , CASE WHEN TO_NUMBER(OD.DO_FLAG) > 30 THEN '40'
+					WHEN TO_NUMBER(OD.DO_FLAG) = 30 THEN '30'
+					ELSE '20' END AS DO_FLAG
+			 , ROUND(SYSDATE - (TRUNC(PAO.ORDER_CLAIM_CANCEL_CREATED_AT + 5) + 23/24),2) AS HOLD_TIME
+			 , PM.MAPPING_SEQ
+			 , PAO.PROC_FLAG
+		  FROM TPAORDERM         PM
+			 , TPAKAKAOCANCELLIST PAO
+			 , TORDERDT          OD
+			 , TSLIPM            SM
+			 , TSLIPDT           SD
+		 WHERE PM.PA_ORDER_GB  = '10'
+		   AND PM.PA_ORDER_NO  = PAO.PAYMENT_ID
+		   AND PM.PA_ORDER_SEQ  = PAO.ID
+		   AND PM.ORDER_NO     = OD.ORDER_NO
+		   AND PM.ORDER_G_SEQ  = OD.ORDER_G_SEQ
+		   AND PM.ORDER_D_SEQ  = OD.ORDER_D_SEQ
+		   AND PM.ORDER_W_SEQ  = OD.ORDER_W_SEQ
+		   AND PM.ORDER_NO     = SD.ORDER_NO(+)
+		   AND PM.ORDER_G_SEQ  = SD.ORDER_G_SEQ(+)
+		   AND PM.ORDER_D_SEQ  = SD.ORDER_D_SEQ(+)
+		   AND PM.ORDER_W_SEQ  = SD.ORDER_W_SEQ(+)
+		   AND SD.SLIP_I_NO    = SM.SLIP_I_NO(+)
+		   AND PAO.WITHDRAW_YN = '0'
+		   AND PAO.PROC_FLAG   IN ('00', '07', '90')
+		   AND PM.PA_CODE      IN ('B1', 'B2')
+		   AND PM.INSERT_DATE  > SYSDATE - 15
+    </select>
+    
+    <update id="updatePaKakaoCancelList"  parameterType="hashMap">
+        UPDATE /* pakakaoclaim.xml : pakakao.claim.updatePaKakaoCancelList by PaKakaoClaimController */
+        	   TPAKAKAOCANCELLIST
+           SET PROC_NOTE 	  = #{message	   , jdbcType=VARCHAR} 
+       	   <if test="procFlag != null and procFlag != ''">
+	         , PROC_FLAG	  = #{procFlag	   , jdbcType=VARCHAR}
+           </if>
+             , MODIFY_DATE    = SYSDATE
+         WHERE CLAIM_ID  	  = #{claimId  	   , jdbcType=VARCHAR}
+           AND ID			  = #{orderIds	   , jdbcType=VARCHAR}
+           AND PROC_FLAG	  NOT IN ('10','20')          
+    </update>
+    
+    <select id="selectPaKakaoCancelList" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaKakaoOrderListVO">
+        SELECT /* pakakaoclaim.xml : pakakao.claim.selectPaKakaoCancelList by PaKakaoClaimController */
+        	   A.QUANTITY
+			 , '20' AS PA_ORDER_GB
+			 , #{paCode        , jdbcType=VARCHAR} AS PA_CODE
+			 , A.CLAIM_ID
+			 , A.PAYMENT_ID
+			 , A.ID
+			 , A.STATUS
+		  FROM TPAKAKAOCANCELLIST A
+		 WHERE A.CLAIM_ID  	  = #{claimId  	   , jdbcType=VARCHAR}
+           AND A.ID			  = #{orderIds   , jdbcType=VARCHAR}
+    </select>
+    
+    <update id="updatePaOrderMSlipOut"  parameterType="hashMap">
+        UPDATE /* pakakaoclaim.xml : pakakao.claim.updatePaOrderMSlipOut by PaKakaoClaimController */
+        	   TPAORDERM PM
+           SET PM.PA_DO_FLAG		  = '40'
+           	 , PM.API_RESULT_CODE	  = '000000'
+           	 , PM.API_RESULT_MESSAGE  = '출고처리'
+             , PM.MODIFY_DATE		  = SYSDATE
+             , PM.PROC_DATE           = SYSDATE
+         WHERE PM.PA_DO_FLAG  = '20'
+		   AND PM.CREATE_YN   = '1'
+		   AND PM.PA_ORDER_GB = '10'
+		   AND PM.PA_CODE  	  = #{paCode   , jdbcType=VARCHAR}
+		   AND EXISTS( SELECT 1
+		                 FROM TPAKAKAOCANCELLIST PC
+		                WHERE PC.PAYMENT_ID   = PM.PA_ORDER_NO
+		                  AND PC.ID			  = PM.PA_ORDER_SEQ
+		                  AND PROC_FLAG   	  = '20' --취소거부완료
+		                  AND PC.CLAIM_ID  	  = #{claimId  	 , jdbcType=VARCHAR}
+           				  AND PC.ID			  = #{orderIds   , jdbcType=VARCHAR}
+		              )
+    </update>
+
+    <select id="selectPaKakaoWithdrawCancelListCheck" parameterType="com.cware.netshopping.domain.PaKakaoOrderListVO" resultType="String">
+        SELECT /* pakakaoclaim.xml : pakakao.claim.selectPaKakaoWithdrawCancelListCheck by PaKakaoClaimController */
+        	   CL.WITHDRAW_YN
+          FROM TPAKAKAOCANCELLIST CL
+         WHERE CL.CLAIM_ID  	    = #{claimId  	   	, jdbcType=VARCHAR}
+           AND CL.CLAIM_ITEM_ID	 	= #{claimItemId		, jdbcType=VARCHAR}
+	</select>
+    
+    <update id="updatePaKakaoCancelList4Withdraw" parameterType="com.cware.netshopping.domain.PaKakaoOrderListVO">
+        UPDATE /* pakakaoclaim.xml : pakakao.claim.updatePaKakaoCancelList4Withdraw by PaKakaoClaimController */
+        	   TPAKAKAOCANCELLIST CL
+           SET WITHDRAW_YN 	 = '1'
+             , WITHDRAW_DATE = SYSDATE
+             , MODIFY_DATE   = SYSDATE
+         WHERE CL.CLAIM_ID  	    = #{claimId  	   	, jdbcType=VARCHAR}
+           AND CL.CLAIM_ITEM_ID	 	= #{claimItemId		, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectClaimTargetList" parameterType="hashMap" resultType="hashMap">
+       SELECT /* pakakaoclaim.xml : pakakao.claim.selectClaimTargetList by PaKakaoClaimController */
+              PM.PA_ORDER_NO
+            , PM.PA_ORDER_SEQ
+            , PM.PA_CLAIM_NO
+            , PM.PA_ORDER_GB            
+            , PM.ORDER_NO
+            , PM.PA_CODE
+            , PM.PA_GROUP_CODE
+            , TC.CODE_SNAME AS SITE_GB
+		 FROM TPAORDERM PM
+		    , TCODE TC
+		WHERE TC.CODE_MGROUP   	=  PM.PA_GROUP_CODE
+		  AND PM.PA_CODE 		IN ('B1', 'B2')
+		  AND PM.CREATE_YN 		= '0'
+		  AND PM.PRE_CANCEL_YN 	= '0'
+		  AND TC.CODE_LGROUP   	= 'O500'
+		  AND PM.INSERT_DATE > TRUNC(SYSDATE) - 30
+		  <choose>	  	
+		  	 <when test='paOrderGb =="20"'>
+		  	 AND PM.PA_ORDER_GB  	 = '20'
+		  	 AND PM.OUT_BEF_CLAIM_GB = '0'
+		  	 </when>
+		  	 <when test='paOrderGb =="30"'>
+		  	 AND ( (PM.PA_ORDER_GB  = '30' AND (PM.PA_DO_FLAG = '20' OR PM.PA_DO_FLAG = '60') )
+		  	     OR (PM.PA_ORDER_GB = '20' AND PM.OUT_BEF_CLAIM_GB = '1' AND PM.PA_DO_FLAG = '60') )
+		  	 </when>
+		  	 <when test='paOrderGb =="31"'>
+			  	 AND PM.PA_ORDER_GB   	 = '31'
+		  	 </when>
+		  	 <when test='paOrderGb =="40"'>
+			  	 AND PM.PA_ORDER_GB   = '40'
+			  	 AND PM.CHANGE_FLAG   IN ('01', '02')
+		  	 </when>
+		  	 <when test='paOrderGb =="41"'>
+		  	 	 AND PM.PA_ORDER_GB   = '41'
+		  	 	 AND EXISTS ( SELECT 1
+								FROM TPAORDERM OPM 
+							   WHERE OPM.PA_CODE		= PM.PA_CODE 
+								 AND OPM.PA_ORDER_GB	= '40' 
+								 AND OPM.PA_ORDER_NO	= PM.PA_ORDER_NO
+								 AND OPM.PA_ORDER_SEQ	= PM.PA_ORDER_SEQ
+								 AND OPM.PA_CLAIM_NO	= PM.PA_CLAIM_NO
+								 AND OPM.CREATE_YN		= '1'
+							)
+		  	 </when>
+		  </choose>
+    </select>
+    
+    <select id="selectCancelInputTargetDtList" resultType="hashMap" parameterType="hashMap">	
+	       SELECT /* pakakaoclaim.xml : pakakao.claim.selectCancelInputTargetDtList by PaKakaoClaimController */
+	              PM.MAPPING_SEQ
+	            , OPM.ORDER_NO
+	            , OPM.ORDER_G_SEQ
+	            , PM.PA_PROC_QTY
+	            , NVL((SELECT CS_LGROUP || CS_MGROUP || CS_SGROUP
+					     FROM TPACLAIMCODE PC
+					    WHERE PC.PA_CLAIM_NAME = PO.REASON_CODE_NAME
+					      AND PC.PA_CODE = '11'
+					      AND CLAIM_GB = '20'
+					      AND ROWNUM = 1), '621199') AS CANCEL_CODE /* 일단 임의로 셋팅 */
+             	, OPM.PRE_CANCEL_YN
+	         FROM TPAORDERM         PM   /*취소건*/
+	            , TPAORDERM         OPM  /*원주문건*/
+	            , TPAKAKAOCANCELLIST PO
+	            , TORDERDT          OD
+            WHERE PM.PA_ORDER_NO 	  = OPM.PA_ORDER_NO
+              AND PM.PA_ORDER_SEQ	  = OPM.PA_ORDER_SEQ
+			  AND PM.PA_CODE 		  = OPM.PA_CODE
+			  AND OPM.PA_ORDER_GB 	  = '10'
+			  AND OPM.CREATE_YN 	  = '1'
+			  AND PM.PA_ORDER_GB 	  = '20'
+			  AND PM.CREATE_YN 		  = '0'
+			  AND PM.PRE_CANCEL_YN 	  = '0'
+			  AND PM.OUT_BEF_CLAIM_GB = '0'
+			  AND PM.PA_DO_FLAG 	  = '20'
+			  AND PM.PA_ORDER_NO 	  = PO.PAYMENT_ID
+			  AND PM.PA_ORDER_SEQ	  = PO.ID
+			  AND PM.PA_CLAIM_NO 	  = PO.CLAIM_ID
+			  AND OPM.ORDER_NO 		  = OD.ORDER_NO
+			  AND OPM.ORDER_G_SEQ 	  = OD.ORDER_G_SEQ
+			  AND OPM.ORDER_D_SEQ 	  = OD.ORDER_D_SEQ
+			  AND OPM.ORDER_W_SEQ 	  = OD.ORDER_W_SEQ
+			  AND PM.INSERT_DATE 	  > SYSDATE - 5
+			  AND (OPM.CREATE_YN = '1' OR OPM.PRE_CANCEL_YN = '1')
+	          AND OD.DO_FLAG          &lt; '30'
+	          AND PM.PA_CODE          = #{paCode	 , jdbcType=VARCHAR}
+	          AND PM.PA_ORDER_NO      = #{paOrderNo  , jdbcType=VARCHAR}
+	          AND PM.PA_ORDER_SEQ     = #{paOrderSeq , jdbcType=VARCHAR}
+	          AND PM.PA_CLAIM_NO      = #{paClaimNo  , jdbcType=VARCHAR}
+	</select>
+	
+	<select id="countOrgClaimList" parameterType="com.cware.netshopping.domain.PaKakaoOrderListVO" resultType="int">
+        SELECT /* pakakaoclaim.xml : pakakao.claim.countOrgClaimList by PaKakaoClaimController */
+		       COUNT(1) AS CNT
+		  FROM TPAKAKAOCLAIMLIST CL
+		 WHERE CL.CLAIM_ID    = #{claimId  		, jdbcType=VARCHAR}
+		   AND CLAIM_ITEM_ID  = #{claimItemId 	, jdbcType=VARCHAR}
+		   <choose>
+	           <when test='paClaimGb =="31"'>
+	           		AND CL.PA_ORDER_GB  = '30'
+	           </when>
+	           <when test='paClaimGb =="41"'>
+	           		AND CL.PA_ORDER_GB  = '40'
+	           </when>
+           </choose>
+	</select>
+	
+	<select id="countClaimList" parameterType="com.cware.netshopping.domain.PaKakaoOrderListVO" resultType="int">
+         SELECT /* pakakaoclaim.xml : pakakao.claim.countClaimList by PaKakaoClaimController */
+		       COUNT(1) AS CNT
+		  FROM TPAKAKAOCLAIMLIST CL
+		 WHERE CL.CLAIM_ID 		   = #{claimId 		, jdbcType=VARCHAR}
+		   AND CL.CLAIM_ITEM_ID    = #{claimItemId	, jdbcType=VARCHAR}
+		   AND CL.PA_ORDER_GB  	   = #{paClaimGb  	, jdbcType=VARCHAR}
+	</select>
+	
+	<insert id="insertPaKakaoClaimList" parameterType="com.cware.netshopping.domain.PaKakaoOrderListVO">
+		INSERT /* pakakaoclaim.xml : pakakao.claim.insertPaKakaoClaimList by PaKakaoClaimController */
+		  INTO TPAKAKAOCLAIMLIST(
+		       CLAIM_ID							, CLAIM_ITEM_ID		                , PAYMENT_ID					      , ID
+		     , PA_ORDER_GB			  	        , ORDER_BASE_ID				        , GROUP_DISCOUNT_ROOM_ID	          , STATUS
+		     , PAID_AT							, DECIDED_AT		                , REFUNDED_AT				          , CANCELED_AT
+		     , CREATED_AT						, MODIFIED_AT		                , PHONE_NUMBER				          , ORDER_PRODUCT_ID
+		     , NAME								, SELLER_ITEM_NO	                , SELLER_ITEM_OPTION_CODE	          , OPTION_CONTENT
+		     , QUANTITY							, PRODUCT_PRICE		                , OPTION_PRICE				          , SELLER_DISCOUNT_PRICE
+		     , SETTLEMENT_BASIC_PRICE 			, BASE_FEE			                , DISPLAY_FEE				          , REFERER_CODE
+		     , BRAND_NAME						, MODEL_NAME		                , DELIVERY_AMOUNT_ORIGIN_ID		      , DELIVERY_AMOUNT_PAY_POINT_TIME
+		     , DELIVERY_AMOUNT_TYPE				, DELIVERY_AMOUNT					, CONFIRMED_AT					      , DELIVERED_AT
+		     , DELIVERY_COMPANY_CODE			, DELIVERY_REQUEST_AT				, INVOICE_NUMBER				      , INVOICE_REGISTERED_AT
+		     , SHIPPING_METHOD					, RECEIVER_ADDRESS					, RECEIVER_MOBILE_NUMBER		      , RECEIVER_NAME
+		     , RECEIVER_PHONE_NUMBER			, REQUIREMENT						, ROAD_ZIP_CODE					      , ZIPCODE
+		     , REFER_TYPE						, REASON_CODE_NAME					, REASON_COMMENT				      , ORDER_CLAIM_EXCH_CREATED_AT
+		     , ORDER_CLAIM_EXCH_MODIFIED_AT		, COMPLETED_AT						, RETURN_METHOD					      , RETURN_DELIVERY_COMPANY_ID
+		     , RETURN_INVOICE_NUMBER			, EXCHANGE_NAME						, EXCHANGE_ZIP_CODE				      , EXCHANGE_ROAD_ZIP_CODE
+		     , EXCHANGE_ADDRESS1				, EXCHANGE_ADDRESS2					, EXCHANGE_MOBILE_NUMBER		      , EXCHANGE_PHONE_NUMBER
+		     , EXCHANGE_METHOD					, EXCHANGE_DELIVERY_COMPANY_ID		, EXCHANGE_INVOICE_NUMBER		      , EXCHANGE_SHIPPING_FEE
+		     , PENDING_MODIFIED_AT				, PENDING_CODE_NAME					, PENDING_COMMENT				      , RETURN_SHIPPING_FEE
+		     , ORDER_CLAIM_RETURN_CREATED_AT	, ORDER_CLAIM_RETURN_MODIFIED_AT	, PICKUP_NAME					      , PICKUP_ZIP_CODE
+		     , PICKUP_ROAD_ZIP_CODE				, PICKUP_ADDRESS1					, PICKUP_ADDRESS2				      , PICKUP_MOBILE_NUMBER
+		     , PICKUP_PHONE_NUMBER				, CLAIM_SHIPPING_FEE_METHOD			, CLAIM_SHIPPING_FEE_METHOD_LABEL     , REJECT_YN
+		     , AREA_ADD_DELIVERY_AMOUNT			, INSERT_DATE			        	, MODIFY_DATE
+		)    
+		VALUES
+		    (
+		       #{claimId					, jdbcType=VARCHAR}	                                    , #{claimItemId					, jdbcType=VARCHAR}									, #{paymentId				        , jdbcType=VARCHAR}						 	 , #{id										, jdbcType=VARCHAR}
+		     , #{paOrderGb				    , jdbcType=VARCHAR}		     							, #{orderBaseId					, jdbcType=VARCHAR}                               	, #{groupDiscountRoomId		        , jdbcType=VARCHAR}		                     , #{status					                , jdbcType=VARCHAR}
+		     , TO_DATE(#{paidAt				, jdbcType=VARCHAR},'YYYYMMDDHH24MISS')                 , TO_DATE(#{decidedAt			, jdbcType=VARCHAR},'YYYYMMDDHH24MISS')				, TO_DATE(#{refundedAt		        , jdbcType=VARCHAR},'YYYYMMDDHH24MISS')      , TO_DATE(#{canceledAt		                , jdbcType=VARCHAR},'YYYYMMDDHH24MISS')
+		     , TO_DATE(#{createdAt			, jdbcType=VARCHAR},'YYYYMMDDHH24MISS')                 , TO_DATE(#{modifiedAt			, jdbcType=VARCHAR},'YYYYMMDDHH24MISS')				, #{phoneNumber				        , jdbcType=VARCHAR}		                     , #{orderProductId			                , jdbcType=VARCHAR}
+		     , #{name						, jdbcType=VARCHAR}                                     , #{sellerItemNo				, jdbcType=VARCHAR}		                            , #{sellerItemOptionCode	        , jdbcType=VARCHAR}		                     , #{optionContent			                , jdbcType=VARCHAR}
+		     , #{quantity					, jdbcType=NUMERIC}                                     , #{productPrice				, jdbcType=NUMERIC}                                 , #{optionPrice				        , jdbcType=NUMERIC}		                     , #{sellerDiscountPrice		            , jdbcType=NUMERIC}
+		     , #{settlementBasicPrice		, jdbcType=NUMERIC}                                     , #{baseFee						, jdbcType=NUMERIC}                                 , #{displayFee				        , jdbcType=NUMERIC}		                     , #{refererCode				            , jdbcType=VARCHAR}
+		     , #{brandName					, jdbcType=VARCHAR}                                     , #{modelName					, jdbcType=VARCHAR}                                 , #{deliveryAmountOriginId	        , jdbcType=VARCHAR}		                     , #{deliveryAmountPayPointTime				, jdbcType=VARCHAR}
+		     , #{deliveryAmountType			, jdbcType=VARCHAR}                                     , #{deliveryAmount				, jdbcType=NUMERIC}                                 , TO_DATE(#{confirmedAt		        , jdbcType=VARCHAR},'YYYYMMDDHH24MISS')	     , TO_DATE(#{deliveredAt		            , jdbcType=VARCHAR},'YYYYMMDDHH24MISS')
+		     , #{deliveryCompanyCode		, jdbcType=VARCHAR}                                     , TO_DATE(#{deliveryRequestAt	, jdbcType=VARCHAR},'YYYYMMDDHH24MISS')				,#{invoiceNumber			        , jdbcType=VARCHAR}		                     , TO_DATE(#{invoiceRegisteredAt            , jdbcType=VARCHAR},'YYYYMMDDHH24MISS')
+		     , #{shippingMethod				, jdbcType=VARCHAR}                                     , #{receiverAddress				, jdbcType=VARCHAR}                                 , #{receiverMobileNumber	        , jdbcType=VARCHAR}		                     , #{receiverName							, jdbcType=VARCHAR}
+		     , #{receiverPhoneNumber		, jdbcType=VARCHAR}                                     , #{requirement					, jdbcType=VARCHAR}                                 , #{roadZipCode				        , jdbcType=VARCHAR}		                     , #{zipcode								, jdbcType=VARCHAR}
+		     , #{referType					, jdbcType=VARCHAR}                                     , #{reasonCodeName				, jdbcType=VARCHAR}                                 , #{reasonComment			        , jdbcType=VARCHAR}		                     , TO_DATE(#{orderClaimExchCreatedAt		, jdbcType=VARCHAR},'YYYYMMDDHH24MISS')
+		     , TO_DATE(#{orderClaimExchModifiedAt	, jdbcType=VARCHAR},'YYYYMMDDHH24MISS') 		, TO_DATE(#{completedAt			, jdbcType=VARCHAR},'YYYYMMDDHH24MISS')				,#{returnMethod				        , jdbcType=VARCHAR}		                     , #{returnDeliveryCompanyId	            , jdbcType=VARCHAR}
+		     , #{returnInvoiceNumber		, jdbcType=VARCHAR}                                     , #{exchangeName				, jdbcType=VARCHAR}                                 , #{exchangeZipCode			        , jdbcType=VARCHAR}		                     , #{exchangeRoadZipCode		            , jdbcType=VARCHAR}
+		     , #{exchangeAddress1			, jdbcType=VARCHAR}                                     , #{exchangeAddress2			, jdbcType=VARCHAR}                                 , #{exchangeMobileNumber	        , jdbcType=VARCHAR}		                     , #{exchangePhoneNumber		            , jdbcType=VARCHAR}
+		     , #{exchangeMethod				, jdbcType=VARCHAR}										, #{exchangeDeliveryCompanyId	, jdbcType=VARCHAR}                                 , #{exchangeInvoiceNumber	        , jdbcType=VARCHAR}		                     , #{exchangeShippingFee		            , jdbcType=NUMERIC}
+		     , TO_DATE(#{pendingModifiedAt	, jdbcType=VARCHAR},'YYYYMMDDHH24MISS')		    		, #{pendingCodeName				, jdbcType=VARCHAR}                                 , #{pendingComment			        , jdbcType=VARCHAR}		                     , #{returnShippingFee			            , jdbcType=NUMERIC}
+		     , TO_DATE(#{orderClaimReturnCreatedAt		, jdbcType=VARCHAR},'YYYYMMDDHH24MISS')		, TO_DATE(#{orderClaimReturnModifiedAt	, jdbcType=VARCHAR},'YYYYMMDDHH24MISS')		, #{pickupName				        , jdbcType=VARCHAR}							 , #{pickupZipCode							, jdbcType=VARCHAR}
+		     , #{pickupRoadZipCode			, jdbcType=VARCHAR}										, #{pickupAddress1				, jdbcType=VARCHAR}									, #{pickupAddress2			        , jdbcType=VARCHAR}							 , #{pickupMobileNumber						, jdbcType=VARCHAR}
+		     , #{pickupPhoneNumber			, jdbcType=VARCHAR}										, #{claimShippingFeeMethod		, jdbcType=VARCHAR}									, #{claimShippingFeeMethodLabel		, jdbcType=VARCHAR}							 , #{rejectYn								, jdbcType=VARCHAR}		                     		
+		     , #{areaAdditionalDeliveryAmount , jdbcType=NUMERIC}									, #{insertDate			    	, jdbcType=TIMESTAMP}						 		, #{modifyDate						, jdbcType=TIMESTAMP}
+		)	
+	</insert>
+	
+	<select id="selectKakaoExchangeGoodsInfo" resultType="hashMap" parameterType="hashMap">
+	    SELECT /* pakakaoclaim.xml : pakakao.claim.selectKakaoExchangeGoodsInfo by PaKakaoClaimController */
+	    	   PGD.GOODS_CODE
+	    	 , PGD.GOODSDT_CODE
+	      FROM TPAGOODSDTMAPPING PGD
+	     WHERE PGD.PA_CODE    	  = #{paCode	 , jdbcType=VARCHAR}   
+	       AND PGD.PA_OPTION_CODE = #{sellerItemOptionCode , jdbcType=VARCHAR}
+    </select>
+	    
+    <select id="selectOrderCalimTargetDt30List" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* pakakaoclaim.xml : pakakao.claim.selectOrderCalimTargetDt30List by PaKakaoClaimController */
+               PM.PA_ORDER_GB
+             , PM.MAPPING_SEQ
+             , PM.PA_ORDER_NO
+             , PM.PA_ORDER_SEQ
+             , PM.PA_CLAIM_NO
+             , OPM.ORDER_NO
+             , OPM.ORDER_G_SEQ
+             , OPM.ORDER_W_SEQ
+             , PM.PA_PROC_QTY
+             , PM.OUT_BEF_CLAIM_GB AS OUT_BEF_CLAIM_GB
+             , NVL( (SELECT A.CS_LMS_CODE FROM TCSKINDS A WHERE A.CS_LMS_CODE = '6311' || PCC.CS_SGROUP) , '631199')   AS CLAIM_CODE
+             , PC.REASON_COMMENT AS CLAIM_DESC
+             , DECODE(PC.STATUS, 'ReturnCancelComplete', PO.RECEIVER_NAME, PC.PICKUP_NAME) AS RETURN_NAME
+             , DECODE(PC.STATUS, 'ReturnCancelComplete', DECODE(PO.RECEIVER_PHONE_NUMBER, '010', '', PO.RECEIVER_PHONE_NUMBER), PC.PICKUP_PHONE_NUMBER) AS RETURN_TEL
+             , DECODE(PC.STATUS, 'ReturnCancelComplete', PO.RECEIVER_MOBILE_NUMBER, PC.PICKUP_MOBILE_NUMBER) AS RETURN_HP
+             , DECODE(PC.STATUS, 'ReturnCancelComplete', PO.RECEIVER_ADDRESS,PC.PICKUP_ADDRESS1 || ' '|| PC.PICKUP_ADDRESS2) AS RETURN_ADDR
+             , DECODE(PC.STATUS, 'ReturnCancelComplete', NVL(PO.ROAD_ZIP_CODE, PO.ZIPCODE), NVL(PC.PICKUP_ROAD_ZIP_CODE, PC.PICKUP_ZIP_CODE)) AS RCVR_MAIL_NO
+             , DECODE(PC.STATUS, 'ReturnCancelComplete', PO.RECEIVER_ADDRESS, PC.PICKUP_ADDRESS1) AS RCVR_BASE_ADDR
+             , DECODE(PC.STATUS, 'ReturnCancelComplete', PO.RECEIVER_ADDRESS, PC.PICKUP_ADDRESS2) AS RCVR_DTLS_ADDR
+             , PC.RETURN_SHIPPING_FEE AS CLM_LST_DLV_CST
+             , PCC.SHIPCOST_CHARGE_YN
+             , TC.CODE_SNAME AS SITE_GB
+             , 0  AS ADMIN_PROC_YN
+          	 , '' AS EXCH_GOODSDT_CODE
+         FROM TPAORDERM         PM  /*반품접수건*/
+            , TPAORDERM         OPM /*원주문건*/
+            , TPAKAKAOCLAIMLIST  PC
+            , TPAKAKAOORDERLIST  PO
+            , TCODE             TC
+            , TPACLAIMCODE      PCC
+        WHERE PM.PA_ORDER_NO    = OPM.PA_ORDER_NO
+          AND PM.PA_ORDER_SEQ   = OPM.PA_ORDER_SEQ
+          AND PM.PA_CODE        = OPM.PA_CODE
+          AND PM.PA_ORDER_NO    = PC.PAYMENT_ID
+          AND PM.PA_ORDER_SEQ   = PC.ID
+          AND PM.PA_CLAIM_NO    = PC.CLAIM_ID
+          AND PM.PA_ORDER_GB    = PC.PA_ORDER_GB
+          AND PM.PA_CODE    	IN ('B1', 'B2')
+          AND (PM.PA_DO_FLAG     = '20' 
+               OR PM.PA_DO_FLAG     = '60') 
+          AND PM.PA_ORDER_GB    = '30'
+          AND PM.CREATE_YN      = '0'
+          AND PM.PRE_CANCEL_YN  = '0'
+          AND PM.INSERT_DATE 	&gt; TRUNC(SYSDATE) - 30
+          AND OPM.PA_ORDER_GB   = '10'
+          AND OPM.CREATE_YN     = '1'
+          AND PC.ID  			= PO.ID
+          AND TC.CODE_LGROUP    = 'O500'
+          AND TC.CODE_MGROUP    = PM.PA_GROUP_CODE
+          AND PC.REASON_CODE_NAME 	= PCC.PA_CLAIM_NAME(+)
+          AND PCC.CLAIM_GB(+)   = '30' 
+          AND PM.PA_ORDER_NO    = #{paOrderNo   , jdbcType=VARCHAR}
+          AND PM.PA_ORDER_SEQ   = #{paOrderSeq  , jdbcType=VARCHAR}
+          AND PM.PA_GROUP_CODE  = #{paGroupCode , jdbcType=VARCHAR}
+          AND PM.PA_CLAIM_NO    = #{paClaimNo  , jdbcType=VARCHAR}
+          AND PCC.PA_CODE(+)    = '11'
+    </select>
+    
+    <select id="selectOrderCalimTargetDt20List" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* pakakaoclaim.xml : pakakao.claim.selectOrderCalimTargetDt20List by PaKakaoClaimController */
+             PM.PA_ORDER_GB
+           , PM.MAPPING_SEQ  
+           , PM.PA_ORDER_NO
+           , PM.PA_ORDER_SEQ
+           , PM.PA_CLAIM_NO
+           , OPM.ORDER_NO
+           , OPM.ORDER_G_SEQ
+           , OPM.ORDER_D_SEQ
+           , OPM.ORDER_W_SEQ
+           , PM.PA_PROC_QTY
+           , NVL( (SELECT A.CS_LMS_CODE FROM TCSKINDS A WHERE A.CS_LMS_CODE = '6211' ||  PCC.CS_SGROUP ), '621199') AS CLAIM_CODE
+           , PC.REASON_COMMENT AS CLAIM_DESC
+             , '' AS RETURN_NAME
+             , '' AS RETURN_TEL
+             , '' AS RETURN_HP
+             , '' AS RETURN_ADDR
+           , PM.OUT_BEF_CLAIM_GB AS OUT_BEF_CLAIM_GB
+           , '' AS RCVR_MAIL_NO
+           , '' AS RCVR_BASE_ADDR
+           , '' AS RCVR_DTLS_ADDR
+           , 0  AS CLM_LST_DLV_CST
+           , '0' AS SHIPCOST_CHARGE_YN
+           , TC.CODE_SNAME AS SITE_GB
+           , 0  AS ADMIN_PROC_YN
+           , '' AS EXCH_GOODSDT_CODE
+        FROM TPAORDERM PM   /* 출하지시 이후 취소 접수건 */
+           , TPAORDERM OPM  /* 원주문건 */
+           , TPAKAKAOCANCELLIST PC
+           , TCODE     TC
+           , TPACLAIMCODE      PCC
+         WHERE PM.PA_ORDER_NO      = OPM.PA_ORDER_NO
+           AND PM.PA_ORDER_SEQ     = OPM.PA_ORDER_SEQ
+           AND PM.PA_CODE          = OPM.PA_CODE
+           AND PM.PA_ORDER_NO      = PC.PAYMENT_ID
+           AND PM.PA_ORDER_SEQ     = PC.ID
+           AND PM.PA_CLAIM_NO      = PC.CLAIM_ID
+           AND PC.WITHDRAW_YN 	   = '0'
+           AND PM.PA_CODE          IN ('B1', 'B2')
+           AND PM.CREATE_YN        = '0'
+           AND PM.PRE_CANCEL_YN    = '0'
+           AND PM.OUT_BEF_CLAIM_GB = '1'
+           AND PM.INSERT_DATE  	   &gt; TRUNC(SYSDATE) - 30
+           AND OPM.PA_ORDER_GB     = '10'
+           AND OPM.CREATE_YN       = '1'
+           AND PM.PA_ORDER_NO      = #{paOrderNo    , jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ     = #{paOrderSeq   , jdbcType=VARCHAR}
+           AND PM.PA_GROUP_CODE    = #{paGroupCode  , jdbcType=VARCHAR}
+           AND PM.PA_CLAIM_NO      = #{paClaimNo  , jdbcType=VARCHAR}
+           AND TC.CODE_LGROUP      = 'O500'
+           AND TC.CODE_MGROUP      = PM.PA_GROUP_CODE
+           AND PC.REASON_CODE_NAME = PCC.PA_CLAIM_NAME(+)
+           AND PCC.CLAIM_GB(+)	   = '20' 
+           AND PCC.PA_CODE(+)      = '11'
+    </select>
+    
+    <select id="compareAddress" resultType="String" parameterType="hashMap">
+        SELECT /* pakakaoclaim.xml : pakakao.claim.compareAddress by PaKakaoClaimController */
+               COUNT(1) AS CNT
+          FROM (
+                SELECT OC.ORD_DORO_ADR1 AS ORD_ADR1
+                     , OC.CLM_DORO_ADR1 AS CLM_ADR1
+                     , OC.ORD_NAME      AS ORD_NAME
+                     , OC.CLM_NAME      AS CLM_NAME  
+                  FROM(
+                       SELECT UPPER(REPLACE(OL.RECEIVER_ADDRESS, ' ', '')) AS ORD_DORO_ADR1
+                            , UPPER(REPLACE(CL.RECEIVER_ADDRESS, ' ', '')) AS CLM_DORO_ADR1
+                            , OL.RECEIVER_NAME AS ORD_NAME
+                            , CL.RECEIVER_NAME AS CLM_NAME
+                         FROM TPAKAKAOORDERLIST OL
+                            , TPAKAKAOCLAIMLIST CL
+                        WHERE OL.ID  			  = CL.ID
+                          AND CL.PA_ORDER_GB 	  = #{PA_ORDER_GB  , jdbcType=VARCHAR}
+                          AND OL.ID  			  = #{PA_ORDER_NO  , jdbcType=VARCHAR}
+                          AND CL.CLAIM_ID     	  = #{PA_CLAIM_NO  , jdbcType=VARCHAR} ) OC
+               ) TB
+         WHERE TB.ORD_ADR1 = TB.CLM_ADR1
+           AND TB.ORD_NAME = TB.CLM_NAME
+    </select>
+    
+    <select id="selectClaimCancelTargetDtList" parameterType="hashMap" resultType="hashMap">
+      SELECT /* pakakaoclaim.xml : pakakao.claim.selectClaimCancelTargetDtList by PaKakaoClaimController */
+           	 PM.MAPPING_SEQ
+	         , OPM.ORDER_NO
+	         , OPM.ORDER_G_SEQ
+	         , OPM.ORDER_W_SEQ
+	         , PM.PA_PROC_QTY
+	         , NVL( (SELECT A.CS_LMS_CODE FROM TCSKINDS A WHERE A.CS_LMS_CODE = '6311' || 
+	                (SELECT PCC.CS_SGROUP FROM TPACLAIMCODE PCC WHERE PCC.PA_CODE = '11' AND PCC.CLAIM_GB = '30' AND PCC.PA_CLAIM_NAME = PC.REASON_CODE_NAME)) , '631199') AS CLAIM_CODE
+	         , OPM.PRE_CANCEL_YN
+	         , PM.PA_ORDER_GB
+	         , '' AS CLAIM_DESC
+	         , '' AS RETURN_NAME
+	         , '' AS RETURN_TEL
+	         , '' AS RETURN_HP
+	         , '' AS RETURN_ADDR
+	         , '' AS OUT_BEF_CLAIM_GB
+	         , '' AS RCVR_MAIL_NO
+	         , '' AS RCVR_BASE_ADDR
+	         , '' AS RCVR_DTLS_ADDR
+	         , '' AS CLAIM_CODE
+	         , 0 AS CLM_LST_DLV_CST
+	         , '0' AS SHIPCOST_CHARGE_YN
+	         , TC.CODE_SNAME AS SITE_GB
+	    FROM TPAORDERM PM   /*반품취소건*/
+  	       , TPAORDERM OPM  /*원 반품건*/
+	       , TPAKAKAOCLAIMLIST PC
+	       , TCODE            TC
+	   WHERE PM.PA_ORDER_NO      = OPM.PA_ORDER_NO
+	     AND PM.PA_ORDER_SEQ     = OPM.PA_ORDER_SEQ
+	     AND PM.PA_CODE          = OPM.PA_CODE
+	     AND PM.PA_CLAIM_NO      = OPM.PA_CLAIM_NO
+	     AND TC.CODE_LGROUP      = 'O500'
+	     AND TC.CODE_MGROUP      = PM.PA_GROUP_CODE
+	     AND PM.PA_ORDER_GB      = '31'
+	     AND PM.OUT_BEF_CLAIM_GB = '0'
+	     AND PM.CREATE_YN        = '0'
+	     AND PM.PRE_CANCEL_YN    = '0'
+	     AND PM.INSERT_DATE > TRUNC(SYSDATE) - 30
+	     AND OPM.PA_ORDER_GB     = '30'
+	     AND OPM.CREATE_YN       = '1'
+	     AND PM.PA_ORDER_NO      = PC.PAYMENT_ID
+	     AND PM.PA_ORDER_SEQ     = PC.ID
+	     AND PM.PA_CLAIM_NO      = PC.CLAIM_ID
+	     AND (PM.PA_ORDER_GB      = PC.PA_ORDER_GB 
+	         OR (PC.REJECT_YN = '1' AND PC.PA_ORDER_GB = '30')) /*자동환불 거절 건*/
+	     AND PM.PA_CODE          = #{paCode     , jdbcType=VARCHAR}
+	     AND PM.PA_ORDER_NO      = #{paOrderNo  , jdbcType=VARCHAR}
+	     AND PM.PA_ORDER_SEQ     = #{paOrderSeq , jdbcType=VARCHAR}
+	     AND PM.PA_CLAIM_NO      = #{paClaimNo  , jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectOrderChangeTargetDtList" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* pakakaoclaim.xml : pakakao.claim.selectOrderChangeTargetDtList by PaKakaoClaimController */
+    		   PM.MAPPING_SEQ
+    		 , PM.PA_ORDER_GB AS CLAIM_GB
+    		 , OPM.ORDER_NO
+    		 , OPM.ORDER_G_SEQ
+    		 , PM.PA_PROC_QTY AS PA_PROC_QTY
+    		 , PM.CHANGE_GOODSDT_CODE AS EXCH_GOODSDT_CODE
+    		 , PC.REASON_COMMENT AS CLAIM_DESC
+    		 , NVL( (SELECT A.CS_LMS_CODE FROM TCSKINDS A WHERE A.CS_LMS_CODE = '6411' || PCC.CS_SGROUP) , '641199') AS CLAIM_CODE
+    		 , PC.PICKUP_NAME AS RETURN_NAME
+    		 , PC.PICKUP_PHONE_NUMBER AS RETURN_TEL
+             , PC.PICKUP_MOBILE_NUMBER AS RETURN_HP
+             , NVL(PC.PICKUP_ROAD_ZIP_CODE, PC.PICKUP_ZIP_CODE) AS RCVR_MAIL_NO
+             , PC.PICKUP_ADDRESS1 AS RCVR_BASE_ADDR
+             , PC.PICKUP_ADDRESS2 AS RCVR_DTLS_ADDR
+             , PC.PICKUP_ADDRESS1 || ' ' || PC.PICKUP_ADDRESS2 AS RETURN_ADDR
+             , '0' AS ADMIN_PROC_YN
+             , PM.PA_ORDER_GB
+             , PM.OUT_BEF_CLAIM_GB
+             , TC.CODE_SNAME AS SITE_GB
+             , PM.PA_ORDER_NO
+             , PM.PA_ORDER_SEQ
+             , PM.PA_CLAIM_NO
+             , PC.EXCHANGE_SHIPPING_FEE AS CLM_LST_DLV_CST
+             , PCC.SHIPCOST_CHARGE_YN
+    	  FROM TPAORDERM PM
+		     , TPAORDERM OPM
+		     , TPAKAKAOCLAIMLIST PC
+		     , TCODE TC
+		     , TPACLAIMCODE PCC
+		 WHERE PM.PA_ORDER_NO      = OPM.PA_ORDER_NO
+		   AND PM.PA_ORDER_SEQ     = OPM.PA_ORDER_SEQ
+	       AND PM.PA_CODE          = OPM.PA_CODE
+	       AND PM.PA_CLAIM_NO      = PC.CLAIM_ID
+	       AND PM.PA_ORDER_NO	   = PC.PAYMENT_ID
+	       AND PM.PA_ORDER_SEQ	   = PC.ID
+	       AND TC.CODE_LGROUP      = 'O500'
+	       AND TC.CODE_MGROUP      = PM.PA_GROUP_CODE
+	       AND PM.PA_CODE          IN ('B1', 'B2')
+	       AND PM.PA_ORDER_GB      IN ('40', '45')
+	       AND PC.PA_ORDER_GB      = '40'
+	       AND OPM.PA_ORDER_GB     = '10'
+	       AND PM.CREATE_YN        = '0'
+	       AND PM.PRE_CANCEL_YN    = '0'
+	       AND PM.OUT_BEF_CLAIM_GB = '0'
+	       AND PM.MODIFY_DATE 	   &gt; TRUNC(SYSDATE) - 30
+	       AND PM.PA_ORDER_NO      = #{paOrderNo  , jdbcType=VARCHAR}
+	       AND PM.PA_ORDER_SEQ     = #{paOrderSeq , jdbcType=VARCHAR}
+		   AND PM.PA_CLAIM_NO      = #{paClaimNo  , jdbcType=VARCHAR}
+	       AND PC.REASON_CODE_NAME = PCC.PA_CLAIM_NAME(+)
+	       AND PCC.CLAIM_GB(+)		   = '40' 
+	       AND PCC.PA_CODE(+)         = '11'
+		 ORDER BY PM.PA_ORDER_GB ASC
+    </select>
+    
+    <update id="updatePaOrdermChangeFlag" parameterType="hashMap">
+        UPDATE TPAORDERM /* pakakaoclaim.xml : pakakao.claim.updatePaOrdermChangeFlag by PaKakaoClaimController */
+           SET CHANGE_FLAG = #{changeFlag , jdbcType=VARCHAR}
+         WHERE MAPPING_SEQ = #{mappingSeq , jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectRefusalInfo" resultType="hashMap" parameterType="hashMap">
+	    SELECT /* pakakaoclaim.xml : pakakao.claim.selectRefusalInfo by PaKakaoClaimController */
+	    	   PM.PA_CODE
+	    	 , PM.PA_ORDER_SEQ
+	    	 , PM.PA_CLAIM_NO
+	      FROM TPAORDERM PM
+	     WHERE PM.MAPPING_SEQ = #{mappingSeq  ,  jdbcType=VARCHAR}
+    </select>
+    
+    <update id="updatePreCanYn" parameterType="hashMap">
+        UPDATE /* pakakaoclaim.xml : pakakao.claim.updatePreCanYn by PaKakaoClaimController */
+        	   TPAORDERM
+           SET PRE_CANCEL_YN	 	= #{preCanYn			,	jdbcType=VARCHAR}
+           	 , CHANGE_FLAG         	= #{changeFlag 			, jdbcType=VARCHAR}
+             , API_RESULT_MESSAGE	= #{apiResultMessage	,	jdbcType=VARCHAR}
+             <if test="apiResultCode != null and apiResultCode != ''">
+             , API_RESULT_CODE		= #{apiResultCode    	,	jdbcType=VARCHAR}
+             </if>
+             <if test="modifyId != null and modifyId != ''">
+             , MODIFY_ID            = #{modifyId 	, jdbcType=VARCHAR}
+             , REMARK5_V            = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             </if>
+             , MODIFY_DATE		 	= SYSDATE
+         WHERE PA_CLAIM_NO			= #{claimId		,	jdbcType=VARCHAR}
+           AND PA_ORDER_SEQ 		= #{orderIds	,	jdbcType=VARCHAR}
+           AND PA_CODE 				= #{paCode		,	jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectChangeCancelTargetDtList" parameterType="hashMap" resultType="hashMap">
+	    SELECT /* pakakaoclaim.xml : pakakao.claim.selectChangeCancelTargetDtList by PaKakaoClaimController */
+	    	   MAPPING_SEQ
+	         , PA_ORDER_GB
+	         , ORDER_NO
+	         , ORDER_G_SEQ
+	         , ORDER_D_SEQ
+	         , ORDER_W_SEQ
+	         , PA_PROC_QTY
+	         , CLAIM_CODE
+	         , PRE_CANCEL_YN
+	         , CLM_LST_DLV_CST
+	         , SHIPCOST_CHARGE_YN
+	         , SITE_GB
+	         , OUT_BEF_CLAIM_GB
+	      FROM ( 
+				 SELECT PM.MAPPING_SEQ
+				      , PM.PA_ORDER_GB
+				      , OPM1.ORDER_NO
+				      , OPM1.ORDER_G_SEQ
+				      , OPM1.ORDER_D_SEQ
+				      , DECODE(PM.PA_ORDER_GB, '41', OPM1.ORDER_W_SEQ, '46', OPM2.ORDER_W_SEQ) AS ORDER_W_SEQ
+				      , PM.PA_PROC_QTY
+				      , '999' AS CLAIM_CODE
+				      , OPM1.PRE_CANCEL_YN
+				      , 0 AS CLM_LST_DLV_CST
+				      , '0' AS SHIPCOST_CHARGE_YN
+				      , TC.CODE_SNAME AS SITE_GB
+				      , PM.OUT_BEF_CLAIM_GB
+				   FROM TPAORDERM PM          /* 교환취소건   */
+				      , TPAORDERM OPM1        /* 원교환배송 건 */
+				      , TPAORDERM OPM2        /* 원교환회수 건 */
+				      , TPAKAKAOCLAIMLIST PC   /* 원교환배송 건 */
+				      , TCODE TC
+				  WHERE PM.PA_ORDER_NO    = OPM1.PA_ORDER_NO
+				    AND PM.PA_ORDER_SEQ   = OPM1.PA_ORDER_SEQ
+				    AND PM.PA_CLAIM_NO    = OPM1.PA_CLAIM_NO
+				    AND PM.PA_CODE        = OPM1.PA_CODE
+				    AND PM.PA_ORDER_NO    = OPM2.PA_ORDER_NO
+				    AND PM.PA_ORDER_SEQ   = OPM2.PA_ORDER_SEQ
+				    AND PM.PA_CLAIM_NO    = OPM2.PA_CLAIM_NO
+				    AND PM.PA_CODE        = OPM2.PA_CODE
+				    AND OPM1.PA_ORDER_NO  = PC.PAYMENT_ID
+				    AND OPM1.PA_ORDER_SEQ = PC.ID
+				    AND OPM1.PA_CLAIM_NO  = PC.CLAIM_ID
+				    AND OPM1.PA_ORDER_GB  = PC.PA_ORDER_GB
+				    AND TC.CODE_LGROUP    = 'O500'
+				    AND TC.CODE_MGROUP    =  PM.PA_GROUP_CODE
+				    AND PM.PA_CODE 		  IN ('B1', 'B2')
+				    AND PM.PA_ORDER_GB 	  IN ('41', '46')
+				    AND OPM1.PA_ORDER_GB  = '40'
+				    AND OPM2.PA_ORDER_GB  = '45'
+				    AND OPM1.CREATE_YN    = '1'
+				    AND OPM2.CREATE_YN    = '1'
+				    AND PM.CREATE_YN      = '0'
+				    AND PM.PRE_CANCEL_YN  = '0'
+				    AND PM.INSERT_DATE > TRUNC(SYSDATE) - 5
+				    AND PM.PA_ORDER_NO    = #{paOrderNo  , jdbcType=VARCHAR}
+				    AND PM.PA_ORDER_SEQ   = #{paOrderSeq , jdbcType=VARCHAR}
+				    AND PM.PA_CLAIM_NO    = #{paClaimNo  , jdbcType=VARCHAR}
+				  )
+			ORDER BY PA_ORDER_GB ASC
+    </select>
+    
+    <select id="selectPaKakaoClaimInvTgList" parameterType="hashMap" resultType="hashMap">
+		SELECT /* pakakaoclaim.xml : pakakao.claim.selectPaKakaoClaimInvTgList by PaKakaoClaimController */
+               PM.PA_CODE
+             , PM.PA_ORDER_SEQ
+             , PM.PA_CLAIM_NO
+             , PM.PA_ORDER_GB
+             , DG.PA_DELY_GB
+             , SM.SLIP_NO
+             , PM.PA_HOLD_YN
+          FROM TPAORDERM 		PM
+             , TPAKAKAOCLAIMLIST PC
+             , TCLAIMDT 		CD
+             , TSLIPM 			SM
+             , TSLIPDT 			SD
+             , TPADELYGB 		DG
+		 WHERE PM.PA_CLAIM_NO   = PC.CLAIM_ID
+           AND PM.PA_ORDER_NO   = PC.PAYMENT_ID
+           AND PM.PA_ORDER_SEQ   = PC.ID
+           AND PM.PA_CODE 	    IN ('B1','B2')
+           AND PM.PRE_CANCEL_YN = '0'
+           AND PM.CREATE_YN 	= '1'
+           AND PM.ORDER_NO 		= CD.ORDER_NO
+           AND PM.ORDER_G_SEQ 	= CD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ 	= CD.ORDER_D_SEQ
+		   AND PM.ORDER_W_SEQ 	= CD.ORDER_W_SEQ
+           AND CD.SYSLAST 		&gt; 0 
+           AND PM.ORDER_NO 		= SD.ORDER_NO
+           AND PM.ORDER_G_SEQ 	= SD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ 	= SD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ 	= SD.ORDER_W_SEQ
+           AND SM.SLIP_I_NO 	= SD.SLIP_I_NO
+           AND DG.PA_CODE 		= PM.PA_GROUP_CODE
+           AND DG.DELY_GB 		= SM.DELY_GB
+           AND SM.SLIP_NO		IS NOT NULL
+           AND SM.SLIP_PROC   	= '60'  --회수확정
+           AND PM.PA_DO_FLAG  	= '20'
+        <if test='claimGb != null and claimGb == "30"'>
+           AND SM.SLIP_GB      	= '201' --반품   
+           AND PM.PA_ORDER_GB 	= '30'
+        </if>
+        <if test='claimGb != null and claimGb == "45"'>
+           AND SLIP_GB        	= '203' --교환회수
+           AND PM.PA_ORDER_GB 	= '45'
+        </if>
+	</select>
+	
+	<update id="updatePaOrderMDoFlag" parameterType="hashMap">
+		 UPDATE /* pakakaoclaim.xml : pakakao.claim.updatePaOrderMDoFlag by PaKakaoClaimController */
+        	   TPAORDERM
+           SET 
+           	   PROC_DATE		  = SYSDATE
+           <if test="PA_DO_FLAG != null and PA_DO_FLAG != ''">
+             , PA_DO_FLAG		  = #{PA_DO_FLAG		 , jdbcType=VARCHAR}
+           </if>
+           	 , API_RESULT_CODE	  = #{API_RESULT_CODE	 , jdbcType=VARCHAR}
+           	 , API_RESULT_MESSAGE = #{API_RESULT_MESSAGE , jdbcType=VARCHAR}
+             , MODIFY_DATE		  = SYSDATE
+         WHERE PA_CLAIM_NO 		  = #{PA_CLAIM_NO		 , jdbcType=VARCHAR}
+           AND PA_CODE			  = #{PA_CODE			 , jdbcType=VARCHAR}
+           AND PA_ORDER_SEQ		  = #{PA_ORDER_SEQ		 , jdbcType=VARCHAR}
+           AND PA_ORDER_GB		  = #{PA_ORDER_GB		 , jdbcType=VARCHAR}
+	</update>
+	
+    <select id="selectPaKakaoClaimCollCmpTgList" parameterType="hashMap" resultType="hashMap">
+		SELECT /* pakakaoclaim.xml : pakakao.claim.selectPaKakaoClaimCollCmpTgList by PaKakaoClaimController */
+               PM.PA_CODE
+             , PM.PA_ORDER_SEQ
+             , PM.PA_CLAIM_NO
+             , PM.PA_ORDER_GB
+             , PM.PA_HOLD_YN
+          FROM TPAORDERM     PM
+             , TPAKAKAOCLAIMLIST PC
+     WHERE PM.PA_CLAIM_NO   	= PC.CLAIM_ID
+           AND PM.PA_ORDER_NO   = PC.PAYMENT_ID
+           AND PM.PA_ORDER_SEQ  = PC.ID
+           AND PM.PA_CODE       IN ('B1','B2')
+           AND PM.PRE_CANCEL_YN = '0'
+           AND PM.CREATE_YN   	= '1'
+           AND PM.PA_DO_FLAG    = '56'
+           AND PM.PA_ORDER_GB   = #{claimGb  , jdbcType=VARCHAR}
+	</select>
+	
+    <select id="selectPaKakaoReturnCmpTgList" resultType="hashMap">
+		SELECT /* pakakaoclaim.xml : pakakao.claim.selectPaKakaoReturnCmpTgList by PaKakaoClaimController */
+               PM.PA_CODE
+             , PM.PA_ORDER_SEQ
+             , PM.PA_CLAIM_NO
+             , PM.PA_ORDER_GB
+          FROM TPAORDERM 		PM
+             , TPAKAKAOCLAIMLIST PC
+		 WHERE PM.PA_CLAIM_NO   = PC.CLAIM_ID
+           AND PM.PA_ORDER_NO   = PC.PAYMENT_ID
+           AND PM.PA_ORDER_SEQ  = PC.ID
+           AND PM.PA_ORDER_GB	= PC.PA_ORDER_GB
+           AND PM.PA_CODE 	    IN ('B1','B2')
+           AND PM.PRE_CANCEL_YN = '0'
+           AND PM.CREATE_YN 	= '1'
+           AND PM.PA_DO_FLAG  	= '59'
+           AND PM.PA_ORDER_GB 	= '30'
+	</select>
+	
+	<select id="selectPaKakaoExchangeSlipOutList" resultType="hashMap">
+	    SELECT /* pakakaoclaim.xml : pakakao.claim.selectPaKakaoExchangeSlipOutList by PaKakaoClaimController */
+               PM.PA_CODE
+             , PM.PA_ORDER_SEQ
+             , PM.PA_CLAIM_NO
+             , PM.PA_ORDER_GB
+             , DG.PA_DELY_GB
+             , SM.SLIP_NO
+          FROM TPAORDERM 		PM
+             , TPAKAKAOCLAIMLIST PC
+             , TCLAIMDT 		CD
+             , TSLIPM 			SM
+             , TSLIPDT 			SD
+             , TPADELYGB 		DG
+		 WHERE PM.PA_CLAIM_NO   = PC.CLAIM_ID
+           AND PM.PA_ORDER_NO   = PC.PAYMENT_ID
+           AND PM.PA_ORDER_SEQ  = PC.ID
+           AND PM.PA_CODE 	    IN ('B1','B2')
+           AND PM.PRE_CANCEL_YN = '0'
+           AND PM.CREATE_YN 	= '1'
+           AND PM.ORDER_NO 		= CD.ORDER_NO
+           AND PM.ORDER_G_SEQ 	= CD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ 	= CD.ORDER_D_SEQ
+		   AND PM.ORDER_W_SEQ 	= CD.ORDER_W_SEQ
+           AND CD.SYSLAST 		&gt; 0 
+           AND PM.ORDER_NO 		= SD.ORDER_NO
+           AND PM.ORDER_G_SEQ 	= SD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ 	= SD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ 	= SD.ORDER_W_SEQ
+           AND SM.SLIP_I_NO 	= SD.SLIP_I_NO
+           AND DG.PA_CODE 		= PM.PA_GROUP_CODE
+           AND DG.DELY_GB 		= SM.DELY_GB
+           AND SM.SLIP_NO		IS NOT NULL
+           AND SM.SLIP_PROC   	&gt;= '40'  
+           AND PM.PA_DO_FLAG  	= '20'
+           AND SM.SLIP_GB       = '104' --교환배송
+           AND PM.PA_ORDER_GB 	= '40'
+   </select>
+   
+   <select id="countCancelList" parameterType="hashMap" resultType="int">
+	    SELECT /* pakakaoclaim.xml : pakakao.claim.countCancelList by PaKakaoClaimController */
+	    	   COUNT(1) AS CNT
+		  FROM TPAKAKAOCANCELLIST CL
+		 WHERE CL.ID 		  = #{orderId	,  jdbcType=VARCHAR}
+		 <choose>	  	
+		 	 <when test='claimStatus =="20"'>
+		 		AND CL.WITHDRAW_YN = '0' 
+		  	 </when>
+		  	 <when test='claimStatus =="21"'>
+		  	 	AND PROC_FLAG = '10'
+		  	 </when>
+		</choose>
+    </select>
+    
+    <select id="selectWithdrawCancelCount" parameterType="com.cware.netshopping.domain.PaKakaoOrderListVO" resultType="int">
+        SELECT /* pakakaoclaim.xml : pakakao.claim.selectWithdrawCancelCount by PaKakaoClaimController */
+		       COUNT(1) AS CNT
+		  FROM TPAKAKAOCANCELLIST CL
+		 WHERE CL.CLAIM_ID &lt;> #{claimId 	 , jdbcType=VARCHAR}
+		   AND ID 		   = 	 #{id		 , jdbcType=VARCHAR} 
+		   AND WITHDRAW_YN = 	 '0'
+	</select>
+	
+	<update id="updatePaKakaoCancelWithdrawYn"  parameterType="com.cware.netshopping.domain.PaKakaoOrderListVO">
+        UPDATE /* pakakaoclaim.xml : pakakao.claim.updatePaKakaoCancelWithdrawYn by PaKakaoClaimController */
+        	   TPAKAKAOCANCELLIST
+           SET WITHDRAW_YN 	 = '1'
+             , WITHDRAW_DATE = SYSDATE
+             , MODIFY_DATE   = SYSDATE
+         WHERE CLAIM_ID &lt;> #{claimId    , jdbcType=VARCHAR}
+           AND ID  		   =  #{id		   , jdbcType=VARCHAR}
+           AND WITHDRAW_YN =  '0' 
+    </update>
+    
+    <select id="selectWithdrawClaimCount" parameterType="com.cware.netshopping.domain.PaKakaoOrderListVO" resultType="hashMap">
+		SELECT /* pakakaoclaim.xml : pakakao.claim.selectWithdrawClaimCount by PaKakaoClaimController */
+				PM.PA_CODE,
+		        CL.CLAIM_ID,
+				CL.CLAIM_ITEM_ID,
+				CL.ID,
+				DECODE(PM.PA_ORDER_GB, '30', '31', '40', '41') AS PA_ORDER_GB,
+				DECODE(PM.PA_ORDER_GB, '30', '31', '40', '41') AS PA_CLAIM_GB,
+				CL.ORDER_BASE_ID,
+				CL.PAYMENT_ID,
+				CL.GROUP_DISCOUNT_ROOM_ID,
+				CL.STATUS,
+				TO_CHAR(CL.PAID_AT, 'YYYYMMDDHH24MISS'),
+				TO_CHAR(CL.DECIDED_AT, 'YYYYMMDDHH24MISS'),
+				TO_CHAR(CL.REFUNDED_AT, 'YYYYMMDDHH24MISS'),
+				TO_CHAR(CL.CREATED_AT, 'YYYYMMDDHH24MISS'),
+				TO_CHAR(CL.MODIFIED_AT, 'YYYYMMDDHH24MISS'),
+				CL.PHONE_NUMBER,
+				CL.ORDER_PRODUCT_ID,
+				CL.NAME,
+				CL.SELLER_ITEM_NO,
+				CL.SELLER_ITEM_OPTION_CODE,
+				CL.OPTION_CONTENT,
+				CL.QUANTITY,
+				CL.PRODUCT_PRICE,
+				CL.OPTION_PRICE,
+				CL.SELLER_DISCOUNT_PRICE,
+				CL.SETTLEMENT_BASIC_PRICE,
+				CL.BASE_FEE,
+				CL.DISPLAY_FEE,
+				CL.REFERER_CODE,
+				CL.BRAND_NAME,
+				CL.MODEL_NAME,
+				CL.DELIVERY_AMOUNT_ORIGIN_ID,
+				CL.DELIVERY_AMOUNT_PAY_POINT_TIME,
+				CL.DELIVERY_AMOUNT_TYPE,
+				CL.DELIVERY_AMOUNT,
+				TO_CHAR(CL.CONFIRMED_AT, 'YYYYMMDDHH24MISS'),
+				TO_CHAR(CL.DELIVERED_AT, 'YYYYMMDDHH24MISS'),
+				CL.DELIVERY_COMPANY_CODE,
+				TO_CHAR(CL.DELIVERY_REQUEST_AT, 'YYYYMMDDHH24MISS'),
+				CL.INVOICE_NUMBER,
+				TO_CHAR(CL.INVOICE_REGISTERED_AT, 'YYYYMMDDHH24MISS'),
+				CL.SHIPPING_METHOD,
+				CL.RECEIVER_ADDRESS,
+				CL.RECEIVER_MOBILE_NUMBER,
+				CL.RECEIVER_NAME,
+				CL.RECEIVER_PHONE_NUMBER,
+				CL.REQUIREMENT,
+				CL.ROAD_ZIP_CODE,
+				CL.ZIPCODE,
+				CL.REFER_TYPE,
+				CL.REASON_CODE_NAME,
+				CL.REASON_COMMENT,
+				TO_CHAR(CL.ORDER_CLAIM_EXCH_CREATED_AT, 'YYYYMMDDHH24MISS'),
+				TO_CHAR(CL.ORDER_CLAIM_EXCH_MODIFIED_AT, 'YYYYMMDDHH24MISS'),
+				TO_CHAR(CL.COMPLETED_AT, 'YYYYMMDDHH24MISS'),
+				CL.RETURN_METHOD,
+				CL.RETURN_DELIVERY_COMPANY_ID,
+				CL.RETURN_INVOICE_NUMBER,
+				CL.EXCHANGE_NAME,
+				CL.EXCHANGE_ZIP_CODE,
+				CL.EXCHANGE_ROAD_ZIP_CODE,
+				CL.EXCHANGE_ADDRESS1,
+				CL.EXCHANGE_ADDRESS2,
+				CL.EXCHANGE_MOBILE_NUMBER,
+				CL.EXCHANGE_PHONE_NUMBER,
+				CL.EXCHANGE_METHOD,
+				CL.EXCHANGE_DELIVERY_COMPANY_ID,
+				CL.EXCHANGE_INVOICE_NUMBER,
+				CL.EXCHANGE_SHIPPING_FEE,
+				TO_CHAR(CL.PENDING_MODIFIED_AT, 'YYYYMMDDHH24MISS'),
+				CL.PENDING_CODE_NAME,
+				CL.PENDING_COMMENT,
+				CL.RETURN_SHIPPING_FEE,
+				TO_CHAR(CL.ORDER_CLAIM_RETURN_CREATED_AT, 'YYYYMMDDHH24MISS'),
+				TO_CHAR(CL.ORDER_CLAIM_RETURN_MODIFIED_AT, 'YYYYMMDDHH24MISS'),
+				CL.PICKUP_NAME,
+				CL.PICKUP_ZIP_CODE,
+				CL.PICKUP_ROAD_ZIP_CODE,
+				CL.PICKUP_ADDRESS1,
+				CL.PICKUP_ADDRESS2,
+				CL.PICKUP_MOBILE_NUMBER,
+				CL.PICKUP_PHONE_NUMBER,
+				CL.CLAIM_SHIPPING_FEE_METHOD,
+				CL.CLAIM_SHIPPING_FEE_METHOD_LABEL,
+				CL.REJECT_YN
+		  FROM TPAKAKAOCLAIMLIST CL
+		     , TPAORDERM PM
+		 WHERE CL.CLAIM_ID   &lt;> #{claimId   , jdbcType=VARCHAR}
+		   AND ID             = #{id    , jdbcType=VARCHAR} 
+		   AND (PM.PA_ORDER_GB = '40' AND PM.PA_DO_FLAG = '20'
+      		    OR PM.PA_ORDER_GB = '30')
+		   AND CL.CLAIM_ID    = PM.PA_CLAIM_NO
+		   AND CL.PAYMENT_ID  = PM.PA_ORDER_NO
+		   AND CL.ID          = PM.PA_ORDER_SEQ
+		   AND CL.PA_ORDER_GB = PM.PA_ORDER_GB
+		   AND PM.CREATE_YN   = '1'
+		   AND PM.PA_CODE     = #{paCode  , jdbcType=VARCHAR}
+		   AND NOT EXISTS(SELECT 1
+		                    FROM TPAORDERM PM2
+		                   WHERE PM.PA_ORDER_NO  = PM2.PA_ORDER_NO
+		                     AND PM.PA_ORDER_SEQ = PM2.PA_ORDER_SEQ
+		                     AND PM.PA_CLAIM_NO  = PM2.PA_CLAIM_NO
+		                     AND PM.PA_CODE      = PM2.PA_CODE
+		                     AND PM2.PA_ORDER_GB = DECODE(PM.PA_ORDER_GB,'30','31','40','41')
+		                 )
+	</select>
+	
+	<select id="selectGoodsdtInfoCount" parameterType="hashMap" resultType="int">
+	    SELECT /* pakakaoclaim.xml : pakakao.claim.selectGoodsdtInfoCount by PaKakaoClaimController */
+	    	   COUNT(1) AS CNT
+		  FROM TPAGOODSDTMAPPING PGM
+		 WHERE PGM.PA_CODE        = #{paCode    , jdbcType=VARCHAR}   
+           AND PGM.GOODS_CODE     = #{goodsCode , jdbcType=VARCHAR}
+           AND PGM.PA_OPTION_CODE IS NOT NULL
+    </select>
+    
+    <select id="selectExchangeCompleteCount" parameterType="hashMap" resultType="int">
+    	SELECT /* pakakaoclaim.xml : pakakao.claim.selectExchangeCompleteCount by PaKakaoDeliveryController */
+           	   COUNT(1) AS CNT
+          FROM TPAORDERM PM
+		 WHERE PM.PA_CODE	   = #{PA_CODE		, jdbcType=VARCHAR}
+		   AND PM.PA_CLAIM_NO  = #{PA_CLAIM_NO	, jdbcType=VARCHAR}
+		   AND PM.PA_ORDER_SEQ = #{PA_ORDER_SEQ , jdbcType=VARCHAR}
+		   AND PM.PA_ORDER_GB  = #{PA_ORDER_GB	, jdbcType=VARCHAR}
+		   AND PM.PA_DO_FLAG   = '80'
+    </select>
+    
+    <select id="selectPaKakaoClaimHoldTargetList" parameterType="hashMap" resultType="hashMap">
+	    SELECT /* pakakaoclaim.xml : pakakao.claim.selectPaKakaoClaimHoldTargetList by PaKakaoClaimController */
+               PM.PA_CODE
+             , PM.PA_CLAIM_NO
+	         , PM.PA_ORDER_SEQ
+	         , PM.PA_ORDER_GB
+	      FROM TPAKAKAOCLAIMLIST CL
+	         , TPAORDERM 		PM
+	         , TCLAIMDT 		CD
+	     WHERE PM.PA_CODE 			  IN ('B1', 'B2')
+	       AND CL.CLAIM_ID 			  = PM.PA_CLAIM_NO
+	       AND CL.PAYMENT_ID	 	  = PM.PA_ORDER_NO
+	       AND CL.ID				  = PM.PA_ORDER_SEQ
+	       AND PM.ORDER_NO 			  = CD.ORDER_NO
+	       AND PM.ORDER_G_SEQ 		  = CD.ORDER_G_SEQ
+	       AND PM.ORDER_D_SEQ 		  = CD.ORDER_D_SEQ
+	       AND PM.ORDER_W_SEQ 		  = CD.ORDER_W_SEQ
+	       AND CD.SYSLAST 			  > 0
+	       AND PM.PA_DO_FLAG 		  &lt; '60'
+	       AND PM.PA_HOLD_YN 		  = '0'
+	       AND PM.PA_ORDER_GB 		  = #{claimGb ,  jdbcType=VARCHAR}
+	   	   /*클레임 요청 후 90시간 지날때 까지 회수확정 안 되었으면 보류처리*/
+	       <choose>
+		        <when test='claimGb != null and claimGb == "30"'>
+		        	AND CL.PA_ORDER_GB = '30'
+		       		AND CL.ORDER_CLAIM_RETURN_CREATED_AT + 90/24 &lt;= SYSDATE
+		       </when>
+		       <when test='claimGb != null and claimGb == "45"'>
+		       		AND CL.PA_ORDER_GB = '40'
+		       		AND CL.ORDER_CLAIM_EXCH_CREATED_AT + 90/24 &lt;= SYSDATE
+		       </when>
+	       </choose>
+   </select>
+   
+   <update id="updatePaOrderMHoldYn" parameterType="hashMap">
+   		UPDATE /* pakakaoclaim.xml : pakakao.claim.updatePaOrderMHoldYn by PaKakaoClaimController */
+    	       TPAORDERM PM
+    	   SET PA_HOLD_YN 		  = #{PA_HOLD_YN		 , jdbcType=VARCHAR}
+    	     , PA_HOLD_CODE		  = #{paHoldCode		 , jdbcType=VARCHAR}
+    	     , API_RESULT_CODE    = #{API_RESULT_CODE    , jdbcType=VARCHAR}
+    	     , API_RESULT_MESSAGE = #{API_RESULT_MESSAGE , jdbcType=VARCHAR}
+    	 WHERE PA_CODE 			  = #{PA_CODE 			 , jdbcType=VARCHAR}
+    	   AND PA_CLAIM_NO 		  = #{PA_CLAIM_NO 	 	 , jdbcType=VARCHAR}
+    	   AND PA_ORDER_SEQ 	  = #{PA_ORDER_SEQ 	 	 , jdbcType=VARCHAR}
+    	   <choose>
+    	   		<when test='PA_ORDER_GB != null and PA_ORDER_GB =="30"'>
+    	   		 	AND PA_ORDER_GB = '30'
+    	   		</when>
+    	   		<when test='PA_ORDER_GB != null and PA_ORDER_GB =="45"'>
+    	   			AND PA_ORDER_GB IN ('40','45')
+    	   		</when>
+    	   </choose>
+   </update>
+   
+   <select id="selectPaMobileOrderAutoCancelList" resultType="hashMap">
+	    SELECT /* passgclaim.xml : passg.claim.selectPaMobileOrderAutoCancelList by PaKakaoClaimController */
+               A.ORDER_NO
+             , A.ORDER_G_SEQ
+             , A.ORDER_DATE
+             , PM.PA_ORDER_NO
+             , PM.PA_ORDER_SEQ
+             , PM.PA_CODE
+          FROM TORDERDT A
+               LEFT OUTER JOIN TMOBILEGOODSDELYPLAN B
+                 ON A.ORDER_NO = B.ORDER_NO
+                AND A.ORDER_G_SEQ = B.ORDER_G_SEQ
+                AND A.ORDER_D_SEQ = B.ORDER_D_SEQ
+                AND A.ORDER_W_SEQ = B.ORDER_W_SEQ
+             , TORDERPROC C
+             , TGOODS D
+               LEFT OUTER JOIN TGOODSADDINFO E
+                 ON D.GOODS_CODE = E.GOODS_CODE
+               LEFT OUTER JOIN TLGS_ORDER_CANCEL_EXCEPT_FIX EF
+                 ON D.GOODS_CODE = EF.GOODS_CODE
+               LEFT OUTER JOIN TLGS_ORDER_CANCEL_EXCEPT_PLAN EP
+                 ON D.GOODS_CODE = EP.GOODS_CODE
+                AND TRUNC(SYSDATE) BETWEEN EP.EXCEPT_FROM_DATE AND EP.EXCEPT_TO_DATE
+                AND EP.STATUS = '10'
+             , TENTERPRISE F
+            LEFT OUTER JOIN TMOBILEENTPEXCEPT ME
+                 ON F.ENTP_CODE = ME.ENTP_CODE
+                LEFT OUTER JOIN TLGS_MOBILE_ENTP_EXCEPT_PLAN MP
+                     ON F.ENTP_CODE = MP.ENTP_CODE
+                    AND TRUNC(SYSDATE) BETWEEN MP.EXCEPT_FROM_DATE AND MP.EXCEPT_TO_DATE
+                    AND MP.STATUS = '10'
+             , TMD G
+             , TPAORDERM PM
+             , TPAKAKAOORDERLIST PK
+         WHERE A.DO_FLAG > '20'
+           AND A.DO_FLAG &lt; '40'
+           AND A.GOODS_CODE = D.GOODS_CODE
+           AND A.ORDER_NO = C.ORDER_NO
+           AND A.ORDER_G_SEQ = C.ORDER_G_SEQ
+           AND A.ORDER_D_SEQ = C.ORDER_D_SEQ
+           AND A.ORDER_W_SEQ = C.ORDER_W_SEQ
+           AND C.DO_FLAG = '25' 
+           AND D.ENTP_CODE = F.ENTP_CODE
+           AND D.MD_CODE = G.MD_CODE
+           AND A.ORDER_NO = PM.ORDER_NO
+           AND A.ORDER_G_SEQ = PM.ORDER_G_SEQ
+           AND A.ORDER_D_SEQ = PM.ORDER_D_SEQ
+           AND A.ORDER_W_SEQ = PM.ORDER_W_SEQ
+           AND PM.PA_ORDER_NO  = PK.PAYMENT_ID
+           AND PM.PA_ORDER_SEQ = PK.ID
+           AND PM.PA_CODE IN ('B1','B2')
+           AND PM.PA_ORDER_GB IN ('10', '40')
+           AND PM.REMARK3_N IS NULL
+           AND D.SOURCING_MEDIA = '61'
+           AND E.TV_LIVE_GB = '2'
+           AND NVL(EP.EXCEPT_GB, NVL(EF.EXCEPT_GB, NVL(MP.MOBILE_EXCEPT_GB, NVL(ME.MOBILE_EXCEPT_GB, '1')))) = '1' 
+           AND EXISTS (SELECT 'X'
+                         FROM TENTERPRISE W, TMD E
+                        WHERE D.ENTP_CODE = W.ENTP_CODE
+                          AND W.MD_CODE = E.MD_CODE
+                          AND E.SOURCING_MEDIA = '61')
+           AND D.GIFT_YN = '0'
+           AND D.INSTALL_YN = '0'
+           AND D.INVI_GOODS_TYPE = '00'
+           AND NVL(E.ORDER_CREATE_YN, '0') = '0'
+           AND A.MEDIA_CODE = 'EX12'
+           AND NVL(E.RESERVE_YN, '0') = '0' /*예약상품제외*/
+           AND E.DAWN_YN != '1' /*새벽배송 동원홈푸드 상품제외*/
+           AND NVL(A.APPN_DAY_OUT_YN, '0') != '1' /* 지정일 출고는 당사만 하기때문에 제외 */
+           AND NVL(A.RESERV_ORD_YN, '0')   != '1' /* 예약주문은 당사만 하기때문에 제외 */
+           AND A.ORDER_DATE &lt; TRUNC(SYSDATE) - INTERVAL '2' DAY
+           AND C.PROC_DATE >= TRUNC(ADD_MONTHS(SYSDATE - INTERVAL '2' DAY,-1))
+           AND C.PROC_DATE &lt; TRUNC(SYSDATE) - INTERVAL '2' DAY
+         AND E.GLOBAL_DELY_YN = '0'
+         AND E.EM_MULTI_GOODS_YN = '0'
+           /*현재일이 배송예정일 마감일 당일인 주문 처리
+           AND (CASE
+                 WHEN B.DELY_PLAN_DELAY_DATE IS NOT NULL THEN
+                  TRUNC(B.DELY_PLAN_DELAY_DATE)
+                 ELSE
+              (FUN_GET_DELYDAY_HOLI_DATE_MOB('10',
+                                  TRUNC(C.PROC_DATE),
+                                 '1',
+                                 NVL(ME.BASE_DELY_DAY,3))) END) = TRUNC(SYSDATE)*/
+           /*현재일이 배송예정일 마감일 당일인 주문 처리 or 배송예정일 마감일이 당일 이전인 지난 주문까지 처리 시 사용*/
+           AND (CASE
+                 WHEN B.DELY_PLAN_DELAY_DATE IS NOT NULL THEN
+                  TRUNC(B.DELY_PLAN_DELAY_DATE)
+                 ELSE
+              (FUN_GET_DELYDAY_HOLI_DATE_ENTP('10',
+                                  TRUNC(C.PROC_DATE),
+                                 '1',
+                                 NVL(EP.EXCEPT_DELY_DAY, NVL(EF.EXCEPT_DELY_DAY, NVL(MP.BASE_DELY_DAY, NVL(ME.BASE_DELY_DAY, 3)))),
+                                 D.ENTP_CODE))  END) &lt;= TRUNC(SYSDATE)
+           AND (EXISTS (SELECT 'X'
+                          FROM TMOBILEENTPEXCEPT W
+                         WHERE W.ENTP_CODE = D.ENTP_CODE
+                           AND W.MOBILE_EXCEPT_GB = '1') OR
+                EXISTS (SELECT 'X'
+                          FROM TLGS_MOBILE_ENTP_EXCEPT_PLAN MP
+                         WHERE D.ENTP_CODE = MP.ENTP_CODE
+                           AND TRUNC(SYSDATE) BETWEEN MP.EXCEPT_FROM_DATE AND MP.EXCEPT_TO_DATE
+                           AND MP.STATUS = '10' ) OR
+                EXISTS (SELECT 'X'
+                          FROM TLGS_ORDER_CANCEL_EXCEPT_FIX EF
+                         WHERE EF.GOODS_CODE = D.GOODS_CODE) OR
+                EXISTS (SELECT 'X'
+                          FROM TLGS_ORDER_CANCEL_EXCEPT_PLAN EP
+                         WHERE D.GOODS_CODE = EP.GOODS_CODE
+                           AND TRUNC(SYSDATE) BETWEEN EP.EXCEPT_FROM_DATE AND EP.EXCEPT_TO_DATE
+                           AND EP.STATUS = '10'  ) )
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TCLAIMDT W
+                            WHERE W.ORDER_NO = A.ORDER_NO
+                              AND W.CUST_NO = A.CUST_NO)
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TCANCELDT W
+                            WHERE W.ORDER_NO = A.ORDER_NO
+                              AND W.CUST_NO = A.CUST_NO)  
+         GROUP BY A.ORDER_NO, A.ORDER_G_SEQ, A.ORDER_DATE, PM.PA_ORDER_NO, PM.PA_ORDER_SEQ, PM.PA_CODE
+         ORDER BY A.ORDER_DATE ASC
+   </select>
+</mapper>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="common.code">
+
+    <select id="getSysdate" resultType="string">
+        select /* code.xml : code.getSysdate by login */
+               TO_CHAR(sysdate, 'YYYY/MM/DD')
+          from DUAL
+    </select>
+
+    <select id="getSysdatetime" resultType="string">
+        select /* code.xml : code.getSysdate by login */
+               TO_CHAR(sysdate, 'YYYY/MM/DD HH24:MI:SS')
+          from DUAL
+    </select>
+
+    <select id="getDate" resultType="date">
+        select /* code.xml : code.getDate by all */
+               sysdate
+          from DUAL
+    </select>
+
+    <select id="selectSequenceNoCondition" parameterType="hashMap" resultType="string">
+        select /* order.xml : ssg.order.selectSequenceNoCondition by orderProcess */
+        <if test="sequence_type == 'CUST_NO'">
+            mod(to_char(sysdate, 'MM'),2)
+        </if>
+        <if test="sequence_type == 'ORDER_NO' or sequence_type == 'GOODS_SELECT_NO' or sequence_type == 'RECEIPT_NO'">
+            decode(to_number(to_char(sysdate, 'D')), 1,'SUN', 2,'MON', 3,'TUE', 4,'WED', 5,'THU', 6,'FRI', 7,'SAT')
+        </if>
+            from dual
+    </select>
+        
+    <select id="selectSequenceNo" parameterType="hashMap" resultType="string">
+        select /* order.xml : ssg.order.selectSequenceNo by orderProcess */
+        
+         <if test="sequence_type == 'ORDER_NO'">
+            to_char(sysdate, 'yyyymmdd') || ltrim(to_char(
+            <if test="condition_flag == 'SUN'">
+                SEQ_ORDER_NO_SUN.NEXTVAL
+            </if>
+            <if test="condition_flag == 'MON'">
+                SEQ_ORDER_NO_MON.NEXTVAL
+            </if>
+            <if test="condition_flag == 'TUE'">
+                SEQ_ORDER_NO_TUE.NEXTVAL
+            </if>
+            <if test="condition_flag == 'WED'">
+                SEQ_ORDER_NO_WED.NEXTVAL
+            </if>
+            <if test="condition_flag == 'THU'">
+                SEQ_ORDER_NO_THU.NEXTVAL
+            </if>
+            <if test="condition_flag == 'FRI'">
+                SEQ_ORDER_NO_FRI.NEXTVAL
+            </if>
+            <if test="condition_flag == 'SAT'">
+                SEQ_ORDER_NO_SAT.NEXTVAL
+            </if>
+            ,'000000'))
+        </if>
+        
+        <if test="sequence_type == 'CUST_NO'">
+            ltrim(to_char(sysdate,'yyyymm'))|| ltrim(to_char(
+            <if test='condition_flag == "0"'>
+                SEQ_CUST_NO_EVEN.NEXTVAL
+            </if>
+            <if test='condition_flag == "1"'>
+                SEQ_CUST_NO_ODD.NEXTVAL
+            </if>
+            , '000000'))
+        </if>
+        
+        <if test="sequence_type == 'RECEIPT_NO'">
+            to_char(sysdate, 'yyyymmdd') || ltrim(to_char(
+            <if test="condition_flag == 'SUN'">
+               SEQ_RECEIPT_NO_SUN.NEXTVAL
+            </if>
+            <if test="condition_flag == 'MON'">
+               SEQ_RECEIPT_NO_MON.NEXTVAL
+            </if>
+            <if test="condition_flag == 'TUE'">
+               SEQ_RECEIPT_NO_TUE.NEXTVAL
+            </if>
+            <if test="condition_flag == 'WED'">
+               SEQ_RECEIPT_NO_WED.NEXTVAL
+            </if>
+            <if test="condition_flag == 'THU'">
+               SEQ_RECEIPT_NO_THU.NEXTVAL
+            </if>
+            <if test="condition_flag == 'FRI'">
+               SEQ_RECEIPT_NO_FRI.NEXTVAL
+            </if>
+            <if test="condition_flag == 'SAT'">
+               SEQ_RECEIPT_NO_SAT.NEXTVAL
+            </if>
+            ,'00000000'))
+        </if>
+        
+            from dual
+    </select>
+  
+</mapper>

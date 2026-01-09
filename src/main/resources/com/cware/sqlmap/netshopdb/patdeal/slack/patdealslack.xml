@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="patdeal.slack">
+	<select id="slackTransferTdealList" resultType="com.cware.netshopping.domain.model.PaTdealSlackGoods">
+	    WITH RANKEDDATA AS ( /* patdealslack.xml : patdeal.slack.slackTransferTdealList to PaTdealSlackController */
+	        SELECT TD.PA_GROUP_CODE
+	             , TD.PA_CODE
+	             , TG.GOODS_CODE
+	             , TD.MALL_PRODUCT_NO
+	             , TG.TRANS_DATE
+	             , TG.BEST_PRICE
+	             , TG.COUPON_DC_AMT
+	             , ROW_NUMBER() OVER (PARTITION BY TG.GOODS_CODE ORDER BY TG.TRANS_DATE DESC) AS RN
+	          FROM TPAGOODSPRICEAPPLY TG
+	             , TPATDEALGOODS TD
+	         WHERE TG.PA_GROUP_CODE = '13'
+	           AND TG.PA_CODE IN ('D1', 'D2')
+	           AND TG.PA_GROUP_CODE = TD.PA_GROUP_CODE
+	           AND TG.PA_CODE = TD.PA_CODE
+	           AND TG.GOODS_CODE = TD.GOODS_CODE
+	           AND TG.TRANS_DATE IS NOT NULL
+	           AND TG.TRANS_DATE BETWEEN SYSDATE - INTERVAL '1' HOUR AND SYSDATE
+	           AND TD.MALL_PRODUCT_NO IS NOT NULL
+	           AND TD.PA_SALE_GB = '20'
+     		   AND TD.PA_STATUS = '30'
+	    ),
+	    RN1 AS ( /* TOBE */
+	        SELECT PA_GROUP_CODE
+	             , PA_CODE
+	             , GOODS_CODE
+	             , MALL_PRODUCT_NO
+	             , TRANS_DATE AS TRANS_DATE_1
+	             , BEST_PRICE AS BEST_PRICE_1
+	             , COUPON_DC_AMT AS COUPON_DC_AMT_1
+	          FROM RANKEDDATA
+	         WHERE RN = 1
+	    ),
+	    RN2 AS ( /* ASIS */
+	        SELECT PA_GROUP_CODE
+	             , PA_CODE
+	             , GOODS_CODE
+	             , MALL_PRODUCT_NO
+	             , TRANS_DATE AS TRANS_DATE_2
+	             , BEST_PRICE AS BEST_PRICE_2
+	             , COUPON_DC_AMT AS COUPON_DC_AMT_2
+	          FROM RANKEDDATA
+	         WHERE RN = 2
+	    ),
+	    PRICE_DIFF_DATA AS (
+	        SELECT RN1.PA_GROUP_CODE
+	             , RN1.PA_CODE
+	             , RN1.GOODS_CODE
+	             , RN1.MALL_PRODUCT_NO
+	             , RN2.TRANS_DATE_2 AS ASIS_TRANS_DATE
+	             , RN2.BEST_PRICE_2 AS ASIS_BEST_PRICE
+	             , RN1.TRANS_DATE_1 AS TOBE_TRANS_DATE
+	             , RN1.BEST_PRICE_1 AS TOBE_BEST_PRICE
+	             , RN1.BEST_PRICE_1 - RN2.BEST_PRICE_2 AS PRICE_DIFF
+	          FROM RN1
+	          JOIN RN2 ON RN1.GOODS_CODE = RN2.GOODS_CODE 
+	                  AND RN1.PA_GROUP_CODE = RN2.PA_GROUP_CODE 
+	                  AND RN1.PA_CODE = RN2.PA_CODE
+	         WHERE RN1.BEST_PRICE_1 - RN2.BEST_PRICE_2 &lt;&gt; 0
+	    ),
+	    DC_DIFF_DATA AS ( /* 즉시할인가 변경건 */
+	        SELECT RN1.PA_GROUP_CODE
+	             , RN1.PA_CODE
+	             , RN1.GOODS_CODE
+	             , RN1.MALL_PRODUCT_NO
+	             , RN2.TRANS_DATE_2 AS ASIS_TRANS_DATE
+	             , RN2.COUPON_DC_AMT_2 AS ASIS_COUPON_DC_AMT
+	             , RN1.TRANS_DATE_1 AS TOBE_TRANS_DATE
+	             , RN1.COUPON_DC_AMT_1 AS TOBE_COUPON_DC_AMT
+	             , RN1.COUPON_DC_AMT_1 - RN2.COUPON_DC_AMT_2 AS PRICE_DIFF
+	          FROM RN1
+	          JOIN RN2 ON RN1.GOODS_CODE = RN2.GOODS_CODE
+	                  AND RN1.PA_GROUP_CODE = RN2.PA_GROUP_CODE
+	                  AND RN1.PA_CODE = RN2.PA_CODE
+	         WHERE RN1.COUPON_DC_AMT_1 &lt;&gt; RN2.COUPON_DC_AMT_2
+	    ),
+	    CHANGES AS ( /* 상품명 변경 건 */
+	        SELECT TDA.PA_GROUP_CODE
+	             , TDA.PA_CODE
+	             , TDA.GOODS_CODE
+	             , TDA.MALL_PRODUCT_NO
+	             , TDA.HISTORY_SEQ AS HISTORY_SEQ_1
+	             , TDA.GOODS_NAME AS ASIS_GOODS_NAME
+	             , TDB.HISTORY_SEQ AS HISTORY_SEQ_2
+	             , TDB.GOODS_NAME AS TOBE_GOODS_NAME
+	             , TDB.IUD_DATE
+	          FROM TPATDEALGOODSHISTORY TDA
+	             , TPATDEALGOODSHISTORY TDB
+	         WHERE TDA.GOODS_CODE = TDB.GOODS_CODE
+	           AND TDA.PA_GROUP_CODE = TDB.PA_GROUP_CODE
+	           AND TDA.PA_CODE = TDB.PA_CODE
+	           AND TDA.HISTORY_SEQ = LPAD(TO_CHAR(TO_NUMBER(TDB.HISTORY_SEQ) - 1), LENGTH(TDB.HISTORY_SEQ), '0')
+	           AND TDB.IUD_DATE BETWEEN SYSDATE - INTERVAL '1' HOUR AND SYSDATE
+	           AND TDA.GOODS_NAME &lt;&gt; TDB.GOODS_NAME
+	           AND TDA.MALL_PRODUCT_NO IS NOT NULL
+	           AND EXISTS (SELECT 1
+	                         FROM TPATDEALGOODSHISTORY TDC
+	                        WHERE TDB.GOODS_CODE = TDC.GOODS_CODE
+	                          AND TDB.PA_CODE = TDC.PA_CODE
+	                          AND TDB.PA_GROUP_CODE = TDC.PA_GROUP_CODE
+	                          AND TO_NUMBER(TDC.HISTORY_SEQ) > TO_NUMBER(TDB.HISTORY_SEQ)
+	                          AND TDC.PA_SALE_GB = '20'
+	                          AND TDC.PA_STATUS = '30'
+	                          AND TDC.CONFIRM_STATUS = '20')
+	           AND NOT EXISTS (SELECT 1
+	            				 FROM TPATDEALEVENT TE
+	            				WHERE TDA.GOODS_CODE = TE.GOODS_CODE
+	            				  AND TE.USE_YN = '1')
+	    ),
+	    CHANGES2 AS ( /* 표준카테고리 변경 건 */
+	        SELECT TDA.PA_GROUP_CODE
+	             , TDA.PA_CODE
+	             , TDA.GOODS_CODE
+	             , TDA.MALL_PRODUCT_NO
+	             , TDA.HISTORY_SEQ AS HISTORY_SEQ_1
+	             , TDA.PA_LMSD_KEY AS ASIS_PA_LMSD_KEY
+	             , TDB.HISTORY_SEQ AS HISTORY_SEQ_2
+	             , TDB.PA_LMSD_KEY AS TOBE_PA_LMSD_KEY
+	             , TDB.IUD_DATE
+	          FROM TPATDEALGOODSHISTORY TDA
+	             , TPATDEALGOODSHISTORY TDB
+	         WHERE TDA.GOODS_CODE = TDB.GOODS_CODE
+	           AND TDA.PA_GROUP_CODE = TDB.PA_GROUP_CODE
+	           AND TDA.PA_CODE = TDB.PA_CODE
+	           AND TDA.HISTORY_SEQ = LPAD(TO_CHAR(TO_NUMBER(TDB.HISTORY_SEQ) - 1), LENGTH(TDB.HISTORY_SEQ), '0')
+	           AND TDB.IUD_DATE BETWEEN SYSDATE - INTERVAL '1' HOUR AND SYSDATE
+	           AND TDA.PA_LMSD_KEY &lt;&gt; TDB.PA_LMSD_KEY
+	           AND TDA.MALL_PRODUCT_NO IS NOT NULL
+	           AND EXISTS (SELECT 1
+	                         FROM TPATDEALGOODSHISTORY TDC
+	                        WHERE TDB.GOODS_CODE = TDC.GOODS_CODE
+	                          AND TDB.PA_CODE = TDC.PA_CODE
+	                          AND TDB.PA_GROUP_CODE = TDC.PA_GROUP_CODE
+	                          AND TO_NUMBER(TDC.HISTORY_SEQ) > TO_NUMBER(TDB.HISTORY_SEQ)
+	                          AND TDC.PA_SALE_GB = '20'
+	                          AND TDC.PA_STATUS = '30'
+	                          AND TDC.CONFIRM_STATUS = '20')
+	    ),
+	    CHANGES3 AS ( /* 전시카테고리 변경 건 */
+	        SELECT TDA.PA_GROUP_CODE
+	             , TDA.PA_CODE
+	             , TDA.GOODS_CODE
+	             , TDA.MALL_PRODUCT_NO
+	             , TDA.HISTORY_SEQ AS HISTORY_SEQ_1
+	             , TDA.DISP_CAT_ID AS ASIS_DISP_CAT_ID
+	             , TDB.HISTORY_SEQ AS HISTORY_SEQ_2
+	             , TDB.DISP_CAT_ID AS TOBE_DISP_CAT_ID
+	             , TDB.IUD_DATE
+	          FROM TPATDEALGOODSHISTORY TDA
+	             , TPATDEALGOODSHISTORY TDB
+	         WHERE TDA.GOODS_CODE = TDB.GOODS_CODE
+	           AND TDA.PA_GROUP_CODE = TDB.PA_GROUP_CODE
+	           AND TDA.PA_CODE = TDB.PA_CODE
+	           AND TDA.HISTORY_SEQ = LPAD(TO_CHAR(TO_NUMBER(TDB.HISTORY_SEQ) - 1), LENGTH(TDB.HISTORY_SEQ), '0')
+	           AND TDB.IUD_DATE BETWEEN SYSDATE - INTERVAL '1' HOUR AND SYSDATE
+	           AND TDA.DISP_CAT_ID &lt;&gt; TDB.DISP_CAT_ID
+	           AND TDA.MALL_PRODUCT_NO IS NOT NULL
+	           AND EXISTS (SELECT 1
+	                         FROM TPATDEALGOODSHISTORY TDC
+	                        WHERE TDB.GOODS_CODE = TDC.GOODS_CODE
+	                          AND TDB.PA_CODE = TDC.PA_CODE
+	                          AND TDB.PA_GROUP_CODE = TDC.PA_GROUP_CODE
+	                          AND TO_NUMBER(TDC.HISTORY_SEQ) > TO_NUMBER(TDB.HISTORY_SEQ)
+	                          AND TDC.PA_SALE_GB = '20'
+	                          AND TDC.PA_STATUS = '30'
+	                          AND TDC.CONFIRM_STATUS = '20')
+	    ),
+	    SALESTOP AS (
+	    	SELECT TDB.PA_GROUP_CODE
+			     , TDB.PA_CODE
+			     , TDB.GOODS_CODE
+			     , TDB.MALL_PRODUCT_NO
+			     , TDB.HISTORY_SEQ
+			     , TDB.PA_SALE_GB AS STOP_PA_SALE_GB
+			  FROM TPATDEALGOODSHISTORY TDA
+			     , TPATDEALGOODSHISTORY TDB
+			 WHERE TDA.GOODS_CODE = TDB.GOODS_CODE
+			   AND TDA.PA_GROUP_CODE = TDB.PA_GROUP_CODE
+			   AND TDA.PA_CODE = TDB.PA_CODE
+			   AND TDA.HISTORY_SEQ = LPAD(TO_CHAR(TO_NUMBER(TDB.HISTORY_SEQ) - 1), LENGTH(TDB.HISTORY_SEQ), '0')
+			   AND TDB.IUD_DATE BETWEEN SYSDATE - INTERVAL '1' HOUR AND SYSDATE
+			   AND TDA.PA_SALE_GB = '30'
+			   AND TDA.PA_STATUS IN ('30','90')
+			   AND TDA.TRANS_SALE_YN = '1'
+			   AND TDB.PA_SALE_GB = '30'
+			   AND TDB.PA_STATUS IN ('30','90')
+			   AND TDB.TRANS_SALE_YN = '0'
+			   AND TDA.MALL_PRODUCT_NO IS NOT NULL
+			   AND EXISTS (
+			       SELECT 1
+			         FROM TPATDEALGOODSHISTORY TDC
+			        WHERE TDC.HISTORY_SEQ = LPAD(TO_CHAR(TO_NUMBER(TDB.HISTORY_SEQ) - 1), LENGTH(TDB.HISTORY_SEQ), '0')
+			          AND TDC.PA_SALE_GB = '20'
+			          AND TDC.PA_STATUS = '30'
+			   )
+			   AND NOT EXISTS (
+			           SELECT 1
+			             FROM TPATDEALGOODSHISTORY TDD
+			            WHERE TO_NUMBER(TDD.HISTORY_SEQ) > TO_NUMBER(TDB.HISTORY_SEQ)
+			              AND TDD.GOODS_CODE = TDB.GOODS_CODE
+			              AND TDD.PA_SALE_GB = '20'
+			              AND TDD.PA_STATUS = '30'
+			              AND TDD.TRANS_SALE_YN = '0'
+			   )
+	    ),
+	    SALESTART AS (
+	    	SELECT TDB.PA_GROUP_CODE
+			     , TDB.PA_CODE
+			     , TDB.GOODS_CODE
+			     , TDB.MALL_PRODUCT_NO
+			     , TDB.HISTORY_SEQ
+			     , LPAD(TO_CHAR(TO_NUMBER(TDB.HISTORY_SEQ) - 1), LENGTH(TDB.HISTORY_SEQ), '0')
+			     , TDB.PA_SALE_GB AS START_PA_SALE_GB
+			  FROM TPATDEALGOODSHISTORY TDA
+			     , TPATDEALGOODSHISTORY TDB
+			 WHERE TDA.GOODS_CODE = TDB.GOODS_CODE
+			   AND TDA.PA_GROUP_CODE = TDB.PA_GROUP_CODE
+			   AND TDA.PA_CODE = TDB.PA_CODE
+			   AND TDA.HISTORY_SEQ = LPAD(TO_CHAR(TO_NUMBER(TDB.HISTORY_SEQ) - 1), LENGTH(TDB.HISTORY_SEQ), '0')
+			   AND TDB.IUD_DATE BETWEEN SYSDATE - INTERVAL '1' HOUR AND SYSDATE
+			   AND TDA.PA_SALE_GB = '20'
+			   AND TDA.PA_STATUS = '30'
+			   AND TDA.TRANS_SALE_YN = '1'
+			   AND TDB.PA_SALE_GB = '20'
+			   AND TDB.PA_STATUS IN '30'
+			   AND TDB.TRANS_SALE_YN = '0'
+			   AND TDA.MALL_PRODUCT_NO IS NOT NULL
+			   AND EXISTS (
+			       SELECT 1
+			         FROM TPATDEALGOODSHISTORY TDC
+			        WHERE TO_NUMBER(TDC.HISTORY_SEQ) &lt; TO_NUMBER(TDA.HISTORY_SEQ)
+			          AND TDC.GOODS_CODE = TDB.GOODS_CODE
+			          AND TDC.PA_SALE_GB = '30'
+			          AND TDC.PA_STATUS IN ('30', '90')
+			          AND TDC.TRANS_SALE_YN = '0'
+			   )
+			   AND NOT EXISTS (
+			           SELECT 1
+			             FROM TPATDEALGOODSHISTORY TDD
+			            WHERE TO_NUMBER(TDD.HISTORY_SEQ) > TO_NUMBER(TDB.HISTORY_SEQ)
+			              AND TDD.GOODS_CODE = TDB.GOODS_CODE
+			              AND TDD.PA_SALE_GB = '30'
+			              AND TDD.PA_STATUS IN ('30', '90')
+			              AND TDD.TRANS_SALE_YN = '0'
+			   )
+	    )
+	    
+	    SELECT COALESCE(PD.PA_GROUP_CODE, C.PA_GROUP_CODE, D.PA_GROUP_CODE, E.PA_GROUP_CODE, F.PA_GROUP_CODE, G.PA_GROUP_CODE, H.PA_GROUP_CODE) AS PA_GROUP_CODE
+	         , COALESCE(PD.PA_CODE, C.PA_CODE, D.PA_CODE, E.PA_CODE, F.PA_CODE, G.PA_CODE, H.PA_CODE) AS PA_CODE
+	         , COALESCE(PD.GOODS_CODE, C.GOODS_CODE, D.GOODS_CODE, E.GOODS_CODE, F.GOODS_CODE, G.GOODS_CODE, H.GOODS_CODE) AS GOODS_CODE
+	         , COALESCE(PD.MALL_PRODUCT_NO, C.MALL_PRODUCT_NO, D.MALL_PRODUCT_NO, E.MALL_PRODUCT_NO, F.MALL_PRODUCT_NO, G.MALL_PRODUCT_NO, H.MALL_PRODUCT_NO) AS MALL_PRODUCT_NO
+	         , PD.ASIS_TRANS_DATE
+	         , PD.ASIS_BEST_PRICE
+	         , PD.TOBE_TRANS_DATE
+	         , PD.TOBE_BEST_PRICE
+	         , PD.PRICE_DIFF
+	         , C.ASIS_GOODS_NAME
+	         , C.TOBE_GOODS_NAME
+	         , C.IUD_DATE
+	         , D.ASIS_PA_LMSD_KEY
+	         , D.TOBE_PA_LMSD_KEY
+	         , E.ASIS_DISP_CAT_ID
+	         , E.TOBE_DISP_CAT_ID
+	         , F.ASIS_COUPON_DC_AMT
+	         , F.TOBE_COUPON_DC_AMT
+	         , G.STOP_PA_SALE_GB
+	         , H.START_PA_SALE_GB
+	      FROM TPATDEALGOODS A
+	      LEFT JOIN PRICE_DIFF_DATA PD 
+	      		 ON A.GOODS_CODE = PD.GOODS_CODE 
+	      		AND A.MALL_PRODUCT_NO = PD.MALL_PRODUCT_NO
+	      LEFT JOIN CHANGES C 
+	      	 	 ON A.GOODS_CODE = C.GOODS_CODE 
+	      	 	AND A.MALL_PRODUCT_NO = C.MALL_PRODUCT_NO
+	      LEFT JOIN CHANGES2 D 
+	      		 ON A.GOODS_CODE = D.GOODS_CODE 
+	      		AND A.MALL_PRODUCT_NO = D.MALL_PRODUCT_NO
+	      LEFT JOIN CHANGES3 E 
+	      		 ON A.GOODS_CODE = E.GOODS_CODE 
+	      		AND A.MALL_PRODUCT_NO = E.MALL_PRODUCT_NO
+	      LEFT JOIN DC_DIFF_DATA F 
+	      		 ON A.GOODS_CODE = F.GOODS_CODE
+	      		AND A.MALL_PRODUCT_NO = F.MALL_PRODUCT_NO
+	      LEFT JOIN SALESTOP G
+	      		 ON A.GOODS_CODE = G.GOODS_CODE
+	      		AND A.MALL_PRODUCT_NO = G.MALL_PRODUCT_NO
+	      LEFT JOIN SALESTART H
+	      		 ON A.GOODS_CODE = H.GOODS_CODE
+	      		AND A.MALL_PRODUCT_NO = H.MALL_PRODUCT_NO
+	  	 WHERE PD.GOODS_CODE IS NOT NULL OR 
+	  	 		C.GOODS_CODE IS NOT NULL OR 
+	  	 		D.GOODS_CODE IS NOT NULL OR 
+	  	 		E.GOODS_CODE IS NOT NULL OR 
+	  	 		F.GOODS_CODE IS NOT NULL OR
+	  	 		G.GOODS_CODE IS NOT NULL OR
+	  	 		H.GOODS_CODE IS NOT NULL
+    	 ORDER BY COALESCE(PD.GOODS_CODE, C.GOODS_CODE , D.GOODS_CODE, E.GOODS_CODE, F.GOODS_CODE, G.GOODS_CODE, H.GOODS_CODE)
+	</select>
+</mapper>

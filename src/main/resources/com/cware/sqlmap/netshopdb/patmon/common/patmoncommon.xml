@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="patmon.common">
+
+ 	<delete id="deletePaGoodsKindsMomentList" >
+        DELETE /* pacommon.xml : pacommon.common.deletePaGoodsKindsMomentList */ 
+          FROM TPAGOODSKINDSMOMENT TGKM
+         WHERE TGKM.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR} 
+    </delete>
+
+	<insert id="insertPaGoodsKindMomentsList" parameterType="com.cware.netshopping.domain.model.PaGoodsKinds">
+        INSERT INTO /* patmoncommon.xml : patmon.common.insertPaGoodsKindMomentsList by PaTmonCommonController */
+                    TPAGOODSKINDSMOMENT
+                   ( PA_GROUP_CODE
+                   , PA_LMSD_KEY
+                   , PA_LGROUP
+                   , PA_MGROUP
+                   , PA_SGROUP
+                   , PA_DGROUP
+                   , PA_LGROUP_NAME
+                   , PA_MGROUP_NAME
+                   , PA_SGROUP_NAME
+                   , PA_DGROUP_NAME
+                   )
+            VALUES ( #{paGroupCode,     jdbcType=VARCHAR}
+                   , #{paLmsdKey,       jdbcType=VARCHAR}
+                   , #{paLgroup,        jdbcType=VARCHAR}
+                   , #{paMgroup,        jdbcType=VARCHAR}
+                   , #{paSgroup,        jdbcType=VARCHAR}
+                   , #{paDgroup,        jdbcType=VARCHAR}
+                   , #{paLgroupName,    jdbcType=VARCHAR}
+                   , #{paMgroupName,    jdbcType=VARCHAR}
+                   , SUBSTR(#{paSgroupName,    jdbcType=VARCHAR},0,20)
+                   , SUBSTR(#{paDgroupName,    jdbcType=VARCHAR},0,20)
+                   )
+    </insert>
+    
+    <insert id="insertPaGoodsKindsList" parameterType="com.cware.netshopping.domain.model.PaGoodsKinds">
+        INSERT INTO /* patmoncommon.xml : patmon.common.insertPaGoodsKindsList by PaTmonCommonController */
+                    TPAGOODSKINDS  
+                 ( PA_GROUP_CODE
+                 , PA_LMSD_KEY
+                 , PA_LGROUP
+                 , PA_MGROUP
+                 , PA_SGROUP
+                 , PA_DGROUP
+                 , PA_LGROUP_NAME
+                 , PA_MGROUP_NAME
+                 , PA_SGROUP_NAME
+                 , PA_DGROUP_NAME
+                 , USE_YN
+                 , INSERT_ID
+                 , INSERT_DATE
+                 , MODIFY_ID 
+                 , MODIFY_DATE
+                 )
+            SELECT TGKM.PA_GROUP_CODE
+                 , TGKM.PA_LMSD_KEY
+                 , TGKM.PA_LGROUP
+                 , TGKM.PA_MGROUP
+                 , TGKM.PA_SGROUP
+                 , TGKM.PA_DGROUP
+                 , TGKM.PA_LGROUP_NAME
+                 , TGKM.PA_MGROUP_NAME
+                 , TGKM.PA_SGROUP_NAME
+                 , TGKM.PA_DGROUP_NAME
+                 , '1'
+                 , #{insertId,    jdbcType=VARCHAR}
+                 , #{insertDate,  jdbcType=TIMESTAMP}
+                 , #{insertId,    jdbcType=VARCHAR}
+                 , #{insertDate,  jdbcType=TIMESTAMP}
+              FROM TPAGOODSKINDSMOMENT TGKM
+             WHERE TGKM.PA_GROUP_CODE  = #{paGroupCode, jdbcType=VARCHAR}
+               AND NOT EXISTS ( SELECT 'X'
+                                  FROM TPAGOODSKINDS TGK
+                                 WHERE TGK.PA_GROUP_CODE    = TGKM.PA_GROUP_CODE
+                                   AND TGK.PA_LMSD_KEY      = TGKM.PA_LMSD_KEY
+                              )
+    </insert>
+    
+    <select id="selectSlipInsertList" resultType="hashMap" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">
+        SELECT /* patmoncommon.xml : patmon.patmoncommon.selectSlipInsertList by PaTmonCommonController-selectSlipInsertList  */
+               EU.POST_NO
+             , EU.POST_SEQ
+             , NVL(EU.STD_POST_ADDR1,EU.POST_ADDR) AS ADDRESS1
+             , NVL(EU.STD_POST_ADDR2,EU.ADDR) AS ADDRESS2
+             , EU.ENTP_CODE
+             , EU.ENTP_MAN_SEQ
+             , EU.ENTP_MAN_GB 
+             , EU.ENTP_MAN_NAME
+             , EU.ENTP_MAN_DDD || '-' || EU.ENTP_MAN_TEL1 || '-' || EU.ENTP_MAN_TEL2 AS ENTP_MAN_TEL
+             , EU.ENTP_MAN_HP1 || DECODE(EU.ENTP_MAN_HP1, NULL, '', '-') || EU.ENTP_MAN_HP2 || DECODE(EU.ENTP_MAN_HP2, NULL, '', '-') || EU.ENTP_MAN_HP3 AS ENTP_MAN_HP
+             , #{paCode, jdbcType=VARCHAR} AS PA_CODE
+          FROM TENTPUSER   EU
+             , TENTERPRISE EP
+         WHERE EU.ENTP_CODE    = EP.ENTP_CODE    
+           AND EU.ENTP_CODE    = #{entpCode, jdbcType=VARCHAR}
+           AND EU.ENTP_MAN_SEQ = #{entpManSeq, jdbcType=VARCHAR}
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TPAENTPSLIP PL               
+                            WHERE EU.ENTP_CODE    = PL.ENTP_CODE
+                              AND EU.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+                              AND PL.PA_CODE      = #{paCode, jdbcType=VARCHAR})
+    </select>
+    
+    <insert id="insertPaTmonEntpSlip" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">    
+        INSERT /* patmoncommon.xml : patmon.patmoncommon.insertPaTmonEntpSlip by PaTmonCommonController-entpShipInsert */
+          INTO TPAENTPSLIP
+             ( ENTP_CODE
+             , ENTP_MAN_SEQ
+             , PA_CODE
+             , PA_ADDR_SEQ
+             , PA_ADDR_GB
+             , TRANS_TARGET_YN
+             , LAST_SYNC_DATE
+             , INSERT_DATE
+             , INSERT_ID
+             , MODIFY_DATE
+             , MODIFY_ID )
+        VALUES 
+             ( #{entpCode, jdbcType=VARCHAR}
+             , #{entpManSeq, jdbcType=VARCHAR}
+             , #{paCode, jdbcType=VARCHAR}
+             , #{paAddrSeq, jdbcType=VARCHAR}
+             , #{paAddrGb, jdbcType=VARCHAR}
+             , #{transTargetYn, jdbcType=VARCHAR}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{insertId, jdbcType=VARCHAR}
+             , #{modifyDate, jdbcType=TIMESTAMP}
+             , #{modifyId, jdbcType=VARCHAR}
+             )  
+    </insert>
+    
+    <select id="selectEntpSlipUpdateList" resultType="hashMap">
+       SELECT /* patmoncommon.xml : patmon.patmoncommon.selectEntpShipUpdateList by PaTmonCommonController-entpShipUpdate */
+               EU.POST_NO
+             , EU.POST_SEQ
+             , NVL(EU.STD_POST_ADDR1,EU.POST_ADDR) AS ADDRESS1
+             , NVL(EU.STD_POST_ADDR2,EU.ADDR) AS ADDRESS2
+             , EU.ENTP_CODE
+             , EU.ENTP_MAN_SEQ
+             , EU.ENTP_MAN_GB 
+             , EU.ENTP_MAN_NAME
+             , EU.ENTP_MAN_DDD || '-' || EU.ENTP_MAN_TEL1 || '-' || EU.ENTP_MAN_TEL2 AS ENTP_MAN_TEL
+             , EU.ENTP_MAN_HP1 || DECODE(EU.ENTP_MAN_HP1, NULL, '', '-') || EU.ENTP_MAN_HP2 || DECODE(EU.ENTP_MAN_HP2, NULL, '', '-') || EU.ENTP_MAN_HP3 AS ENTP_MAN_HP
+             , PL.PA_CODE
+             , PL.PA_ADDR_SEQ
+          FROM TENTPUSER	EU
+             , TENTERPRISE	EP
+             , TPAENTPSLIP	PL
+         WHERE EU.ENTP_CODE = EP.ENTP_CODE
+           AND EU.ENTP_CODE = PL.ENTP_CODE
+           AND EU.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+           AND PL.PA_CODE IN ('91','92')
+           AND PL.TRANS_TARGET_YN = '1'
+           AND PL.PA_ADDR_SEQ IS NOT NULL
+	</select>
+	
+    <select id="selectEntpSlipUpdate" resultType="hashMap"  parameterType="com.cware.netshopping.domain.model.PaEntpSlip">
+       SELECT /* patmoncommon.xml : patmon.patmoncommon.selectEntpShipUpdate by PaTmonSellerService */
+               EU.POST_NO
+             , EU.POST_SEQ
+             , NVL(EU.STD_POST_ADDR1,EU.POST_ADDR) AS ADDRESS1
+             , NVL(EU.STD_POST_ADDR2,EU.ADDR) AS ADDRESS2
+             , EU.ENTP_CODE
+             , EU.ENTP_MAN_SEQ
+             , EU.ENTP_MAN_GB 
+             , EU.ENTP_MAN_NAME
+             , EU.ENTP_MAN_DDD || '-' || EU.ENTP_MAN_TEL1 || '-' || EU.ENTP_MAN_TEL2 AS ENTP_MAN_TEL
+             , EU.ENTP_MAN_HP1 || DECODE(EU.ENTP_MAN_HP1, NULL, '', '-') || EU.ENTP_MAN_HP2 || DECODE(EU.ENTP_MAN_HP2, NULL, '', '-') || EU.ENTP_MAN_HP3 AS ENTP_MAN_HP
+             , PL.PA_CODE
+             , PL.PA_ADDR_SEQ
+          FROM TENTPUSER	EU
+             , TENTERPRISE	EP
+             , TPAENTPSLIP	PL
+         WHERE EU.ENTP_CODE = EP.ENTP_CODE
+           AND EU.ENTP_CODE = PL.ENTP_CODE
+           AND EU.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+           AND PL.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PL.TRANS_TARGET_YN = '1'
+           AND PL.PA_ADDR_SEQ IS NOT NULL
+           AND PL.ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+           AND PL.ENTP_MAN_SEQ = #{entpManSeq, jdbcType=VARCHAR}
+	</select>
+	
+	 <update id="updatePaTmonEntpSlip" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">
+        UPDATE /* patmoncommon.xml : patmon.patmoncommon.updatePatmonEntpSlip */
+               TPAENTPSLIP
+           SET TRANS_TARGET_YN	= #{transTargetYn,	jdbcType=VARCHAR}
+             , MODIFY_DATE		= #{modifyDate,		jdbcType=TIMESTAMP}
+             , MODIFY_ID		= #{modifyId,		jdbcType=VARCHAR}
+         WHERE ENTP_CODE		= #{entpCode,		jdbcType=VARCHAR}
+           AND ENTP_MAN_SEQ		= #{entpManSeq,		jdbcType=VARCHAR}
+           AND PA_CODE			= #{paCode,			jdbcType=VARCHAR}
+           AND PA_ADDR_SEQ		= #{paAddrSeq,		jdbcType=VARCHAR}
+	</update>
+	
+	<select id="selectEntpSlipCost" resultType="hashMap" parameterType="hashMap">
+	    SELECT /* patmoncommon.xml : patmon.patmoncommon.selectEntpSlipCost */
+			   PC.PA_CODE
+			 , PC.ENTP_CODE
+			 , PC.PRODUCT_TYPE
+			 , PC.SHIP_MAN_SEQ
+			 , PC.RETURN_MAN_SEQ
+			 , PC.SHIP_COST_CODE
+			 , TO_CHAR(PC.APPLY_DATE, 'YYYYMMDDHH24MISS') AS APPLY_DATE
+			 , PC.NO_SHIP_ISLAND
+			 , PC.SHIP_COST_BASE_AMT
+			 , PC.ORD_COST
+			 , PC.RETURN_COST
+			 , PC.ISLAND_COST
+       		 , PC.JEJU_COST
+			 , ES1.PA_ADDR_SEQ AS PA_SHIP_MAN_SEQ
+			 , ES2.PA_ADDR_SEQ AS PA_RETURN_MAN_SEQ
+		  FROM TPATMONSHIPCOST PC
+			 , TPAENTPSLIP ES1
+			 , TPAENTPSLIP ES2
+		 WHERE PC.PA_CODE = ES1.PA_CODE
+		   AND PC.ENTP_CODE = ES1.ENTP_CODE
+		   AND PC.SHIP_MAN_SEQ = ES1.ENTP_MAN_SEQ
+		   AND ES1.PA_ADDR_GB = '30'
+		   AND ES1.PA_ADDR_SEQ IS NOT NULL
+		   AND PC.PA_CODE = ES2.PA_CODE
+		   AND PC.ENTP_CODE = ES2.ENTP_CODE
+		   AND PC.RETURN_MAN_SEQ = ES2.ENTP_MAN_SEQ
+		   AND ES2.PA_ADDR_GB = '20'
+		   AND ES2.PA_ADDR_SEQ IS NOT NULL
+		   AND PC.PA_SHIP_POLICY_NO IS NULL
+    </select>
+	
+	<update id="updatePaTmonShipCost" parameterType="hashMap">
+        UPDATE /* patmoncommon.xml : patmon.patmoncommon.updatePaTmonShipCost by PaTmonCommonController */
+               TPATMONSHIPCOST TM
+          SET  TM.PA_SHIP_POLICY_NO       = #{deliveryTemplateNo, jdbcType=VARCHAR}
+             , TM.MODIFY_ID               = #{modifyId,           jdbcType=VARCHAR}
+             , TM.MODIFY_DATE             = #{modifyDate,         jdbcType=TIMESTAMP}
+         WHERE TM.PA_CODE                 = #{paCode,             jdbcType=VARCHAR}
+           AND TM.ENTP_CODE               = #{entpCode,           jdbcType=VARCHAR}
+           AND TM.PRODUCT_TYPE            = #{productType,        jdbcType=VARCHAR}
+           AND TM.SHIP_MAN_SEQ            = #{shipManSeq,         jdbcType=VARCHAR}
+           AND TM.RETURN_MAN_SEQ          = #{returnManSeq,       jdbcType=VARCHAR}
+           AND TM.SHIP_COST_CODE          = #{shipCostCode,       jdbcType=VARCHAR}
+           AND TO_CHAR(TM.APPLY_DATE, 'YYYYMMDDHH24MISS')	= #{applyDate,	jdbcType=VARCHAR}
+           AND TM.NO_SHIP_ISLAND          = #{noShipIsland,       jdbcType=VARCHAR}
+    </update>
+    
+    <insert id="insertPaTmonSettlement" parameterType="com.cware.netshopping.domain.model.PaTmonSettlement">    
+        INSERT /* patmoncommon.xml : patmon.patmoncommon.insertPaTmonSettlement by PaTmonCommonController-settlementGoods */
+		  INTO TPATMONSETTLEMENT
+			 ( TX_SEQ_NO
+			 , TMON_ORDER_NO
+			 , TMON_ORDER_SUB_NO
+			 , INDIVIDUAL_ORDER_NO
+			 , TMON_DEAL_NO
+			 , TMON_DEAL_OPTION_NO
+			 , MANAGED_TITLE
+			 , DEAL_OPTION_TITLE
+			 , PARTNER_NO
+			 , SETTLE_DEAL_TYPE
+			 , SETTLE_DEAL_DETAIL_TYPE
+			 , SALES_DATE_TIME
+			 , PAY_DUE_DATE
+			 , SELL_AMOUNT
+			 , PAY_BASE_AMOUNT
+			 , PAY_RATE
+			 , VENDOR_AMOUNT
+			 , TMON_AMOUNT
+			 , ADJUST_CODE
+			 , DISCOUNT_POLICY_NO
+			 , DISCOUNT_POLICY_NAME )
+		VALUES
+			 ( #{txSeqNo,				jdbcType=VARCHAR}
+			 , #{tmonOrderNo,			jdbcType=VARCHAR}
+			 , #{tmonOrderSubNo,		jdbcType=VARCHAR}
+			 , #{individualOrderNo,		jdbcType=VARCHAR}
+			 , #{tmonDealNo,			jdbcType=VARCHAR}
+			 , #{tmonDealOptionNo,		jdbcType=VARCHAR}
+			 , #{managedTitle,			jdbcType=VARCHAR}
+			 , #{dealOptionTitle,		jdbcType=VARCHAR}
+			 , #{partnerNo,				jdbcType=VARCHAR}
+			 , #{settleDealType,		jdbcType=VARCHAR}
+			 , #{settleDealDetailType,	jdbcType=VARCHAR}
+			 , TO_DATE(#{salesDateTime,	jdbcType=VARCHAR},'YYYY-MM-DD"T"HH24:MI:SS')
+			 , TO_DATE(#{payDueDate,	jdbcType=VARCHAR},'YYYY-MM-DD')
+			 , #{sellAmount,			jdbcType=NUMERIC}
+			 , #{payBaseAmount,			jdbcType=NUMERIC}
+			 , #{payRate,				jdbcType=NUMERIC}
+			 , #{vendorAmount,			jdbcType=NUMERIC}
+			 , #{tmonAmount,			jdbcType=NUMERIC}
+			 , #{adjustCode,			jdbcType=VARCHAR} 
+			 , #{discountPolicyNo,		jdbcType=VARCHAR}
+			 , #{discountPolicyName,	jdbcType=VARCHAR}
+			 )
+    </insert>
+    
+    <delete id="deletePaTmonSettlement" parameterType="hashMap">
+        DELETE /* patmoncommon.xml : patmon.patmoncommon.deletePaTmonSettlement by PaTmonCommonController-settlementGoods */
+        	   FROM TPATMONSETTLEMENT 
+         WHERE SALES_DATE_TIME BETWEEN TO_DATE(#{salesDateToString,	jdbcType=VARCHAR}, 'YYYY-MM-DD')  
+           						   AND TO_DATE(#{salesDateToString,	jdbcType=VARCHAR}, 'YYYY-MM-DD') + 0.99999 
+    </delete>
+    
+    <select id="selectPaSettlementExists" parameterType="com.cware.netshopping.domain.model.PaTmonSettlement" resultType="int">
+      SELECT /* patmoncommon.xml : patmon.patmoncommon.selectPaSettlementExists */
+             COUNT(1) 
+        FROM TPATMONSETTLEMENT PS
+       WHERE PS.TX_SEQ_NO = #{txSeqNo, jdbcType=VARCHAR}
+    </select>
+    
+</mapper>

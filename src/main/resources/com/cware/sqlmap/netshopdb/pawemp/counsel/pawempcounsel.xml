@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pawemp.counsel">
+    <select id="selectPaWempQna" resultType="com.cware.netshopping.domain.PaqnamVO">
+    	SELECT /* pawempcounsel.xml : pawemp.counsel.selectPaWempQna */
+               PQ.PA_COUNSEL_SEQ
+             , PQ.PROC_GB
+             , PQ.PA_CODE
+             , PQ.PA_COUNSEL_NO
+             , PQ.COUNSEL_SEQ
+             , PQ.COUNSEL_DATE
+             , PQ.COUNSEL_GB
+             , PQ.PA_GOODS_CODE
+             , PQ.PA_GOODS_DT_CODE
+             , PQ.PA_ORDER_NO
+             , (SELECT PM.ORDER_NO
+                  FROM TPAORDERM PM
+                     , TPAWEMPORDERITEMLIST OIL
+                 WHERE PM.PA_ORDER_NO       = OIL.PA_ORDER_NO
+                   AND PM.PA_SHIP_NO        = OIL.PA_SHIP_NO
+                   AND PM.PA_ORDER_SEQ      = OIL.PA_ORDER_SEQ
+                   AND PM.PA_CODE           = PQ.PA_CODE
+                   AND OIL.ORDER_PRODUCT_NO = PQ.PA_ORDER_NO 
+                   AND PM.PA_ORDER_GB       ='10'
+                   AND ROWNUM               = 1 ) AS REF_NO
+             , PQ.ORDER_YN
+             , PQ.DISPLAY_YN
+             , PQ.PA_CUST_NO
+             , PQ.CUST_NAME
+             , PQ.CUST_TEL
+             , PQ.RECEIPT_DATE
+             , PQ.TRANS_YN
+             , PQ.TRANS_DATE
+             , PQ.INSERT_DATE
+             , PQ.INSERT_ID
+             , PQ.MODIFY_DATE
+             , PQ.MODIFY_ID
+             , PD.PA_COUNSEL_DT_SEQ
+             , PD.TITLE
+             , PD.PROC_NOTE
+             , PG.GOODS_CODE
+             , PG.ENTP_CODE
+             , NVL((SELECT OM.CUST_NO
+                      FROM TPAORDERM PM
+                         , TPAWEMPORDERITEMLIST OIL
+                         , TORDERM OM
+                     WHERE PM.PA_ORDER_NO       = OIL.PA_ORDER_NO
+                       AND PM.PA_SHIP_NO        = OIL.PA_SHIP_NO
+                       AND PM.PA_ORDER_SEQ      = OIL.PA_ORDER_SEQ
+                       AND PM.PA_CODE           = PQ.PA_CODE
+                       AND OIL.ORDER_PRODUCT_NO = PQ.PA_ORDER_NO 
+                       AND PM.PA_ORDER_GB       ='10'
+                       AND PM.ORDER_NO          = OM.ORDER_NO
+                       AND ROWNUM               = 1) 
+                  ,(SELECT TO_CHAR(CODE_NAME)
+                      FROM TCODE TC
+                     WHERE TC.CODE_LGROUP = 'O511'
+                       AND TC.REMARK1     = '06'
+                       AND ROWNUM         = 1)) AS CUST_NO
+          FROM TPAQNAM PQ
+             , TPAQNADT PD
+             , TPAPRODUCT PG
+             , TPAWEMPGOODS WG
+         WHERE PQ.PA_COUNSEL_SEQ = PD.PA_COUNSEL_SEQ
+           AND PQ.PROC_GB = PD.PROC_GB
+           AND PQ.PA_GOODS_CODE = WG.PRODUCT_NO
+           AND WG.GOODS_CODE = PG.GOODS_CODE
+           AND PQ.COUNSEL_SEQ IS NULL
+           AND PQ.PROC_GB = '10'
+           AND PQ.TRANS_YN = '0'
+           AND PQ.TRANS_DATE IS NULL
+           AND PD.PA_COUNSEL_DT_SEQ = '1'
+           AND PQ.PA_CODE IN ('61', '62')
+           AND PQ.INSERT_DATE > TRUNC(SYSDATE) - 3
+    </select>
+    
+    <select id="selectPaWempAnsQna" resultType="com.cware.netshopping.domain.PaqnamVO">
+    	SELECT /* pawempcounsel.xml : pawemp.counsel.selectPaWempAnsQna */
+    	       SQ.PA_COUNSEL_SEQ
+	         , SQ.PA_COUNSEL_NO
+	         , SQ.PA_GOODS_CODE
+	         , CD.TITLE
+	         , CD.PROC_NOTE
+	         , CD.PROC_ID
+	         , CD.PROC_DATE
+	         , SQ.PA_CODE
+	         , SQ.MSG_GB
+	   	  FROM TPAQNAM SQ
+	      	 , TCUSTCOUNSELM CM
+	      	 , TCUSTCOUNSELDT CD
+	      	 , TCODE TC
+	  	 WHERE SQ.COUNSEL_SEQ = CM.COUNSEL_SEQ
+	       AND CM.COUNSEL_SEQ = CD.COUNSEL_SEQ
+	       AND SQ.PA_CODE = TC.CODE_MGROUP
+	       AND TC.CODE_LGROUP = 'O501'
+	       AND TC.CODE_GROUP  = '06'
+	       AND TC.USE_YN      = '1'
+	       AND CD.DO_FLAG     = '40'
+	       AND CD.PROC_DATE > SYSDATE - 3
+	       AND SQ.TRANS_YN    = '0'
+	       AND SQ.PA_CODE     IN ('61','62')
+    </select>
+    
+    <update id="updatePaQnaTrans" parameterType="com.cware.netshopping.domain.PaqnamVO">
+    	UPDATE TPAQNAM /* pawempcounsel.xml : pawemp.counsel.updatePaQnaTrans */
+           SET TRANS_YN = '1'
+             , PROC_GB = '40'
+             , TRANS_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+             , MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+             , MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE PA_COUNSEL_SEQ  = #{paCounselSeq, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectPaQnaDtMaxSeq" parameterType="com.cware.netshopping.domain.PaqnamVO" resultType="String">
+    	SELECT /* pawempcounsel.xml : pawemp.counsel.selectPaQnaDtMaxSeq */
+    		   MAX(P.PA_COUNSEL_DT_SEQ) + 1 
+    	  FROM TPAQNADT P 
+    	 WHERE P.PA_COUNSEL_SEQ = #{paCounselSeq, jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertPaQnaDt" parameterType="com.cware.netshopping.domain.PaqnamVO">
+    	INSERT INTO TPAQNADT( /* pawempcounsel.xml : pawemp.counsel.insertPaQnaDt */
+			PA_COUNSEL_SEQ
+		  , PA_COUNSEL_DT_SEQ
+		  , PROC_GB
+		  , TITLE
+		  , PROC_NOTE
+		  , PROC_DATE
+		  , PROC_ID) 
+		VALUES (
+		    #{paCounselSeq, jdbcType=VARCHAR}
+		  , #{paCounselDtSeq, jdbcType=VARCHAR}
+		  , #{procGb, jdbcType=VARCHAR}
+		  , #{title, jdbcType=VARCHAR}
+		  , #{procNote, jdbcType=VARCHAR}
+		  , #{procDate, jdbcType=TIMESTAMP}
+		  , #{procId, jdbcType=VARCHAR})
+    </insert>
+    
+    <insert id="insertPaNotice" parameterType="com.cware.netshopping.pawemp.counsel.model.NoticeData">
+        INSERT INTO TPAWEMPNOTILIST( /* pawempcounsel.xml : pawemp.counsel.insertPaNotice */
+            NOTICE_SEQ
+          , PA_CODE
+          , PA_TYPE
+          , PA_TITLE
+          , PA_CONTENTS
+          , PA_REG_DATE
+          , INSERT_ID
+          , INSERT_DATE )
+        VALUES (
+            #{noticeSeq, jdbcType=VARCHAR}
+          , #{paCode, jdbcType=VARCHAR}
+          , #{paType, jdbcType=VARCHAR}
+          , #{paTitle, jdbcType=VARCHAR}
+          , SUBSTRB(#{paContents, jdbcType=VARCHAR}, 1, 3900)
+          , #{paRegDate, jdbcType=TIMESTAMP}
+          , #{insertId, jdbcType=VARCHAR}
+          , #{insertDate, jdbcType=TIMESTAMP})
+    </insert>
+    
+    <select id="selectChkPaNotice" parameterType="hashMap" resultType="int">
+        SELECT /* pawempcounsel.xml : pawemp.counsel.selectChkPaNotice by IF_PAWEMPAPI_02_003 */
+               COUNT(1)
+          FROM TPAWEMPNOTILIST
+         WHERE PA_TYPE  = #{paType, jdbcType=VARCHAR}
+           AND PA_TITLE = #{paTitle, jdbcType=VARCHAR}
+           AND PA_REG_DATE = #{paRegDate, jdbcType=TIMESTAMP}                           
+    </select>
+    
+    <select id="selectPaWempNotice" resultType="com.cware.netshopping.domain.PaqnamVO">
+    	SELECT /* pawempcounsel.xml : pawemp.counsel.selectPaWempNotice */
+               PQ.PA_COUNSEL_SEQ
+             , PQ.PROC_GB
+             , PQ.MSG_GB
+             , PQ.PA_CODE
+             , PQ.PA_COUNSEL_NO
+             , PQ.COUNSEL_SEQ
+             , PQ.COUNSEL_DATE
+             , PQ.COUNSEL_GB
+             , PQ.ORDER_YN
+             , PQ.DISPLAY_YN
+             , PQ.TRANS_YN
+             , PQ.TRANS_DATE
+             , PQ.INSERT_DATE
+             , PQ.INSERT_ID
+             , PQ.MODIFY_DATE
+             , PQ.MODIFY_ID
+             , PD.PA_COUNSEL_DT_SEQ
+             , PD.TITLE
+             , PD.PROC_NOTE
+             , (SELECT TO_CHAR(CODE_NAME)
+                  FROM TCODE TC
+                 WHERE TC.CODE_LGROUP = 'O511'
+                   AND TC.REMARK1     = '06'
+                   AND ROWNUM         = 1) AS CUST_NO
+          FROM TPAQNAM PQ
+             , TPAQNADT PD
+         WHERE PQ.PA_COUNSEL_SEQ = PD.PA_COUNSEL_SEQ
+           AND PQ.PROC_GB = PD.PROC_GB
+           AND PQ.COUNSEL_SEQ IS NULL
+           AND PQ.PROC_GB = '10'
+           AND PQ.TRANS_YN = '0'
+           AND PQ.TRANS_DATE IS NULL
+           AND PD.PA_COUNSEL_DT_SEQ = '1'
+           AND PQ.PA_CODE IN ('61', '62')
+           AND PQ.INSERT_DATE > TRUNC(SYSDATE) - 3
+    </select>
+    
+    <select id="selectCounselDate" parameterType="com.cware.netshopping.domain.model.Paqnamoment" resultType="String">
+    	
+	        SELECT /* pawempcounsel.xml : pawemp.counsel.selectCounselDate */
+	               TO_CHAR(TM.COUNSEL_DATE,'YYYY-MM-DD HH24:MI:SS') AS COUNSEL_DATE
+	          FROM TPAQNAM TM
+	         WHERE TM.PA_CODE = #{paCode, jdbcType=VARCHAR}
+	           AND TM.PA_COUNSEL_NO = #{paCounselNo, jdbcType=VARCHAR}
+	           AND TM.MSG_GB = '00'
+	         ORDER BY TM.COUNSEL_DATE DESC
+         	                      
+    </select>
+</mapper>

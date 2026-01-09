@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="panaver.counsel">
+    <select id="selectPaNaverQna" resultType="com.cware.netshopping.domain.PaqnamVO">
+        SELECT /* panavercounsel.xml : panaver.counsel.selectPaNaverQna */
+               PQ.PA_COUNSEL_SEQ
+             , PQ.PROC_GB
+             , PQ.PA_CODE
+             , PQ.PA_COUNSEL_NO
+             , PQ.COUNSEL_SEQ
+             , PQ.COUNSEL_DATE
+             , PQ.COUNSEL_GB
+             , PQ.PA_GOODS_DT_CODE
+             , PQ.PA_ORDER_NO
+             , (SELECT PM.ORDER_NO 
+                  FROM TPAORDERM PM 
+                 WHERE PM.PA_CODE = PQ.PA_CODE
+                   AND PM.PA_ORDER_NO = PQ.PA_ORDER_NO 
+                   AND PM.PA_ORDER_GB ='10' 
+                   AND ROWNUM = 1 ) AS REF_NO
+             , PQ.ORDER_YN
+             , PQ.DISPLAY_YN
+             , PQ.PA_CUST_NO
+             , PQ.CUST_NAME
+             , PQ.CUST_TEL
+             , PQ.RECEIPT_DATE
+             , PQ.TRANS_YN
+             , PQ.TRANS_DATE
+             , PQ.INSERT_DATE
+             , PQ.INSERT_ID
+             , PQ.MODIFY_DATE
+             , PQ.MODIFY_ID
+             , PD.PA_COUNSEL_DT_SEQ
+             , PD.TITLE
+             , PD.PROC_NOTE
+             , PG.GOODS_CODE AS GOODS_CODE
+             , PG.GOODS_CODE AS PA_GOODS_CODE
+             , PG.ENTP_CODE
+             , (SELECT CODE_MGROUP
+                  FROM TCODE TC
+                 WHERE TC.CODE_GROUP = '04'
+                   AND TC.CODE_LGROUP = (SELECT TC1.REMARK FROM TCODE TC1 WHERE TC1.CODE_LGROUP = 'C031' AND TC1.CODE_MGROUP = '40')
+                   AND TC.REMARK = PQ.COUNSEL_GB
+                   AND ROWNUM = 1
+                ) AS OUT_MGROUP_CODE
+             , NVL((SELECT OM.CUST_NO
+			               FROM TPAORDERM PM, TORDERM OM
+			              WHERE PQ.PA_ORDER_NO = PM.PA_ORDER_NO
+			                AND PM.ORDER_NO = OM.ORDER_NO
+			                AND ROWNUM = 1
+			             ) ,(SELECT TO_CHAR(CODE_NAME)
+			                FROM TCODE TC
+			               WHERE TC.CODE_LGROUP = 'O511'
+			                 AND TC.REMARK1 = '04'
+			                 AND ROWNUM = 1
+		                 ) ) AS CUST_NO
+          FROM TPAQNAM PQ
+             , TPAQNADT PD
+             , TPAPRODUCT PG
+             , TPANAVERGOODS PGM
+         WHERE PQ.PA_COUNSEL_SEQ = PD.PA_COUNSEL_SEQ
+           AND PQ.PROC_GB = PD.PROC_GB
+           AND PQ.PA_CODE IN ('41')
+           AND PQ.PA_GOODS_CODE = PGM.PRODUCT_ID
+           AND PQ.PA_CODE = PGM.PA_CODE
+           AND PG.GOODS_CODE = PGM.GOODS_CODE
+           AND PQ.COUNSEL_SEQ IS NULL
+           AND PQ.PROC_GB = '10'
+           AND PQ.TRANS_YN = '0'
+           AND PQ.TRANS_DATE IS NULL
+           AND PD.PA_COUNSEL_DT_SEQ = '1'
+           AND PQ.INSERT_DATE > TRUNC(SYSDATE) - 2
+    </select>
+    
+    <select id="selectPaNaverAnsQna" resultType="com.cware.netshopping.domain.PaqnamVO">
+    	SELECT /* panavercounsel.xml : panavercounsel.counsel.selectPaNaverAnsQna */
+             SQ.PA_COUNSEL_SEQ
+           , SQ.PA_COUNSEL_NO
+           , SQ.PA_GOODS_CODE
+           , CM.GOODS_CODE
+           , CD.TITLE
+           , CD.PROC_NOTE
+           , CD.PROC_ID
+           , CD.PROC_DATE
+           , SQ.PA_COUNSEL_NO
+        FROM TPAQNAM SQ
+           , TCUSTCOUNSELM CM
+           , TCUSTCOUNSELDT CD
+       WHERE SQ.COUNSEL_SEQ = CM.COUNSEL_SEQ
+         AND CM.COUNSEL_SEQ = CD.COUNSEL_SEQ
+         AND CD.DO_FLAG     = '40'
+         AND CD.PROC_DATE > SYSDATE - 5
+         AND SQ.TRANS_YN    = '0'
+         AND SQ.MSG_GB = '00'
+         AND SQ.PA_CODE = '41'
+    </select>
+    
+    
+    <select id="selectPaNaverCustQna" resultType="com.cware.netshopping.domain.PaqnamVO">
+        SELECT /* panavercounsel.xml : panavercounsel.counsel.selectPaNaverCustQna */
+               PQ.PA_COUNSEL_SEQ
+             , PQ.PROC_GB
+             , PQ.PA_CODE
+             , PQ.PA_COUNSEL_NO
+             , PQ.COUNSEL_SEQ
+             , PQ.COUNSEL_DATE
+             , PQ.COUNSEL_GB
+             , PG.GOODS_CODE AS GOODS_CODE
+             , PG.GOODS_CODE AS PA_GOODS_CODE
+             , PQ.PA_GOODS_DT_CODE
+             , PQ.PA_ORDER_NO
+             , (SELECT PM.ORDER_NO 
+                  FROM TPAORDERM PM 
+                 WHERE PM.PA_CODE = PQ.PA_CODE
+                   AND PM.PA_ORDER_NO = PQ.PA_ORDER_NO 
+                   AND PM.PA_ORDER_GB ='10' 
+                   AND ROWNUM = 1 ) AS REF_NO
+             , PQ.ORDER_YN
+             , PQ.DISPLAY_YN
+             , PQ.PA_CUST_NO
+             , PQ.CUST_NAME
+             , PQ.CUST_TEL
+             , PQ.RECEIPT_DATE
+             , PQ.TRANS_YN
+             , PQ.TRANS_DATE
+             , PQ.INSERT_DATE
+             , PQ.INSERT_ID
+             , PQ.MODIFY_DATE
+             , PQ.MODIFY_ID
+             , PD.PA_COUNSEL_DT_SEQ
+             , PD.TITLE
+             , PD.PROC_NOTE
+             , '' ENTP_CODE
+             , (SELECT CODE_MGROUP
+                  FROM TCODE TC
+                 WHERE TC.CODE_GROUP = '04'
+                   AND TC.CODE_LGROUP = (SELECT TC1.REMARK FROM TCODE TC1 WHERE TC1.CODE_LGROUP = 'C031' AND TC1.CODE_MGROUP = '40')
+                   AND TC.REMARK = PQ.COUNSEL_GB
+                   AND ROWNUM = 1
+                ) AS OUT_MGROUP_CODE
+             , NVL((SELECT OM.CUST_NO
+			               FROM TPAORDERM PM, TORDERM OM
+			              WHERE PQ.PA_ORDER_NO = PM.PA_ORDER_NO
+			                AND PM.ORDER_NO = OM.ORDER_NO
+			                AND ROWNUM = 1
+			             ) ,(SELECT TO_CHAR(CODE_NAME)
+			                FROM TCODE TC
+			               WHERE TC.CODE_LGROUP = 'O511'
+			                 AND TC.REMARK1 = '04'
+			                 AND ROWNUM = 1
+		                 ) ) AS CUST_NO    
+          FROM TPAQNAM PQ
+             , TPAQNADT PD          
+             , TPANAVERGOODS PG
+         WHERE PQ.PA_COUNSEL_SEQ = PD.PA_COUNSEL_SEQ
+           AND PQ.PROC_GB       = PD.PROC_GB
+           AND PQ.PA_CODE IN ('41')
+           AND PQ.PA_GOODS_CODE = PG.PRODUCT_ID
+           AND PQ.COUNSEL_SEQ IS NULL
+           AND PQ.PROC_GB = '10'
+           AND PQ.TRANS_YN = '0'
+           AND PQ.TRANS_DATE IS NULL
+           AND PD.PA_COUNSEL_DT_SEQ = '1'
+           AND PQ.INSERT_DATE > TRUNC(SYSDATE) - 2
+    </select>
+    
+    <insert id="insertPaQnaMoment" parameterType="com.cware.netshopping.domain.model.Paqnamoment">
+        INSERT INTO TPAQNAMOMENT ( /* panavercounsel.xml : panaver.counsel.insertPaQnaMoment */
+                      PA_CODE
+                    , PA_COUNSEL_NO
+                    , COUNSEL_DATE
+                    , TITLE
+                    , QUEST_COMMENT
+                    , ANSWER_COMMENT
+                    , COUNSEL_GB
+                    , PA_GOODS_CODE
+                    , PA_GOODS_DT_CODE
+                    , PA_ORDER_NO
+                    , ORDER_YN
+                    , DISPLAY_YN
+                    , PA_CUST_NO
+                    , CUST_NAME
+                    , CUST_TEL
+                    , RECEIPT_DATE
+                    , MSG_GB
+                    , TOKEN
+                    , PA_GROUP_CODE
+                    )
+             VALUES( #{paCode, jdbcType=VARCHAR}
+                   , #{paCounselNo, jdbcType=VARCHAR}
+                   , #{counselDate, jdbcType=VARCHAR}
+                   , #{title, jdbcType=VARCHAR}
+                   , #{questComment, jdbcType=VARCHAR}
+                   , #{answerComment, jdbcType=VARCHAR}
+                   , NVL((SELECT T.CS_SGROUP FROM TCSKINDS T WHERE T.CS_LGROUP ='60' AND T.CS_MGROUP ='04' AND T.CS_SGROUP_NAME = #{counselGb, jdbcType=VARCHAR}),'06')
+                   , #{paGoodsCode, jdbcType=VARCHAR}
+                   , #{paGoodsDtCode, jdbcType=VARCHAR}
+                   , #{paOrderNo, jdbcType=VARCHAR}
+                   , #{orderYn, jdbcType=DATE}
+                   , #{displayYn, jdbcType=VARCHAR}
+                   , #{paCustNo, jdbcType=DATE}
+                   , #{custName, jdbcType=VARCHAR}
+                   , #{custTel, jdbcType=VARCHAR}
+                   , #{receiptDate, jdbcType=VARCHAR}
+                   , #{msgGb, jdbcType=VARCHAR}
+                   , #{token, jdbcType=VARCHAR}
+                   , #{paGroupCode, jdbcType=VARCHAR}
+                   )
+    </insert>
+    
+    <select id="selectPaNaverCustAnsQna" resultType="com.cware.netshopping.domain.PaqnamVO">
+    	SELECT /* panavercounsel.xml : panavercounsel.counsel.selectPaNaverCustAnsQna */
+             SQ.PA_COUNSEL_SEQ
+           , SQ.PA_COUNSEL_NO
+           , SQ.PA_GOODS_CODE
+           , CM.GOODS_CODE
+           , CD.TITLE
+           , CD.PROC_NOTE
+           , CD.PROC_ID
+           , CD.PROC_DATE
+        FROM TPAQNAM SQ
+           , TCUSTCOUNSELM CM
+           , TCUSTCOUNSELDT CD
+       WHERE SQ.COUNSEL_SEQ = CM.COUNSEL_SEQ
+         AND CM.COUNSEL_SEQ = CD.COUNSEL_SEQ
+         AND CD.DO_FLAG     = '40'
+         AND CD.PROC_DATE > SYSDATE - 5
+         AND SQ.TRANS_YN    = '0'
+         AND SQ.MSG_GB = '30'
+         AND SQ.PA_CODE = '41'
+    </select>
+    
+</mapper>

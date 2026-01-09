@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<toolbox>
+
+	<tool>
+	    <key>ComUtil</key>
+	    <scope>request</scope>
+	    <class>com.cware.netshopping.common.util.ComUtil</class>
+	</tool>
+	<tool>
+	    <key>StringUtil</key>
+	    <scope>request</scope>
+	    <class>com.cware.framework.common.util.StringUtil</class>
+	</tool>
+	<tool>
+	    <key>DateUtil</key>
+	    <scope>request</scope>
+	    <class>com.cware.netshopping.common.util.DateUtil</class>
+	</tool>
+	<tool>
+		<key>vcMath</key>
+		<scope>application</scope>
+     	<class>org.apache.velocity.tools.generic.MathTool</class>
+  	</tool>
+	<tool>
+		<key>link</key>
+		<scope>request</scope>
+		<class>org.apache.velocity.tools.struts.StrutsLinkTool</class>
+	</tool>
+
+  	<!-- ordinarily the SecureLinkTool would simply replace the StrutsLinkTool
+  		if SSL Ext. is in use - in that case the key would be 'link' but it's
+		'slink' here to distinguish between the two. -->
+ 	<tool>
+	    <key>number</key>
+	    <scope>application</scope>
+	    <class>org.apache.velocity.tools.generic.NumberTool</class>
+	    <parameter name="format" value="#0.0" />
+	</tool>
+	<tool>
+	    <key>date</key>
+	    <scope>application</scope>
+	    <class>org.apache.velocity.tools.generic.DateTool</class>
+	    <parameter name="format" value="yyyy-MM-dd" />
+	</tool>
+	<tool>
+	    <key>esc</key>
+	    <scope>application</scope>
+	    <class>com.cware.framework.core.velocity.tools.generic.EscapeTool</class>
+	</tool>
+	<tool>
+	    <key>string</key>
+	    <scope>application</scope>
+	    <class>com.cware.framework.core.velocity.tools.generic.StringTool</class>
+	</tool>
+    <tool>
+		<key>listTool</key>
+		<scope>application</scope>
+     	<class>org.apache.velocity.tools.generic.ListTool</class>
+  	</tool>
+	<tool>
+	  	<key>cookie</key>
+	  	<scope>request</scope>
+	  	<class>org.apache.velocity.tools.view.tools.CookieTool</class>
+	</tool>
+  	<tool>
+  		<key>params</key>
+  		<scope>request</scope>
+  		<class>org.apache.velocity.tools.view.tools.ParameterParser</class>
+  	</tool>
+
+</toolbox>

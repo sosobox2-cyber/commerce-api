@@ -1,0 +1,615 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pakakao.goods">
+
+    <resultMap id="paKakaoGoodsVOMap" type="com.cware.netshopping.domain.PaKakaoGoodsVO">
+		<result property="describeExt" column="DESCRIBE_EXT" jdbcType="CLOB" javaType="string" />
+		<result property="noticeExt" column="NOTICE_EXT" jdbcType="CLOB" javaType="string" />
+	</resultMap>
+	
+	<select id="selectPaKakaoGoodsInfo" parameterType="hashMap" resultMap="paKakaoGoodsVOMap">
+			SELECT /* pakakaogoods.xml : pakakao.pakakaogoods.selectPaKakaoGoodsInfo by PaKakaoGoodsController-goodsInsert */
+				   KG.GOODS_CODE
+				 , KG.PRODUCT_ID
+				 , KG.PA_CODE
+				 , KG.PA_GROUP_CODE
+				 , KG.CATEGORY_ID
+				 , KG.GOODS_NAME
+				 , (SELECT PB.PA_BRAND_NAME FROM TPABRAND PB WHERE PB.PA_GROUP_CODE = KG.PA_GROUP_CODE AND PB.PA_BRAND_NO = KG.BRAND) AS BRAND
+				 , (SELECT PM.PA_MAKER_NAME FROM TPAMAKER PM WHERE PM.PA_GROUP_CODE = KG.PA_GROUP_CODE AND PM.PA_MAKER_NO = KG.MANUFACTURER) AS MANUFACTURER
+				 , TG.TAX_YN
+				 , KG.PA_SALE_GB
+				 , KG.PA_STATUS
+				 , PP.SALE_PRICE
+				 , PP.APPLY_DATE
+				 , PP.PRICE_APPLY_SEQ
+				 , PP.ARS_DC_AMT
+				 , PP.LUMP_SUM_DC_AMT
+				 , PP.COUPON_DC_AMT
+				 , TG.ORDER_MIN_QTY
+				 , TG.ORDER_MAX_QTY
+				 , KG.PRODUCT_ORGIN_AREA_INFO
+				 , TG.ADULT_YN
+				 , ES1.PA_ADDR_SEQ AS SHIPPING_ADDRESS_ID
+				 , ES2.PA_ADDR_SEQ AS RETURN_ADDRESS_ID
+				 , SC.SHIP_COST_CODE
+				 , SC.SHIP_COST_BASE_AMT
+				 , SC.ORD_COST
+				 , SC.RETURN_COST
+				 , SC.CHANGE_COST
+				 , TC.REMARK AS AS_TEL_NO
+				 , (SELECT CODE_NAME
+					  FROM TCODE C1
+					 WHERE C1.CODE_LGROUP = 'O507'
+					   AND C1.CODE_MGROUP = KG.PA_CODE) AS TOP_IMAGE
+				 , (SELECT CODE_NAME
+					  FROM TCODE C1
+					 WHERE C1.CODE_LGROUP = 'O507'
+					   AND C1.CODE_MGROUP = DECODE(KG.PA_CODE, 'B1', 'B3', 'B4')) AS BOTTOM_IMAGE
+				 , PK.CERT_YN
+				 , NVL((SELECT 1 FROM TDELYNOAREA NA WHERE NA.GOODS_CODE = KG.GOODS_CODE AND NA.AREA_GB IN ('20','30') AND rownum = 1),'0') AS NO_ISLAND_YN
+				 , SC.ISLAND_COST - SC.ORD_COST AS ADD_ISLAND_COST 
+				 , SC.JEJU_COST - SC.ORD_COST AS ADD_JEJU_COST
+				 , DECODE(G.COLLECT_YN,'0','',(SELECT CODE_NAME
+	                                             FROM TCODE C1
+	                                            WHERE C1.CODE_LGROUP = 'O507'
+	                                              AND C1.CODE_MGROUP = '99')) AS COLLECT_IMAGE
+	             , NVL((SELECT NVL(TSB.DESCRIBE_NOTE, '')
+		                  FROM TDESCRIBE TSB
+		                 WHERE TSB.GOODS_CODE = TG.GOODS_CODE
+		                   AND TSB.DESCRIBE_CODE = '200'), '') AS GOODS_COM
+			     , NVL((SELECT REPLACE (DS.DESCRIBE_EXT, chr(10), '')
+			              FROM TDESCRIBE DS
+			             WHERE DS.DESCRIBE_CODE = '998'
+			               AND DS.GOODS_CODE = KG.GOODS_CODE)
+			          ,(SELECT DECODE(DS.WEB_FLAG, '1',  REPLACE(DS.DESCRIBE_EXT, chr(10), ''), DS.DESCRIBE_NOTE)
+			              FROM TDESCRIBE DS
+			             WHERE DS.DESCRIBE_CODE = '999'
+			               AND DS.GOODS_CODE = KG.GOODS_CODE)) AS DESCRIBE_EXT
+				 , (SELECT /*+ INDEX_DESC (TNM IDX_TPANOTICEM_03)*/
+	             			   TNM.NOTICE_EXT
+						  FROM TPANOTICEM TNM
+						     , TPANOTICETARGET TNT
+						     , TPANOTICEAPPLY TNA
+						 WHERE TNM.NOTICE_NO  = TNT.NOTICE_NO
+						   AND TNT.GOODS_CODE = KG.GOODS_CODE
+						   AND TNM.USE_CODE   = '00'
+						   AND INSTR(TNM.PA_GROUP_CODE, KG.PA_GROUP_CODE) > 0
+						   AND TNT.NOTICE_NO  = TNA.NOTICE_NO
+						   AND TNT.GOODS_CODE = TNA.GOODS_CODE
+						   AND TNA.PA_GROUP_CODE = KG.PA_GROUP_CODE
+						   AND ROWNUM = 1) AS NOTICE_EXT
+		         , G.LGROUP
+		         , NVL((SELECT TK.KC_NO 
+		         		  FROM TGOODSKCINFO TK 
+		         		 WHERE TK.GOODS_CODE = G.GOODS_CODE 
+		         		   AND TK.KC_YN = '1'), '상세설명 참고') AS KC_INFO
+			  FROM TPAKAKAOGOODS KG
+				 , TPAPRODUCT TG
+				 , TGOODS G
+				 , TPAGOODSPRICEAPPLY PP
+				 , TPAENTPSLIP ES1
+				 , TPAENTPSLIP ES2
+				 , TPACUSTSHIPCOST SC
+				 , TCODE TC
+				 , TPAGOODSKINDS PK
+			 WHERE KG.GOODS_CODE		= TG.GOODS_CODE
+			   AND KG.GOODS_CODE		= G.GOODS_CODE
+			   AND KG.GOODS_CODE    = PP.GOODS_CODE
+			   AND KG.PA_GROUP_CODE = PP.PA_GROUP_CODE
+			   AND KG.PA_CODE       = PP.PA_CODE
+			   AND (PP.APPLY_DATE, PP.PRICE_APPLY_SEQ) = (SELECT /*+ INDEX_DESC (PP2 PK_TPAGOODSPRICEAPPLY)*/
+																 PP2.APPLY_DATE, PP2.PRICE_APPLY_SEQ
+															FROM TPAGOODSPRICEAPPLY PP2
+														   WHERE PP2.GOODS_CODE = PP.GOODS_CODE
+															 AND PP2.PA_GROUP_CODE = PP.PA_GROUP_CODE
+															 AND PP2.PA_CODE = PP.PA_CODE
+															 AND PP2.APPLY_DATE &lt;= SYSDATE
+															 AND rownum = 1 )
+			   AND ES1.PA_CODE			= KG.PA_CODE
+			   AND ES1.ENTP_CODE		= DECODE(G.DELY_TYPE, '10', '100001', TG.ENTP_CODE)
+			   AND ES1.ENTP_MAN_SEQ		= DECODE(G.DELY_TYPE, '10', '003', TG.SHIP_MAN_SEQ)
+			   AND ES1.PA_ADDR_SEQ  IS NOT NULL
+			   AND ES2.PA_CODE			= KG.PA_CODE
+			   AND ES2.ENTP_CODE		= DECODE(G.DELY_TYPE, '10', '100001', TG.ENTP_CODE)
+			   AND ES2.ENTP_MAN_SEQ		= DECODE(G.DELY_TYPE, '10', '002', TG.RETURN_MAN_SEQ)
+			   AND ES2.PA_ADDR_SEQ  IS NOT NULL
+			   AND KG.PA_CODE			= SC.PA_CODE
+			   AND DECODE(G.DELY_TYPE,'10','100001',TG.ENTP_CODE) = SC.ENTP_CODE
+			   AND TG.SHIP_COST_CODE	= SC.SHIP_COST_CODE
+			   AND TC.CODE_LGROUP = 'O500'
+			   AND KG.PA_GROUP_CODE = TC.CODE_MGROUP
+			   AND KG.PA_GROUP_CODE = PK.PA_GROUP_CODE
+			   AND KG.CATEGORY_ID   = PK.PA_LMSD_KEY
+			   AND G.SALE_GB = '00'
+			<if test='goodsCode != null and goodsCode != ""'>
+				AND KG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+			</if>
+			<if test='paCode != null and paCode != ""'>
+				AND KG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+			</if>
+			<if test='modCase == "INSERT"'>
+				AND KG.PA_STATUS IN ('10', '20')
+				AND KG.PA_SALE_GB = '20'
+			</if>
+			<if test='modCase == "MODIFY"'>
+				AND ( KG.TRANS_TARGET_YN = '1' OR PP.TRANS_DATE IS NULL )
+				AND KG.PA_SALE_GB = '20'
+				AND KG.PA_STATUS = '30'
+			</if>
+			   
+    </select>
+    
+    <select id="selectKakaoGoodsImage" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaKakaoGoodsImage">
+			SELECT /* pakakaogoods.xml : pakakao.pakakaogoods.selectKakaoGoodsImage by PaKakaoGoodsController-imageUpdate */
+				    /*+ INDEX (TKI IDX_TPAKAKAOGOODSIMAGE_01)*/
+				   TKI.PA_GROUP_CODE
+				 , TKI.GOODS_CODE
+				 , TKI.IMAGE_GB
+				 , TKI.IMAGE_URL
+				 , TKI.STOA_IMAGE
+				 , TKI.KAKAO_IMAGE
+				 , KG.PA_CODE
+				 , ( TRUNC(TKI.MODIFY_DATE,'MI') - TRUNC(SYSDATE - 10/24/60, 'MI') ) * 1440 AS REMARK
+			  FROM TPAKAKAOGOODSIMAGE TKI
+				 , TCODE CD
+			  	 , TPAKAKAOGOODS KG
+			 WHERE CD.CODE_LGROUP = 'O501'
+			   AND TKI.PA_GROUP_CODE = CD.CODE_GROUP
+			   AND TKI.GOODS_CODE = KG.GOODS_CODE
+			   AND CD.CODE_MGROUP = KG.PA_CODE
+			<if test='modCase == "UPLOAD"'>
+			   AND TKI.KAKAO_IMAGE IS NULL
+			   AND TKI.UPLOAD_STATUS = '00'
+			   AND rownum &lt; 5000
+			</if>
+			<if test='modCase == "CHECK"'>
+			   AND TKI.UPLOAD_STATUS = '00'
+			   AND TKI.KAKAO_IMAGE IS NOT NULL
+			</if>
+			<if test='modCase == "INSERT" or modCase == "MODIFY"'>
+			   AND TKI.UPLOAD_STATUS = '30'
+			   AND TKI.KAKAO_IMAGE IS NOT NULL
+			</if>
+			<if test='goodsCode != null and goodsCode != ""'>
+				AND TKI.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+			</if>
+    </select>
+    
+    <update id="updatePakakaoGoodsImage"  parameterType="com.cware.netshopping.domain.model.PaKakaoGoodsImage">
+        UPDATE /* pakakaogoods.xml : pakakao.pakakaogoods.updatePakakaoGoodsImage by PaKakaoGoodsController */
+        	   TPAKAKAOGOODSIMAGE TKI
+           SET TKI.KAKAO_IMAGE 	  = #{kakaoImage,	jdbcType=VARCHAR}
+	         , TKI.UPLOAD_DATE 	  = SYSDATE
+             , TKI.MODIFY_DATE    = SYSDATE
+             , TKI.MODIFY_ID	  = #{modifyId,		jdbcType=VARCHAR}
+         WHERE TKI.GOODS_CODE     = #{goodsCode,	jdbcType=VARCHAR}
+           AND TKI.IMAGE_GB		  = #{imageGb,		jdbcType=VARCHAR}
+           AND TKI.PA_GROUP_CODE  = #{paGroupCode,	jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updatePakakaoGoodsImageCheck"  parameterType="com.cware.netshopping.domain.model.PaKakaoGoodsImage">
+        UPDATE /* pakakaogoods.xml : pakakao.pakakaogoods.updatePakakaoGoodsImageCheck by PaKakaoGoodsController */
+        	   TPAKAKAOGOODSIMAGE TKI
+           SET TKI.UPLOAD_STATUS  = #{uploadStatus,	jdbcType=VARCHAR}
+			<if test='uploadStatus == "00"'>
+				, TKI.KAKAO_IMAGE = NULL
+			</if>
+             , TKI.MODIFY_DATE    = #{modifyDate,	jdbcType=TIMESTAMP}
+             , TKI.MODIFY_ID	  = #{modifyId,		jdbcType=VARCHAR}
+         WHERE TKI.GOODS_CODE     = #{goodsCode,	jdbcType=VARCHAR}
+           AND TKI.IMAGE_GB		  = #{imageGb,		jdbcType=VARCHAR}
+           AND TKI.PA_GROUP_CODE  = #{paGroupCode,	jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updatePakakaoGoodsForImage"  parameterType="com.cware.netshopping.domain.model.PaKakaoGoodsImage">
+        UPDATE /* pakakaogoods.xml : pakakao.pakakaogoods.updatePakakaoGoodsForImage by PaKakaoGoodsController */
+        	   TPAKAKAOGOODS KG
+           SET KG.TRANS_TARGET_YN	= '1'
+             , KG.MODIFY_DATE		= #{modifyDate,	jdbcType=TIMESTAMP}
+             , KG.MODIFY_ID			= #{modifyId,		jdbcType=VARCHAR}
+         WHERE KG.GOODS_CODE		= #{goodsCode,	jdbcType=VARCHAR}
+           AND KG.PA_CODE			= #{paCode,	jdbcType=VARCHAR}
+           AND KG.TRANS_TARGET_YN	= '0'
+    </update>
+    
+    <select id="selectPaGoodsdtInfoList" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaGoodsdtMapping">
+        SELECT /* pakakaogoods.xml : pakakao.pakakaogoods.selectPaGoodsdtInfoList by PaKakaoGoodsController */ 
+               PD.GOODS_CODE 
+             , DM.PA_CODE
+             , PD.GOODSDT_CODE
+             , DECODE(PD.GOODSDT_INFO,'없음','단일상품',PD.GOODSDT_INFO) AS GOODSDT_INFO
+             , DECODE(PD.GOODSDT_INFO_KIND,'없음','단일상품',PD.GOODSDT_INFO_KIND) AS GOODSDT_INFO_KIND
+             , DECODE(DT.SALE_GB, '00', NVL(CEIL(FUN_GET_ORDER_ABLE_QTY(PD.GOODS_CODE, PD.GOODSDT_CODE, GD.WH_CODE) * TC.CODE_GROUP),0), 0) AS TRANS_ORDER_ABLE_QTY
+             , PD.SORT_TYPE 
+             , PD.SALE_GB
+             , DM.PA_CODE || DM.GOODS_CODE || DM.GOODSDT_CODE AS PA_OPTION_CODE
+             , DM.TRANS_TARGET_YN
+             , DM.REMARK1
+             , DM.REMARK2
+          FROM TPAPRODUCTOPTION PD
+             , TPAGOODSDTMAPPING DM
+             , TGOODS GD
+             , TCODE TC
+             , TGOODSDT DT
+         WHERE PD.GOODS_CODE = DM.GOODS_CODE
+           AND PD.GOODSDT_CODE = DM.GOODSDT_CODE
+           AND PD.GOODS_CODE = GD.GOODS_CODE
+           AND TC.CODE_LGROUP = 'O505'
+           AND TC.CODE_MGROUP = DM.PA_CODE
+           AND DT.GOODS_CODE = PD.GOODS_CODE
+           AND DT.GOODSDT_CODE = PD.GOODSDT_CODE
+           AND DM.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND GD.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND DT.SALE_GB = '00'
+         ORDER BY PD.GOODS_CODE
+                , PD.GOODSDT_CODE
+    </select>
+    
+    <update id="updatePaKakaoGoods"  parameterType="com.cware.netshopping.domain.PaKakaoGoodsVO">
+        UPDATE /* pakakaogoods.xml : pakakao.pakakaogoods.updatepaKakaoGoods by PaKakaoGoodsController */
+               TPAKAKAOGOODS PG
+           SET PG.PRODUCT_ID      = #{productId,  jdbcType=VARCHAR}
+             , PG.PA_STATUS		  = #{paStatus,   jdbcType=VARCHAR}
+             , PG.PA_SALE_GB      = #{paSaleGb,   jdbcType=VARCHAR}
+             , PG.TRANS_TARGET_YN = '0'
+             , PG.MODIFY_ID 	  = #{modifyId,   jdbcType=VARCHAR}
+             , PG.MODIFY_DATE 	  = #{modifyDate, jdbcType=TIMESTAMP}
+             , PG.RETURN_NOTE	  = NULL
+         WHERE PG.GOODS_CODE 	  = #{goodsCode,  jdbcType=VARCHAR}  
+           AND PG.PA_CODE 		  = #{paCode,     jdbcType=VARCHAR}  
+    </update>
+    
+    <update id="updatePaGoodsImage"  parameterType="com.cware.netshopping.domain.PaKakaoGoodsVO">
+        UPDATE /* pakakaogoods.xml : pakakao.pakakaogoods.updatepaGoodsImage by PaKakaoGoodsController */
+               TPAGOODSIMAGE PI
+           SET PI.TRANS_TARGET_YN = '0'
+             , PI.MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+             , PI.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE PI.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}  
+           AND PI.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updatePaGoodsPriceApply"  parameterType="com.cware.netshopping.domain.PaKakaoGoodsVO">
+        UPDATE /* pakakaogoods.xml : pakakao.pakakaogoods.updatePaGoodsPriceApply by PaKakaoGoodsController */
+               TPAGOODSPRICEAPPLY PP
+           SET PP.TRANS_ID			= #{modifyId, jdbcType=VARCHAR}
+             , PP.TRANS_DATE		= SYSDATE 
+         WHERE PP.GOODS_CODE		= #{goodsCode, jdbcType=VARCHAR}
+           AND PP.PA_GROUP_CODE		= #{paGroupCode, jdbcType=VARCHAR}
+           AND PP.PA_CODE			= #{paCode, jdbcType=VARCHAR}
+           AND PP.APPLY_DATE		= #{applyDate, jdbcType=TIMESTAMP}
+           AND PP.PRICE_APPLY_SEQ	= #{priceApplySeq, jdbcType=NUMERIC}
+           AND PP.TRANS_DATE IS NULL
+    </update>
+    
+    <update id="updatePaGoodsPrice"  parameterType="com.cware.netshopping.domain.PaKakaoGoodsVO">
+        UPDATE /* pakakaogoods.xml : pakakao.pakakaogoods.updatepaGoodsPrice by PaKakaoGoodsController */
+               TPAGOODSPRICE PP
+           SET PP.TRANS_ID = #{modifyId, jdbcType=VARCHAR}
+             , PP.TRANS_DATE = SYSDATE 
+             , PP.MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+             , PP.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE PP.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}  
+           AND PP.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PP.APPLY_DATE = #{applyDate, jdbcType=TIMESTAMP}
+           AND PP.TRANS_DATE IS NULL
+    </update>
+    
+    <update id="updatePaGoodsTarget" parameterType="com.cware.netshopping.domain.PaKakaoGoodsVO">
+        UPDATE TPAGOODSTARGET PGT /* pakakaogoods.xml : pakakao.pakakaogoods.updatePaGoodsTarget by PaKakaoGoodsController */
+           SET PGT.PA_GOODS_CODE = #{productId, jdbcType=VARCHAR}
+             , PGT.PA_SALE_GB = #{paSaleGb, jdbcType=VARCHAR}
+             , PGT.MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+             , PGT.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE PGT.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PGT.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PGT.PA_GOODS_CODE IS NULL
+    </update>
+    
+    <update id="updatePaGoodsOffer"  parameterType="com.cware.netshopping.domain.PaKakaoGoodsVO">
+        UPDATE /* pakakaogoods.xml : pakakao.pakakaogoods.updatepaGoodsOffer by PaKakaoGoodsController */
+               TPAGOODSOFFER PO
+           SET PO.TRANS_TARGET_YN = '0'
+             , PO.MODIFY_ID 	  = #{modifyId,    jdbcType=VARCHAR}
+             , PO.MODIFY_DATE 	  = #{modifyDate,  jdbcType=TIMESTAMP}
+         WHERE PO.GOODS_CODE 	  = #{goodsCode,   jdbcType=VARCHAR}  
+           AND PO.PA_GROUP_CODE   = #{paGroupCode, jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updatePaPromoGoodsPrice"  parameterType="com.cware.netshopping.domain.PaKakaoGoodsVO">
+        UPDATE /* pakakaogoods.xml : pakakao.pakakaogoods.updatepaPromoGoodsPrice by PaKakaoGoodsController */
+               TPAPROMOGOODSPRICE PP
+           SET PP.TRANS_ID			= #{modifyId, jdbcType=VARCHAR}
+             , PP.TRANS_DATE		= SYSDATE 
+         WHERE PP.GOODS_CODE		= #{goodsCode, jdbcType=VARCHAR}  
+           AND PP.PA_CODE			= #{paCode, jdbcType=VARCHAR}
+           AND PP.APPLY_DATE		= #{applyDate, jdbcType=TIMESTAMP}
+           AND PP.PROMO_SEQ			= #{promoSeq, jdbcType=VARCHAR}
+           AND PP.ALCOUT_PROMO_YN	= '1'
+           AND PP.TRANS_DATE IS NULL
+    </update>
+    
+    <update id="updatePaKakaoGoodsdt"  parameterType="com.cware.netshopping.domain.model.PaGoodsdtMapping">
+        UPDATE /* pakakaogoods.xml : pakakao.pakakaogoods."updatePaKakaoGoodsdt" by PaKakaoGoodsController */
+               TPAGOODSDTMAPPING PD
+           SET PD.MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+             , PD.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+             <if test='paOptionCode != null and paOptionCode != ""'>
+             , PD.PA_OPTION_CODE = #{paOptionCode, jdbcType=VARCHAR}
+             </if>
+             <if test='transOrderAbleQty != null and transOrderAbleQty != ""'>
+             , PD.TRANS_ORDER_ABLE_QTY = #{transOrderAbleQty, jdbcType=NUMERIC}
+              </if>
+             , PD.TRANS_TARGET_YN = '0'
+         WHERE PD.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PD.GOODSDT_CODE = #{goodsdtCode, jdbcType=VARCHAR}
+           AND PD.PA_CODE = #{paCode, jdbcType=VARCHAR} 
+	</update>
+	
+	<select id="selectPaKakaoSellStatus" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaKakaoGoodsVO">
+		SELECT /* pakakaogoods.xml : pakakao.pakakaogoods.selectPaKakaoSellStatus by PaKakaoGoodsController-sellStatusModify */
+			   KG.PA_CODE,
+			   KG.PRODUCT_ID,
+			   KG.GOODS_CODE,
+		       KG.PA_SALE_GB,
+		       KG.PA_STATUS
+		  FROM TPAKAKAOGOODS KG
+		 WHERE KG.PRODUCT_ID IS NOT NULL
+		   AND KG.TRANS_SALE_YN = '1'
+		   AND KG.PA_SALE_GB IN ( '20', '30' )
+		   AND KG.PA_STATUS IN ( '30', '90' )
+   		   <if test='goodsCode != null and goodsCode != ""'>
+   		   AND KG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+		   </if>
+		   <if test='paCode != null and paCode != ""'>
+   		   AND KG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+		   </if>
+    </select>
+    
+    <update id="updatePakakaoGoodsSellStatus"  parameterType="com.cware.netshopping.domain.PaKakaoGoodsVO">
+        UPDATE /* pakakaogoods.xml : pakakao.pakakaogoods.updatePakakaoGoodsSellStatus by PaKakaoGoodsController */
+               TPAKAKAOGOODS PG
+           SET PG.TRANS_SALE_YN   = #{transSaleYn,	jdbcType=VARCHAR}
+             , PG.MODIFY_ID 	  = #{modifyId,		jdbcType=VARCHAR}
+             , PG.MODIFY_DATE 	  = #{modifyDate,	jdbcType=TIMESTAMP}
+         WHERE PG.GOODS_CODE 	  = #{goodsCode,	jdbcType=VARCHAR}  
+           AND PG.PA_CODE 		  = #{paCode,		jdbcType=VARCHAR}  
+    </update>
+    
+    <select id="selectPaGoodsdtStockList" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaKakaoGoodsVO">
+        SELECT /* pakakaogoods.xml : pakakao.pakakaogoods.selectPaGoodsdtStockList by PaKakaoGoodsController */
+               DISTINCT PD.GOODS_CODE
+             , PM.PA_CODE
+             , PG.PRODUCT_ID
+          FROM TPAPRODUCTOPTION PD
+             , TPAGOODSDTMAPPING PM
+             , TPAKAKAOGOODS PG
+             , TGOODS GD
+             , TCODE TC
+             , TGOODSDT GT
+         WHERE PD.GOODS_CODE    = PM.GOODS_CODE
+           AND PD.GOODSDT_CODE  = PM.GOODSDT_CODE
+           AND PM.GOODS_CODE    = PG.GOODS_CODE
+           AND PM.PA_CODE       = PG.PA_CODE
+           AND GD.GOODS_CODE    = PG.GOODS_CODE
+           AND TC.CODE_LGROUP   = 'O505'
+           AND TC.CODE_MGROUP   = PG.PA_CODE
+           AND PG.PA_SALE_GB    = '20'
+           AND PG.PA_STATUS     = '30'
+           AND GT.GOODS_CODE    = PD.GOODS_CODE
+           AND GT.GOODSDT_CODE  = PD.GOODSDT_CODE
+           AND PM.PA_OPTION_CODE IS NOT NULL
+           AND PM.REMARK1 IS NOT NULL
+           AND PM.REMARK2 IS NOT NULL
+           AND PM.TRANS_ORDER_ABLE_QTY != DECODE(GT.SALE_GB, 00, CEIL(FUN_GET_ORDER_ABLE_QTY(PD.GOODS_CODE, PD.GOODSDT_CODE, GD.WH_CODE) * TC.CODE_GROUP), 0)
+           <if test='goodsCode != null and goodsCode != ""'>
+           AND PM.GOODS_CODE    = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           <if test='paCode != null and paCode != ""'>
+           AND PM.PA_CODE       = #{paCode, jdbcType=VARCHAR}
+           </if>
+           <if test='goodsCode == null or goodsCode == ""'>
+   		   AND EXISTS ( SELECT 'X'
+		                  FROM TPAPRODUCT P
+		                 WHERE P.GOODS_CODE = PG.GOODS_CODE
+		                   AND P.SALE_GB = '00')
+   		   </if>
+    </select>
+    
+    <select id="selectPaGoodsdtStockMappingList" parameterType="com.cware.netshopping.domain.PaKakaoGoodsVO" resultType="com.cware.netshopping.domain.model.PaGoodsdtMapping">
+        SELECT /* pakakaogoods.xml : pakakao.pakakaogoods.selectPaGoodsdtStockMappingList by PaKakaoGoodsController */
+               PD.GOODS_CODE
+             , PD.GOODSDT_CODE
+             , PM.PA_CODE
+             , PM.PA_OPTION_CODE
+             , PD.SALE_GB
+             , NVL(DECODE(GT.SALE_GB, 00, CEIL(FUN_GET_ORDER_ABLE_QTY(PD.GOODS_CODE, PD.GOODSDT_CODE, GD.WH_CODE) * TC.CODE_GROUP), 0), 0) AS TRANS_ORDER_ABLE_QTY
+             , DECODE(PD.GOODSDT_INFO, '없음', '단일상품', PD.GOODSDT_INFO) AS GOODSDT_INFO
+             , PM.REMARK1
+             , PM.REMARK2
+          FROM TPAPRODUCTOPTION PD
+             , TPAGOODSDTMAPPING PM
+             , TPAKAKAOGOODS PG
+             , TGOODS GD
+             , TCODE TC
+             , TGOODSDT GT
+             , TPAPRODUCT P
+         WHERE PD.GOODS_CODE    = PM.GOODS_CODE
+           AND PD.GOODSDT_CODE  = PM.GOODSDT_CODE
+           AND PM.GOODS_CODE    = PG.GOODS_CODE
+           AND PM.PA_CODE       = PG.PA_CODE
+           AND GD.GOODS_CODE    = PG.GOODS_CODE
+           AND TC.CODE_LGROUP   = 'O505'
+           AND TC.CODE_MGROUP   = PG.PA_CODE
+           AND PG.PA_SALE_GB    = '20'
+           AND PG.PA_STATUS     = '30'
+           AND GT.GOODS_CODE    = PD.GOODS_CODE
+           AND GT.GOODSDT_CODE  = PD.GOODSDT_CODE
+           AND PM.PA_OPTION_CODE IS NOT NULL
+           AND PM.REMARK1 IS NOT NULL
+           AND PM.REMARK2 IS NOT NULL
+           AND PM.GOODS_CODE    = #{goodsCode, jdbcType=VARCHAR}
+           AND PM.PA_CODE       = #{paCode, jdbcType=VARCHAR}
+           AND P.GOODS_CODE = PG.GOODS_CODE
+           AND P.SALE_GB = '00'
+	  ORDER BY GT.GOODS_CODE, GT.GOODSDT_CODE
+    </select>
+    
+    <update id="updatePaKakaoGoodsdtMappingId"  parameterType="com.cware.netshopping.domain.model.PaGoodsdtMapping">
+        UPDATE /* pakakaogoods.xml : pakakao.pakakaogoods."updatePaKakaoGoodsdtMappingId" by PaKakaoGoodsController */
+               TPAGOODSDTMAPPING PD
+	       SET PD.MODIFY_ID		= #{modifyId, jdbcType=VARCHAR}
+	         , PD.MODIFY_DATE	= #{modifyDate, jdbcType=TIMESTAMP}
+	         , PD.REMARK1		= #{remark1, jdbcType=VARCHAR}
+	         , PD.REMARK2		= #{remark2, jdbcType=VARCHAR}
+	     WHERE PD.PA_CODE		= #{paCode, jdbcType=VARCHAR}
+	       AND PD.GOODS_CODE	= #{goodsCode, jdbcType=VARCHAR}
+	       AND PD.GOODSDT_CODE	= #{goodsdtCode, jdbcType=VARCHAR}
+	</update>
+
+    <select id="selectPaGoodsdtMappingId" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaKakaoGoodsVO">
+        SELECT /* pakakaogoods.xml : pakakao.pakakaogoods.selectPaGoodsdtMappingId by PaKakaoGoodsController */
+               distinct KG.PRODUCT_ID
+             , KG.GOODS_CODE
+             , KG.PA_CODE
+       	  FROM TPAKAKAOGOODS KG
+       	  	 , TPAGOODSDTMAPPING PD
+         WHERE KG.PA_STATUS = '30'
+           AND KG.PA_CODE = PD.PA_CODE
+           AND KG.GOODS_CODE = PD.GOODS_CODE
+           AND PD.PA_OPTION_CODE IS NOT NULL
+           AND (PD.REMARK1 IS NULL OR PD.REMARK2 IS NULL)
+	       <if test='goodsCode != null and goodsCode != ""'>
+           AND KG.GOODS_CODE    = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           <if test='paCode != null and paCode != ""'>
+           AND KG.PA_CODE       = #{paCode, jdbcType=VARCHAR}
+           </if>
+    </select>
+    
+    <select id="selectPaGoodsdtMappingIdList" parameterType="com.cware.netshopping.domain.PaKakaoGoodsVO" resultType="com.cware.netshopping.domain.model.PaGoodsdtMapping">
+        SELECT /* pakakaogoods.xml : pakakao.pakakaogoods.selectPaGoodsdtStockMappingList by PaKakaoGoodsController */
+               PD.PA_CODE
+             , PD.GOODS_CODE
+             , PD.GOODSDT_CODE
+             , PD.PA_OPTION_CODE
+       	  FROM TPAKAKAOGOODS KG
+       	  	 , TPAGOODSDTMAPPING PD
+         WHERE KG.PA_STATUS = '30'
+           AND KG.PA_CODE = PD.PA_CODE
+           AND KG.GOODS_CODE = PD.GOODS_CODE
+           AND PD.PA_OPTION_CODE IS NOT NULL
+           AND (PD.REMARK1 IS NULL OR PD.REMARK2 IS NULL)
+           AND KG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND KG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+    </select>
+    <update id="updatePaKakaoGoodsError"  parameterType="com.cware.netshopping.domain.PaKakaoGoodsVO">
+        UPDATE /* pakakaogoods.xml : pakakao.pakakaogoods.updatePaKakaoGoodsError by PaKakaoGoodsController */
+               TPAKAKAOGOODS PD
+           SET PD.MODIFY_ID   = 'PAKAKAO'
+             , PD.MODIFY_DATE = SYSDATE
+			 , PD.RETURN_NOTE = SUBSTR( #{returnNote, jdbcType=VARCHAR}, 0, 1480 )
+			 <if test='paSaleGb != null and paSaleGb != ""'>
+			 , PD.PA_SALE_GB  = #{paSaleGb, jdbcType=VARCHAR}
+			 </if>
+			 <if test='transSaleYn != null and transSaleYn != ""'>
+			 , PD.TRANS_SALE_YN  = #{transSaleYn, jdbcType=VARCHAR}
+			 </if>
+			 , PD.PA_STATUS	  = #{paStatus, jdbcType=VARCHAR}
+         WHERE PD.GOODS_CODE  = #{goodsCode,   jdbcType=VARCHAR}
+           AND PD.PA_CODE     = #{paCode, 		jdbcType=VARCHAR}
+    </update>
+    
+    <resultMap id="selectPaNoticeDataMap" type="hashMap">
+        <result column="NOTICE_EXT" property="NOTICE_EXT" jdbcType="CLOB"/>
+    </resultMap>
+    
+	<select id="selectPaNoticeData" parameterType="com.cware.netshopping.domain.PaKakaoGoodsVO" resultMap="selectPaNoticeDataMap">
+        SELECT /*+ INDEX_DESC (TNM IDX_TPANOTICEM_03)*/
+               NVL(TNM.NOTICE_EXT, '') AS NOTICE_EXT
+		  FROM TPANOTICEM TNM
+		     , TPANOTICETARGET TNT
+		     , TPANOTICEAPPLY TNA
+		 WHERE TNM.NOTICE_NO  = TNT.NOTICE_NO
+		   AND TNT.GOODS_CODE = #{goodsCode , jdbcType=VARCHAR}
+		   AND TNM.USE_CODE   = '00'
+		   AND INSTR(TNM.PA_GROUP_CODE, #{paGroupCode , jdbcType=VARCHAR}) > 0
+		   AND TNT.NOTICE_NO  = TNA.NOTICE_NO
+		   AND TNT.GOODS_CODE = TNA.GOODS_CODE
+		   AND TNA.PA_GROUP_CODE = #{paGroupCode , jdbcType=VARCHAR}
+		   AND ROWNUM = 1
+ 	</select>
+ 	
+    <select id="selectPaKakaoDealInfo" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaKakaoTalkDeal">
+    	<!-- 예정되어 있는 톡딜 존재 시, 프로모션 시작 전에 미리 적용  -->
+        SELECT /* pakakaogoods.xml : pakakao.pakakaogoods.selectPaKakaoDealInfo by PaKakaoGoodsController */
+        	    X.PROMO_NO
+        	   ,X.GOODS_CODE
+        	   ,X.DEAL_ID
+        	   ,X.PRICE
+        	   ,X.DEAL_BDATE
+        	   ,X.DEAL_EDATE
+        	   ,X.USE_YN
+          FROM 
+			(SELECT TD.PROMO_NO
+				   ,TD.GOODS_CODE
+				   ,TD.DEAL_ID
+	               ,TD.PRICE
+	               ,TD.DEAL_BDATE
+	               ,TD.DEAL_EDATE
+	               ,TD.USE_YN
+	           FROM TPAKAKAOTALKDEAL TD
+	          WHERE TD.USE_YN     = '1'
+	            AND TD.DEAL_BDATE > SYSDATE
+	            AND TD.DEAL_EDATE > SYSDATE
+			    AND TD.GOODS_CODE = #{goodsCode , jdbcType=VARCHAR}
+			  ORDER BY TD.DEAL_BDATE) X
+	     WHERE ROWNUM = 1
+ 	</select>
+ 	
+ 	<update id="updatePaKakaoTalkDeal"  parameterType="com.cware.netshopping.domain.PaKakaoTalkDealVO">
+        UPDATE /* pakakaogoods.xml : pakakao.pakakaogoods.updatePaKakaoTalkDeal by PaKakaoGoodsController */
+               TPAKAKAOTALKDEAL TD
+           SET TD.MODIFY_ID   = #{modifyId, jdbcType=VARCHAR}
+             , TD.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+             , TD.TRANS_BDATE = SYSDATE
+         WHERE TD.TALK_DEAL_NO= #{talkDealNo, jdbcType=VARCHAR}
+           AND TD.TRANS_BDATE IS NULL
+    </update>
+    
+    <update id="updatePaKakaoTalkDealEnd"  parameterType="com.cware.netshopping.domain.PaKakaoGoodsVO">
+        UPDATE /* pakakaogoods.xml : pakakao.pakakaogoods.updatePaKakaoTalkDealEnd by PaKakaoGoodsController */
+               TPAKAKAOTALKDEAL TD
+           SET TD.MODIFY_ID   = #{modifyId, jdbcType=VARCHAR}
+             , TD.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+             , TD.TRANS_EDATE = SYSDATE
+         WHERE TD.TRANS_BDATE IS NOT NULL
+           AND TD.TRANS_EDATE IS NULL
+           AND TD.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND TD.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+    </update>
+    
+ 	<update id="updatePaKakaoTalkDealId"  parameterType="com.cware.netshopping.domain.PaKakaoTalkDealVO">
+        UPDATE /* pakakaogoods.xml : pakakao.pakakaogoods.updatePaKakaoTalkDealId by PaKakaoGoodsController */
+               TPAKAKAOTALKDEAL TD
+           SET TD.MODIFY_ID    = #{modifyId, jdbcType=VARCHAR}
+             , TD.MODIFY_DATE  = #{modifyDate, jdbcType=TIMESTAMP}
+             , TD.DEAL_ID 	   = #{dealId, jdbcType=VARCHAR}
+         WHERE TD.TALK_DEAL_NO = #{talkDealNo, jdbcType=VARCHAR}
+           AND TD.DEAL_ID IS NULL
+    </update>
+    
+    <select id="selectKakaoOrderGoodsDtName" parameterType="hashMap" resultType="string">
+        SELECT /* pakakaogoods.xml : pakakao.goods.selectKakaoOrderGoodsDtName by PaKakaoAsyncController */
+               REPLACE(DECODE(TD.GOODSDT_INFO, '없음', '단일상품', TD.GOODSDT_INFO), ' ', '') AS GOODSDT_INFO
+          FROM TGOODS   TG
+             , TGOODSDT TD
+         WHERE TG.GOODS_CODE   = TD.GOODS_CODE
+           AND TG.SIGN_GB 	   = '80'
+           AND TG.GOODS_CODE   = #{goodsCode,   jdbcType=VARCHAR}
+           AND TD.GOODSDT_CODE = #{goodsdtCode, jdbcType=VARCHAR}
+    </select>
+</mapper>

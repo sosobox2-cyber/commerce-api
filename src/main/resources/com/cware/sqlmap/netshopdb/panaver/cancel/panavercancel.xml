@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="panaver.cancel">
+
+    <update id="updateCancelSale" parameterType="hashMap">
+        UPDATE TPAORDERM /* panavercancel.xml : panaver.cancel.updateCancelSale */
+           SET API_RESULT_CODE = #{apiResultCode , jdbcType=VARCHAR}
+             , API_RESULT_MESSAGE = #{apiResultMessage , jdbcType=VARCHAR}
+             , PRE_CANCEL_YN = '1'
+             , PRE_CANCEL_REASON = #{preCancelReason , jdbcType=VARCHAR}
+             , PROC_DATE = SYSDATE
+             , MODIFY_DATE = SYSDATE
+         WHERE PA_ORDER_NO  = #{paOrderNo , jdbcType=VARCHAR}
+           AND PA_ORDER_SEQ = #{paOrderSeq , jdbcType=VARCHAR}
+           AND PA_CODE = #{paCode , jdbcType=VARCHAR}
+           AND PA_ORDER_GB = '10'
+    <!-- choose 부분 반품처리 만들어지면 추가 -->
+    </update>
+    
+    
+    <select id="selectPaNaverOrdCancelApprovalList" parameterType="hashMap" resultType="hashMap">             
+        SELECT /* panavercancel.xml : panaver.cancel.selectPaNaverOrdCancelApprovalList */
+               PO.PRODUCT_ORDER_ID
+             , OM.PA_CODE
+             , PO.PA_ORDER_GB
+             , OM.PA_ORDER_NO
+             , OM.PA_ORDER_SEQ
+             , OM.PA_SHIP_NO
+             , OM.PA_CLAIM_NO
+             , OM.PA_PROC_QTY
+             , PO.CLAIM_ID
+          FROM TPANAVERORDERLIST PO
+    INNER JOIN TPAORDERM OM
+            ON OM.PA_ORDER_NO = PO.ORDER_ID
+           AND OM.PA_ORDER_SEQ = PO.PRODUCT_ORDER_ID
+         WHERE PO.ORDER_ID = #{orderID, jdbcType=VARCHAR}
+           AND PO.PRODUCT_ORDER_ID = #{productOrderID, jdbcType=VARCHAR}
+           AND PO.CLAIM_TYPE = '00' 
+           AND PO.CLAIM_STATUS IN ('00', '01')
+           AND OM.PA_ORDER_GB = '10'
+    </select>
+    
+    <insert id="insertPaOrderM" parameterType="com.cware.netshopping.domain.model.Paorderm" >
+        MERGE INTO /* panavercancel.xml : panaver.cancel.insertPaOrderM */
+                   TPAORDERM
+             USING DUAL
+                ON (     PA_ORDER_NO = #{paOrderNo, jdbcType=VARCHAR}
+                     AND PA_ORDER_SEQ = #{paOrderSeq, jdbcType=VARCHAR}
+                     AND PA_ORDER_GB = #{paOrderGb, jdbcType=VARCHAR} )
+      WHEN MATCHED
+              THEN
+        UPDATE SET PA_SHIP_NO = #{paShipNo,             jdbcType=VARCHAR}
+                 , PA_CLAIM_NO = #{paClaimNo,               jdbcType=VARCHAR}
+                 , PA_PROC_QTY = #{paProcQty,             jdbcType=VARCHAR}
+                 , PA_DO_FLAG = #{paDoFlag,               jdbcType=VARCHAR}
+                 , OUT_BEF_CLAIM_GB = #{outBefClaimGb,        jdbcType=VARCHAR}
+                 , MODIFY_DATE = SYSDATE
+                 , MODIFY_ID = #{modifyId,             jdbcType=VARCHAR}
+  WHEN NOT MATCHED
+              THEN
+            INSERT ( MAPPING_SEQ
+                   , PA_CODE
+                   , PA_ORDER_GB
+                   , PA_ORDER_NO
+                   , PA_ORDER_SEQ
+                   , PA_SHIP_NO
+                   , PA_SHIP_SEQ
+                   , PA_CLAIM_NO
+                   , PA_PROC_QTY
+                   , PA_DO_FLAG
+                   , OUT_BEF_CLAIM_GB
+                   , CHANGE_GOODS_CODE
+                   , CHANGE_GOODSDT_CODE
+                   , CHANGE_FLAG
+                   , INSERT_DATE
+                   , MODIFY_ID
+                   , MODIFY_DATE
+                   , PA_GROUP_CODE )
+            VALUES ( SEQ_PAORDERM_SEQ.NEXTVAL
+                   , #{paCode,              jdbcType=VARCHAR}
+                   , #{paOrderGb,           jdbcType=VARCHAR}
+                   , #{paOrderNo,           jdbcType=VARCHAR}
+                   , #{paOrderSeq,           jdbcType=VARCHAR}
+                   , #{paShipNo,            jdbcType=VARCHAR}
+                   , #{paShipSeq,           jdbcType=VARCHAR}          
+                   , #{paClaimNo,               jdbcType=VARCHAR}
+                   , #{paProcQty,               jdbcType=VARCHAR}
+                   , #{paDoFlag,            jdbcType=VARCHAR}
+                   , #{outBefClaimGb,        jdbcType=VARCHAR}
+                   , #{changeGoodsCode,      jdbcType=VARCHAR}
+                   , #{changeGoodsdtCode,    jdbcType=VARCHAR}
+                   , #{changeFlag,           jdbcType=VARCHAR}
+                   , SYSDATE
+                   , #{modifyId,             jdbcType=VARCHAR}
+                   , SYSDATE
+                   , NVL(#{paGroupCode, jdbcType=VARCHAR}, '04' ))
+    </insert>
+    
+    
+    <select id="selectPaNaverOrdCancelListApprovalList" resultType="hashMap">
+        SELECT /* panavercancel.xml : panaver.cancel.selectPaNaverOrdCancelListApprovalList */
+               PT.PRODUCT_ORDER_ID
+             , PM.PA_ORDER_NO
+             , PM.PA_ORDER_SEQ
+             , OD.DO_FLAG
+             , PT.CLAIM_ID AS ORD_PRD_CN_SEQ
+             , PM.MAPPING_SEQ
+             , DECODE(TC.CODE_MGROUP,'41','PA_BROAD') AS PA_API_KEY
+             , PM.PA_CODE
+             , '' AS DLV_NO
+             , PT.QUANTITY AS ORD_CN_QTY
+             , TO_CHAR(PC.CLAIM_REQUEST_DATE,'YYYYMMDDHH24MISS') AS CREATE_DT
+             , PM.ORDER_NO
+             , PM.ORDER_G_SEQ
+             , PM.ORDER_D_SEQ
+             , PM.ORDER_W_SEQ
+             , OD.GOODS_GB
+             , OD.GOODS_CODE
+             , OD.GOODSDT_CODE
+             , PT.PA_ORDER_GB
+          FROM TPAORDERM PM
+    INNER JOIN TPANAVERORDERCHANGE NC
+            ON PM.PA_ORDER_NO = NC.ORDER_ID
+           AND PM.PA_ORDER_SEQ = NC.PRODUCT_ORDER_ID
+    INNER JOIN TPANAVERORDERLIST PT
+            ON NC.PRODUCT_ORDER_ID = PT.PRODUCT_ORDER_ID
+    INNER JOIN TPANAVERCLAIMLIST PC
+            ON PT.CLAIM_SEQ    = PC.CLAIM_SEQ
+    INNER JOIN TORDERDT OD
+            ON PM.ORDER_NO     = OD.ORDER_NO
+           AND PM.ORDER_G_SEQ  = OD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ  = OD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ  = OD.ORDER_W_SEQ
+    INNER JOIN TCODE TC
+            ON PM.PA_CODE      = TC.CODE_MGROUP
+         WHERE NC.LAST_CHANGED_STATUS = '20'
+           AND TC.CODE_LGROUP  = 'O501'
+           AND TC.CODE_GROUP   = '04'
+           AND TC.USE_YN       = '1'
+           AND PT.CLAIM_TYPE = '00'
+           AND PT.CLAIM_STATUS = '00'
+           AND PM.PA_ORDER_GB  = '10'
+           AND PC.CLAIM_STATUS = '00'
+           AND PM.PA_CODE      = '41'
+           AND PM.INSERT_DATE  &gt; SYSDATE - 15
+           AND NOT EXISTS (SELECT 1
+                             FROM TSLIPDT SD
+                            WHERE PM.ORDER_NO     = SD.ORDER_NO
+                              AND PM.ORDER_G_SEQ  = SD.ORDER_G_SEQ
+                              AND PM.ORDER_D_SEQ  = SD.ORDER_D_SEQ
+                              AND PM.ORDER_W_SEQ  = SD.ORDER_W_SEQ )
+    </select>
+    
+    <select id="selectCancelInputTargetDtList" parameterType="hashMap" resultType="hashMap">
+        SELECT /* panavercancel.xml : panaver.cancel.selectCancelInputTargetDtList */
+               PM.MAPPING_SEQ
+             , OPM.ORDER_NO
+             , OPM.ORDER_G_SEQ
+             , PM.PA_PROC_QTY
+             , (SELECT PC.CLAIM_REASON_CODE
+                  FROM TPANAVERCLAIMLIST PC
+                 WHERE PC.CLAIM_SEQ = PO.CLAIM_SEQ) AS CANCEL_CODE
+             , OPM.PRE_CANCEL_YN
+          FROM TPAORDERM PM
+    INNER JOIN TPAORDERM OPM
+            ON PM.PA_ORDER_NO = OPM.PA_ORDER_NO
+           AND PM.PA_ORDER_SEQ = OPM.PA_ORDER_SEQ
+           AND PM.PA_CODE = OPM.PA_CODE           
+    INNER JOIN TPANAVERORDERLIST PO
+            ON PM.PA_ORDER_NO = PO.ORDER_ID
+           AND PM.PA_ORDER_SEQ = PO.PRODUCT_ORDER_ID
+         WHERE PM.PA_CODE     = '41'
+           AND PM.PA_ORDER_GB = '20'
+           AND PO.CLAIM_TYPE = '00'
+           AND PO.CLAIM_STATUS IN ('02', '41')
+           AND PM.CREATE_YN = '0'
+           AND PM.PRE_CANCEL_YN = '0'
+        /* AND PM.OUT_BEF_CLAIM_GB = '0' */
+        /* AND PM.INSERT_DATE > TRUNC(SYSDATE) - 5 */
+           AND OPM.PA_ORDER_GB = '10'
+           AND (OPM.CREATE_YN = '1' OR OPM.PRE_CANCEL_YN = '1')
+           AND PM.PA_ORDER_NO   = #{orderID, jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ  = #{productOrderID, jdbcType=VARCHAR}
+    </select>
+    
+    <update id="updatePreCancelYn" parameterType="hashMap">
+        UPDATE /* panavercancel.xml : panaver.cancel.updatePreCancelYn */
+               TPAORDERM
+           SET PRE_CANCEL_YN = #{preCancelYn, jdbcType=VARCHAR}
+             , PRE_CANCEL_REASON = #{preCancelReason, jdbcType=VARCHAR}
+         WHERE MAPPING_SEQ = #{mappingSeq, jdbcType=VARCHAR}
+           AND CREATE_YN = '0'
+           AND PRE_CANCEL_YN != #{preCancelYn, jdbcType=VARCHAR}
+    </update>
+    
+    <insert id="insertCancelDoneClaim" parameterType="hashMap">
+        INSERT INTO /* panavercancel.xml : panaver.cancel.insertCancelDoneClaim */
+                    TPANAVERCLAIMLIST (
+                    CLAIM_SEQ
+                  , CLAIM_STATUS
+                  , CLAIM_REQUEST_DATE
+                  , REQUEST_CHANNEL
+                  , CANCEL_COMPLETED_DATE
+                  , CANCEL_APPROVAL_DATE
+                  , CLAIM_REASON
+                  , DETAILED_REASON
+                  , PRODUCT_ORDER_ID
+                  , CLAIM_REASON_CODE
+                  , INSERT_DATE
+                  , MODIFY_DATE )
+             SELECT /*+ INDEX_DESC ( NC PK_TPANAVERCLAIMLIST ) */
+                    #{claimSeq, jdbcType=VARCHAR}
+                  , '02'
+                  , CLAIM_REQUEST_DATE
+                  , REQUEST_CHANNEL
+                  , SYSDATE
+                  , SYSDATE
+                  , CLAIM_REASON
+                  , DETAILED_REASON
+                  , #{productOrderID, jdbcType=VARCHAR}
+                  , CLAIM_REASON_CODE
+                  , SYSDATE
+                  , SYSDATE
+               FROM TPANAVERCLAIMLIST
+              WHERE PRODUCT_ORDER_ID = #{productOrderID, jdbcType=VARCHAR}
+                AND CLAIM_STATUS = '00'
+                AND ROWNUM = 1
+    </insert>
+    
+    <update id="updateCancelDoneClaim" parameterType="hashMap">
+        UPDATE /* panavercancel.xml : panaver.cancel.updateCancelDoneClaim */
+               TPANAVERCLAIMLIST
+           SET CANCEL_COMPLETED_DATE = #{cancelCompletedDate, jdbcType=TIMESTAMP, javaType=java.util.GregorianCalendar, typeHandler=com.cware.netshopping.common.typehandler.GregorianCalendarDataTypeHandler}
+             , MODIFY_DATE = SYSDATE
+         WHERE CLAIM_SEQ = #{claimSeq, jdbcType=VARCHAR}
+           AND CLAIM_STATUS = '02'
+           AND CANCEL_COMPLETED_DATE != #{cancelCompletedDate, jdbcType=TIMESTAMP, javaType=java.util.GregorianCalendar, typeHandler=com.cware.netshopping.common.typehandler.GregorianCalendarDataTypeHandler}
+    </update>
+    
+    <select id="checkExistOrgOrder" parameterType="hashMap" resultType="int">
+       SELECT COUNT(1) AS CNT /* panavercancel.xml : panaver.cancel.checkExistOrgOrder */
+          FROM TPAORDERM PM 
+          WHERE PM.PA_ORDER_NO        = #{orderID  , jdbcType=VARCHAR}
+            AND PM.PA_ORDER_SEQ       = #{productOrderID, jdbcType=VARCHAR}
+            AND PM.PA_ORDER_GB        = '10'
+            AND PM.PA_CODE            = '41'
+            AND PM.CREATE_YN  = '1'
+    </select>
+    
+    <select id="checkCancelDoneList" parameterType="hashMap" resultType="int">
+       SELECT COUNT(1) AS CNT /* panavercancel.xml : panaver.cancel.checkCancelDoneList */
+           FROM TPANAVERORDERLIST PC
+          WHERE PC.ORDER_ID             = #{orderID, jdbcType=VARCHAR}
+            AND PC.PRODUCT_ORDER_ID     = #{productOrderID, jdbcType=VARCHAR}
+            AND PC.CLAIM_TYPE           = '00'
+            AND PC.CLAIM_STATUS         = '02'
+    </select>
+    <insert id="insertPaGmktCancelList" parameterType="com.cware.netshopping.domain.model.PaGmkClaim">
+        INSERT /* pagmktclaim.xml: pagmkt.claim.insertPaGmktCancelList by PaGmktV2CancelController */
+          INTO TPAGMKTCANCELLIST
+            (  PAY_NO
+             , CANCEL_STATUS
+             , CONTR_NO
+             , CONTR_NO_SEQ
+             , GROUP_NO
+             , WITHDRAW_YN
+             , PROC_FLAG
+             , GOODS_NO
+             , SITE_GOODS_NO
+             , REQUEST_USER
+             , APPROVE_USER
+             , ORDER_DATE
+             , PAY_DATE
+             , REQUEST_DATE
+             , APPROVE_DATE
+             , COMPLETE_DATE
+             , WITHDRAW_DATE
+             , REASON
+             , REASON_DETAIL
+             , ADD_SHIPPING_FEE
+             , MODIFY_DATE
+             , INSERT_DATE)
+            VALUES(
+               #{payNo         , jdbcType=VARCHAR}
+             , #{cancelStatus  , jdbcType=VARCHAR}
+             , #{contrNo       , jdbcType=VARCHAR}
+             , #{contrNoSeq    , jdbcType=VARCHAR}
+             , #{groupNo       , jdbcType=VARCHAR}
+             , #{withDrawYn    , jdbcType=VARCHAR} 
+             , #{procNo        , jdbcType=VARCHAR}   
+             , #{goodsNo       , jdbcType=VARCHAR} 
+             , #{siteGoodsNo   , jdbcType=VARCHAR} 
+             , #{requestUser   , jdbcType=VARCHAR} 
+             , #{approveUser   , jdbcType=VARCHAR} 
+             , #{orderDate     , jdbcType=TIMESTAMP} 
+             , #{payDate       , jdbcType=TIMESTAMP} 
+             , #{requestDate   , jdbcType=TIMESTAMP} 
+             , #{approvalDate  , jdbcType=TIMESTAMP} 
+             , #{completeDate  , jdbcType=TIMESTAMP} 
+             , #{withDrawDate  , jdbcType=TIMESTAMP} 
+             , #{reason        , jdbcType=VARCHAR}
+             , #{reasonDetail  , jdbcType=VARCHAR}
+             , #{addShippingFee, jdbcType=NUMERIC}
+             , #{modifyDate    , jdbcType=TIMESTAMP} 
+             , #{insertDate    , jdbcType=TIMESTAMP} 
+             )
+     </insert>
+</mapper>

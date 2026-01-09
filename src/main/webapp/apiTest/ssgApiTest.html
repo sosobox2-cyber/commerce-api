@@ -1,0 +1,440 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <title> New Document </title>
+  <meta name="Generator" content="EditPlus">
+  <meta name="Author" content="">
+  <meta name="Keywords" content="">
+  <meta name="Description" content="">
+  <meta http-equiv="Content-Type" content="text/xml; charset=utf-8" />
+
+  <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+  <script type="text/javascript">
+      
+    $(function () {
+    
+        $(".tab_content").hide();
+        $(".tab_content:first").show();
+        $("ul.tabs li").click(function () {
+            $("ul.tabs li").removeClass("active").css("color", "#333");
+            $(this).addClass("active").css("color", "red");
+            $(".tab_content").hide()
+            var activeTab = $(this).attr("rel");
+            $("#" + activeTab).fadeIn()
+        });
+        
+        $('button').click(function() {
+            var form = $(this).closest('form');
+            resultRequst(form);
+       });
+       
+       $('a').click(function() {
+           showView($(this).parent().next());
+       });
+        
+    });
+    
+    function showView(obj){
+        if(obj.hasClass('active')){
+           obj.removeClass('active');
+           obj.show();
+        }else{
+           obj.addClass('active');
+           obj.hide();
+        }
+    }   
+    
+    function resultRequst(form){ 
+        var urlStr = form.attr('action');
+        form.attr('target', 'resultView');
+        form.attr('action', $('input[name=serverpath]:checked').val()+urlStr);
+        form.submit();
+        form.attr('action', urlStr);
+    }
+
+  </script>
+ 
+<style>
+    ul.header {
+        margin: 0;
+        padding: 0;
+        float: left;
+        list-style: none;
+        height: 20px;
+        width: 100%;
+        font-family:"dotum";
+        font-size:13px;
+    }   
+    ul.tabs {
+        margin: 0;
+        padding: 0;
+        float: left;
+        list-style: none;
+        height: 50px;
+        border-bottom: 1px solid #eee;
+        border-left: 1px solid #eee;
+        width: 100%;
+        font-family:"dotum";
+        font-size:12px;
+    }
+    ul.tabs li {
+        float: left;
+        text-align:center;
+        cursor: pointer;
+        width:82px;
+        height: 31px;
+        line-height: 31px;
+        border: 1px solid #eee;
+        border-left: none;
+        font-weight: bold;
+        background: #fafafa;
+        overflow: hidden;
+        position: relative;
+    }
+    ul.tabs li.active {
+        background: #D8D8D8;
+        border-bottom: 1px solid #D8D8D8;
+    }
+    .tab_container {
+        border: 2px solid #eee;
+        border-top: none;
+        clear: both;
+        float: left;
+        overflow:scroll;
+        width: 100%;
+        height: 800px;
+        background: #FFFFFF;
+          line-height: 1em;             
+    }
+    .tab_container_result {
+        border: 2px solid #eee;
+        border-top: none;
+        clear: both;
+        float: left;
+        width: 700px;
+        height: 800px;
+        background: #FFFFFF;
+    }           
+    .tab_content {
+        padding: 2px;
+        font-size: 12px;
+        margin-right: 25px;
+        min-width:450px;
+        display: none;
+          
+    }
+    .tab_container .tab_content ul {
+        width:100%;
+        margin:0px;
+        padding:0px;
+        line-height: 2em;
+    }
+    .tab_container .tab_content ul li {
+        width :420px;
+        padding:0px;
+        list-style:none;
+        white-space:pre;
+        line-height: 2em;
+        margin-left: 10%;
+        border: 1px solid #eaeaea;
+    }
+    
+    .tab_container .tab_content ul li button{
+        margin-left: 28%;
+        width: 40%;
+        height: 30px;
+    }           
+    
+    ;
+     #container {
+        width: 200px;
+        margin: 0 auto;
+    }       
+    
+    input[type="text"] {
+        float: right;  
+        width: 50%;             
+        <!-- margin-right: 10%; -->        
+    }   
+    a{
+        text-decoration: none;
+    }    
+</style>
+
+ </head>
+ 
+ <body>
+    <label>[OPEN-API SSG.COM]</label>
+      <table>
+        <tr>
+        <td colspan="2">
+            <div id="container">
+                <div class="header">
+                    <label>실행환경선택 : </label>
+                    <input type="radio" id="path1" name="serverpath" checked="checked" value="http://localhost:8050"><label><b>[로컬(PORT:8050)]</b></label>
+                    <input type="radio" id="path2" name="serverpath" value="http://open-api-dev.shinsegaetvshopping.com"><label><font color="green"><b>[개발]</b></font></label>
+                    <input type="radio" id="path3" name="serverpath" value="http://open-api-dev.shinsegaetvshopping.com"><label><font color="red"><b>[운영]</b></font></label>
+                </div>
+            </div>
+        </td>
+        </tr>
+        <tr>
+            <td>
+                <div id="container">
+                    <ul class="tabs">
+                        <li class="active" rel="tab1">공통</li>
+                        <li rel="tab2">상품</li>
+                        <li rel="tab3">문의</li>
+                        <li rel="tab4">배송</li>
+                        <li rel="tab5">정산</li>
+                    </ul>
+                    <div class="tab_container">
+                        <div id="tab1" class="tab_content">
+                            <form method="get" action="/ssg/common/lmsd-list">
+                                 <p><a href="#">표준분류조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li><button type="button" >전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/ssg/common/prohibitword-list">
+                                 <p><a href="#">금칙어조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/ssg/common/brand-mapping">
+                                 <p><a href="#">브랜드 매핑</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/ssg/common/offercode-list">
+                                 <p><a href="#">상품정보고시항목분류리스트조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/ssg/common/origin-mapping">
+                                 <p><a href="#">원산지매핑</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                             <form method="get" action="/ssg/common/category-list">
+                                 <p><a href="#">표준카테고리조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>startNum :  <input type="text" id="startNum" name="startNum" value="0"/></li>
+                                    <li>endNum :    <input type="text" id="endNum"   name="endNum"   value="1001"/></li>
+                                    <li>endYn :     <input type="text" id="endYn"    name="endYn"    value="N"/></li>
+
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/ssg/common/categoryall-list">
+                                 <p><a href="#">전시카테고리 전체조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                        </div><!-- #tab1 end -->    
+                                
+                        <div id="tab2" class="tab_content">
+                            <form method="get" action="/ssg/goods/goods-insert">
+                                <p><a href="#">상품등록</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>상품코드 :      <input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li>처리자ID :    <input type="text" id="procId" name="procId" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/ssg/goods/goods-modify">
+                                <p><a href="#">상품수정</a></p>  
+                                <ul id="view2-2" style="display:none" class="active">
+                                    <li>상품코드 :      <input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li>처리자ID :    <input type="text" id="procId" name="procId" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>      
+                            <form method="get" action="/ssg/goods/goods-broad-stock">
+                                <p><a href="#">방송상품 재고 동기화</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>상품코드 :      <input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li>처리자ID :    <input type="text" id="procId" name="procId" value=""/></li>                                       
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>      
+                            <form method="get" action="/ssg/goods/goods-detail">
+                                <p><a href="#">상품상세조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>상품코드 :      <input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li>처리자ID :    <input type="text" id="procId" name="procId" value=""/></li>                                       
+                                    <li><button type="button">전송</button></li>
+                                </ul>                               
+                            </form>    
+                        </div><!-- #tab2 end -->
+                        <div id="tab3" class="tab_content">
+                            <form method="get" action="/ssg/counsel/counsel-list">
+                                <p><a href="#" style="text-decoration:none" >상품문의목록조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>상품문의조회시작일 : <input type="text" id="startDate" name="startDate" value=""/></li>
+                                    <li>상품문의조회종료일 :   <input type="text" id="endDate" name="endDate" value=""/></li>
+                                    <li><button type="button" >전송</button></li>
+                                </ul>
+                            </form>      
+                            <form method="get" action="/ssg/counsel/counsel-proc">
+                                <p><a href="#">상품문의답변처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                        </div><!-- #tab3 end -->
+                        <div id="tab4" class="tab_content">
+                            <form method="get" action="/ssg/delivery/order-subject-manage-update">
+                                <p><a href="#">주문확인처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>배송번호 :      <input type="text" id="shppNo" name="shppNo" value=""/></li>
+                                    <li>배송상품순서 :      <input type="text" id="shppSeq" name="shppSeq" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                                                                                                   
+                            <form method="get" action="/ssg/delivery/wh-out-complete-process-save">
+                                <p><a href="#">출고처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                                                                                                            
+                            <form method="get" action="/ssg/delivery/delivery-end-save">
+                                <p><a href="#">배송완료처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                                                                                                            
+                            <form method="get" action="/ssg/delivery/delivery-end-list">
+                                <p><a href="#">배송완료자료 수신</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>처리일자 :      <input type="text" id="procDate" name="procDate" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                                                                                                            
+                            <form method="get" action="/ssg/delivery/shpp-direction-list">
+                                <p><a href="#">배송지시목록 조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>출고유형(11:주문, 15:교환) :      <input type="text" id="shppDivDtlCd" name="shppDivDtlCd" value="11"/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                                                                                                            
+                            <form method="get" action="/ssg/delivery/ord-cancel-list">
+                                <p><a href="#">취소주문목록 조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>FROM날짜 :      <input type="text" id="fromDate" name="fromDate" value=""/></li>
+                                    <li>TO날짜 :      <input type="text" id="toDate" name="toDate" value=""/></li>
+                                    <li>조회기간구분 :   <input type="text" id="searchTermGb" name="searchTermGb" value="" /></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                                                                                                            
+                            <form method="get" action="/ssg/delivery/no-sell-request-regist-save">
+                                <p><a href="#">판매불가처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>배송번호 :      <input type="text" id="shppNo" name="shppNo" value=""/></li>
+                                    <li>배송상품순번 :  <input type="text" id="shppSeq" name="shppSeq" value=""/></li>
+                                    <li>상품ID :       <input type="text" id="itemId" name="itemId" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                                                                                                            
+                            <form method="get" action="/ssg/delivery/wbl-no-save">
+                                <p><a href="#">운송장 등록</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>배송번호 :      <input type="text" id="shppNo" name="shppNo" value=""/></li>
+                                    <li>배송상품순번 :    <input type="text" id="shppSeq" name="shppSeq" value=""/></li>
+                                    <li>운송장번호 :     <input type="text" id="wblNo" name="wblNo" value=""/></li>
+                                    <li>택배사 :       <input type="text" id="delicoVenId" name="delicoVenId" value=""/></li>
+                                    <li>배송유형 :       <input type="text" id="shppTypeCd" name="shppTypeCd" value=""/></li>
+                                    <li>배송유형상세 :    <input type="text" id="shppTypeDtlCd" name="shppTypeDtlCd" value=""/></li>                                   
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                                                                                                            
+                            <form method="get" action="/ssg/delivery/portion-warehouse-out-process-save">
+                                <p><a href="#">부분출고 처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>배송번호 :      <input type="text" id="shppNo"      name="shppNo" value=""/></li>
+                                    <li>배송상품순번 :   <input type="text" id="shppSeq"      name="shppSeq" value=""/></li>
+                                    <li>처리수량 :      <input type="text" id="procItemQty" name="procItemQty" value=""/></li>
+                                    <li>주문번호 :      <input type="text" id="ordNo"       name="ordNo" value=""/></li>
+                                    <li>주문순번 :      <input type="text" id="ordItemSeq" name="ordItemSeq" value=""/></li>
+                                    <li>원주문번호 :    <input type="text" id="orordNo"      name="orordNo" value=""/></li>
+                                    <li>원주문순번 :    <input type="text" id="orordItemSeq" name="orordItemSeq" value=""/></li>
+                                    <li>배송구분 :     <input type="text" id="shppDivDtlCd" name="shppDivDtlCd" value=""/></li>
+                                    
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                                                                                                            
+                            <form method="get" action="/ssg/delivery/shpploc-change-save">
+                                <p><a href="#">교환배송지 변경 처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                                                                                                            
+                            <form method="get" action="/ssg/return/exchange-target-list">
+                                <p><a href="#">반품/교환 회수대상 조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>FROM날짜 :    <input type="text" id="fromDate" name="fromDate" value=""/></li>
+                                    <li>TO날짜 :      <input type="text" id="toDate" name="toDate" value=""/></li>
+                                    <li>조회기간구분 : <input type="text" id="searchTermGb" name="searchTermGb" value=""/></li>
+                                    <li>조회구분 :    <input type="text" id="searchGb" name="searchGb" value=""/></li>
+                                    
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                                                                                                            
+                            <form method="get" action="/ssg/return/confirm-rcov-save">
+                                <p><a href="#">회수확인 처리</a></p>  
+                                <ul id="view4-12" style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                                                                                                            
+                            <form method="get" action="/ssg/return/complete-rcov-save">
+                                <p><a href="#">회수완료 처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/ssg/claim/order-claim">
+                                <p><a href="#">반품접수</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/ssg/claim/order-change">
+                                <p><a href="#">교환접수</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                        </div><!-- #tab4 end -->
+                        <div id="tab5" class="tab_content">
+                            <form method="get" action="/ssg/sales/sales-list">
+                                <p><a href="#">정산매출정보조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>매출일자선택여부 :  <input type="text" id="nowYn" name="nowYn" value=""/></li>
+                                    <li>매출조회시작일자 :  <input type="text" id="fromDate" name="fromDate" value=""/></li>
+                                    <li>매출조회마지막일자 : <input type="text" id="toDate" name="toDate" value=""/></li>
+                                    <li>기존데이터삭제여부 : <input type="text" id="delYn" name="delYn" value=""/></li>
+                                    <li>사이트구분 :         <input type="text" id="siteNo" name="siteNo" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>   
+                        </div><!-- #tab5 end -->
+                    </div>
+                </div>
+            </td>
+            <td>
+                <p><b><label>실행결과</label></b></p>
+                <!-- .tab_container -->
+                <div class="tab_container_result">
+                   <iframe src="" width="700" height="800" name="resultView"></iframe>
+                </div>
+                <!-- .tab_container -->         
+            </td>
+        <!-- #container -->
+        </table>    
+ </body>
+</html>

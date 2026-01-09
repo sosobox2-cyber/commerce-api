@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="paintp.counsel">
+    
+    <select id="selectPaIntpQna" resultType="com.cware.netshopping.domain.PaqnamVO">
+    	SELECT /* paintpcounsel.xml : paintp.paintpcounsel.selectPaIntpQna */
+               PQ.PA_COUNSEL_SEQ
+             , PQ.PROC_GB
+             , PQ.PA_CODE
+             , PQ.PA_COUNSEL_NO
+             , PQ.COUNSEL_SEQ
+             , PQ.COUNSEL_DATE
+             , PQ.COUNSEL_GB
+             , PQ.PA_GOODS_CODE
+             , PQ.PA_GOODS_DT_CODE
+             , PQ.PA_ORDER_NO
+             , '' AS REF_NO
+             , PQ.ORDER_YN
+             , PQ.DISPLAY_YN
+             , PQ.PA_CUST_NO
+             , PQ.CUST_NAME
+             , PQ.CUST_TEL
+             , PQ.RECEIPT_DATE
+             , PQ.TRANS_YN
+             , PQ.TRANS_DATE
+             , PQ.INSERT_DATE
+             , PQ.INSERT_ID
+             , PQ.MODIFY_DATE
+             , PQ.MODIFY_ID
+             , PD.PA_COUNSEL_DT_SEQ
+             , PD.TITLE
+             , PQ.MSG_GB
+             , PD.PROC_NOTE
+             , PG.GOODS_CODE
+             , PG.ENTP_CODE
+             , (SELECT TO_CHAR(CODE_NAME)
+                  FROM TCODE TC
+                 WHERE TC.CODE_LGROUP = 'O511'
+                   AND TC.REMARK1     = '07'
+                   AND ROWNUM         = 1) AS CUST_NO
+          FROM TPAQNAM PQ
+             , TPAQNADT PD
+             , TPAPRODUCT PG
+             , TPAINTPGOODS IG
+         WHERE PQ.PA_COUNSEL_SEQ = PD.PA_COUNSEL_SEQ
+           AND PQ.PROC_GB = PD.PROC_GB
+           AND PQ.PA_GOODS_CODE = IG.PRD_NO
+           AND IG.GOODS_CODE = PG.GOODS_CODE
+           AND PQ.COUNSEL_SEQ IS NULL
+           AND PQ.PROC_GB = '10'
+           AND PQ.TRANS_YN = '0'
+           AND PQ.TRANS_DATE IS NULL
+           AND PD.PA_COUNSEL_DT_SEQ = '1'
+           AND PQ.PA_CODE IN ('71', '72')
+           AND PQ.INSERT_DATE > TRUNC(SYSDATE) - 3
+    </select>
+    
+    <select id="selectPaIntpUrgentQna" resultType="com.cware.netshopping.domain.PaqnamVO">
+        SELECT /* paintpcounsel.xml : paintp.paintpcounsel.selectPaIntpUrgentQna */
+               PQ.PA_COUNSEL_SEQ
+             , PQ.PROC_GB
+             , PQ.PA_CODE
+             , PQ.PA_COUNSEL_NO
+             , PQ.COUNSEL_SEQ
+             , PQ.COUNSEL_DATE
+             , PQ.COUNSEL_GB
+             , PQ.PA_GOODS_CODE
+             , PQ.PA_GOODS_DT_CODE
+             , PQ.PA_ORDER_NO
+             , (SELECT PM.ORDER_NO 
+                  FROM TPAORDERM PM 
+                 WHERE PM.PA_CODE = PQ.PA_CODE
+                   AND PM.PA_ORDER_NO = PQ.PA_ORDER_NO 
+                   AND PM.PA_ORDER_GB ='10' 
+                   AND ROWNUM = 1 ) AS REF_NO
+             , PQ.ORDER_YN
+             , PQ.DISPLAY_YN
+             , PQ.PA_CUST_NO
+             , PQ.CUST_NAME
+             , PQ.CUST_TEL
+             , PQ.RECEIPT_DATE
+             , PQ.TRANS_YN
+             , PQ.TRANS_DATE
+             , PQ.INSERT_DATE
+             , PQ.INSERT_ID
+             , PQ.MODIFY_DATE
+             , PQ.MODIFY_ID
+             , PD.PA_COUNSEL_DT_SEQ
+             , PD.TITLE
+             , PQ.MSG_GB
+             , PD.PROC_NOTE
+             , '' GOODS_CODE
+             , '' ENTP_CODE
+             , (SELECT CODE_MGROUP
+                  FROM TCODE TC
+                 WHERE TC.CODE_GROUP = '07'
+                   AND TC.CODE_LGROUP = (SELECT TC1.REMARK FROM TCODE TC1 WHERE TC1.CODE_LGROUP = 'C031' AND TC1.CODE_MGROUP = '40')
+                   AND TC.REMARK = PQ.COUNSEL_GB
+                   AND ROWNUM = 1
+                ) AS OUT_MGROUP_CODE
+             , (SELECT CODE_NAME
+                  FROM TCODE TC
+                 WHERE TC.CODE_LGROUP = 'O511'
+                   AND TC.REMARK1 = '07'
+                ) AS CUST_NO
+          FROM TPAQNAM PQ
+             , TPAQNADT PD          
+         WHERE PQ.PA_COUNSEL_SEQ = PD.PA_COUNSEL_SEQ
+           AND PQ.PROC_GB = PD.PROC_GB
+           AND PQ.COUNSEL_SEQ IS NULL
+           AND PQ.PROC_GB = '10'
+           AND PQ.TRANS_YN = '0'
+           AND PQ.TRANS_DATE IS NULL
+           AND PD.PA_COUNSEL_DT_SEQ = '1'
+           AND PQ.PA_GROUP_CODE = '07'
+           AND PQ.INSERT_DATE > TRUNC(SYSDATE) - 3
+    </select>
+    
+    <select id="selectGoodsInfoNotExistOrderNo" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* paintpcounsel.xml : paintp.paintpcounsel.selectGoodsInfoNotExistOrderNo */ 
+               TG.GOODS_CODE 
+          FROM TPAINTPGOODS TG
+         WHERE TG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND TG.PRD_NO = #{vendorItemId, jdbcType=VARCHAR} 
+    </select>
+    
+    <select id="selectGoodsInfoExistOrderNo" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* paintpcounsel.xml : paintp.paintpcounsel.selectGoodsInfoExistOrderNo */
+    	       PRD_NO AS GOODS_CODE
+             , MIN(SUBSTR(OPT_NO, 9,3)) AS GOODSDT_CODE
+          FROM TPAINTPORDERLIST
+         WHERE ORD_NO = #{orderNo, jdbcType=VARCHAR}
+           AND PRD_NO = #{vendorItemId, jdbcType=VARCHAR}
+         GROUP BY PRD_NO
+    </select>
+    
+    <select id="selectPaIntpAnsQna" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaqnamVO">
+    	SELECT /* paintpcounsel.xml : paintp.paintpcounsel.selectPaIntpAnsQna */
+    		   SQ.PA_COUNSEL_SEQ
+    	     , SQ.PA_COUNSEL_NO
+	         , CD.PROC_NOTE
+	         , SQ.PA_CODE
+	         , CD.PROC_ID
+	   	  FROM TPAQNAM SQ
+	      	 , TCUSTCOUNSELM CM
+	      	 , TCUSTCOUNSELDT CD
+	  	 WHERE SQ.COUNSEL_SEQ = CM.COUNSEL_SEQ
+	       AND CM.COUNSEL_SEQ = CD.COUNSEL_SEQ
+	       AND CD.DO_FLAG     = '40'
+	       AND CD.PROC_DATE   > SYSDATE - 3
+	       AND SQ.TRANS_YN    = '0'
+	       AND SQ.MSG_GB	  = #{msgGb, jdbcType=VARCHAR}
+	       AND SQ.PA_GROUP_CODE = '07' 
+	       <if test='paCounselNo != null and paCounselNo != ""'>
+           AND SQ.PA_COUNSEL_NO = #{paCounselNo, jdbcType=VARCHAR}
+           </if>
+    </select>
+    
+    <update id="updatePaQnaTrans" parameterType="com.cware.netshopping.domain.PaqnamVO">
+    	UPDATE TPAQNAM /* paintpcounsel.xml : paintp.paintpcounsel.updatePaQnaTrans */
+           SET TRANS_YN = '1'
+             , PROC_GB = '40'
+             , TRANS_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+             , MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+             , MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE PA_COUNSEL_SEQ  = #{paCounselSeq, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectPaQnaDtMaxSeq" parameterType="com.cware.netshopping.domain.PaqnamVO" resultType="String">
+    	SELECT /* paintpcounsel.xml : paintp.paintpcounsel.selectPaQnaDtMaxSeq */
+    		   MAX(P.PA_COUNSEL_DT_SEQ) + 1 
+    	  FROM TPAQNADT P 
+    	 WHERE P.PA_COUNSEL_SEQ = #{paCounselSeq, jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertPaQnaDt" parameterType="com.cware.netshopping.domain.PaqnamVO">
+    	INSERT INTO TPAQNADT( /* paintpcounsel.xml : paintp.paintpcounsel.insertPaQnaDt */
+			PA_COUNSEL_SEQ
+		  , PA_COUNSEL_DT_SEQ
+		  , PROC_GB
+		  , TITLE
+		  , PROC_NOTE
+		  , PROC_DATE
+		  , PROC_ID) 
+		VALUES (
+		    #{paCounselSeq, jdbcType=VARCHAR}
+		  , #{paCounselDtSeq, jdbcType=VARCHAR}
+		  , #{procGb, jdbcType=VARCHAR}
+		  , #{title, jdbcType=VARCHAR}
+		  , #{procNote, jdbcType=VARCHAR}
+		  , #{procDate, jdbcType=TIMESTAMP}
+		  , #{procId, jdbcType=VARCHAR})
+    </insert>
+    
+</mapper>

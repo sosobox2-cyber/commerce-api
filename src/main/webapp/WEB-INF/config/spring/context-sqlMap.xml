@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+ 	xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+						http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+						http://www.springframework.org/schema/tx
+						http://www.springframework.org/schema/tx/spring-tx-4.3.xsd
+						http://www.springframework.org/schema/util
+						http://www.springframework.org/schema/util/spring-util-4.3.xsd
+						http://www.springframework.org/schema/aop
+						http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+                        http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd">
+
+    <bean id="sqlSessionFactory" class="com.cware.framework.core.dataaccess.SqlSessionFactoryBeanExt">		
+	    <property name="configLocation" value="classpath:/com/cware/sqlmap/sql-map-config.xml"/>
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
+	
+<!--     <bean id="sqlSessionFactoryPa" class="com.cware.framework.core.dataaccess.SqlSessionFactoryBeanExt"> -->
+<!--         <property name="configLocation" value="classpath:/com/cware/sqlmap/sql-pa-map-config.xml"/> -->
+<!--         <property name="dataSource" ref="dataSourcePa"/> -->
+<!--     </bean> -->
+	
+	<mybatis:scan base-package="com.cware.netshopping.common.log"  factory-ref="sqlSessionFactory"/>
+	<mybatis:scan base-package="com.cware.netshopping.*.v2"  factory-ref="sqlSessionFactory"/>
+	<mybatis:scan base-package="com.cware.netshopping.*.v3"  factory-ref="sqlSessionFactory"/>
+	<mybatis:scan base-package="com.cware.netshopping.patdeal.*"  factory-ref="sqlSessionFactory"/>
+	<mybatis:scan base-package="com.cware.netshopping.pafaple.*"  factory-ref="sqlSessionFactory"/>
+	<mybatis:scan base-package="com.cware.netshopping.paqeen.*"  factory-ref="sqlSessionFactory"/>
+	
+</beans>

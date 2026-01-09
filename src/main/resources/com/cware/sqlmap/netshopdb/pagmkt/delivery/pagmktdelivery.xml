@@ -1,0 +1,820 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pagmkt.delivery">
+
+    <select id="selectDeliveryCompleteList" parameterType="HashMap" resultType="HashMap">
+       SELECT /* pagmktdelivery.xml: pagmkt.delivery.selectDeliveryCompleteList by PaGmktDeliveryController */
+              SM.DELY_GB
+            , GB.PA_DELY_GB AS PA_DELY_GB 
+            , SM.SLIP_NO INVOICE_NO
+            , GB.PA_DELY_GB_NAME EXPRESS_NAME            
+            , PM.PA_ORDER_NO AS PAY_NO
+            , PM.PA_ORDER_SEQ AS CONTR_NO   
+            , PM.PA_CODE
+            , PM.PA_GROUP_CODE
+            , PM.PA_CLAIM_NO
+            , SM.SLIP_PROC_DATE  
+            , CASE WHEN  INSTR(PM.API_RESULT_MESSAGE , '기타택배') > 0 THEN NULL
+            	   ELSE  CD.CONTENT   
+              END CONTENT
+         FROM TPAORDERM PM
+            , TSLIPDT SD
+            , TSLIPM SM
+            , TPADELYGB GB
+            , TCODE CD 
+        WHERE PM.PA_CODE       = #{paCode, jdbcType=VARCHAR} 
+          AND PM.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+          AND PM.PA_DO_FLAG    = '40' /*출고*/
+          AND PM.PA_ORDER_GB   = '10' /*주문*/
+          AND PM.PA_PROC_QTY   > 0
+          AND PM.ORDER_NO      = SD.ORDER_NO
+          AND PM.ORDER_G_SEQ   = SD.ORDER_G_SEQ
+          AND SD.SLIP_I_NO     = SM.SLIP_I_NO
+          AND SM.DELY_GB       = GB.DELY_GB
+          AND GB.PA_CODE       = #{paGroupCode, jdbcType=VARCHAR}
+          AND CD.CODE_LGROUP   = 'B005'
+          AND GB.DELY_GB       = CD.CODE_MGROUP
+          <!-- AND CD.CONTENT IS NULL /*굿스플로 배송추적 제외건*/ -->      
+          AND SM.SLIP_PROC     = '80' /* BO배송완료 */
+    </select>
+    
+    <update id="updateDeliveryCompleteProc" parameterType="HashMap">
+      UPDATE /* pagmktdelivery.xml: pagmkt.delivery.updateDeliveryCompleteProc by PaGmktDeliveryController */
+             TPAORDERM
+         SET API_RESULT_MESSAGE = #{COMMENT, jdbcType=VARCHAR} 
+           <if test="RESULT != null and RESULT !='' ">           
+            <choose>
+              <when test='RESULT == "Success"'>
+              , PA_DO_FLAG = '80'
+              , API_RESULT_CODE = '000000'              
+              </when>
+              <when test='RESULT == "Fail"'>
+              , API_RESULT_CODE = '999999'
+              </when>            
+             </choose>
+            </if>                            
+           , MODIFY_ID      = #{SITE_GB       , jdbcType=VARCHAR}
+           , MODIFY_DATE    = SYSDATE
+       WHERE PA_ORDER_NO    = #{PAY_NO        , jdbcType=VARCHAR}
+         AND PA_ORDER_SEQ   = #{CONTR_NO      , jdbcType=VARCHAR}
+         AND PA_CODE        = #{PA_CODE       , jdbcType=VARCHAR}
+         AND PA_GROUP_CODE  = #{PA_GROUP_CODE , jdbcType=VARCHAR}
+         <if test="PA_CLAIM_NO != null and PA_CLAIM_NO !='' ">  
+         AND PA_CLAIM_NO    = #{PA_CLAIM_NO   , jdbcType=VARCHAR}
+         </if>
+         AND PA_DO_FLAG NOT IN ('80','90')
+         AND PA_ORDER_GB = '10' /*주문*/
+    </update>
+
+    <select id="selectTpaOrdermForNotReceive" parameterType="HashMap" resultType="HashMap">
+      SELECT /* pagmktdelivery.xml: pagmkt.delivery.selectTpaOrdermForNotReceive by PaGmktDeliveryController */
+             OM.PA_CODE 
+            ,OM.PA_ORDER_NO AS PAY_NO
+            ,OM.PA_ORDER_SEQ AS CONTR_NO
+            ,OM.ORDER_NO AS ORDER_NO
+            ,OM.ORDER_G_SEQ
+            ,OM.ORDER_D_SEQ  
+            ,OM.ORDER_W_SEQ 
+        FROM   TPAORDERM OM
+        WHERE  OM.PA_ORDER_SEQ = #{contrNo      , jdbcType=VARCHAR}
+        AND    OM.PA_CODE      = #{paCode       , jdbcType=VARCHAR}
+        AND    OM.PA_ORDER_GB  = '10'
+        AND    OM.INSERT_DATE > SYSDATE - 90
+        AND    ROWNUM = 1
+    </select>   
+    
+    <select id="selectNotReceiveListForCancel" parameterType="HashMap" resultType="HashMap">
+      SELECT NR.COUNSEL_SEQ
+             ,NR.PAY_NO
+             ,NR.PA_CODE
+             ,NR.PA_GROUP_CODE
+             ,NR.CONTR_NO
+             ,NR.SEQ
+      FROM   TPAGMKTNOTRECEIVELIST NR
+      WHERE (NR.CLAIM_SOLVE_DATE IS NULL OR NR.CLAIM_SOLVE_DATE = '')
+      AND   (NR.DELY_CODE IS NOT NULL OR NR.CLAIM_CANCEL_REASON IS NOT NULL)
+      AND    NR.TRANS_YN = '0'
+      AND    NR.PRE_CAN_YN = '0'
+      AND    TRUNC(NR.CLAIM_DATE) > (SYSDATE -90) 
+      AND    NR.PA_CODE        = #{paCode, jdbcType=VARCHAR} 
+      AND    NR.PA_GROUP_CODE  = #{paGroupCode, jdbcType=VARCHAR}
+    </select> 
+    
+    <select id="selectNotReceiveListDetail" parameterType="HashMap" resultType="com.cware.netshopping.domain.model.PaGmkNotRecive">
+      SELECT /* pagmktdelivery.xml: pagmkt.delivery.selectNotReceiveListDetail by PaGmktDeliveryController */ 
+             NR.PA_CODE
+            ,NR.PAY_NO
+            ,NR.CONTR_NO
+            ,NR.SEQ
+            ,NR.DELY_NO
+            ,NVL((SELECT PA_DELY_GB FROM TPADELYGB GB WHERE GB.DELY_GB = NR.DELY_CODE AND PA_CODE = #{paGroupCode , jdbcType=VARCHAR}) ,
+                     DECODE ( #{paGroupCode , jdbcType=VARCHAR} ,'02' ,'10032','10034') ) AS DELY_CODE
+            ,NR.CLAIM_CANCEL_REASON
+            ,NR.CLAIM_CANCEL_DATE 
+      FROM(
+              SELECT NRL.PA_CODE
+                    ,NRL.PAY_NO
+                    ,NRL.CONTR_NO
+                    ,NRL.SEQ
+                    ,NRL.DELY_NO
+                    ,NRL.DELY_CODE
+                    ,NRL.CLAIM_CANCEL_REASON
+                    ,NRL.CLAIM_CANCEL_DATE
+              FROM   TPAGMKTNOTRECEIVELIST NRL
+              WHERE  (NRL.CLAIM_SOLVE_DATE IS NULL OR NRL.CLAIM_SOLVE_DATE = '')
+              AND    NRL.TRANS_YN       = '0'
+              AND    NRL.PRE_CAN_YN     = '0'
+              AND    NRL.PA_CODE        = #{paCode         , jdbcType=VARCHAR}
+              AND    NRL.PA_GROUP_CODE  = #{paGroupCode    , jdbcType=VARCHAR}
+              AND    NRL.PAY_NO         = #{payNo          , jdbcType=VARCHAR}
+              AND    NRL.CONTR_NO       = #{contrNo        , jdbcType=VARCHAR}
+              AND    NRL.CLAIM_DATE     = #{claimDate      , jdbcType=TIMESTAMP} 
+              AND    TRUNC(NRL.CLAIM_DATE) > (SYSDATE -90) 
+              ORDER BY NRL.PAY_NO, NRL.CONTR_NO, NRL.SEQ ) NR
+      WHERE ROWNUM = 1
+    </select>  
+    
+    <update id="updateUnReceiveListForCancle" parameterType="HashMap">
+      UPDATE /* pagmktdelivery.xml: pagmkt.delivery.updateUnReceiveListForCancel by PaGmktDeliveryController */
+             TPAGMKTNOTRECEIVELIST NR
+         SET NR.TRANS_YN         = '1'
+            ,NR.CLAIM_SOLVE_DATE = #{claimSolveDate , jdbcType=TIMESTAMP}  
+            ,NR.CLAIM_SOLVE_GB   = #{claimSolveGb   , jdbcType=VARCHAR}   
+            ,NR.TRANS_DATE       = #{transdate      , jdbcType=TIMESTAMP}
+       WHERE NR.CLAIM_DATE       = #{claimDate      , jdbcType=TIMESTAMP}
+         <!--AND NR.COUNSEL_SEQ      = #{counselSeq     , jdbcType=VARCHAR} -->
+         AND NR.PA_CODE          = #{paCode         , jdbcType=VARCHAR}
+         AND NR.PA_GROUP_CODE    = #{paGroupCode    , jdbcType=VARCHAR}
+         AND NR.PAY_NO           = #{payNo          , jdbcType=VARCHAR}
+         AND NR.CONTR_NO         = #{contrNo        , jdbcType=VARCHAR}
+         AND NR.TRANS_YN         = '0'
+         AND NR.PRE_CAN_YN       = '0'
+    </update>   
+    
+    <update id="updateTpaGmktShippingList" parameterType="com.cware.netshopping.domain.model.PaGmkOrder">
+       UPDATE /* pagmktdelivery.xml: pagmkt.delivery.updateTpaGmktShippingList by PaGmktDeliveryController */
+         TPAGMKTORDERLIST
+        SET    RECEIVER_NAME     = #{receiverName, jdbcType=VARCHAR} 
+              ,RECEIVER_MOBILE   = CWARE_ENC_DEC(#{receiverMobile, jdbcType=VARCHAR}   , 'E')
+              ,RECEIVER_TEL      = CWARE_ENC_DEC(#{receiverTel, jdbcType=VARCHAR}      , 'E')
+              ,RECEIVER_ZIPCODE  = #{receiverZipCode, jdbcType=VARCHAR}
+              ,RECEIVER_ADDRESS  = CWARE_ENC_DEC(#{receiverAddress , jdbcType=VARCHAR} , 'E')
+              ,RECEIVER_ADDRESS1 = CWARE_ENC_DEC(#{receiverAddress1, jdbcType=VARCHAR} , 'E')
+              ,RECEIVER_ADDRESS2 = CWARE_ENC_DEC(#{receiverAddress2, jdbcType=VARCHAR} , 'E')
+              ,MODIFY_DATE       = #{modifyDate, jdbcType=TIMESTAMP}
+        WHERE PAY_NO             = #{payNo, jdbcType=VARCHAR}  
+    </update>   
+    
+    <select id="selectChangingDelyList" parameterType="HashMap" resultType="HashMap">
+     SELECT PM.PA_CODE
+           ,PO.PAY_NO
+           ,PM.PA_GROUP_CODE
+           ,PO.CONTR_NO
+           ,PO.TRANS_DUE_DATE AS TRANS_DUE_DATE
+           ,CASE WHEN TG.INSTALL_YN = '1' OR TA.ORDER_CREATE_YN = '1' THEN TO_CHAR(TRANS_DUE_DATE + 90, 'YYYY-MM-DD')
+                   ELSE TO_CHAR(FUN_GET_DELYDAY('10',TRANS_DUE_DATE,3), 'YYYY-MM-DD')
+            END AS DELY_DATE
+           ,'3' AS REASON_TYPE
+           ,'시스템 자동 연장 처리' AS REASON_DETAIL
+           ,TC.CODE_SNAME AS SITE_GB
+     FROM  TPAGMKTORDERLIST PO
+          ,TPAORDERM PM
+          ,TCODE TC
+          ,TGOODS TG
+          ,TGOODSADDINFO TA
+     WHERE PO.PAY_NO     = PM.PA_ORDER_NO
+     AND   PO.CONTR_NO = PM.PA_ORDER_SEQ
+     AND   PM.PA_ORDER_GB = '10'
+     AND   PO.TRANS_DUE_DATE IS NOT NULL
+     AND   PM.PRE_CANCEL_YN = '0'
+     AND   PM.CREATE_YN     = '1'
+     AND   TRUNC(PO.TRANS_DUE_DATE) = TRUNC(SYSDATE)   
+     AND   PM.PA_DO_FLAG &lt; '40'  
+     AND   PM.PA_CODE                =  #{paCode , jdbcType=VARCHAR} 
+     AND   PM.PA_GROUP_CODE          =  #{paGroupCode , jdbcType=VARCHAR} 
+     AND   TC.CODE_LGROUP ='O500'
+     AND   TC.CODE_MGROUP = PM.PA_GROUP_CODE
+     <!--AND   PO.CONTR_NO = '2859895697' //For Testing-->
+     AND   PM.REMARK1_V IS NULL 
+     AND   TG.GOODS_CODE = PO.OUT_GOODS_NO
+     AND   TG.GOODS_CODE = TA.GOODS_CODE
+     AND   NOT EXISTS ( SELECT 'x'
+                       FROM   TPAORDERM CM
+                       WHERE  CM.PRE_CANCEL_YN      = '0'
+                         AND  CM.CREATE_YN          = '1'
+                         AND  CM.PA_CODE            = PM.PA_CODE
+                         AND  CM.PA_ORDER_NO        = PM.PA_ORDER_NO
+                         AND  CM.PA_GROUP_CODE      = PM.PA_GROUP_CODE
+                         AND  CM.PA_ORDER_SEQ       = PM.PA_ORDER_SEQ
+                         AND  CM.PA_ORDER_GB        = '20'
+                       )
+    </select> 
+    
+    <!--
+    <select id="selectChangingDelyList" parameterType="String" resultType="HashMap">
+      SELECT /* pagmktdelivery.xml: pagmkt.delivery.selectChangingDelyList by PaGmktDeliveryController */
+              TS.PA_CODE
+             ,TS.PAY_NO
+             ,TS.CONT_NO       
+             ,TS.SEQ
+             ,TS.TRANS_YN 
+             ,TS.SHIPPING_DATE  AS DELY_DATE
+             ,TS.REASON_CODE    AS REASON_TYPE
+             ,TS.REASON_DETAIL  AS REASON_DETAIL
+      FROM    TPAGMKTSHIPPINGDELAYLIST TS
+      WHERE   TS.SHIPPING_DATE IS NOT NULL
+      AND     TS.SHIPPING_DATE  != ''
+      AND     TS.TRANS_YN        = '0'   
+      AND     TS.PA_CODE         =  #{paCode , jdbcType=VARCHAR}
+      AND     TS.TRANS_DUE_DATE > SYSDATE -30
+    </select> 
+    -->
+    <select id="selectSlipOutProcList" parameterType="String" resultType="HashMap">
+      SELECT /* pagmktdelivery.xml: pagmkt.delivery.selectSlipOutProcList by PaGmktDeliveryController */
+      		 PAY_NO
+      	   , CONTR_NO
+      	   , SLIP_I_NO
+      	   , EXPRESS_NAME
+      	   , PA_CODE
+      	   , SLIP_PROC_DATE
+      	   , PA_DELY_GB
+      	   , INVOICE_NO
+      	   , PA_GROUP_CODE
+      	   , MAPPING_SEQ
+        FROM (
+		       SELECT PM.PA_ORDER_NO PAY_NO
+		            , PM.PA_ORDER_SEQ CONTR_NO 
+		            , SM.SLIP_I_NO
+		            , NVL(GB.PA_DELY_GB_NAME, '기타') AS EXPRESS_NAME
+		            , PM.PA_CODE    		            
+		            , TO_CHAR(SYSDATE , 'YYYY-MM-DD') AS SLIP_PROC_DATE
+		            , CASE WHEN SM.SLIP_PROC = '80' AND SM.SLIP_NO IS NULL THEN (SELECT A.PA_DELY_GB FROM TPADELYGB A WHERE A.PA_CODE = PM.PA_GROUP_CODE  AND A.DELY_GB = '99' AND ROWNUM = 1)
+		            	   ELSE NVL(GB.PA_DELY_GB, DECODE(PA_GROUP_CODE , '02', '10032', '10034'))
+		              END AS PA_DELY_GB
+					, CASE WHEN SM.SLIP_PROC = '80' AND SM.SLIP_NO IS NULL THEN SM.SLIP_I_NO 
+					  	   ELSE SM.SLIP_NO 
+					  END AS INVOICE_NO
+		            , PM.PA_GROUP_CODE    
+		            , PM.MAPPING_SEQ
+		         FROM TPAORDERM PM
+		            , TSLIPM SM
+		            , TSLIPDT SD
+		            , TPADELYGB GB   
+		            , TORDERGOODS OG
+		        WHERE SM.SLIP_I_NO     = SD.SLIP_I_NO
+		          AND PM.ORDER_NO      = SD.ORDER_NO
+		          AND PM.ORDER_G_SEQ   = SD.ORDER_G_SEQ
+		          AND PM.ORDER_D_SEQ   = SD.ORDER_D_SEQ
+		          AND PM.ORDER_W_SEQ   = SD.ORDER_W_SEQ
+		          AND PM.ORDER_NO    = OG.ORDER_NO
+           		  AND PM.ORDER_G_SEQ = OG.ORDER_G_SEQ
+		          AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0 
+		          AND SM.DELY_GB       = GB.DELY_GB(+)    
+		          AND GB.PA_CODE(+)    = #{paGroupCode	, jdbcType=VARCHAR}    
+		          AND PM.PA_DO_FLAG    = '30' 
+		          AND PM.PA_ORDER_GB   = '10'
+		          AND PM.PA_CODE       = #{paCode		, jdbcType=VARCHAR}
+		          AND PM.PA_GROUP_CODE = #{paGroupCode	, jdbcType=VARCHAR}
+		          AND SM.SLIP_PROC   > = 40
+		          AND SM.SLIP_GB       = '101'
+		          <!-- AND SM.SLIP_PROC_DATE > DECODE(SM.SLIP_PROC , '80', SYSDATE - 120,  SYSDATE - 10)-->
+		          )
+       WHERE INVOICE_NO IS NOT NULL <!-- 출고 : 운송장 NULL 안됨,  배송완료 운송장 NULL일경우 SLIP_I_NO 발송 -->
+    </select> 
+    
+    <update id="updateSlipOutProc" parameterType="hashMap">
+      UPDATE /* pagmktdelivery.xml: pagmkt.delivery.updateSlipOutProc by PaGmktDeliveryController */
+             TPAORDERM
+         SET PA_DO_FLAG     = '40' /*배송중(출고완료)*/
+           , API_RESULT_CODE = '000000'
+           , API_RESULT_MESSAGE = NVL(#{API_RESULT_MESSAGE , jdbcType=VARCHAR}, '출고처리성공')
+           , PROC_DATE      = SYSDATE           
+           , MODIFY_ID      = #{siteGb, jdbcType=VARCHAR}      
+           , MODIFY_DATE    = SYSDATE
+       WHERE PA_ORDER_GB    = '10' /*주문*/
+         AND PA_CODE        = #{PA_CODE         , jdbcType=VARCHAR}
+         AND PA_GROUP_CODE  = #{PA_GROUP_CODE   , jdbcType=VARCHAR}
+         AND PA_ORDER_NO    = #{PAY_NO          , jdbcType=VARCHAR}
+         AND PA_ORDER_SEQ   = #{CONTR_NO        , jdbcType=VARCHAR}
+    </update>  
+    
+    <update id="updatePaOrderMFail" parameterType="hashMap">
+      UPDATE /* pagmktdelivery.xml: pagmkt.delivery.updateSlipOutProcFail by PaGmktDeliveryController */
+             TPAORDERM
+         SET API_RESULT_CODE = '999999'
+           , API_RESULT_MESSAGE = #{message, jdbcType=VARCHAR}           
+           , MODIFY_ID      = #{siteGb, jdbcType=VARCHAR}          
+           , MODIFY_DATE    = SYSDATE
+       WHERE PA_ORDER_GB    = '10' /*주문*/
+         AND PA_CODE        = #{paCode          , jdbcType=VARCHAR}
+         AND PA_GROUP_CODE  = #{paGroupCode     , jdbcType=VARCHAR}
+         AND PA_ORDER_NO    = #{payNo           , jdbcType=VARCHAR}
+         AND PA_ORDER_SEQ   = #{contrNo         , jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updateTpaordermForCompleteOrderList" parameterType="com.cware.netshopping.domain.model.PaGmkOrder">
+      UPDATE /* pagmktdelivery.xml: pagmkt.delivery.updateTpaordermForCompleteOrderList by PaGmktDeliveryController */
+             TPAORDERM
+         SET PA_DO_FLAG           = '90'         
+           , MODIFY_ID            = #{insertId, jdbcType=VARCHAR}
+           , MODIFY_DATE          = SYSDATE         
+           , API_RESULT_MESSAGE   = '수취확인 완료'           
+       WHERE PA_ORDER_GB          = '10' /*주문*/
+         AND PA_CODE              = #{paCode        , jdbcType=VARCHAR}
+         AND PA_GROUP_CODE        = #{paGroupCode   , jdbcType=VARCHAR}
+         AND PA_ORDER_NO          = #{payNo         , jdbcType=VARCHAR}
+         AND PA_ORDER_SEQ         = #{contrNo       , jdbcType=VARCHAR}
+         AND PA_DO_FLAG       &gt;= '40'  
+    </update>
+    
+    <update id="updateRemark1TpaorderM" parameterType="hashMap">
+      UPDATE /* pagmktdelivery.xml: pagmkt.delivery.updateRemark1TpaorderM by PaGmktDeliveryController */
+             TPAORDERM
+         SET API_RESULT_CODE          = #{apiResultCode     , jdbcType=VARCHAR}
+           , API_RESULT_MESSAGE       = #{apiResultMessage  , jdbcType=VARCHAR}
+           , REMARK1_V                = #{remark1           , jdbcType=VARCHAR}     
+           , MODIFY_ID                = #{siteGb            , jdbcType=VARCHAR}           
+           , MODIFY_DATE              = SYSDATE
+           <if test='paDoFlag != null and paDoFlag != "" '>
+           , PA_DO_FLAG               = #{paDoFlag          , jdbcType=VARCHAR}
+           </if>
+       WHERE PA_ORDER_GB    = '10' /*주문*/
+         AND PA_CODE        = #{paCode      , jdbcType=VARCHAR}
+         AND PA_GROUP_CODE  = #{paGroupCode , jdbcType=VARCHAR}
+         AND PA_ORDER_NO    = #{payNo       , jdbcType=VARCHAR}
+         AND PA_ORDER_SEQ   = #{contrNo     , jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updateDeliveryCompleteList" parameterType="com.cware.netshopping.domain.model.PaGmkDeliveryComplete">
+      UPDATE /* pagmktdelivery.xml: pagmkt.delivery.updateDeliveryCompleteList by PaGmktDeliveryController */
+             TPAORDERM
+         SET PA_DO_FLAG     = '80' /*배송완료*/
+           , PROC_DATE      = #{completeDate, jdbcType=TIMESTAMP}           
+           , MODIFY_ID      = 'PAG'           
+           , MODIFY_DATE    = #{modifyDate, jdbcType=TIMESTAMP}
+       WHERE PA_CODE        = #{paCode, jdbcType=VARCHAR}
+         AND PA_ORDER_NO    = #{payNo, jdbcType=VARCHAR}
+         AND PA_ORDER_SEQ   = #{contrNo, jdbcType=VARCHAR}         
+    </update>
+    
+    <select id="checkPaGmktOrderList" parameterType="com.cware.netshopping.domain.model.PaGmkOrder" resultType="int">
+        SELECT /* pagmktdelivery.xml: pagmkt.delivery.checkPaGmktOrderList by PaGmktDeliveryController */
+               COUNT(1) AS CHK_CNT
+          FROM TPAGMKTORDERLIST
+         WHERE PAY_NO   = #{payNo, jdbcType=VARCHAR}
+           AND CONTR_NO = #{contrNo, jdbcType=VARCHAR}
+    </select> 
+    
+    <select id="checkUnpaidPaGmktOrderList" parameterType="com.cware.netshopping.domain.model.PaGmkOrder" resultType="int">
+        SELECT /* pagmktdelivery.xml: pagmkt.delivery.checkPaGmktOrderList by PaGmktDeliveryController */
+               COUNT(1) AS CHK_CNT
+          FROM  TPAGMKTORDERLIST PO, TPAORDERM PM
+         WHERE PAY_NO   = #{payNo, jdbcType=VARCHAR}
+           AND CONTR_NO = #{contrNo, jdbcType=VARCHAR}
+           AND PAY_DATE IS NULL
+           AND PO.PAY_NO        = PM.PA_ORDER_NO              
+           AND PO.CONTR_NO      = PM.PA_ORDER_SEQ
+           AND PM.PA_CODE       IN ('21','22')
+           AND PM.PA_ORDER_GB   = '10'
+           AND PM.CREATE_YN     = '1'
+           AND PM.PRE_CANCEL_YN = '0'
+           AND PM.PA_DO_FLAG    = '10'
+    </select> 
+    
+    <insert id="insertPaGmktOrderList" parameterType="com.cware.netshopping.domain.model.PaGmkOrder">
+        INSERT /* pagmktdelivery.xml: pagmkt.delivery.insertPaGmktOrderList by PaGmktDeliveryController */
+          INTO TPAGMKTORDERLIST 
+             ( PAY_NO,
+               GROUP_NO,
+               CONTR_NO,
+               CONTR_NO_SEQ,
+               ORDER_DATE,
+               PAY_DATE,
+               GOODS_NO,
+               SITE_GOODS_NO,
+               OUT_GOODS_NO,
+               GOODS_NAME,
+               SALE_PRICE,
+               PAYMENT_PRICE,
+               ACNT_PRICE,
+               CONTR_QTY,
+               SELLER_DISCOUNT_PRICE1,
+               SELLER_DISCOUNT_PRICE2,
+               SELLER_DISCOUNT_PRICE,
+               DIRECT_DISCOUNT_PRICE,
+               COST_PRICE,
+               FEE_CONDITION,
+               SHIPPING_FEE,
+               ADD_SHIPPING_FEE,
+               ADD_JEJU_SHIPPING_FEE,
+               SETTLE_PRICE,
+               SERVICE_FEE,
+               SELLER_CASH_BACK_MONEY,
+               SINGLE_PAY_DC_AMT,
+               MULTI_BUY_DC_AMT,
+               VIP_BUY_DC_AMT,
+               ITEM_OPTION_VALUE,
+               ITEM_OPTION_ORDER_CNT,
+               ITEM_OPTION_CODE,
+               ITEM_ADD_OPTION_VALUE,
+               ITEM_ADD_OPTION_ORDER_CNT,
+               ITEM_ADD_OPTION_CODE,
+               OPT_SEL_PRICE,
+               OPT_ADD_PRICE,
+               BUYER_NAME,
+               BUYER_ID,
+               BUYER_MOBILE,
+               BUYER_TEL,
+               RECEIVER_NAME,
+               RECEIVER_MOBILE,
+               RECEIVER_TEL,
+               RECEIVER_ZIPCODE,
+               RECEIVER_ADDRESS,
+               RECEIVER_ADDRESS1,
+               RECEIVER_ADDRESS2,
+               DEL_MEMO,
+               ALLOCATION_DATE1,
+               ALLOCATION_DATE2,
+               DELY_SLOT_ID,
+               BRANCH_PRICE,
+               REPLACE_YN,
+               DELY_NAME,
+               DELY_NO,
+               OVERSEA_TRANS_YN,
+               OUT_ORDER_NO,
+               INFO_CIN,
+               SKU_NO,
+               SKU_QTY,
+               INVENTORY_NO,
+               ORDER_CONFIRM_DATE,
+               TRANS_DATE,
+               TRANS_DUE_DATE,
+               TRANS_COMPLETE_DATE,
+               BUY_COMPLETE_DATE,
+               TRANS_TYPE,
+               INSERT_DATE,
+               MODIFY_DATE,
+               G9_ORDER_YN,
+               IS_GIFT_ORDER,
+               GIFT_CONFIRM_DATE,
+               GIFT_CONFIRM_DUE_DATE
+               )
+          VALUES
+               ( #{payNo, jdbcType=VARCHAR}
+               , #{groupNo, jdbcType=VARCHAR}
+               , #{contrNo, jdbcType=VARCHAR}
+               , #{contrNoSeq, jdbcType=VARCHAR}
+               , #{orderDate, jdbcType=TIMESTAMP}             
+               , #{payDate, jdbcType=TIMESTAMP}             
+               , #{goodsNo, jdbcType=VARCHAR}
+               , #{siteGoodsNo, jdbcType=VARCHAR}
+               , #{outGoodsNo, jdbcType=VARCHAR}  
+               , #{goodsName, jdbcType=VARCHAR}
+               , #{salePrice, jdbcType=NUMERIC}
+               , #{paymentPrice, jdbcType=NUMERIC}
+               , #{acntPrice, jdbcType=NUMERIC}
+               , #{contrQty, jdbcType=NUMERIC}
+               , #{sellerDiscountPrice1, jdbcType=NUMERIC}
+               , #{sellerDiscountPrice2, jdbcType=NUMERIC}
+               , #{sellerDiscountPrice, jdbcType=NUMERIC}
+               , #{directDiscountPrice, jdbcType=NUMERIC}
+               , #{costPrice, jdbcType=NUMERIC}
+               , #{feeContidtion, jdbcType=VARCHAR}
+               , #{shippingFee, jdbcType=NUMERIC}
+               , #{addShippingFee, jdbcType=NUMERIC}
+               , #{addJejuShippingFee, jdbcType=NUMERIC}
+               , #{settlePrice, jdbcType=NUMERIC}
+               , #{serviceFee, jdbcType=NUMERIC}
+               , #{sellerCashBackMoney, jdbcType=NUMERIC}
+               , #{singlePayDcAmt, jdbcType=NUMERIC}
+               , #{multiBuyDcAmt, jdbcType=NUMERIC}
+               , #{vipBuyDcAmt, jdbcType=NUMERIC}
+               , #{itemOptionValue, jdbcType=VARCHAR}
+               , #{itemOptionOrderCnt, jdbcType=NUMERIC}
+               , #{itemOptionCode, jdbcType=VARCHAR}
+               , #{itemAddOptionValue, jdbcType=VARCHAR}
+               , #{itemAddOptionOrderCnt, jdbcType=NUMERIC}
+               , #{itemAddOptionCode, jdbcType=VARCHAR}
+               , #{optSelPrice, jdbcType=NUMERIC}
+               , #{optAddPrice, jdbcType=NUMERIC}
+               , #{buyerName, jdbcType=VARCHAR}
+               , #{buyerId, jdbcType=VARCHAR}
+               , CWARE_ENC_DEC(#{buyerMobile, jdbcType=VARCHAR}      , 'E')
+               , CWARE_ENC_DEC(#{buyerTel, jdbcType=VARCHAR}         , 'E')
+               , #{receiverName, jdbcType=VARCHAR} 
+               , CWARE_ENC_DEC(#{receiverMobile, jdbcType=VARCHAR}   , 'E')
+               , CWARE_ENC_DEC(#{receiverTel, jdbcType=VARCHAR}      , 'E')
+               , #{receiverZipCode, jdbcType=VARCHAR}
+               , CWARE_ENC_DEC(#{receiverAddress,  jdbcType=VARCHAR} , 'E')
+               , CWARE_ENC_DEC(#{receiverAddress1, jdbcType=VARCHAR} , 'E')
+               , CWARE_ENC_DEC(#{receiverAddress2, jdbcType=VARCHAR} , 'E')
+               , #{delMemo, jdbcType=VARCHAR} 
+               , #{allocationDate1, jdbcType=TIMESTAMP}
+               , #{allocationDate2, jdbcType=TIMESTAMP}  
+               , #{delySlotId, jdbcType=VARCHAR}
+               , #{branchPrice, jdbcType=NUMERIC}
+               , #{replaceYn, jdbcType=VARCHAR}
+               , #{delyName, jdbcType=VARCHAR}
+               , #{delyNo, jdbcType=VARCHAR}
+               , #{overseaTransYn, jdbcType=VARCHAR}
+               , #{outOrderNo, jdbcType=VARCHAR}
+               , #{infoCin, jdbcType=VARCHAR}
+               , #{skuNo, jdbcType=VARCHAR}
+               , #{skuQty, jdbcType=NUMERIC}
+               , REPLACE(#{inventoryNo, jdbcType=VARCHAR},' ','')
+               , #{orderConfirmDate, jdbcType=TIMESTAMP}
+               , #{transDate, jdbcType=TIMESTAMP}
+               , #{transDueDate, jdbcType=TIMESTAMP}
+               , #{transCompleteDate, jdbcType=TIMESTAMP}
+               , #{buyCompleteDate, jdbcType=TIMESTAMP}
+               , #{transType, jdbcType=VARCHAR}
+               , #{insertDate, jdbcType=TIMESTAMP}
+               , #{modifyDate, jdbcType=TIMESTAMP}
+               , #{g9OrderYn, jdbcType=VARCHAR}
+               , #{isGiftOrder, jdbcType=VARCHAR}
+               , #{giftConfirmDate, jdbcType=TIMESTAMP}
+               , #{giftConfirmDueDate, jdbcType=TIMESTAMP}
+               )
+    </insert>
+    
+    <select id="selectPagmktNotReceiveListExist" parameterType="HashMap" resultType="int">
+        SELECT COUNT(1)
+        FROM  TPAGMKTNOTRECEIVELIST TR
+        WHERE TR.PAY_NO     = #{payNo         , jdbcType=VARCHAR}
+        AND   TR.CONTR_NO   = #{contrNo        , jdbcType=VARCHAR}
+        AND   TR.PA_CODE    = #{paCode         , jdbcType=VARCHAR}
+        AND   TR.CLAIM_DATE = #{claimDate      , jdbcType=TIMESTAMP}
+    </select>
+    
+    <insert id="insertPaGmktNotReceiveList" parameterType="com.cware.netshopping.domain.model.PaGmkNotRecive">
+       INSERT 
+         INTO TPAGMKTNOTRECEIVELIST
+            (PAY_NO
+            ,PA_CODE
+            ,CONTR_NO
+            ,SEQ
+            ,ORDER_NO
+            ,ORDER_G_SEQ
+            ,ORDER_D_SEQ
+            ,TRANS_YN
+            ,PRE_CAN_YN
+            ,CLAIM_SOLVE_DATE
+            ,CLAIM_SOLVE_GB
+            ,CLAIM_DATE
+            ,CLAIM_REASON
+            ,CLAIM_DETAIL_REASON
+            ,CLAIM_CANCEL_DATE
+            ,CLAIM_CANCEL_TYPE
+            ,DELY_CODE
+            ,DELY_NO
+            ,CLAIM_CANCEL_REASON
+            ,INSERT_DATE
+            ,INSERT_USER
+            ,MODIFY_DATE
+            ,MODIFY_USER
+            ,PA_GROUP_CODE
+          )VALUES
+            ( #{payNo            , jdbcType=VARCHAR}
+            , #{paCode           , jdbcType=VARCHAR}
+            , #{contrNo          , jdbcType=VARCHAR}
+            , #{seq              , jdbcType=VARCHAR}
+            , #{orderNo          , jdbcType=VARCHAR}
+            , #{orderGSeq        , jdbcType=VARCHAR}
+            , #{orderDSeq        , jdbcType=VARCHAR}
+            , #{transYn          , jdbcType=VARCHAR}
+            , #{preCanYn         , jdbcType=VARCHAR}
+            , #{claimSolveDate   , jdbcType=TIMESTAMP}
+            , #{claimSolveGb     , jdbcType=VARCHAR}
+            , #{claimDate        , jdbcType=TIMESTAMP}
+            , #{claimReason      , jdbcType=VARCHAR}
+            , #{claimReasonDetail, jdbcType=VARCHAR}
+            , #{claimCancelDate  , jdbcType=TIMESTAMP}
+            , #{claimCancelType  , jdbcType=VARCHAR}
+            , #{delyCode         , jdbcType=VARCHAR}
+            , #{delyNo           , jdbcType=VARCHAR}
+            , #{claimCancelReason, jdbcType=VARCHAR}
+            , #{insertDate       , jdbcType=TIMESTAMP}
+            , #{insertId         , jdbcType=VARCHAR}
+            , #{insertDate       , jdbcType=TIMESTAMP}
+            , #{insertId         , jdbcType=VARCHAR}
+            , #{paGroupCode      , jdbcType=VARCHAR}
+            )
+    </insert>
+    
+    <update id="updateTpagmktNotReceiveList" parameterType="HashMap">
+      UPDATE /* pagmktdelivery.xml: pagmkt.delivery.updateTpagmktNotReceiveList by PaGmktDeliveryController */
+             TPAGMKTNOTRECEIVELIST NR
+         SET NR.COUNSEL_SEQ      = #{counselSeq     , jdbcType=TIMESTAMP}  
+       WHERE NR.PA_CODE          = #{paCode         , jdbcType=VARCHAR}
+         AND NR.PAY_NO           = #{payNo          , jdbcType=VARCHAR}
+         AND NR.CONTR_NO         = #{contrNo        , jdbcType=VARCHAR}
+         AND NR.CLAIM_DATE       = #{claimDate      , jdbcType=TIMESTAMP}
+         AND NR.TRANS_YN         = '0'
+         AND NR.PRE_CAN_YN       = '0'         
+         AND (NR.CLAIM_SOLVE_DATE IS NULL OR NR.CLAIM_SOLVE_DATE = '')  
+    </update>
+    
+    <update id="updateReceiverInfo" parameterType="com.cware.netshopping.domain.model.PaGmkOrder">
+       UPDATE /* pagmktdelivery.xml: pagmkt.delivery.updateReceiverInfo by PaGmktDeliveryController */
+         TPAGMKTORDERLIST
+          SET 
+             RECEIVER_NAME    = #{receiverName, jdbcType=VARCHAR} 
+            ,RECEIVER_MOBILE  = CWARE_ENC_DEC(#{buyerMobile, jdbcType=VARCHAR}      , 'E')
+            ,RECEIVER_TEL     = CWARE_ENC_DEC(#{buyerTel, jdbcType=VARCHAR}         , 'E')  
+            ,RECEIVER_ZIPCODE = #{receiverZipCode, jdbcType=VARCHAR}
+            ,RECEIVER_ADDRESS = CWARE_ENC_DEC(#{receiverAddress,  jdbcType=VARCHAR} , 'E')
+            ,RECEIVER_ADDRESS1= CWARE_ENC_DEC(#{receiverAddress1, jdbcType=VARCHAR} , 'E')
+            ,RECEIVER_ADDRESS2= CWARE_ENC_DEC(#{receiverAddress2, jdbcType=VARCHAR} , 'E')
+         WHERE PAY_NO  = #{payNo, jdbcType=VARCHAR}
+           AND CONTR_NO = #{contrNo, jdbcType=VARCHAR}
+           AND CONTR_NO_SEQ = '001'
+    </update>
+    
+     <update id="updatePayDate" parameterType="com.cware.netshopping.domain.model.PaGmkOrder">
+       UPDATE /* pagmktdelivery.xml: pagmkt.delivery.updateReceiverInfo by PaGmktDeliveryController */
+         TPAGMKTORDERLIST
+          SET 
+             PAY_DATE                = #{payDate            , jdbcType=TIMESTAMP}
+            ,SHIPPING_FEE            = #{shippingFee        , jdbcType=NUMERIC}
+            ,ADD_SHIPPING_FEE        = #{addShippingFee     , jdbcType=NUMERIC}
+            ,ADD_JEJU_SHIPPING_FEE   = #{addJejuShippingFee , jdbcType=NUMERIC}
+            ,MODIFY_DATE             = #{modifyDate         , jdbcType=TIMESTAMP} 
+            ,RECEIVER_NAME           = #{receiverName, jdbcType=VARCHAR} 
+            ,RECEIVER_MOBILE         = CWARE_ENC_DEC(#{receiverMobile, jdbcType=VARCHAR}   , 'E')
+            ,RECEIVER_TEL            = CWARE_ENC_DEC(#{receiverTel, jdbcType=VARCHAR}      , 'E')
+            ,BUYER_MOBILE            = CWARE_ENC_DEC(#{buyerMobile, jdbcType=VARCHAR}      , 'E')
+            ,BUYER_TEL               = CWARE_ENC_DEC(#{buyerTel, jdbcType=VARCHAR}         , 'E')
+            ,RECEIVER_ZIPCODE        = #{receiverZipCode, jdbcType=VARCHAR}
+            ,RECEIVER_ADDRESS        = CWARE_ENC_DEC(#{receiverAddress,  jdbcType=VARCHAR} , 'E')
+            ,RECEIVER_ADDRESS1       = CWARE_ENC_DEC(#{receiverAddress1, jdbcType=VARCHAR} , 'E')
+            ,RECEIVER_ADDRESS2       = CWARE_ENC_DEC(#{receiverAddress2, jdbcType=VARCHAR} , 'E')
+            ,TRANS_DUE_DATE			 = #{transDueDate       , jdbcType=TIMESTAMP}
+         WHERE PAY_NO                = #{payNo              , jdbcType=VARCHAR}
+           AND CONTR_NO              = #{contrNo            , jdbcType=VARCHAR}
+           AND CONTR_NO_SEQ          = '001'
+    </update> 
+              
+    <select id="selectCustRefId" parameterType="hashMap" resultType="string">
+        SELECT /* pagmktdelivery.xml :  pagmkt.delivery.selectCustRefId by PaGmktDeliveryController  */
+               A.PROC_ID
+          FROM TCOUNSELUSER A
+         WHERE (#{out_lgroup_code,jdbcType=VARCHAR}||#{out_mgroup_code,jdbcType=VARCHAR} BETWEEN PROC_LGROUP_FR||PROC_MGROUP_FR AND PROC_LGROUP_TO || PROC_MGROUP_TO)
+           <if test='dely_type != "" and dely_type != null '>
+           AND DELY_TYPE = #{dely_type,jdbcType=VARCHAR}
+           </if>
+           AND ROWNUM    = 1
+    </select>
+    
+    <select id="selectCustInfoForSettingCustCounsel" parameterType="hashMap" resultType="hashMap">
+        WITH INFLIST AS ( 
+              SELECT 
+                1 as cnt 
+                ,OD.CUST_NO
+                ,OD.ORDER_NO
+                ,OD.ORDER_G_SEQ
+                ,OD.ORDER_D_SEQ
+                ,OD.ORDER_W_SEQ
+                ,OD.GOODS_CODE
+                ,OD.GOODSDT_CODE
+                ,TR.RECEIVER_HP
+                ,TR.RECEIVER_HP1
+                ,TR.RECEIVER_HP2
+                ,TR.RECEIVER_HP3
+                ,TR.TEL
+                ,TR.RECEIVER_DDD
+                ,TR.RECEIVER_TEL1
+                ,TR.RECEIVER_TEL2
+              FROM TORDERDT OD, TRECEIVER TR, TPAORDERM PM
+              WHERE OD.CUST_NO = TR.CUST_NO
+              AND   OD.RECEIVER_SEQ = TR.RECEIVER_SEQ
+              AND   OD.ORDER_NO = PM.ORDER_NO
+              AND   OD.ORDER_G_SEQ = PM.ORDER_G_SEQ
+              AND   OD.ORDER_D_SEQ = PM.ORDER_D_SEQ
+              AND   OD.ORDER_W_SEQ = PM.ORDER_W_SEQ
+              AND   PM.PA_ORDER_GB =  '10'
+              AND   PM.PA_ORDER_SEQ = #{contrNo  , jdbcType=VARCHAR}
+              AND   PM.PA_ORDER_NO  = #{payNo    , jdbcType=VARCHAR}
+              AND   PM.PA_CODE      = #{paCode , jdbcType=VARCHAR}
+              
+              Union
+        
+              SELECT 
+                2 as cnt 
+                ,CD.CUST_NO
+                ,CD.ORDER_NO
+                ,CD.ORDER_G_SEQ
+                ,CD.ORDER_D_SEQ
+                ,CD.ORDER_W_SEQ
+                ,CD.GOODS_CODE
+                ,CD.GOODSDT_CODE
+                ,TR.RECEIVER_HP
+                ,TR.RECEIVER_HP1
+                ,TR.RECEIVER_HP2
+                ,TR.RECEIVER_HP3
+                ,TR.TEL
+                ,TR.RECEIVER_DDD
+                ,TR.RECEIVER_TEL1
+                ,TR.RECEIVER_TEL2
+              FROM TCLAIMDT CD, TRECEIVER TR, TPAORDERM PM
+              WHERE CD.CUST_NO = TR.CUST_NO
+              AND   CD.RECEIVER_SEQ = TR.RECEIVER_SEQ
+              AND   CD.ORDER_NO = PM.ORDER_NO
+              AND   CD.ORDER_G_SEQ = PM.ORDER_G_SEQ
+              AND   CD.ORDER_D_SEQ = PM.ORDER_D_SEQ
+              AND   CD.ORDER_W_SEQ = PM.ORDER_W_SEQ
+              AND   PM.PA_ORDER_GB = '40'
+              AND   PM.PA_ORDER_SEQ = #{contrNo      , jdbcType=VARCHAR} 
+              AND   PM.PA_ORDER_NO  = #{payNo        , jdbcType=VARCHAR}
+              AND   PM.PA_CODE      = #{paCode       , jdbcType=VARCHAR}
+        ) 
+        
+        
+        SELECT 
+            CUST_NO
+            ,ORDER_NO
+            ,ORDER_G_SEQ
+            ,ORDER_D_SEQ
+            ,ORDER_W_SEQ
+            ,GOODS_CODE
+            ,GOODSDT_CODE
+            ,RECEIVER_HP
+            ,RECEIVER_HP1
+            ,RECEIVER_HP2
+            ,RECEIVER_HP3
+            ,TEL
+            ,RECEIVER_DDD
+            ,RECEIVER_TEL1
+            ,RECEIVER_TEL2 
+            FROM (
+                  SELECT
+                        CUST_NO
+                        ,ORDER_NO
+                        ,ORDER_G_SEQ
+                        ,ORDER_D_SEQ
+                        ,ORDER_W_SEQ
+                        ,GOODS_CODE
+                        ,GOODSDT_CODE
+                        ,RECEIVER_HP
+                        ,RECEIVER_HP1
+                        ,RECEIVER_HP2
+                        ,RECEIVER_HP3
+                        ,TEL
+                        ,RECEIVER_DDD
+                        ,RECEIVER_TEL1
+                        ,RECEIVER_TEL2
+                  FROM INFLIST
+                  ORDER BY CNT DESC
+            )
+        WHERE ROWNUM = 1
+   </select>
+   
+    <select id="selectSlipChangeProcList" parameterType="String" resultType="HashMap">
+		SELECT PM.PA_ORDER_NO PAY_NO
+			 , PM.PA_ORDER_SEQ CONTR_NO
+			 , SM.SLIP_I_NO
+			 , NVL(GB.PA_DELY_GB_NAME, '기타') AS EXPRESS_NAME
+			 , PM.PA_CODE
+			 , TO_CHAR(SYSDATE, 'YYYY-MM-DD') AS SLIP_PROC_DATE
+			 , NVL(GB.PA_DELY_GB, DECODE(PM.PA_GROUP_CODE , '02', '10032', '10034')) AS PA_DELY_GB
+			 , SM.SLIP_NO AS INVOICE_NO
+			 , PM.PA_GROUP_CODE
+			 , PM.MAPPING_SEQ
+		  FROM TPASLIPINFO PS
+		     , TPAORDERM   PM
+		     , TSLIPM      SM
+		     , TSLIPDT     SD
+		     , TORDERGOODS OG
+			 , TPADELYGB GB
+		 WHERE PS.MAPPING_SEQ   = PM.MAPPING_SEQ
+		   AND PS.PA_GROUP_CODE = PM.PA_GROUP_CODE
+		   AND SM.SLIP_I_NO     = SD.SLIP_I_NO  
+		   AND PM.ORDER_NO      = SD.ORDER_NO    
+		   AND PM.ORDER_G_SEQ   = SD.ORDER_G_SEQ 
+		   AND PM.ORDER_D_SEQ   = SD.ORDER_D_SEQ
+		   AND PM.ORDER_W_SEQ   = SD.ORDER_W_SEQ
+		   AND PM.ORDER_NO      = OG.ORDER_NO
+		   AND SM.DELY_GB       = GB.DELY_GB(+) 
+		   AND GB.PA_CODE(+)    = #{paGroupCode	, jdbcType=VARCHAR} 
+		   AND PM.ORDER_G_SEQ   = OG.ORDER_G_SEQ
+		   AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0 
+		   AND PS.LAST_YN       = '1' 
+		   AND PS.SLIP_NO	   != SM.SLIP_NO 
+		   AND PS.INSERT_DATE   > SYSDATE - 10
+		   AND PM.PA_ORDER_GB   = '10'
+		   AND PM.PA_DO_FLAG    = '40'
+		   AND SM.SLIP_PROC    >= 40
+		   AND SM.SLIP_GB       = '101'
+		   AND SM.SLIP_NO	IS NOT NULL
+		   AND PM.PA_CODE       = #{paCode		, jdbcType=VARCHAR}
+		   AND PM.PA_GROUP_CODE = #{paGroupCode	, jdbcType=VARCHAR}
+		   AND NOT EXISTS (SELECT 'X'
+		   					 FROM TPASLIPINFO PS2 
+		   					WHERE PS.MAPPING_SEQ   = PS2.MAPPING_SEQ
+		   					  AND PS.PA_GROUP_CODE = PS2.PA_GROUP_CODE
+		   					 GROUP BY PS2.MAPPING_SEQ
+		   					 HAVING COUNT(MAPPING_SEQ) > 1)
+    </select> 
+    
+</mapper>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pakakao.settlement">
+    <update id="margePaKakaoSettlementList" parameterType="com.cware.netshopping.domain.model.PaKakaoSettlement">
+        MERGE INTO TPAKAKAOSETTLEMENT PKS
+        USING DUAL 
+        ON (
+               PKS.PAYMENT_ID = #{paymentId, jdbcType=VARCHAR}
+           AND PKS.DELIVERY_AMOUNT_ORIGIN_ID = #{deliveryAmountOriginId, jdbcType=VARCHAR}
+           AND PKS.ID = #{id, jdbcType=VARCHAR}
+           AND PKS.STATUS = #{status, jdbcType=VARCHAR}
+        )
+        WHEN MATCHED THEN
+            UPDATE SET
+                PKS.SETTLE_TYPE                = #{settleType, jdbcType=VARCHAR},
+                PKS.SETTLE_STATE               = CASE WHEN TO_DATE(#{settleConfirmDate, jdbcType=VARCHAR}, 'YYYY-MM-DD') &lt;= TRUNC(SYSDATE) THEN '확정후' ELSE '확정전' END,
+                PKS.SETTLEMENT_CYCLE           = #{settlementCycle, jdbcType=VARCHAR},
+                PKS.SETTLEMENT_DATE            = TO_DATE(#{settlementDate, jdbcType=VARCHAR}, 'YYYY-MM-DD'),
+                PKS.SETTLE_CONFIRM_DATE        = TO_DATE(#{settleConfirmDate, jdbcType=VARCHAR}, 'YYYY-MM-DD'),
+                PKS.CHANNEL                    = #{channel, jdbcType=VARCHAR},
+                PKS.PRODUCT_ID                 = #{productId, jdbcType=VARCHAR},
+                PKS.GOODS_NAME                 = #{goodsName, jdbcType=VARCHAR},
+                PKS.SELLER_NO                  = #{sellerNo, jdbcType=VARCHAR},
+                PKS.SELLER_NAME                = #{sellerName, jdbcType=VARCHAR},
+                PKS.PAYMENT_TYPE               = #{paymentType, jdbcType=VARCHAR},
+                PKS.PRODUCT_PRICE              = #{productPrice, jdbcType=NUMERIC},
+                PKS.TOTAL_SELLER_DISCOUNT      = #{totalSellerDiscount, jdbcType=NUMERIC},
+                PKS.SELLER_DISCOUNT            = #{sellerDiscount, jdbcType=NUMERIC},
+                PKS.SHARE_DISCOUNT             = #{shareDiscount, jdbcType=NUMERIC},
+                PKS.TALKDEAL_DISCOUNT          = #{talkdealDiscount, jdbcType=NUMERIC},
+                PKS.SELLER_DISCOUNT_COUPON     = #{sellerDiscountCoupon, jdbcType=NUMERIC},
+                PKS.AUTH_DISCOUNT              = #{authDiscount, jdbcType=NUMERIC},
+                PKS.SELLER_CART_DISCOUNT_COUPON= #{sellerCartDiscountCoupon, jdbcType=NUMERIC},
+                PKS.SETTLEMENT_FEE             = #{settlementFee, jdbcType=NUMERIC},
+                PKS.PREPAID_FEE                = #{prepaidFee, jdbcType=NUMERIC},
+                PKS.RETURN_PREPAID_FEE         = #{returnPrepaidFee, jdbcType=NUMERIC},
+                PKS.QUANTITY                   = #{quantity, jdbcType=NUMERIC},
+                PKS.TOTAL_FEE_PER              = #{totalFeePer, jdbcType=NUMERIC},
+                PKS.TOTAL_FEE                  = #{totalFee, jdbcType=NUMERIC},
+                PKS.SALES_SETTLE_AMOUNT        = #{salesSettleAmount, jdbcType=NUMERIC},
+                PKS.TOTAL_KAKAO_DISCOUNT       = #{totalKakaoDiscount, jdbcType=NUMERIC},
+                PKS.INSERT_DATE                = SYSDATE
+        WHEN NOT MATCHED THEN
+            INSERT (
+                PAKAKAO_SALES_NO,
+                PA_CODE,
+                PAYMENT_ID,
+                DELIVERY_AMOUNT_ORIGIN_ID,
+                ID,
+                SETTLE_TYPE,
+                STATUS,
+                SETTLE_STATE,
+                SETTLEMENT_CYCLE,
+                SETTLEMENT_DATE,
+                SETTLE_CONFIRM_DATE,
+                CHANNEL,
+                PRODUCT_ID,
+                GOODS_NAME,
+                SELLER_NO,
+                SELLER_NAME,
+                PAYMENT_TYPE,
+                PRODUCT_PRICE,
+                TOTAL_SELLER_DISCOUNT,
+                SELLER_DISCOUNT,
+                SHARE_DISCOUNT,
+                TALKDEAL_DISCOUNT,
+                SELLER_DISCOUNT_COUPON,
+                AUTH_DISCOUNT,
+                SELLER_CART_DISCOUNT_COUPON,
+                SETTLEMENT_FEE,
+                PREPAID_FEE,
+                RETURN_PREPAID_FEE,
+                QUANTITY,
+                TOTAL_FEE_PER,
+                TOTAL_FEE,
+                SALES_SETTLE_AMOUNT,
+                TOTAL_KAKAO_DISCOUNT,
+                INSERT_DATE
+            )
+            VALUES (
+                TO_CHAR(SYSDATE,'YYYYMMDD') || LPAD(SEQ_PAKAKAO_SETTLEMENT_NO.NEXTVAL,6,'0'),
+                #{paCode, jdbcType=VARCHAR},
+                #{paymentId, jdbcType=VARCHAR},
+                #{deliveryAmountOriginId, jdbcType=VARCHAR},
+                #{id, jdbcType=VARCHAR},
+                #{settleType, jdbcType=VARCHAR},
+                #{status, jdbcType=VARCHAR},
+                CASE WHEN TO_DATE(#{settleConfirmDate, jdbcType=VARCHAR}, 'YYYY-MM-DD') &lt;= TRUNC(SYSDATE) THEN '확정후' ELSE '확정전' END,
+                #{settlementCycle, jdbcType=VARCHAR},
+                TO_DATE(#{settlementDate, jdbcType=VARCHAR}, 'YYYY-MM-DD'),
+                TO_DATE(#{settleConfirmDate, jdbcType=VARCHAR}, 'YYYY-MM-DD'),
+                #{channel, jdbcType=VARCHAR},
+                #{productId, jdbcType=VARCHAR},
+                #{goodsName, jdbcType=VARCHAR},
+                #{sellerNo, jdbcType=VARCHAR},
+                #{sellerName, jdbcType=VARCHAR},
+                #{paymentType, jdbcType=VARCHAR},
+                #{productPrice, jdbcType=NUMERIC},
+                #{totalSellerDiscount, jdbcType=NUMERIC},
+                #{sellerDiscount, jdbcType=NUMERIC},
+                #{shareDiscount, jdbcType=NUMERIC},
+                #{talkdealDiscount, jdbcType=NUMERIC},
+                #{sellerDiscountCoupon, jdbcType=NUMERIC},
+                #{authDiscount, jdbcType=NUMERIC},
+                #{sellerCartDiscountCoupon, jdbcType=NUMERIC},
+                #{settlementFee, jdbcType=NUMERIC},
+                #{prepaidFee, jdbcType=NUMERIC},
+                #{returnPrepaidFee, jdbcType=NUMERIC},
+                #{quantity, jdbcType=NUMERIC},
+                #{totalFeePer, jdbcType=NUMERIC},
+                #{totalFee, jdbcType=NUMERIC},
+                #{salesSettleAmount, jdbcType=NUMERIC},
+                #{totalKakaoDiscount, jdbcType=NUMERIC},
+                SYSDATE
+            )
+    </update>
+</mapper>

@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pafaple.cancel">
+	
+    <select id="selectPaFapleCancelListCount" parameterType="com.cware.netshopping.pafaple.domain.PaFapleCancelListVO" resultType="int">
+        SELECT /* pafaplecancel.xml : pafaple.cancel.selectPaFapleCancelListCount by PaFapleCancelController */
+               COUNT(1) AS CNT
+          FROM TPAFAPLECANCELLIST CL
+         WHERE CL.ORDER_ID       = #{orderId, jdbcType=VARCHAR}
+           AND CL.ITEM_ID        = #{itemId, jdbcType=VARCHAR}
+           AND CL.WITHDRAW_YN    = '0'
+           <if test='cancelState == "2"' >
+               AND CL.PROC_FLAG = '10' /* 취소완료 건 */
+           </if>   
+    </select>
+    
+    <select id="countOrderList" parameterType="com.cware.netshopping.pafaple.domain.PaFapleCancelListVO" resultType="int">
+        SELECT /* pafaplecancel.xml : paFaple.Cancel.countOrderList by PaFapleCancelController */
+		       COUNT(1) AS CNT
+		  FROM TPAFAPLEORDERLIST OL
+		     , TPAORDERM PM
+		 WHERE OL.ORDER_ID       = PM.PA_ORDER_NO
+		   AND OL.ITEM_ID		 = PM.PA_ORDER_SEQ
+		   AND PM.PA_ORDER_GB    = '10'
+		   AND PM.CREATE_YN	     = '1'
+		   AND OL.ORDER_ID       = #{orderId, jdbcType=VARCHAR}
+		   AND OL.ITEM_ID 		 = #{itemId, jdbcType=VARCHAR}
+		   and OL.INSERT_DATE &lt; NVL(#{approvalDate, jdbcType=TIMESTAMP}, SYSDATE) 
+	</select>
+    
+    <select id="selectOutBefClaimGb" parameterType="com.cware.netshopping.pafaple.domain.PaFapleCancelListVO" resultType="String">
+        SELECT /* pafaplecancel.xml : pafaple.cancel.selectOutBefClaimGb by PaFapleCancelController */
+               CASE WHEN OD.DO_FLAG &lt; 30 THEN '0'
+                    ELSE '1'
+               END AS OUT_CLAIM_GB
+          FROM TPAORDERM        PM
+             , TORDERDT         OD
+         WHERE PM.PA_ORDER_GB  = '10'
+           AND PM.ORDER_NO     = OD.ORDER_NO
+           AND PM.ORDER_G_SEQ  = OD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ  = OD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ  = OD.ORDER_W_SEQ
+           AND PM.PA_CODE IN ('E1','E2')
+           AND PM.PA_ORDER_NO  = #{orderId, jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ = #{itemId, jdbcType=VARCHAR}
+    </select>
+    
+    <select id="checkCancelExistYn" parameterType="com.cware.netshopping.pafaple.domain.PaFapleCancelListVO" resultType="int">
+        SELECT /* pafaplecancel.xml : pafaple.cancel.checkCancelExistYn by PaFapleCancelController */
+               COUNT(1) AS CNT
+          FROM TPAFAPLECANCELLIST CL
+         WHERE CL.ORDER_ID = #{orderId, jdbcType=VARCHAR}
+           AND CL.ITEM_ID  = #{itemId, jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertTpaFapleCancelList" parameterType="com.cware.netshopping.pafaple.domain.PaFapleCancelListVO">
+        INSERT /* pafaplecancel.xml : pafaple.cancel.insertTpaFapleCancelList by PaFapleCancelController */
+          INTO TPAFAPLECANCELLIST (
+               ORDER_ID
+             , ITEM_ID
+             , PA_ORDER_GB
+             , PROC_FLAG
+             , CANCEL_STATE_NAME
+             , CANCEL_CREATED
+             , REASON_TYPE_NAME
+             , REASON_TYPE
+             , AUTO_CANCEL_DATE
+             , AUTO_CANCEL_EMP_NAME
+             , APPROVAL_DATE
+             , APPROVAL_EMP_NAME
+             , REFUSAL_DATE
+             , REFUSAL_EMP_NAME
+             , WITHDRAW_YN
+             , WITHDRAW_DATE
+             , INSERT_DATE
+             , MODIFY_DATE
+            ) 
+        VALUES(
+              #{orderId             , jdbcType=VARCHAR}
+            , #{itemId              , jdbcType=VARCHAR}
+            , #{paOrderGb           , jdbcType=VARCHAR}
+            , #{procFlag            , jdbcType=VARCHAR}
+            , #{cancelStateName     , jdbcType=VARCHAR}
+            , #{cancelCreated       , jdbcType=TIMESTAMP}
+            , #{reasonTypeName      , jdbcType=VARCHAR}
+            , #{reasonType          , jdbcType=VARCHAR}
+            , #{autoCancelDate      , jdbcType=TIMESTAMP}
+            , #{autoCancelEmpName   , jdbcType=VARCHAR}
+            , #{approvalDate        , jdbcType=TIMESTAMP}
+            , #{approvalEmpName     , jdbcType=VARCHAR}
+            , #{refusalDate         , jdbcType=TIMESTAMP}
+            , #{refusalEmpName      , jdbcType=VARCHAR}
+            , '0'
+            , #{withdrawDate        , jdbcType=TIMESTAMP}
+            , #{insertDate          , jdbcType=TIMESTAMP}
+            , #{insertDate          , jdbcType=TIMESTAMP}
+        )  
+     </insert>
+    
+    <select id="selectPaFsplOrderCancelList" resultType="hashMap">
+       SELECT /* pafaplecancel.xml : pafaple.cancel.selectPaFapleOrderCancelList by PaFapleCancelController */
+              ORDER_ID
+            , ITEM_ID
+            , PA_CODE
+            , PA_PROC_QTY
+            , SLIP_NO
+            , PA_DELY_GB
+            , MAX(DO_FLAG) AS DO_FLAG
+         FROM ( SELECT PAO.ORDER_ID
+                     , PAO.ITEM_ID
+                     , PM.PA_CODE
+                     , PM.PA_PROC_QTY
+                     , SM.SLIP_NO
+                     , (SELECT DG.PA_DELY_GB 
+                          FROM TPADELYGB DG 
+                         WHERE DG.PA_CODE = '14' 
+                           AND SM.DELY_GB = DG.DELY_GB) AS PA_DELY_GB
+                     , CASE WHEN TO_NUMBER(OD.DO_FLAG) > 30 THEN '40'
+                            WHEN TO_NUMBER(OD.DO_FLAG) = 30 THEN '30'
+                            ELSE '20' END AS DO_FLAG
+                  FROM TPAORDERM          PM
+                     , TPAFAPLECANCELLIST PAO
+                     , TORDERDT           OD
+                     , TSLIPM             SM
+                     , TSLIPDT            SD
+                 WHERE PM.PA_ORDER_GB  = '10'
+                   AND PM.PA_ORDER_NO  = PAO.ORDER_ID
+                   AND PM.PA_ORDER_SEQ = PAO.ITEM_ID
+                   AND PM.ORDER_NO     = OD.ORDER_NO
+                   AND PM.ORDER_G_SEQ  = OD.ORDER_G_SEQ
+                   AND PM.ORDER_D_SEQ  = OD.ORDER_D_SEQ
+                   AND PM.ORDER_W_SEQ  = OD.ORDER_W_SEQ
+                   AND PM.ORDER_NO     = SD.ORDER_NO(+)
+                   AND PM.ORDER_G_SEQ  = SD.ORDER_G_SEQ(+)
+                   AND PM.ORDER_D_SEQ  = SD.ORDER_D_SEQ(+)
+                   AND PM.ORDER_W_SEQ  = SD.ORDER_W_SEQ(+)
+                   AND SD.SLIP_I_NO    = SM.SLIP_I_NO(+)
+                   AND PAO.WITHDRAW_YN = '0'
+                   AND PAO.PROC_FLAG   &lt; '10'
+                   AND PM.PA_CODE      IN ('E1','E2')
+                   AND PM.INSERT_DATE  > SYSDATE - 90 <!-- TODO 기간 체크 -->
+              ) GROUP BY ORDER_ID, ITEM_ID, PA_CODE, PA_PROC_QTY, SLIP_NO, PA_DELY_GB
+                ORDER BY SLIP_NO
+    </select>
+    
+    <select id="selectClaimTargetList" parameterType="int" resultType="hashMap">
+       SELECT /* pafapleclaim.xml : pafaple.claim.selectClaimTargetList by PaFapleClaimController */
+              PM.PA_ORDER_NO
+            , PM.PA_CLAIM_NO
+            , PM.PA_SHIP_NO
+            , PM.PA_SHIP_SEQ
+            , PM.PA_ORDER_SEQ
+            , PM.PA_ORDER_GB            
+            , PM.ORDER_NO
+            , PM.PA_CODE
+            , PM.PA_GROUP_CODE
+            , TC.CODE_SNAME AS SITE_GB
+		 FROM TPAORDERM PM
+		    , TCODE TC
+		WHERE TC.CODE_MGROUP   	=  PM.PA_GROUP_CODE
+		  AND PM.PA_CODE 		IN ('E1', 'E2')
+		  AND PM.CREATE_YN 		= '0'
+		  AND PM.PRE_CANCEL_YN 	= '0'
+		  AND TC.CODE_LGROUP   	= 'O500'
+		  AND PM.INSERT_DATE &gt; TRUNC(SYSDATE) - 30
+		  <choose>	  	
+		  	 <when test='paOrderGb =="20"'>
+			  	 AND PM.PA_ORDER_GB  	 = '20'
+			  	 AND PM.OUT_BEF_CLAIM_GB = '0'
+		  	 </when> 
+		  	 <when test='paOrderGb =="30" or paOrderGb == "60"'>
+		  	 	 AND ( (PM.PA_ORDER_GB  = '30' AND (PM.PA_DO_FLAG = '20' OR PM.PA_DO_FLAG = '60') )
+		  	             OR (PM.PA_ORDER_GB = '20' AND PM.OUT_BEF_CLAIM_GB = '1' AND PM.PA_DO_FLAG = '60') )
+		  	 </when>
+		  	 <when test='paOrderGb =="31"'>
+			  	 AND PM.PA_ORDER_GB   	 = '31'
+		  	 </when>
+		  	 <when test='paOrderGb =="40"'>
+			  	 AND PM.PA_ORDER_GB  	 = '40'
+			  	 AND PM.CHANGE_FLAG IN ('01', '02') 
+			  	 AND NOT EXISTS ( SELECT 1 
+		  	 	  				 FROM TPAORDERM RPM
+                             	WHERE RPM.PA_CLAIM_NO   = PM.PA_CLAIM_NO
+		                          AND RPM.PA_ORDER_NO   = PM.PA_ORDER_NO
+		                          AND RPM.PA_ORDER_SEQ  = PM.PA_ORDER_SEQ
+		                          AND RPM.PA_CODE       = PM.PA_CODE
+		                          AND RPM.PA_SHIP_NO    = PM.PA_SHIP_NO
+		                          AND RPM.PA_ORDER_GB   = '46')
+		  	 </when>
+		  	 <when test='paOrderGb =="41"'>
+			  	 AND PM.PA_ORDER_GB  	 = '46'
+			  	 AND NOT EXISTS ( SELECT 1 
+		  	 	  				 FROM TPAORDERM RPM
+                             	WHERE RPM.PA_CLAIM_NO   = PM.PA_CLAIM_NO
+		                          AND RPM.PA_ORDER_NO   = PM.PA_ORDER_NO
+		                          AND RPM.PA_ORDER_SEQ  = PM.PA_ORDER_SEQ
+		                          AND RPM.PA_CODE       = PM.PA_CODE
+		                          AND RPM.PA_SHIP_NO    = PM.PA_SHIP_NO
+		                          AND RPM.PRE_CANCEL_YN  = '1'
+		                          AND RPM.PA_ORDER_GB   = '45')
+		  	 </when>
+		  </choose>
+    </select>
+
+	<select id="selectCancelInputTargetDtList" resultType="hashMap" parameterType="hashMap">	
+	       SELECT /* pafaplecancel.xml : pafaple.cancel.selectCancelInputTargetDtList by PaFapleCancelController */
+	              PM.MAPPING_SEQ
+	            , OPM.ORDER_NO
+	            , OPM.ORDER_G_SEQ
+	            , PM.PA_PROC_QTY
+	            , (SELECT CS_LGROUP || CS_MGROUP || CS_SGROUP
+  					 FROM TPACLAIMCODE 
+ 					WHERE PA_CODE = '14' 
+   					  AND CLAIM_GB = '20' 
+					  AND PA_CLAIM_CODE = PC.REASON_TYPE) AS CANCEL_CODE
+             	, OPM.PRE_CANCEL_YN
+	         FROM TPAORDERM         PM   /*취소건*/
+	            , TPAORDERM         OPM  /*원주문건*/
+	            , TPAFAPLECANCELLIST  PC
+	            , TORDERDT          OD
+            WHERE PM.PA_ORDER_NO 	  = OPM.PA_ORDER_NO
+			  AND PM.PA_ORDER_SEQ 	  = OPM.PA_ORDER_SEQ
+			  AND PM.PA_CODE 		  = OPM.PA_CODE
+			  AND OPM.PA_ORDER_GB 	  = '10'
+			  AND OPM.CREATE_YN 	  = '1'
+			  AND PM.PA_ORDER_GB 	  = '20'
+			  AND PM.CREATE_YN 		  = '0'
+			  AND PM.PRE_CANCEL_YN 	  = '0'
+			  AND PM.OUT_BEF_CLAIM_GB = '0'
+			  AND PM.PA_DO_FLAG 	  = '20'
+			  AND PM.PA_ORDER_NO 	  = PC.ORDER_ID
+			  AND PM.PA_ORDER_SEQ 	  = PC.ITEM_ID
+			  AND OPM.ORDER_NO 		  = OD.ORDER_NO
+			  AND OPM.ORDER_G_SEQ 	  = OD.ORDER_G_SEQ
+			  AND OPM.ORDER_D_SEQ 	  = OD.ORDER_D_SEQ
+			  AND OPM.ORDER_W_SEQ 	  = OD.ORDER_W_SEQ
+			  AND PM.INSERT_DATE &gt; SYSDATE - 5
+			  AND (OPM.CREATE_YN = '1' OR OPM.PRE_CANCEL_YN = '1')
+	          AND OD.DO_FLAG          &lt; '30'
+	          AND PM.PA_CODE          = #{paCode	 , jdbcType=VARCHAR}
+	          AND PM.PA_ORDER_NO      = #{paOrderNo  , jdbcType=VARCHAR}
+	          AND PM.PA_ORDER_SEQ     = #{paOrderSeq , jdbcType=VARCHAR}
+	          AND PM.PA_CLAIM_NO 	  = #{paClaimNo  , jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectCancelOrderDelyGb" parameterType="com.cware.netshopping.pafaple.domain.PaFapleCancelListVO" resultType="String">
+		SELECT GD.DELY_TYPE /* pafaplecancel.xml : pafaple.cancel.selectCancelOrderDelyGb by PaFapleCancelController */
+		  FROM TGOODS GD
+			 , TPAORDERM PM
+			 , TORDERDT OD
+		 WHERE PM.ORDER_NO = OD.ORDER_NO
+		   AND PM.ORDER_G_SEQ = OD.ORDER_G_SEQ
+		   AND PM.ORDER_W_SEQ = OD.ORDER_W_SEQ
+		   AND PM.ORDER_D_SEQ = OD.ORDER_D_SEQ
+		   AND OD.GOODS_CODE = GD.GOODS_CODE
+		   AND PM.PA_ORDER_NO  = #{orderId, jdbcType=VARCHAR}
+		   AND PM.PA_ORDER_SEQ = #{itemId , jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectCancelOrderReasonType"  parameterType="hashMap" resultType="String">
+		SELECT TM.PA_CLAIM_CODE
+		  FROM TPACLAIMCODE TM
+		 WHERE TM.PA_CODE 		= '14'
+		   AND TM.CLAIM_GB 		= #{claimGb  , jdbcType=VARCHAR}
+		   AND TM.PA_CLAIM_NAME = #{paClaimName  , jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectDoflag" parameterType="com.cware.netshopping.pafaple.domain.PaFapleCancelListVO" resultType="String">
+        SELECT /* pafaplecancel.xml : pafaple.cancel.selectDoflag by PaFapleCancelController */
+               DT.DO_FLAG
+          FROM TPAORDERM OM
+             , TORDERDT DT
+         WHERE OM.PA_ORDER_GB  = '10'
+           AND OM.ORDER_NO     = DT.ORDER_NO
+           AND OM.ORDER_G_SEQ  = DT.ORDER_G_SEQ
+           AND OM.ORDER_D_SEQ  = DT.ORDER_D_SEQ
+           AND OM.ORDER_W_SEQ  = DT.ORDER_W_SEQ
+           AND OM.PA_ORDER_NO  = #{orderId	, jdbcType=VARCHAR}
+           AND OM.PA_ORDER_SEQ = #{itemId	, jdbcType=VARCHAR}
+           AND OM.PA_CODE      = #{paCode   , jdbcType=VARCHAR} 
+    </select>
+    
+    <select id="selectClaimQty" parameterType="com.cware.netshopping.pafaple.domain.PaFapleCancelListVO" resultType="Integer">
+        SELECT /* pafaplecancel.xml : pafaple.cancel.selectClaimQty by PaFapleCancelController */
+               QUANTITY
+          FROM TPAFAPLEORDERLIST CL
+         WHERE CL.ORDER_ID       = #{orderId, jdbcType=VARCHAR}
+           AND CL.ITEM_ID        = #{itemId, jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectPaMobileOrderAutoCancelList" resultType="hashMap">	
+	    SELECT /* pafaplecancel.xml : pafaple.cancel.selectPaMobileOrderAutoCancelList by PaFapleCancelController */
+               A.ORDER_NO
+             , A.ORDER_G_SEQ
+             , A.ORDER_DATE
+             , PM.PA_ORDER_NO
+             , PM.PA_ORDER_SEQ
+             , PM.PA_CODE
+             , PM.PA_PROC_QTY
+          FROM TORDERDT A
+               LEFT OUTER JOIN TMOBILEGOODSDELYPLAN B
+                 ON A.ORDER_NO = B.ORDER_NO
+                AND A.ORDER_G_SEQ = B.ORDER_G_SEQ
+                AND A.ORDER_D_SEQ = B.ORDER_D_SEQ
+                AND A.ORDER_W_SEQ = B.ORDER_W_SEQ
+             , TORDERPROC C
+             , TGOODS D
+               LEFT OUTER JOIN TGOODSADDINFO E
+                 ON D.GOODS_CODE = E.GOODS_CODE
+               LEFT OUTER JOIN TLGS_ORDER_CANCEL_EXCEPT_FIX EF
+                 ON D.GOODS_CODE = EF.GOODS_CODE
+               LEFT OUTER JOIN TLGS_ORDER_CANCEL_EXCEPT_PLAN EP
+                 ON D.GOODS_CODE = EP.GOODS_CODE
+                AND TRUNC(SYSDATE) BETWEEN EP.EXCEPT_FROM_DATE AND EP.EXCEPT_TO_DATE
+                AND EP.STATUS = '10'
+             , TENTERPRISE F
+             LEFT OUTER JOIN TMOBILEENTPEXCEPT ME
+                 ON F.ENTP_CODE = ME.ENTP_CODE
+                LEFT OUTER JOIN TLGS_MOBILE_ENTP_EXCEPT_PLAN MP
+                     ON F.ENTP_CODE = MP.ENTP_CODE
+                    AND TRUNC(SYSDATE) BETWEEN MP.EXCEPT_FROM_DATE AND MP.EXCEPT_TO_DATE
+                    AND MP.STATUS = '10'
+             , TMD G
+             , TPAORDERM PM
+             , TPAFAPLEORDERLIST TFL
+         WHERE A.DO_FLAG > '20'
+           AND A.DO_FLAG &lt; '40'
+           AND A.GOODS_CODE = D.GOODS_CODE
+           AND A.ORDER_NO = C.ORDER_NO
+           AND A.ORDER_G_SEQ = C.ORDER_G_SEQ
+           AND A.ORDER_D_SEQ = C.ORDER_D_SEQ
+           AND A.ORDER_W_SEQ = C.ORDER_W_SEQ
+           AND C.DO_FLAG = '25' 
+           AND D.ENTP_CODE = F.ENTP_CODE
+           AND D.MD_CODE = G.MD_CODE
+           AND A.ORDER_NO = PM.ORDER_NO
+           AND A.ORDER_G_SEQ = PM.ORDER_G_SEQ
+           AND A.ORDER_D_SEQ = PM.ORDER_D_SEQ
+           AND A.ORDER_W_SEQ = PM.ORDER_W_SEQ
+           AND TFL.ORDER_ID = PM.PA_ORDER_NO
+           AND TFL.ITEM_ID  = PM.PA_ORDER_SEQ
+           AND PM.PA_CODE IN ('E1','E2')
+           AND PM.PA_ORDER_GB IN ('10', '40')
+           AND PM.REMARK3_N IS NULL
+           AND D.SOURCING_MEDIA = '61'
+           AND E.TV_LIVE_GB = '2'
+           AND NVL(EP.EXCEPT_GB, NVL(EF.EXCEPT_GB, NVL(MP.MOBILE_EXCEPT_GB, NVL(ME.MOBILE_EXCEPT_GB, '1')))) = '1' 
+           AND EXISTS (SELECT 'X'
+                         FROM TENTERPRISE W, TMD E
+                        WHERE D.ENTP_CODE = W.ENTP_CODE
+                          AND W.MD_CODE = E.MD_CODE
+                          AND E.SOURCING_MEDIA = '61')
+           AND D.GIFT_YN = '0'
+           AND D.INSTALL_YN = '0'
+           AND D.INVI_GOODS_TYPE = '00'
+           AND NVL(E.ORDER_CREATE_YN, '0') = '0'
+           AND A.MEDIA_CODE = 'EX16'
+           AND NVL(E.RESERVE_YN, '0') = '0' /*예약상품제외*/
+           AND E.DAWN_YN != '1' /*새벽배송 동원홈푸드 상품제외*/
+           AND NVL(A.APPN_DAY_OUT_YN, '0') != '1' /* 지정일 출고는 당사만 하기때문에 제외 */
+           AND NVL(A.RESERV_ORD_YN, '0')   != '1' /* 예약주문은 당사만 하기때문에 제외 */
+           AND A.ORDER_DATE &lt; TRUNC(SYSDATE) - INTERVAL '2' DAY
+           AND C.PROC_DATE >= TRUNC(ADD_MONTHS(SYSDATE - INTERVAL '2' DAY,-1))
+           AND C.PROC_DATE &lt; TRUNC(SYSDATE) - INTERVAL '2' DAY
+         AND E.GLOBAL_DELY_YN = '0'
+         AND E.EM_MULTI_GOODS_YN = '0'
+           /*현재일이 배송예정일 마감일 당일인 주문 처리
+           AND (CASE
+                 WHEN B.DELY_PLAN_DELAY_DATE IS NOT NULL THEN
+                  TRUNC(B.DELY_PLAN_DELAY_DATE)
+                 ELSE
+              (FUN_GET_DELYDAY_HOLI_DATE_MOB('10',
+                                  TRUNC(C.PROC_DATE),
+                                 '1',
+                                 NVL(ME.BASE_DELY_DAY,3))) END) = TRUNC(SYSDATE)*/
+           /*현재일이 배송예정일 마감일 당일인 주문 처리 or 배송예정일 마감일이 당일 이전인 지난 주문까지 처리 시 사용*/
+           AND (CASE
+                 WHEN B.DELY_PLAN_DELAY_DATE IS NOT NULL THEN
+                  TRUNC(B.DELY_PLAN_DELAY_DATE)
+                 ELSE
+              (FUN_GET_DELYDAY_HOLI_DATE_ENTP('10',
+                                  TRUNC(C.PROC_DATE),
+                                 '1',
+                                 NVL(EP.EXCEPT_DELY_DAY, NVL(EF.EXCEPT_DELY_DAY, NVL(MP.BASE_DELY_DAY, NVL(ME.BASE_DELY_DAY, 3)))),
+                                 D.ENTP_CODE))  END) &lt;= TRUNC(SYSDATE)
+           AND (EXISTS (SELECT 'X'
+                          FROM TMOBILEENTPEXCEPT W
+                         WHERE W.ENTP_CODE = D.ENTP_CODE
+                           AND W.MOBILE_EXCEPT_GB = '1') OR
+                EXISTS (SELECT 'X'
+                          FROM TLGS_MOBILE_ENTP_EXCEPT_PLAN MP
+                         WHERE D.ENTP_CODE = MP.ENTP_CODE
+                           AND TRUNC(SYSDATE) BETWEEN MP.EXCEPT_FROM_DATE AND MP.EXCEPT_TO_DATE
+                           AND MP.STATUS = '10' ) OR
+                EXISTS (SELECT 'X'
+                          FROM TLGS_ORDER_CANCEL_EXCEPT_FIX EF
+                         WHERE EF.GOODS_CODE = D.GOODS_CODE) OR
+                EXISTS (SELECT 'X'
+                          FROM TLGS_ORDER_CANCEL_EXCEPT_PLAN EP
+                         WHERE D.GOODS_CODE = EP.GOODS_CODE
+                           AND TRUNC(SYSDATE) BETWEEN EP.EXCEPT_FROM_DATE AND EP.EXCEPT_TO_DATE
+                           AND EP.STATUS = '10'  ) )
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TCLAIMDT W
+                            WHERE W.ORDER_NO = A.ORDER_NO
+                              AND W.CUST_NO = A.CUST_NO)
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TCANCELDT W
+                            WHERE W.ORDER_NO = A.ORDER_NO
+                              AND W.CUST_NO = A.CUST_NO)  
+         GROUP BY A.ORDER_NO, A.ORDER_G_SEQ, A.ORDER_DATE, PM.PA_ORDER_NO, PM.PA_ORDER_SEQ, PM.PA_CODE, PM.PA_PROC_QTY
+         ORDER BY A.ORDER_DATE ASC
+	</select>
+</mapper>

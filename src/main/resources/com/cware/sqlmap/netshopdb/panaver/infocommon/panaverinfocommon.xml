@@ -1,0 +1,1069 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="panaver.infocommon">
+	<update id="mergeChangeOrderList" parameterType="com.cware.api.panaver.order.seller.SellerServiceStub$ChangedProductOrderInfo">
+      MERGE INTO /* panaver.infocommon.mergeChangeOrderList : panaverinfocommon.xml */
+                 TPANAVERORDERCHANGE T
+           USING DUAL
+              ON (     T.ORDER_ID = #{localOrderID, jdbcType=VARCHAR}
+                   AND T.PRODUCT_ORDER_ID = #{localProductOrderID, jdbcType=VARCHAR}
+                   AND T.LAST_CHANGED_DATE = #{localLastChangedDate, jdbcType=TIMESTAMP, javaType=java.util.GregorianCalendar, typeHandler=com.cware.netshopping.common.typehandler.GregorianCalendarDataTypeHandler}
+                 )
+WHEN NOT MATCHED
+            THEN
+          INSERT ( ORDER_ID
+                 , PRODUCT_ORDER_ID
+                 , LAST_CHANGED_STATUS
+                 , LAST_CHANGED_DATE
+                 , PRODUCT_ORDER_STATUS
+                 , CLAIM_TYPE
+                 , CLAIM_STATUS
+                 , PAYMENT_DATE
+                 , IS_RECEIVER_ADDRESS_CHANGED
+                 , GIFT_RECEIVING_STATUS
+                 , INSERT_DATE
+                 , MODIFY_DATE
+                 )
+          VALUES ( #{localOrderID, jdbcType=VARCHAR}
+                 , #{localProductOrderID, jdbcType=VARCHAR}
+                 , (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O610' AND CODE_NAME = #{localLastChangedStatus, jdbcType=VARCHAR, javaType=com.cware.api.panaver.order.seller.SellerServiceStub$ProductOrderChangeType, typeHandler=com.cware.netshopping.common.typehandler.NaverProductOrderChangeTypeHandler})
+                 , #{localLastChangedDate, jdbcType=TIMESTAMP, javaType=java.util.GregorianCalendar, typeHandler=com.cware.netshopping.common.typehandler.GregorianCalendarDataTypeHandler}
+                 , (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O611' AND CODE_NAME = #{localProductOrderStatus, jdbcType=VARCHAR, javaType=com.cware.api.panaver.order.seller.SellerServiceStub$ProductOrderStatusType, typeHandler=com.cware.netshopping.common.typehandler.NaverProductOrderStatusTypeHandler})
+                 , (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O612' AND CODE_NAME = #{localClaimType, jdbcType=VARCHAR, javaType=com.cware.api.panaver.order.seller.SellerServiceStub$ClaimType, typeHandler=com.cware.netshopping.common.typehandler.NaverClaimTypeHandler})
+                 , DECODE(#{localClaimStatus, jdbcType=VARCHAR, javaType=com.cware.api.panaver.order.seller.SellerServiceStub$ClaimStatusType, typeHandler=com.cware.netshopping.common.typehandler.NaverClaimStatusTypeHandler}, 'COLLECTING', DECODE(#{localClaimType, jdbcType=VARCHAR, javaType=com.cware.api.panaver.order.seller.SellerServiceStub$ClaimType, typeHandler=com.cware.netshopping.common.typehandler.NaverClaimTypeHandler}, 'RETURN', '11', '21')
+                                                                                                                                                                                                                                , 'COLLECT_DONE', DECODE(#{localClaimType, jdbcType=VARCHAR, javaType=com.cware.api.panaver.order.seller.SellerServiceStub$ClaimType, typeHandler=com.cware.netshopping.common.typehandler.NaverClaimTypeHandler}, 'RETURN', '12', '22')
+                                                                                                                                                                                                                                , (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O613' AND CODE_NAME = #{localClaimStatus, jdbcType=VARCHAR, javaType=com.cware.api.panaver.order.seller.SellerServiceStub$ClaimStatusType, typeHandler=com.cware.netshopping.common.typehandler.NaverClaimStatusTypeHandler}))
+                 , #{localPaymentDate, jdbcType=TIMESTAMP, javaType=java.util.GregorianCalendar, typeHandler=com.cware.netshopping.common.typehandler.GregorianCalendarDataTypeHandler}
+                 , #{localIsReceiverAddressChanged, jdbcType=VARCHAR}
+                 , NVL(#{localGiftReceivingStatus, jdbcType=VARCHAR, javaType=com.cware.api.panaver.order.seller.SellerServiceStub$GiftReceivingStatusType, typeHandler=com.cware.netshopping.common.typehandler.NaverGiftReceivingStatusTypeHandler}, 'NOT_APPLICAPABLE')
+                 , SYSDATE
+                 , SYSDATE
+                 )
+    </update>
+    
+    <select id="selectAddressSeq" resultType="string">
+        SELECT /* panaver.infocommon.selectAddressSeq : panaverinfocommon.xml */
+               TO_CHAR(SYSDATE, 'yyyyMMdd') || LPAD(SEQ_PANAVERADDRESS_SEQ.NEXTVAL, 6, '0')
+          FROM DUAL
+    </select>
+    <insert id="insertAddress" parameterType="com.cware.netshopping.domain.PaNaverAddressVO">
+        INSERT INTO /* panaver.infocommon.insertAddress : panaverinfocommon.xml */
+                    TPANAVERADDRESS
+                  ( ADDRESS_SEQ
+                  , ADDRESS_TYPE
+                  , ZIP_CODE
+                  , BASE_ADDRESS
+                  , DETAILED_ADDRESS
+                  , IS_ROAD_NAME_ADDRESS
+                  , CITY
+                  , STATE
+                  , COUNTRY
+                  , TEL1
+                  , TEL2
+                  , NAME
+                  , INSERT_DATE
+                  )
+             VALUES
+                  ( #{addressSeq, jdbcType=VARCHAR}
+                  , #{addressType, jdbcType=VARCHAR}
+                  , #{zipCode, jdbcType=VARCHAR}
+                  , CWARE_ENC_DEC(#{baseAddress, jdbcType=VARCHAR}, 'E')
+                  , CWARE_ENC_DEC(#{detailedAddress, jdbcType=VARCHAR}, 'E')
+                  , #{isRoadNameAddress, jdbcType=VARCHAR}
+                  , #{city, jdbcType=VARCHAR}
+                  , #{state, jdbcType=VARCHAR} 
+                  , #{country, jdbcType=VARCHAR}
+                  , CWARE_ENC_DEC(#{tel1, jdbcType=VARCHAR}, 'E')
+                  , CWARE_ENC_DEC(#{tel2, jdbcType=VARCHAR}, 'E')
+                  , #{name, jdbcType=VARCHAR}
+                  , SYSDATE
+                  )
+    </insert>
+    <update id="updateOrderListAddress" parameterType="hashMap">
+        UPDATE /* panaver.infocommon.updateOrderListAddress : panaverinfocommon.xml */
+               TPANAVERORDERLIST
+           SET 
+               <if test='shippingAddressSeq != null and shippingAddressSeq != ""'>
+               SHIPPING_ADDRESS_SEQ = #{shippingAddressSeq, jdbcType=VARCHAR}
+               </if>
+               <if test='shippingAddressSeq != null and shippingAddressSeq != "" and takingAddressSeq != null and takingAddressSeq != ""'>
+               	,
+               </if>
+               <if test='takingAddressSeq != null and takingAddressSeq != ""'>
+               TAKING_ADDRESS_SEQ = #{takingAddressSeq, jdbcType=VARCHAR}
+               </if>
+         WHERE PRODUCT_ORDER_ID = #{productOrderID, jdbcType=VARCHAR}
+    </update>
+    <update id="updatePaOrdermOrderPlaceQuantity" parameterType="hashMap">
+        UPDATE /* panaver.infocommon.updatePaOrdermOrderPlaceQuantity : panaverinfocommon.xml */
+               TPAORDERM
+           SET PA_PROC_QTY = #{quantity, jdbcType=VARCHAR}
+         WHERE PA_ORDER_GB = '10'
+           AND PA_CODE = '41'
+           AND PA_ORDER_NO = #{orderID, jdbcType=VARCHAR}
+           AND PA_ORDER_SEQ = #{productOrderID, jdbcType=VARCHAR}
+    </update>
+    <update id="updateOrderListOrderID" parameterType="hashMap">
+        UPDATE /* panaver.infocommon.updateOrderListOrderID : panaverinfocommon.xml */
+               TPANAVERORDERLIST
+           SET ORDER_ID = #{orderID, jdbcType=VARCHAR}
+             , PA_ORDER_GB = '10'
+             , MODIFY_DATE = SYSDATE
+         WHERE PRODUCT_ORDER_ID = #{productOrderID, jdbcType=VARCHAR}
+    </update>
+    <select id="selectOrderListCnt" parameterType="string" resultType="int">
+    	SELECT /* panaver.infocommon.selectOrderListCnt : panaverinfocommon.xml */
+    	       COUNT(1)
+    	  FROM TPANAVERORDERLIST T
+    INNER JOIN TPAORDERM O
+            ON T.PRODUCT_ORDER_ID = O.PA_ORDER_SEQ
+           AND T.ORDER_ID = O.PA_ORDER_NO
+    	 WHERE T.PRODUCT_ORDER_ID = #{productOrderID, jdbcType=VARCHAR}
+    	   AND O.PA_CODE = '41'
+    	   AND O.PA_ORDER_GB = '10'
+    	   AND O.CREATE_YN = '1'
+    </select>
+    <select id="selectClaimSeq" resultType="string">
+        SELECT /* panavercancel.xml : panaver.cancel.selectClaimSeq */
+               TO_CHAR(SYSDATE, 'yyyyMMdd') || LPAD(SEQ_PANAVERCLAIMLIST_SEQ.NEXTVAL, 6, '0')
+          FROM DUAL
+    </select>
+    <insert id="insertCancelClaim" parameterType="com.cware.netshopping.domain.PaNaverClaimListVO">
+        INSERT /* panavercancel.xml : panaver.cancel.insertCancelClaim */
+          INTO TPANAVERCLAIMLIST
+             ( CLAIM_SEQ
+             , PRODUCT_ORDER_ID
+             , CLAIM_STATUS
+             , CLAIM_REQUEST_DATE
+             , REQUEST_CHANNEL
+             , CLAIM_REASON
+             , DETAILED_REASON
+             , CANCEL_COMPLETED_DATE
+             , CANCEL_APPROVAL_DATE
+             , REFUND_EXPECTED_DATE
+             , REFUND_STANDBY_STATUS
+             , REFUND_STANDBY_REASON
+             , CLAIM_REASON_CODE
+             , INSERT_DATE
+             , MODIFY_DATE
+             )
+        VALUES
+             ( #{claimSeq, jdbcType=VARCHAR}
+             , #{productOrderID, jdbcType=VARCHAR}
+             , DECODE(#{claimStatus, jdbcType=VARCHAR}, 'COLLECTING', '11'
+                                                      , 'COLLECT_DONE', '12'
+                                                      , (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O613' AND CODE_NAME = #{claimStatus, jdbcType=VARCHAR}))
+             , #{claimRequestDate, jdbcType=TIMESTAMP}
+             , #{requestChannel, jdbcType=VARCHAR}
+             , (SELECT PA_CLAIM_CODE
+                  FROM TCODE
+            INNER JOIN TPACLAIMCODE
+                    ON REMARK = PA_CLAIM_CODE
+                 WHERE CODE_LGROUP = 'O616'
+                   AND PA_CODE = '04'
+                   AND CLAIM_GB = '20'
+                   AND CODE_NAME = #{claimReason, jdbcType=VARCHAR})
+             , #{claimDetailedReason, jdbcType=VARCHAR}
+             , #{cancelCompletedDate, jdbcType=TIMESTAMP}
+             , #{cancelApprovalDate, jdbcType=TIMESTAMP}
+             , #{refundExpectedDate, jdbcType=TIMESTAMP}
+             , #{refundStandbyStatus, jdbcType=VARCHAR}
+             , #{refundStandbyReason, jdbcType=VARCHAR}
+             , (SELECT CC.CS_LGROUP || CC.CS_MGROUP || CC.CS_SGROUP
+                  FROM TCODE T
+            INNER JOIN TPACLAIMCODE CC
+                    ON T.REMARK = CC.PA_CLAIM_CODE
+                 WHERE T.CODE_LGROUP = 'O616'
+                   AND CC.PA_CODE = '04'
+                   AND CC.CLAIM_GB = '20'
+                   AND T.CODE_NAME = #{claimReason, jdbcType=VARCHAR})
+             , SYSDATE
+             , SYSDATE
+             )
+    </insert>
+    <update id="updateOrderListClaimInfo" parameterType="hashMap">
+        UPDATE /* panaver.infocommon.updateOrderListCancelInfo : panaverinfocommon.xml */
+               TPANAVERORDERLIST T
+           SET CLAIM_TYPE = (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O612' AND CODE_NAME = #{claimType, jdbcType=VARCHAR})
+             , CLAIM_STATUS = DECODE(#{claimStatus, jdbcType=VARCHAR}, 'COLLECTING', DECODE(#{claimType, jdbcType=VARCHAR}, 'RETURN', '11', '21')
+                                                                     , 'COLLECT_DONE', DECODE(#{claimType, jdbcType=VARCHAR}, 'RETURN', '12', '22')
+                                                                     , (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O613' AND CODE_NAME = #{claimStatus, jdbcType=VARCHAR}))
+             , CLAIM_SEQ = #{claimSeq, jdbcType=VARCHAR}
+             , CLAIM_ID = #{claimID, jdbcType=VARCHAR}
+             , MODIFY_DATE = SYSDATE
+            <if test='procFlag != "" and procFlag != null '>
+           	 , PROC_FLAG = #{procFlag, jdbcType=VARCHAR}
+           </if> 
+         WHERE PRODUCT_ORDER_ID = #{productOrderID, jdbcType=VARCHAR}
+    </update>
+    <select id="selectCancelWithdrawExists" parameterType="hashMap" resultType="string">
+        SELECT /* panaver.infocommon.selectCancelWithdrawtExists : panaverinfocommon.xml */
+               OT.PRODUCT_ORDER_ID
+          FROM TPANAVERORDERLIST OT
+         WHERE OT.ORDER_ID = #{orderID, jdbcType=VARCHAR}
+           AND OT.PRODUCT_ORDER_ID = #{productOrderID, jdbcType=VARCHAR}
+           AND OT.CLAIM_ID = #{claimID, jdbcType=VARCHAR}
+           AND OT.CLAIM_STATUS = '03' /* CANCEL_REJECT */
+    </select>
+    <update id="updateOrderListReturnInfo" parameterType="com.cware.api.panaver.order.seller.SellerServiceStub$ReturnInfo">
+        
+    </update>
+    <insert id="insertExchangeClaim" parameterType="com.cware.netshopping.domain.PaNaverClaimListVO">
+    	INSERT /* panavercancel.xml : panaver.cancel.insertExchangeClaim */
+          INTO TPANAVERCLAIMLIST
+             ( CLAIM_SEQ
+             , PRODUCT_ORDER_ID
+             , CLAIM_STATUS
+             , CLAIM_REQUEST_DATE
+             , REQUEST_CHANNEL
+             , CLAIM_REASON
+             , DETAILED_REASON
+             , HOLDBACK_STATUS
+             , HOLDBACK_REASON
+             , HOLDBACK_DETAILED_REASON
+             , COLLECT_STATUS
+             , COLLECT_DELIVERY_METHOD
+             , COLLECT_DELIVERY_COMPANY
+             , COLLECT_TRACKING_NUMBER
+             , COLLECT_COMPLETED_DATE
+             , RE_DELIVERY_STATUS
+             , RE_DELIVERY_METHOD
+             , RE_DELIVERY_COMPANY
+             , RE_DELIVERY_TRACKING_NUMBER
+             , DELIVERY_FEE_DEMAND_AMOUNT
+             , DELIVERY_FEE_PAY_METHOD
+             , DELIVERY_FEE_PAY_MEANS
+             , ETC_FEE_DEMAND_AMOUNT
+             , ETC_FEE_PAY_METHOD
+             , ETC_FEE_PAY_MEANS
+             , HOLDBACK_CONFIG_DATE
+             , HOLDBACK_CONFIGURER
+             , HOLDBACK_RELEASE_DATE
+             , HOLDBACK_RELEASER
+             , RE_DELIVERY_OPERATION_DATE
+             , DELIVERY_FEE_PRODUCT_ORDER_IDS
+             , DELIVERY_FEE_DISCOUNT_AMOUNT
+             , CLAIM_REASON_CODE
+             , INSERT_DATE
+             , MODIFY_DATE
+             )
+        VALUES
+             ( #{claimSeq, jdbcType=VARCHAR}
+             , #{productOrderID, jdbcType=VARCHAR}
+             , DECODE(#{claimStatus, jdbcType=VARCHAR}, 'COLLECTING', '21'
+                                                      , 'COLLECT_DONE', '22'
+                                                      , (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O613' AND CODE_NAME = #{claimStatus, jdbcType=VARCHAR}))
+             , #{claimRequestDate, jdbcType=TIMESTAMP}
+             , #{requestChannel, jdbcType=VARCHAR}
+             , (SELECT CE.PA_CLAIM_CODE
+                  FROM TCODE T
+            INNER JOIN TPACLAIMCODE CE
+                    ON T.REMARK1 = CE.PA_CLAIM_CODE
+                 WHERE T.CODE_LGROUP = 'O616'
+                   AND CE.PA_CODE = '04'
+                   AND CE.CLAIM_GB = '40'
+                   AND T.CODE_NAME = #{claimReason, jdbcType=VARCHAR})
+             , #{claimDetailedReason, jdbcType=VARCHAR}
+             , (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O614' AND CODE_NAME = #{holdbackStatus, jdbcType=VARCHAR})
+             , (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O615' AND CODE_NAME = #{holdbackReason, jdbcType=VARCHAR})
+             , #{holdbackDetailedReason, jdbcType=VARCHAR}
+             , #{collectStatus, jdbcType=VARCHAR}
+             , (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O624' AND CODE_NAME = #{collectDeliveryMethod, jdbcType=VARCHAR})
+             , (SELECT DELY_GB FROM TPADELYGB WHERE PA_CODE = '04' AND PA_DELY_GB = #{collectDeliveryCompany, jdbcType=VARCHAR})
+             , #{collectTrackingNumber, jdbcType=VARCHAR}
+             , #{collectCompletedDate, jdbcType=TIMESTAMP}
+             , #{reDeliveryStatus, jdbcType=VARCHAR}
+             , (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O624' AND CODE_NAME = #{reDeliveryMethod, jdbcType=VARCHAR})
+             , #{reDeliveryCompany, jdbcType=VARCHAR}
+             , #{reDeliveryTrackingNumber, jdbcType=VARCHAR}
+             , #{deliveryFeeDemandAmount, jdbcType=NUMERIC}
+             , #{deliveryFeePayMethod, jdbcType=VARCHAR}
+             , #{deliveryFeePayMeans, jdbcType=VARCHAR}
+             , #{etcFeeDemandAmount, jdbcType=NUMERIC}
+             , #{etcFeePayMethod, jdbcType=VARCHAR}
+             , #{etcFeePayMeans, jdbcType=VARCHAR}
+             , #{holdbackConfigDate, jdbcType=TIMESTAMP}
+             , #{holdbackConfigurer, jdbcType=VARCHAR}
+             , #{holdbackReleaseDate, jdbcType=TIMESTAMP}
+             , #{holdbackReleaser, jdbcType=VARCHAR}
+             , #{reDeliveryOperationDate, jdbcType=TIMESTAMP}
+             , #{deliveryFeeProductOrderIds, jdbcType=VARCHAR}
+             , #{deliveryFeeDiscountAmount, jdbcType=NUMERIC}
+             , (SELECT CE.CS_LGROUP || CE.CS_MGROUP || CE.CS_SGROUP
+                  FROM TCODE T
+            INNER JOIN TPACLAIMCODE CE
+                    ON T.REMARK1 = CE.PA_CLAIM_CODE
+                 WHERE T.CODE_LGROUP = 'O616'
+                   AND CE.PA_CODE = '04'
+                   AND CE.CLAIM_GB = '40'
+                   AND T.CODE_NAME = #{claimReason, jdbcType=VARCHAR})
+             , SYSDATE
+             , SYSDATE
+             )
+    </insert>
+    <insert id="insertReturnClaim" parameterType="com.cware.netshopping.domain.PaNaverClaimListVO">
+        INSERT /* panavercancel.xml : panaver.cancel.insertReturnClaim */
+          INTO TPANAVERCLAIMLIST
+             ( CLAIM_SEQ
+             , PRODUCT_ORDER_ID
+             , CLAIM_STATUS
+             , CLAIM_REQUEST_DATE
+             , REQUEST_CHANNEL
+             , CLAIM_REASON
+             , DETAILED_REASON
+             , HOLDBACK_STATUS
+             , HOLDBACK_REASON
+             , HOLDBACK_DETAILED_REASON
+             , COLLECT_STATUS
+             , COLLECT_DELIVERY_METHOD
+             , COLLECT_DELIVERY_COMPANY
+             , COLLECT_TRACKING_NUMBER
+             , COLLECT_COMPLETED_DATE
+             , DELIVERY_FEE_DEMAND_AMOUNT
+             , DELIVERY_FEE_PAY_METHOD
+             , DELIVERY_FEE_PAY_MEANS
+             , ETC_FEE_DEMAND_AMOUNT
+             , ETC_FEE_PAY_METHOD
+             , ETC_FEE_PAY_MEANS
+             , REFUND_STANDBY_STATUS
+             , REFUND_STANDBY_REASON
+             , REFUND_EXPECTED_DATE
+             , RETURN_COMPLETED_DATE
+             , HOLDBACK_CONFIG_DATE
+             , HOLDBACK_CONFIGURER
+             , HOLDBACK_RELEASE_DATE
+             , HOLDBACK_RELEASER
+             , DELIVERY_FEE_PRODUCT_ORDER_IDS
+             , DELIVERY_FEE_DISCOUNT_AMOUNT
+             , CLAIM_REASON_CODE
+             , INSERT_DATE
+             , MODIFY_DATE
+             )
+        VALUES
+             ( #{claimSeq, jdbcType=VARCHAR}
+             , #{productOrderID, jdbcType=VARCHAR}
+             , DECODE(#{claimStatus, jdbcType=VARCHAR}, 'COLLECTING', '11'
+                                                      , 'COLLECT_DONE', '12'
+                                                      , (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O613' AND CODE_NAME = #{claimStatus, jdbcType=VARCHAR}))
+             , #{claimRequestDate, jdbcType=TIMESTAMP}
+             , #{requestChannel, jdbcType=VARCHAR}
+             , (SELECT CR.PA_CLAIM_CODE
+                  FROM TCODE T
+            INNER JOIN TPACLAIMCODE CR
+                    ON T.REMARK1 = CR.PA_CLAIM_CODE
+                 WHERE T.CODE_LGROUP = 'O616'
+                   AND CR.PA_CODE = '04'
+                   AND CR.CLAIM_GB = '30'
+                   AND T.CODE_NAME = #{claimReason, jdbcType=VARCHAR})
+             , #{claimDetailedReason, jdbcType=VARCHAR}
+             , (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O614' AND CODE_NAME = #{holdbackStatus, jdbcType=VARCHAR})
+             , (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O615' AND CODE_NAME = #{holdbackReason, jdbcType=VARCHAR})
+             , #{holdbackDetailedReason, jdbcType=VARCHAR}
+             , #{collectStatus, jdbcType=VARCHAR}
+             , (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O624' AND CODE_NAME = #{collectDeliveryMethod, jdbcType=VARCHAR})
+             , NVL((SELECT DELY_GB FROM TPADELYGB WHERE PA_CODE = '04' AND PA_DELY_GB = #{collectDeliveryCompany, jdbcType=VARCHAR}), '99')
+             , #{collectTrackingNumber, jdbcType=VARCHAR}
+             , #{collectCompletedDate, jdbcType=TIMESTAMP}
+             , #{deliveryFeeDemandAmount, jdbcType=NUMERIC}
+             , #{deliveryFeePayMethod, jdbcType=VARCHAR}
+             , #{deliveryFeePayMeans, jdbcType=VARCHAR}
+             , #{etcFeeDemandAmount, jdbcType=NUMERIC}
+             , #{etcFeePayMethod, jdbcType=VARCHAR}
+             , #{etcFeePayMeans, jdbcType=VARCHAR}
+             , #{refundStandbyStatus, jdbcType=VARCHAR}
+             , #{refundStandbyReason, jdbcType=VARCHAR}
+             , #{refundExpectedDate, jdbcType=TIMESTAMP}
+             , #{returnCompletedDate, jdbcType=TIMESTAMP}
+             , #{holdbackConfigDate, jdbcType=TIMESTAMP}
+             , #{holdbackConfigurer, jdbcType=VARCHAR}
+             , #{holdbackReleaseDate, jdbcType=TIMESTAMP}
+             , #{holdbackReleaser, jdbcType=VARCHAR}
+             , #{deliveryFeeProductOrderIds, jdbcType=VARCHAR}
+             , #{deliveryFeeDiscountAmount, jdbcType=NUMERIC}
+             , (SELECT CR.CS_LGROUP || CR.CS_MGROUP || CR.CS_SGROUP
+                  FROM TCODE T
+            INNER JOIN TPACLAIMCODE CR
+                    ON T.REMARK1 = CR.PA_CLAIM_CODE
+                 WHERE T.CODE_LGROUP = 'O616'
+                   AND CR.PA_CODE = '04'
+                   AND CR.CLAIM_GB = '30'
+                   AND T.CODE_NAME = #{claimReason, jdbcType=VARCHAR})
+             , SYSDATE
+             , SYSDATE
+             )
+    </insert>
+    <update id="updateOrderListExchangeInfo" parameterType="com.cware.api.panaver.order.seller.SellerServiceStub$ExchangeInfo">
+    	
+    </update>
+    <update id="updateOrderListDecisionHoldbackInfo" parameterType="com.cware.api.panaver.order.seller.SellerServiceStub$DecisionHoldbackInfo">
+        
+    </update>
+    <select id="selectOrderdtDoFlag" parameterType="hashMap" resultType="String">
+        SELECT /* panaverinfocommon.xml : panaver.infocommon.selectOrderdtDoFlag */
+               OD.DO_FLAG
+          FROM TPAORDERM PM
+             , TORDERDT OD
+         WHERE PM.ORDER_NO      = OD.ORDER_NO
+           AND PM.ORDER_G_SEQ   = OD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ   = OD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ   = OD.ORDER_W_SEQ
+           AND PM.PA_CODE       = '41'
+           AND PM.PA_ORDER_GB   = '10'
+           AND PM.PA_ORDER_NO   = #{orderID,      jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ  = #{productOrderID,  jdbcType=VARCHAR}
+    </select>
+    <select id="selectCancelDoneInfo" parameterType="String" resultType="hashMap">
+        SELECT /* panaverinfocommon.xml : panaver.infocommon.selectCancelDoneInfo */
+               NO.PROC_FLAG
+             , NO.QUANTITY
+             , DECODE(CC.PA_CLAIM_CODE, '99', CC.PA_CLAIM_NAME || ' : ' || NC.DETAILED_REASON
+                                            , CC.PA_CLAIM_NAME) AS CANCEL_REASON 
+          FROM TPANAVERORDERLIST NO
+    INNER JOIN TPANAVERCLAIMLIST NC
+            ON NO.CLAIM_SEQ = NC.CLAIM_SEQ
+    INNER JOIN TPACLAIMCODE CC
+            ON NC.CLAIM_REASON = CC.PA_CLAIM_CODE
+         WHERE NO.CLAIM_STATUS = '02' /* CANCEL_DONE */
+           AND NO.PRODUCT_ORDER_ID = #{productOrderID, jdbcType=VARCHAR}
+           AND CC.CLAIM_GB = '20'
+           AND CC.PA_CODE = '04'
+           AND EXISTS ( SELECT 1 
+	                      FROM TPAORDERM T 
+	                     WHERE T.PA_ORDER_SEQ = NO.PRODUCT_ORDER_ID 
+	                       AND T.PA_CLAIM_NO = NO.CLAIM_ID 
+	                       AND T.PA_ORDER_GB = '20'
+	                       AND T.PRE_CANCEL_YN = '0')
+    </select>
+    <select id="selectPaOrderMCancelCnt" parameterType="com.cware.netshopping.domain.model.Paorderm" resultType="int">
+       SELECT /* panaverinfocommon.xml : panaver.infocommon.selectPaOrderMCancelCnt */
+              COUNT(1)
+        FROM TPAORDERM PM
+       WHERE PM.PA_ORDER_GB = '20'
+         AND PM.PA_ORDER_NO  = #{paOrderNo, jdbcType=VARCHAR}
+         AND PM.PA_ORDER_SEQ = #{paOrderSeq, jdbcType=VARCHAR}
+    </select>
+    <select id="selectCancelDoneClaim" parameterType="string" resultType="string">
+    	SELECT /* panaverinfocommon.xml : panaver.infocommon.selectCancelDoneClaim */
+    	       CLAIM_SEQ
+    	  FROM TPANAVERCLAIMLIST
+    	 WHERE PRODUCT_ORDER_ID = #{productOrderID, jdbcType=VARCHAR}
+    	   AND CLAIM_STATUS = '02' /* CANCEL_DONE */
+    	   AND CANCEL_COMPLETED_DATE != #{cancelCompletedDate, jdbcType=TIMESTAMP, javaType=java.util.GregorianCalendar, typeHandler=com.cware.netshopping.common.typehandler.GregorianCalendarDataTypeHandler}
+    </select>
+    <select id="selectOrdCancelList" parameterType="string" resultType="hashMap">
+        SELECT /* panaverinfocommon.xml : panaver.infocommon.selectOrdCancelList */
+               PM.PA_ORDER_NO
+             , PM.PA_ORDER_SEQ
+             , OD.DO_FLAG
+             , PT.CLAIM_ID AS ORD_PRD_CN_SEQ
+             , PM.MAPPING_SEQ
+             , PM.PA_CODE
+             , PM.PA_SHIP_NO AS DLV_NO
+             , PT.QUANTITY AS ORD_CN_QTY
+             , SM.SLIP_NO
+             , TO_CHAR(PT.PLACE_ORDER_DATE,'YYYYMMDDHH24MISS') AS CREATE_DT
+             , PG.PA_DELY_GB
+             , PM.ORDER_NO
+             , PM.ORDER_G_SEQ
+             , PM.ORDER_D_SEQ
+             , PM.ORDER_W_SEQ
+             , OD.GOODS_GB
+             , SM.SLIP_I_NO
+             , OD.GOODS_CODE
+             , OD.GOODSDT_CODE
+             , PT.CLAIM_TYPE
+             , PT.CLAIM_STATUS
+             , SM.DELY_GB
+          FROM TPAORDERM PM
+    INNER JOIN TPANAVERORDERLIST PT
+            ON PM.PA_ORDER_NO = PT.ORDER_ID
+           AND PM.PA_ORDER_SEQ = PT.PRODUCT_ORDER_ID
+    INNER JOIN TPANAVERORDERCHANGE PC
+            ON PT.PRODUCT_ORDER_ID = PC.PRODUCT_ORDER_ID
+    INNER JOIN TORDERDT OD
+            ON PM.ORDER_NO = OD.ORDER_NO
+           AND PM.ORDER_G_SEQ = OD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ = OD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ = OD.ORDER_W_SEQ
+     LEFT JOIN TSLIPDT SD
+            ON PM.ORDER_NO = SD.ORDER_NO
+           AND PM.ORDER_G_SEQ = SD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ = SD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ = SD.ORDER_W_SEQ
+     LEFT JOIN TSLIPM SM
+            ON SD.SLIP_I_NO = SM.SLIP_I_NO
+     LEFT JOIN TPADELYGB PG
+            ON SM.DELY_GB = PG.DELY_GB
+           AND PG.PA_CODE = '04'
+         WHERE PC.LAST_CHANGED_STATUS = '20'
+           AND PC.PRODUCT_ORDER_STATUS = '10'
+           AND PC.CLAIM_TYPE = '00'
+           AND PM.PA_ORDER_GB = '10'
+           AND PC.CLAIM_STATUS = '00'
+           AND PM.PA_CODE = '41'
+           AND PM.INSERT_DATE > SYSDATE - 15
+           AND PT.PRODUCT_ORDER_ID = #{productOrderID, jdbcType=VARCHAR}
+    </select>
+    <update id="updateProcFlag" parameterType="hashMap">
+    	UPDATE /* panaverinfocommon.xml : panaver.infocommon.updateProcFlag */
+    	       TPANAVERORDERLIST
+    	   SET PROC_FLAG = #{procFlag, jdbcType=VARCHAR}
+    	     , MODIFY_DATE = SYSDATE
+    	 WHERE PRODUCT_ORDER_ID = #{productOrderID, jdbcType=VARCHAR}
+    	   AND PROC_FLAG != #{procFlag, jdbcType=VARCHAR}
+    </update>
+    <select id="selectCancelRefusalExists" parameterType="string" resultType="int">
+        SELECT /* panaverinfocommon.xml : panaver.infocommon.selectCancelRefusalExists */
+               COUNT(1) AS CNT
+          FROM TPAORDERM OT
+         WHERE PA_ORDER_NO = #{orderID, jdbcType=VARCHAR}
+           AND PA_CODE     = '41'
+           AND PA_ORDER_GB = '10'
+           AND PA_DO_FLAG  = '30'
+    </select>
+    <select id="selectExchangeCollectDoFlag" parameterType="hashMap" resultType="string">
+        SELECT /* panaverinfocommon.xml : panaver.infocommon.selectExchangeCollectDoFlag */
+               PM.PA_DO_FLAG
+          FROM TPAORDERM PM
+         WHERE PM.PA_ORDER_SEQ = #{productOrderID, jdbcType=VARCHAR}
+           AND PM.PA_CLAIM_NO = #{claimID, jdbcType=VARCHAR}
+           AND PM.PA_ORDER_GB = '45'
+           AND PM.CREATE_YN = '0'
+           AND PM.PRE_CANCEL_YN = '0'
+    </select>
+    <select id="selectReturnCollectDoFlag" parameterType="hashMap" resultType="string">
+        SELECT /* panaverinfocommon.xml : panaver.infocommon.selectReturnCollectDoFlag */
+               PM.PA_DO_FLAG
+          FROM TPAORDERM PM
+         WHERE PM.PA_ORDER_SEQ = #{productOrderID, jdbcType=VARCHAR}
+           AND PM.PA_CLAIM_NO = #{claimID, jdbcType=VARCHAR}
+           AND PM.PA_ORDER_GB = '30'
+           AND NOT EXISTS ( SELECT 1 
+           					  FROM TPAORDERM A 
+           					 WHERE A.PA_CLAIM_NO = PM.PA_CLAIM_NO 
+           					   AND A.PA_ORDER_SEQ = PM.PA_ORDER_SEQ 
+           					   AND A.PA_ORDER_GB = '31' )
+    </select>
+    <select id="checkExistingClaim" parameterType="hashMap" resultType="int">
+    	SELECT /* panaverinfocommon.xml : panaver.infocommon.selectExistingClaim */
+    	       COUNT(NO.ORDER_ID)
+    	  FROM TPANAVERORDERLIST NO
+    INNER JOIN TPANAVERCLAIMLIST NC
+            ON NO.CLAIM_SEQ = NC.CLAIM_SEQ
+         WHERE NO.PRODUCT_ORDER_ID = #{productOrderID, jdbcType=VARCHAR}
+    	   AND NC.CLAIM_REQUEST_DATE &lt; SYSDATE
+    	   <if test='checkSameClaimType == "false"'>
+    	   AND NO.CLAIM_STATUS &lt; (CASE (SELECT CODE_MGROUP
+                                             FROM TCODE
+                                            WHERE CODE_LGROUP = 'O612'
+                                              AND CODE_NAME = #{claimType, jdbcType=VARCHAR})
+                                     WHEN '10' THEN '22'
+                                     WHEN '20' THEN '12' END) 
+           AND NO.CLAIM_STATUS &gt;= (CASE (SELECT CODE_MGROUP
+                                             FROM TCODE
+                                            WHERE CODE_LGROUP = 'O612'
+                                              AND CODE_NAME = #{claimType, jdbcType=VARCHAR})
+                                     WHEN '10' THEN '20'
+                                     WHEN '20' THEN '10' END) 
+    	   </if>
+    	   <if test='checkSameClaimType == "true"'>
+           AND NO.CLAIM_STATUS &lt; (CASE (SELECT CODE_MGROUP
+                                             FROM TCODE
+                                            WHERE CODE_LGROUP = 'O612'
+                                              AND CODE_NAME = #{claimType, jdbcType=VARCHAR})
+                                     WHEN '00' THEN '02'
+                                     WHEN '10' THEN '12'
+                                     WHEN '20' THEN '22' END)
+           AND NO.CLAIM_STATUS &gt;= (CASE (SELECT CODE_MGROUP
+                                             FROM TCODE
+                                            WHERE CODE_LGROUP = 'O612'
+                                              AND CODE_NAME = #{claimType, jdbcType=VARCHAR})
+                                     WHEN '00' THEN '00'
+                                     WHEN '10' THEN '10'
+                                     WHEN '20' THEN '20' END)
+           </if>
+    </select>
+    <select id="selectOrderInputTargetList" resultType="hashMap">
+        SELECT /* panaverinfocommon.xml : panaver.infocommon.selectOrderInputTargetList */
+               POM.PA_ORDER_NO
+          FROM TPAORDERM POM
+         WHERE POM.PA_CODE = '41'
+           AND POM.PA_ORDER_GB = '10'
+           AND POM.CREATE_YN = '0'
+           AND POM.PRE_CANCEL_YN = '0'
+           AND POM.INSERT_DATE > TRUNC(SYSDATE) - 2
+         GROUP BY POM.PA_ORDER_NO
+    </select>
+    <select id="selectCancelInputTargetList" resultType="hashMap">
+        SELECT /* panaverinfocommon.xml : panaver.infocommon.selectCancelInputTargetList */
+               POM.PA_ORDER_NO
+             , POM.PA_ORDER_SEQ
+             , POM.PA_SHIP_NO
+             , POM.PA_CLAIM_NO
+          FROM TPAORDERM POM
+         WHERE POM.PA_CODE = '41'
+           AND POM.PA_ORDER_GB = '20'
+           AND POM.CREATE_YN = '0'
+           AND POM.PRE_CANCEL_YN = '0'
+           AND POM.OUT_BEF_CLAIM_GB = '0'
+           AND POM.INSERT_DATE > TRUNC(SYSDATE) - 2
+    </select>
+    <select id="selectOrderClaimTargetList" resultType="hashMap">
+        SELECT /* panaverinfocommon.xml : panaver.infocommon.selectOrderClaimTargetList */
+              PM.PA_ORDER_NO
+            , PM.PA_ORDER_SEQ
+            , PM.PA_CLAIM_NO
+            , PM.PA_ORDER_GB
+          FROM TPAORDERM PM
+         WHERE PM.PA_CODE = '41'
+           AND (PM.PA_ORDER_GB = '30' OR (PM.PA_ORDER_GB = '20' AND PM.OUT_BEF_CLAIM_GB = '1'))
+           AND PM.CREATE_YN = '0'
+           AND PM.PRE_CANCEL_YN = '0'
+           AND PM.INSERT_DATE > TRUNC(SYSDATE) - 2
+    </select>
+    <select id="selectClaimCancelTargetList" resultType="hashMap">
+        SELECT /* panaverinfocommon.xml : panaver.infocommon.selectClaimCancelTargetList */
+               POM.PA_ORDER_NO
+             , POM.PA_ORDER_SEQ
+             , POM.PA_CLAIM_NO
+             , POM.PA_CODE
+          FROM TPAORDERM POM
+         WHERE POM.PA_CODE = '41'
+           AND POM.PA_ORDER_GB = '31'
+           AND POM.CREATE_YN = '0'
+           AND POM.PRE_CANCEL_YN = '0'
+           AND POM.INSERT_DATE > TRUNC(SYSDATE) - 2
+    </select>
+    <select id="selectOrderChangeTargetList" resultType="hashMap">
+        SELECT /* panaverinfocommon.xml : panaver.infocommon.selectOrderChangeTargetList */
+               DISTINCT POM.PA_ORDER_NO
+             , POM.PA_ORDER_SEQ
+             , POM.PA_SHIP_NO
+             , POM.PA_CLAIM_NO
+          FROM TPAORDERM POM
+         WHERE POM.PA_CODE = '41'
+           AND POM.PA_ORDER_GB = '40'
+           AND POM.CREATE_YN = '0'
+           AND POM.PRE_CANCEL_YN = '0'
+           AND POM.OUT_BEF_CLAIM_GB = '0'
+           AND POM.CHANGE_FLAG IN ('01', '02')
+           AND POM.MODIFY_DATE > TRUNC(SYSDATE) - 2
+    </select>
+    <select id="selectChangeCancelTargetList" resultType="hashMap">
+        SELECT /* panaverinfocommon.xml : panaver.infocommon.selectChangeCancelTargetList */
+               DISTINCT POM.PA_ORDER_NO
+             , POM.PA_ORDER_SEQ
+             , POM.PA_SHIP_NO
+             , POM.PA_CLAIM_NO
+          FROM TPAORDERM POM
+         WHERE POM.PA_CODE = '41'
+           AND POM.PA_ORDER_GB = '46'
+           AND POM.CREATE_YN = '0'
+           AND POM.PRE_CANCEL_YN = '0'
+           AND POM.OUT_BEF_CLAIM_GB = '0'
+           AND POM.INSERT_DATE > TRUNC(SYSDATE) - 2
+    </select>
+    <select id="selectRecentReturnClaimID" parameterType="string" resultType="string">
+    	SELECT /* panaverinfocommon.xml : panaver.infocommon.selectRecentReturnClaimID */
+    	       X.PA_CLAIM_NO AS CLAIM_ID
+    	 FROM (SELECT T.PA_CLAIM_NO
+    	            , ROWNUM
+    	         FROM TPAORDERM T
+    	        WHERE T.PA_ORDER_SEQ = #{productOrderID, jdbcType=VARCHAR}
+    	          AND T.PA_ORDER_GB = '30'
+    	     ORDER BY T.INSERT_DATE DESC) X
+    	WHERE ROWNUM = 1
+    </select>
+    <select id="selectRecentExchangeClaimID" parameterType="string" resultType="string">
+        SELECT /* panaverinfocommon.xml : panaver.infocommon.selectRecentExchangeClaimID */
+               X.PA_CLAIM_NO AS CLAIM_ID
+         FROM (SELECT T.PA_CLAIM_NO
+                    , ROWNUM
+                 FROM TPAORDERM T
+                WHERE T.PA_ORDER_SEQ = #{productOrderID, jdbcType=VARCHAR}
+                  AND T.PA_ORDER_GB = '45'
+             ORDER BY T.INSERT_DATE DESC) X
+        WHERE ROWNUM = 1
+    </select>
+    <update id="updatePaordermClaimID" parameterType="hashMap">
+    	UPDATE /* panaverinfocommon.xml : panaver.infocommon.updatePaordermClaimID */
+    	       TPAORDERM
+    	   SET PA_CLAIM_NO = #{claimID, jdbcType=VARCHAR}
+    	 WHERE PA_ORDER_NO = #{orderID, jdbcType=VARCHAR}
+    	   AND PA_ORDER_SEQ = #{productOrderID, jdbcType=VARCHAR}
+    	   AND PA_ORDER_GB = #{paOrderGb, jdbcType=VARCHAR}
+    	   AND CREATE_YN = '0'
+    	   AND PA_CLAIM_NO != #{claimID, jdbcType=VARCHAR}
+    </update>
+    <select id="selectWaitingPaordermCnt" parameterType="hashMap" resultType="int">
+    	SELECT /* panaverinfocommon.xml : panaver.infocommon.selectWaitingPaordermCnt */
+    	       COUNT(1)
+    	  FROM TPAORDERM
+    	 WHERE PA_ORDER_NO = #{orderID, jdbcType=VARCHAR}
+    	   AND PA_ORDER_SEQ = #{productOrderID, jdbcType=VARCHAR}
+    	   AND PA_CODE = '41'
+    	   AND PA_ORDER_GB = '10'
+    	   AND PA_DO_FLAG = '10'
+    </select>
+    <select id="selectPreOrderInputTargetList" resultType="hashMap"> 
+        SELECT /* panaverinfocommon.xml : panaver.infocommon.selectPreOrderInputTargetList */
+               POM.PA_ORDER_NO
+             , POM.PA_CODE
+             , POM.PA_GROUP_CODE
+             , TC.CODE_SNAME AS SITE_GB
+          FROM TPAORDERM POM, TCODE TC
+         WHERE POM.PA_CODE = '41'
+           AND POM.PA_ORDER_GB   = '10'
+           AND TC.CODE_LGROUP = 'O500'
+           AND TC.CODE_MGROUP = POM.PA_GROUP_CODE
+           AND POM.CREATE_YN     = '0'
+           AND POM.PRE_CANCEL_YN = '0'
+           AND POM.PA_DO_FLAG    = '10'
+           AND PA_GROUP_CODE     = '04' 
+           AND POM.INSERT_DATE   > TRUNC(SYSDATE)-15
+         GROUP BY POM.PA_ORDER_NO, POM.PA_CODE, POM.PA_GROUP_CODE, TC.CODE_SNAME 
+    </select> 
+    
+    <select id="selectPreOrderUpdateTargetList" resultType="hashMap">
+          SELECT /* panaverinfocommon.xml : panaver.infocommon.selectPreOrderUpdateTargetList */
+				 POM.PA_ORDER_NO
+			   , POM.ORDER_NO
+			   , POM.PA_CODE
+			   , POM.PA_GROUP_CODE
+			   , TC.CODE_SNAME AS SITE_GB
+		    FROM TPANAVERORDERLIST OL
+	  INNER JOIN TPAORDERM POM
+		      ON POM.PA_ORDER_NO = OL.ORDER_ID
+			 AND POM.PA_ORDER_SEQ = OL.PRODUCT_ORDER_ID
+	  INNER JOIN TCODE TC
+	   	      ON TC.CODE_MGROUP = POM.PA_GROUP_CODE
+		   WHERE TC.CODE_LGROUP = 'O500'
+			 AND OL.GIFT_RECEIVING_STATUS = 'RECEIVED'
+			 AND OL.CLAIM_TYPE IS NULL
+			 AND POM.PA_CODE = '41'
+			 AND POM.PA_ORDER_GB = '10'
+			 AND POM.CREATE_YN = '1'
+			 AND POM.PRE_CANCEL_YN = '0'
+			 AND POM.INSERT_DATE > TRUNC(SYSDATE) - 15
+			 AND POM.PA_DO_FLAG = '10'
+			 AND POM.PA_GROUP_CODE = '04'
+	    GROUP BY POM.PA_ORDER_NO
+		       , POM.ORDER_NO
+			   , POM.PA_CODE
+			   , POM.PA_GROUP_CODE
+			   , TC.CODE_SNAME
+				          
+	   UNION ALL
+				          
+		  SELECT POM.PA_ORDER_NO
+			   , POM.ORDER_NO
+			   , POM.PA_CODE
+		 	   , POM.PA_GROUP_CODE
+			   , TC.CODE_SNAME AS SITE_GB
+			FROM TPANAVERORDERLIST OL
+	  INNER JOIN TPAORDERM POM
+		      ON POM.PA_ORDER_NO = OL.ORDER_ID
+			 AND POM.PA_ORDER_SEQ = OL.PRODUCT_ORDER_ID
+	  INNER JOIN TCODE TC
+		      ON TC.CODE_MGROUP = POM.PA_GROUP_CODE
+	  INNER JOIN TORDERDT OD
+		      ON POM.ORDER_NO = OD.ORDER_NO
+		   WHERE TC.CODE_LGROUP = 'O500'
+		     AND OD.DO_FLAG = '10'
+		     AND OD.ORDER_GB = '10'
+		     AND OL.CLAIM_TYPE IS NULL
+		     AND POM.PA_CODE = '41'
+		     AND POM.PA_ORDER_GB = '10'
+		     AND POM.CREATE_YN = '1'
+		     AND POM.PRE_CANCEL_YN = '0'
+		     AND POM.INSERT_DATE > TRUNC(SYSDATE) - 15
+		     AND POM.PA_DO_FLAG = '10'
+		     AND POM.PA_GROUP_CODE = '04'
+		GROUP BY POM.PA_ORDER_NO
+		       , POM.ORDER_NO
+		       , POM.PA_CODE
+		       , POM.PA_GROUP_CODE
+		       , TC.CODE_SNAME
+    </select>
+    
+    <select id="selectUnAttendedCount" parameterType="String" resultType="int">
+        SELECT COUNT(1) /* panaverinfocommon.xml : panaver.infocommon.selectUnAttendedCount */
+          FROM(SELECT GM.ORDER_ID, GM.PRODUCT_ORDER_ID  <!-- 전체 주문 -->
+                 FROM TPANAVERORDERLIST GM
+                WHERE GM.ORDER_ID = #{orderID, jdbcType=VARCHAR}
+                   
+                MINUS
+                
+                SELECT GM.ORDER_ID, GM.PRODUCT_ORDER_ID
+		          FROM TPANAVERORDERLIST GM
+		    INNER JOIN TPAORDERM PM
+		            ON GM.PRODUCT_ORDER_ID = PM.PA_ORDER_SEQ
+		           AND GM.ORDER_ID = PM.PA_ORDER_NO
+		    INNER JOIN TORDERDT OD
+		            ON OD.ORDER_NO = PM.ORDER_NO
+		         WHERE GM.ORDER_ID = #{orderID, jdbcType=VARCHAR}
+		           AND PM.PA_ORDER_GB = '10'
+		           AND OD.DO_FLAG = '10'
+		           AND OD.ORDER_GB = '10'
+            
+            	MINUS
+            	
+                SELECT GM.ORDER_ID, GM.PRODUCT_ORDER_ID  <!-- 이미 입금처리가 됬다고 인지된 주문 -->
+                  FROM TPANAVERORDERLIST GM 
+                 WHERE GM.ORDER_ID = #{orderID, jdbcType=VARCHAR}
+                   AND GM.GIFT_RECEIVING_STATUS = 'RECEIVED' 
+                     
+                MINUS
+            
+                SELECT PM.ORDER_ID, PM.PRODUCT_ORDER_ID         <!-- 취소 완료된 주문 -->
+                  FROM TPANAVERORDERLIST PM, TPAORDERM CM
+                 WHERE PM.ORDER_ID = #{orderID, jdbcType=VARCHAR}
+                   AND PM.ORDER_ID = CM.PA_ORDER_NO
+                   AND PM.PRODUCT_ORDER_ID = CM.PA_ORDER_SEQ
+                   AND PM.CLAIM_ID = CM.PA_CLAIM_NO
+                   AND CM.PA_ORDER_GB   = '20'
+                   AND CM.PA_CODE = '41'
+                   AND CM.CREATE_YN = '1'
+                   AND CM.PRE_CANCEL_YN = '0' )   
+    </select>
+    <select id="selectPaOrderShipCost" parameterType="string" resultType="double">
+        SELECT /* panaverinfocommon.xml : panaver.infocommon.selectPaOrderShipCost */
+               MAX(SHP_FEE) AS SHP_FEE
+          FROM (
+                SELECT MAX(OL.DELIVERY_FEE_AMT) SHP_FEE 
+                  FROM TPANAVERORDERLIST OL
+            INNER JOIN TPAORDERM POM
+                    ON POM.PA_ORDER_NO      = OL.ORDER_ID
+                   AND POM.PA_ORDER_SEQ     = OL.PRODUCT_ORDER_ID
+                 WHERE OL.GIFT_RECEIVING_STATUS = 'RECEIVED' 
+                   AND POM.PA_CODE = '41'
+                   AND POM.PA_ORDER_GB   = '10'
+                   AND POM.CREATE_YN     = '1'
+                   AND POM.PRE_CANCEL_YN = '0'
+                   AND POM.PA_DO_FLAG    = '10'
+                   AND POM.PA_ORDER_NO   = #{paOrderNo, jdbcType=VARCHAR}
+                   AND POM.PA_GROUP_CODE = '04'
+                   AND POM.INSERT_DATE   > TRUNC(SYSDATE)-15
+                   AND OL.CLAIM_TYPE IS NULL
+                UNION
+          
+                SELECT 0 FROM DUAL
+        )
+    </select>
+    <select id="selectPaAddrInfo" parameterType="string" resultType="hashMap">
+        SELECT /* panaverinfocommon.xml : panaver.infocommon.selectPaAddrInfo */
+               NVL(CWARE_ENC_DEC(A.TEL1,'D'), CWARE_ENC_DEC(B.TEL1,'D')) AS RECEIVER_TEL
+             , NVL(CWARE_ENC_DEC(A.TEL2,'D'), CWARE_ENC_DEC(B.TEL2,'D') ) AS RECEIVER_HP
+             , A.ZIP_CODE  AS ZIPCODE 
+             , CWARE_ENC_DEC(A.BASE_ADDRESS,'D') || ' ' || CWARE_ENC_DEC(A.DETAILED_ADDRESS,'D') AS RECEIVER_ADDR
+             , CWARE_ENC_DEC(A.BASE_ADDRESS,'D') || ' ' || CWARE_ENC_DEC(A.DETAILED_ADDRESS,'D') AS FULL_RECEIVER_ADDR
+             , CWARE_ENC_DEC(A.BASE_ADDRESS,'D') AS RECEIVER_ADDR1
+             , CWARE_ENC_DEC(A.DETAILED_ADDRESS,'D') AS RECEIVER_ADDR2 
+             , OD.RECEIVER_SEQ AS RECEIVER_SEQ
+             , A.NAME AS RECEIVER_NAME
+         FROM TPANAVERORDERLIST OL
+   INNER JOIN TPANAVERADDRESS A
+           ON OL.SHIPPING_ADDRESS_SEQ = A.ADDRESS_SEQ
+   INNER JOIN TPANAVERADDRESS B
+           ON OL.TAKING_ADDRESS_SEQ = B.ADDRESS_SEQ
+   INNER JOIN TPAORDERM PM
+           ON OL.ORDER_ID        =  PM.PA_ORDER_NO
+          AND OL.PRODUCT_ORDER_ID      =  PM.PA_ORDER_SEQ
+   INNER JOIN TORDERDT OD
+           ON OD.ORDER_NO      = PM.ORDER_NO
+          AND OD.ORDER_G_SEQ   = PM.ORDER_G_SEQ
+          AND OD.ORDER_W_SEQ   = PM.ORDER_W_SEQ
+        WHERE PM.PA_ORDER_GB   = '10'
+          AND PM.CREATE_YN     = '1'
+          AND PM.PRE_CANCEL_YN = '0'
+          AND PM.PA_GROUP_CODE = '04'
+          AND PM.PA_ORDER_NO   = #{paOrderNo, jdbcType=VARCHAR}
+          AND PM.PA_DO_FLAG    = '10'
+          AND OL.GIFT_RECEIVING_STATUS = 'RECEIVED'
+          AND ROWNUM           = '1'      
+    </select>
+    <select id="selectNotTakenPresentList" resultType="hashMap">
+    SELECT /* panaverinfocommon.xml : panaver.infocommon.selectNotTakenPresentList */
+           OL.ORDER_ID
+         , OL.PRODUCT_ORDER_ID
+         , OL.PRODUCT_ID
+         , '선물주문 미수락 건 취소' AS REASON_DETAIL
+         , OM.ORDER_DATE
+         , 0                 AS ADD_SHIPPING_FEE
+         , SYSDATE           AS APPROVE_DATE
+         , SYSDATE           AS COMPLETE_DATE
+         , TO_DATE('2999-12-31 23:59:59','YYYY-MM-DD HH24:MI:SS') AS REQUEST_DATE
+      FROM TPAORDERM PM
+INNER JOIN TPANAVERORDERLIST OL
+        ON PM.PA_ORDER_NO  = OL.ORDER_ID
+       AND PM.PA_ORDER_SEQ = OL.PRODUCT_ORDER_ID
+INNER JOIN TPANAVERORDERM OM
+        ON OL.ORDER_ID = OM.ORDER_ID
+     WHERE PM.CREATE_YN    = '1'
+       AND PM.PRE_CANCEL_YN = '0'
+       AND PM.PA_GROUP_CODE = '04'
+       AND TRUNC(PM.CREATE_DATE) &lt; (SYSDATE) - 4
+       AND PM.PA_DO_FLAG   &lt;= '10'  
+       AND OL.GIFT_RECEIVING_STATUS = 'WAIT_FOR_RECEIVING'
+       AND OL.CLAIM_TYPE IS NULL
+    </select>
+    <update id="updateChangeApplied" parameterType="hashMap">
+    	UPDATE /* panaverinfocommon.xml : panaver.infocommon.updatechangeApplied */
+    	       TPANAVERORDERCHANGE T
+    	   SET T.CHANGE_APPLIED_YN = '1'
+    	 WHERE T.CHANGE_APPLIED_YN = '0'
+    	   AND T.PRODUCT_ORDER_ID = #{productOrderID, jdbcType=VARCHAR}
+    	   AND T.ORDER_ID = #{orderID, jdbcType=VARCHAR}
+    	   AND T.LAST_CHANGED_STATUS = (SELECT CODE_MGROUP
+    	                                  FROM TCODE
+    	                                 WHERE CODE_LGROUP = 'O610'
+    	                                   AND CODE_NAME = #{lastChangedStatus, jdbcType=VARCHAR})
+    	   AND T.LAST_CHANGED_DATE = #{lastChangedDate, jdbcType=TIMESTAMP}
+    </update>
+    <select id="selectExchangeClaimDoneCnt" parameterType="string" resultType="int">
+    	SELECT /* panaverinfocommon.xml : panaver.infocommon.selectExchangeClaimDoneCnt */
+    	       COUNT(1)
+    	  FROM TPANAVERORDERLIST PO
+         WHERE PO.PRODUCT_ORDER_ID = #{productOrderID, jdbcType=VARCHAR}
+           AND PO.CLAIM_TYPE IN ('00', '40', '41')
+           AND EXISTS (SELECT 1
+                         FROM TPANAVERCLAIMLIST NC
+                        WHERE NC.PRODUCT_ORDER_ID = PO.PRODUCT_ORDER_ID
+                          AND NC.CLAIM_STATUS = '24')
+    </select>
+    <select id="selectUnappliedChangedInfo" resultType="hashMap">
+    	SELECT /* panaverinfocommon.xml : panaver.infocommon.selectUnaapliedChangedinfo */
+    	       X.ORDER_ID
+    	     , X.PRODUCT_ORDER_ID
+    	     , X.LAST_CHANGED_STATUS
+    	     , X.ORDER_STATUS
+    	     , X.LAST_CHANGED_DATE
+    	     , X.CHANGE_APPLIED_YN
+    	     , X.RN
+    	  FROM ( SELECT NC.ORDER_ID
+    	              , NC.PRODUCT_ORDER_ID
+    	              , NC.LAST_CHANGED_STATUS
+    	              , DECODE(NC.LAST_CHANGED_STATUS, '00', '7'
+                                                     , '10', '0'
+                                                     , '15', '1'
+                                                     , '20', '2'
+                                                     , '29', '5'
+                                                     , '30', '3'
+                                                     , '39', '6'
+                                                     , '40', '4'
+                                                     , '41', '8'
+                                                     , '9') AS ORDER_STATUS
+            	      , TO_CHAR(NC.LAST_CHANGED_DATE, 'YYYYMMDDHHMISS') AS LAST_CHANGED_DATE
+            	      , NC.CHANGE_APPLIED_YN
+            	      , ROW_NUMBER() OVER (PARTITION BY NC.PRODUCT_ORDER_ID ORDER BY NC.LAST_CHANGED_DATE DESC) AS RN
+    	           FROM TPANAVERORDERCHANGE NC ) X
+          WHERE X.CHANGE_APPLIED_YN = '0'
+            AND X.RN = 1
+    </select>
+    <delete id="deleteUnappliedChangedInfo" parameterType="hashMap">
+    	DELETE /* panaverinfocommon.xml : panaver.infocommon.deleteUnappliedChangedInfo */
+    	  FROM TPANAVERORDERCHANGE
+    	 WHERE ORDER_ID = #{orderID, jdbcType=VARCHAR}
+    	   AND PRODUCT_ORDER_ID = #{productOrderID, jdbcType=VARCHAR}
+    	   AND LAST_CHANGED_STATUS = #{lastChangedStatus, jdbcType=VARCHAR}
+    </delete>
+    <select id="selectClaimShipcostInfo" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* panaverinfocommon.xml : panaver.infocommon.selectClaimShipcostInfo */
+    	       DELIVERY_FEE_DEMAND_AMOUNT
+             , ETC_FEE_DEMAND_AMOUNT
+             , DELIVERY_FEE_DISCOUNT_AMOUNT
+    	  FROM (SELECT ROW_NUMBER() OVER(PARTITION BY PRODUCT_ORDER_ID ORDER BY CLAIM_SEQ DESC) AS RN
+    	             , DELIVERY_FEE_DEMAND_AMOUNT
+    	             , ETC_FEE_DEMAND_AMOUNT
+    	             , DELIVERY_FEE_DISCOUNT_AMOUNT
+            	  FROM TPANAVERCLAIMLIST
+            	 WHERE PRODUCT_ORDER_ID = #{productOrderID, jdbcType=VARCHAR}
+            	   AND CLAIM_STATUS = (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O613' AND CODE_NAME = #{claimStatus, jdbcType=VARCHAR})
+              ORDER BY CLAIM_SEQ DESC) X
+         WHERE RN = 1
+    </select>
+    <select id="selectExistingOngoingReturn" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* panaverinfocommon.xml : panaver.infocommon.selectExistingOngoingReturn */
+    	       OL.CLAIM_SEQ
+    	     , OL.CLAIM_ID
+    	     , CL.DELIVERY_FEE_DEMAND_AMOUNT
+             , CL.ETC_FEE_DEMAND_AMOUNT
+             , CL.DELIVERY_FEE_DISCOUNT_AMOUNT
+    	  FROM TPANAVERORDERLIST OL
+    INNER JOIN TPANAVERCLAIMLIST CL
+            ON OL.CLAIM_SEQ = CL.CLAIM_SEQ
+         WHERE OL.ORDER_ID = #{orderID, jdbcType=VARCHAR}
+    	   AND OL.PRODUCT_ORDER_ID = #{productOrderID, jdbcType=VARCHAR}
+    	   AND OL.CLAIM_TYPE = '10'
+    	   AND OL.CLAIM_STATUS &lt; '13'
+    </select>
+    <select id="selectExistingOngoingExchange" parameterType="hashMap" resultType="hashMap">
+        SELECT /* panaverinfocommon.xml : panaver.infocommon.selectExistingOngoingExchange */
+               OL.CLAIM_SEQ
+             , OL.CLAIM_ID
+             , CL.DELIVERY_FEE_DEMAND_AMOUNT
+             , CL.ETC_FEE_DEMAND_AMOUNT
+             , CL.DELIVERY_FEE_DISCOUNT_AMOUNT
+          FROM TPANAVERORDERLIST OL
+    INNER JOIN TPANAVERCLAIMLIST CL
+            ON OL.CLAIM_SEQ = CL.CLAIM_SEQ
+         WHERE OL.ORDER_ID = #{orderID, jdbcType=VARCHAR}
+           AND OL.PRODUCT_ORDER_ID = #{productOrderID, jdbcType=VARCHAR}
+           AND OL.CLAIM_TYPE = '20'
+           AND OL.CLAIM_STATUS &lt; '25'
+    </select>
+    <select id="selectPreCancelExchangeTarget" parameterType="hashMap" resultType="hashMap">
+        SELECT /* panaverinfocommon.xml : panaver.infocommon.selectPreCancelExchangeTarget */
+               PA_ORDER_NO
+             , PA_ORDER_SEQ
+             , PA_CLAIM_NO
+          FROM TPAORDERM
+         WHERE PA_ORDER_NO = #{orderID, jdbcType=VARCHAR}
+           AND PA_ORDER_SEQ = #{productOrderID, jdbcType=VARCHAR}
+           AND PA_CLAIM_NO = #{claimID, jdbcType=VARCHAR}
+           AND PA_ORDER_GB = '40'
+           AND CREATE_YN = '0'
+           AND PA_CODE = '41'
+    </select>
+    <update id="updatePreCancelExchange" parameterType="hashMap">
+    	UPDATE /* panaverinfocommon.xml : panaver.infocommon.updatePreCancelExchange */
+    	       TPAORDERM
+    	   SET PRE_CANCEL_YN = '1'
+    	 WHERE PRE_CANCEL_YN = '0'
+    	   AND PA_ORDER_NO = #{orderID, jdbcType=VARCHAR}
+    	   AND PA_ORDER_SEQ = #{productOrderID, jdbcType=VARCHAR}
+    	   AND PA_CLAIM_NO = #{claimID, jdbcType=VARCHAR}
+    	   AND (PA_ORDER_GB = '40' OR PA_ORDER_GB = '45')
+    	   AND PA_CODE = '41'
+    </update>
+    <select id="selectUnappliedOrderChange" parameterType="string" resultType="com.cware.netshopping.domain.PaNaverOrderChangeVO">
+        SELECT /* panaverinfocommon.xml : panaver.infocommon.selectUnappliedOrderChange */
+               T.ORDER_ID
+             , T.PRODUCT_ORDER_ID
+             , (SELECT CODE_NAME
+                  FROM TCODE
+                 WHERE CODE_LGROUP = 'O610'
+                   AND CODE_MGROUP = T.LAST_CHANGED_STATUS) AS LAST_CHANGED_STATUS
+             , T.LAST_CHANGED_DATE 
+             , (SELECT CODE_NAME
+                  FROM TCODE
+                 WHERE CODE_LGROUP = 'O611'
+                   AND CODE_MGROUP = T.PRODUCT_ORDER_STATUS) AS PRODUCT_ORDER_STATUS
+             , (SELECT CODE_NAME
+                  FROM TCODE
+                 WHERE CODE_LGROUP = 'O612'
+                   AND CODE_MGROUP = T.CLAIM_TYPE) AS CLAIM_TYPE
+             , (SELECT CODE_NAME
+                  FROM TCODE
+                 WHERE CODE_LGROUP = 'O613'
+                   AND CODE_MGROUP = T.CLAIM_STATUS) AS CLAIM_STATUS
+             , T.PAYMENT_DATE
+             , T.IS_RECEIVER_ADDRESS_CHANGED
+             , DECODE(T.GIFT_RECEIVING_STATUS, 'NOT_APPLICAPABLE', '', T.GIFT_RECEIVING_STATUS) AS GIFT_RECEIVING_STATUS
+          FROM TPANAVERORDERCHANGE T
+         WHERE T.ORDER_ID = #{orderId, jdbcType=VARCHAR}
+           AND T.CHANGE_APPLIED_YN = '0'
+    </select>
+</mapper>

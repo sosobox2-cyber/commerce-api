@@ -1,0 +1,590 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="common.system">
+
+    <resultMap id="codeResultMap" type="com.cware.netshopping.domain.CodeVO" >
+      <result column="CODE_LGROUP" property="codeLgroup" jdbcType="VARCHAR" />
+      <result column="CODE_MGROUP" property="codeMgroup" jdbcType="VARCHAR" />
+      <result column="CODE_MGROUP" property="code" jdbcType="VARCHAR" />
+      <result column="CODE_NAME" property="codeName" jdbcType="VARCHAR" />
+      <result column="CODE_SNAME" property="codeSname" jdbcType="VARCHAR" />
+      <result column="CODE_GROUP" property="codeGroup" jdbcType="VARCHAR" />
+      <result column="REMARK" property="remark" jdbcType="VARCHAR"/>
+      <result column="REMARK1" property="remark1" jdbcType="VARCHAR" />
+      <result column="REMARK2" property="remark2" jdbcType="VARCHAR" />
+      <result column="USE_YN" property="useYn" jdbcType="VARCHAR" />
+      <result column="CONTENT" property="content" jdbcType="VARCHAR" />
+      <result column="INSERT_DATE" property="insertDate" jdbcType="TIMESTAMP" />
+      <result column="INSERT_ID" property="insertId" jdbcType="VARCHAR" />
+      <result column="MODIFY_DATE" property="modifyDate" jdbcType="TIMESTAMP" />
+      <result column="MODIFY_ID" property="modifyId" jdbcType="VARCHAR" />
+    </resultMap>
+    <select id="selectCodeList" parameterType="hashMap" resultMap="codeResultMap">
+        select /* system.xml : common.system.selectCodeList by system */
+                CODE_LGROUP
+              , CODE_MGROUP
+              , CODE_NAME
+              , CODE_SNAME
+              , CODE_GROUP
+              , REMARK
+              , REMARK1
+              , REMARK2
+              , USE_YN
+              , CONTENT
+              , INSERT_DATE
+              , INSERT_ID
+              , MODIFY_DATE
+              , MODIFY_ID
+         from TCODE
+         where rownum = 1
+        order by CODE_LGROUP
+                  , CODE_MGROUP
+    </select>
+
+    <resultMap id="configResultMap" type="com.cware.netshopping.domain.model.Config" >
+      <result column="ITEM" property="item" jdbcType="VARCHAR" />
+      <result column="VAL" property="val" jdbcType="VARCHAR" />
+      <result column="CONTENT" property="content" jdbcType="VARCHAR" />
+      <result column="INSERT_DATE" property="insertDate" jdbcType="VARCHAR" />
+      <result column="INSERT_ID" property="insertId" jdbcType="VARCHAR" />
+    </resultMap>
+    <select id="selectConfigList" parameterType="hashMap" resultMap="configResultMap">
+        SELECT /* system.xml : common.system.selectconfiglist by system */
+                  ITEM
+                , VAL
+                , CONTENT
+                , INSERT_DATE
+                , INSERT_ID
+         FROM TCONFIG
+    </select>
+    
+    <select id="selectConfigCardList" parameterType="hashMap" resultMap="configResultMap">
+        SELECT /* system.xml : common.system.selectConfigCardList by system */
+                  ITEM
+                , VAL
+                , CONTENT
+                , INSERT_DATE
+                , INSERT_ID
+         FROM TCONFIG
+        WHERE ITEM IN ('CARD_SERVER_PORT','CARD_SERVER_ADDR', 'CARD_SITE_CODE', 'CARD_CHARSET')
+    </select>
+
+    <select id="getSysdate" resultType="string">
+        select /* system.xml : common.system.getSysdate by system */
+                TO_CHAR(sysdate, 'YYYY/MM/DD')
+         from DUAL
+    </select>
+    
+    <select id="getRemitDate" resultType="string">
+        select /* system.xml : common.system.getRemitDate by system */
+                TO_CHAR(sysdate-1, 'YYYY-MM-DD')
+         from DUAL
+    </select>
+
+    <select id="getSysdatetime" resultType="string">
+        select /* system.xml : common.system.getSysdate by system */
+                TO_CHAR(sysdate, 'YYYY/MM/DD HH24:MI:SS')
+         from DUAL
+    </select>
+
+    <select id="getDate" resultType="date">
+        select /* system.xml : common.system.getDate by system */
+                sysdate
+         from DUAL
+    </select>
+    
+    <select id="getSysday" resultType="string">
+        SELECT /* system.xml : common.system.getSysday by system */
+                 TO_CHAR(sysdate, 'dy') 
+         FROM DUAL
+    </select>
+
+    <select id="selectSequenceNo" parameterType="hashMap" resultType="string">
+        select /* system.xml : common.system.selectSequenceNo by system */
+        <if test="sequence_type == 'SEQ_GMKT_SHIP_SEQ'">
+            to_char(sysdate, 'YYYYMMDD') || ltrim(to_char(SEQ_GMKT_SHIP_SEQ.NEXTVAL,'00000000'))
+        </if>
+        <if test="sequence_type == 'AS_NO'">
+            to_char(sysdate, 'YYYYMMDD') || ltrim(to_char(SEQ_AS_NO.NEXTVAL,'000000'))
+        </if>
+        <if test="sequence_type == 'ETCIO_NO'">
+            to_char(sysdate, 'YYYYMMDD') || ltrim(to_char(SEQ_ETCIO_NO.NEXTVAL,'0000'))
+        </if>
+        <if test="sequence_type == 'COUPONISSUE_SEQ'">
+            to_char(sysdate, 'YYYYMMDD') || ltrim(to_char(SEQ_COUPONISSUE_SEQ.NEXTVAL,'00000000'))
+        </if>
+        <if test="sequence_type == 'ORDERPROMO_SEQ'">
+            to_char(sysdate, 'YYYYMMDD') || ltrim(to_char(SEQ_ORDERPROMO_SEQ.NEXTVAL,'00000000'))
+        </if>
+        <if test="sequence_type == 'LOTTERYPROMOCUST_SEQ'">
+            to_char(sysdate, 'YYYYMMDD') || ltrim(to_char(SEQ_LOTTERYPROMOCUST_SEQ.NEXTVAL,'00000000'))
+        </if>
+        <if test="sequence_type == 'LOTTERYPRIZE_SEQ'">
+            to_char(sysdate, 'YYYYMMDD') || ltrim(to_char(SEQ_LOTTERYPRIZE_SEQ.NEXTVAL,'00000000'))
+        </if>
+        <if test="sequence_type == 'COUNSEL_SEQ'">
+            to_char(sysdate, 'YYYYMMDD') || ltrim(to_char(SEQ_COUNSEL_SEQ.NEXTVAL,'000000'))
+        </if>
+        <if test="sequence_type == 'SEQ_OB_SEQ'">
+            to_char(sysdate, 'YYYYMMDD') || ltrim(to_char(SEQ_OB_SEQ.NEXTVAL,'0000'))
+        </if>
+        <if test="sequence_type == 'GRADE_CTRL_NO'">
+            to_char(sysdate, 'YYYYMMDD') || ltrim(to_char(SEQ_GRADE_CTRL_NO.NEXTVAL, '0000'))
+        </if>
+        <if test="sequence_type == 'EOUT_QUEST_NO'">
+            to_char(sysdate, 'YYYYMMDD') || ltrim(to_char(SEQ_EOUT_QUEST_NO.NEXTVAL, '0000'))
+        </if>
+        <if test="sequence_type == 'EOUT_NO'">
+            to_char(sysdate, 'YYYYMMDD') || ltrim(to_char(SEQ_EOUT_NO.NEXTVAL, '0000'))
+        </if>
+        <if test="sequence_type == 'PICKING_SEQ'">
+            to_char(sysdate, 'YYYYMMDD') || ltrim(to_char(SEQ_PICKING_SEQ.NEXTVAL, '0000'))
+        </if>
+        <if test="sequence_type == 'BALJU_NO'">
+            to_char(sysdate, 'YYYYMMDD') || ltrim(to_char(SEQ_BALJU_NO.NEXTVAL, '0000'))
+        </if>
+        <if test="sequence_type == 'IN_NO'">
+            to_char(sysdate, 'YYYYMMDD') || ltrim(to_char(SEQ_IN_NO.NEXTVAL, '0000'))
+        </if>
+        <if test="sequence_type == 'UMS_NO'">
+            to_char(sysdate, 'YYYYMMDD') || ltrim(to_char(SEQ_UMS_NO.NEXTVAL, '000000'))
+        </if>
+        <if test="sequence_type == 'RETURN_NO'">
+            to_char(sysdate, 'YYYYMMDD') || ltrim(to_char(SEQ_RETURN_NO.NEXTVAL, '0000'))
+        </if>
+        <if test="sequence_type == 'CTRL_NO'">
+            to_char(sysdate, 'YYYYMMDD') || ltrim(to_char(SEQ_CTRL_NO.NEXTVAL, '0000'))
+        </if>
+        <if test="sequence_type == 'RACK_MOVE_NO'">
+            to_char(sysdate, 'YYYYMMDD') || ltrim(to_char(SEQ_RACK_MOVE_NO.NEXTVAL,'0000'))
+        </if>
+        <if test="sequence_type == 'SEGMENT_CODE'">
+            to_char(sysdate, 'YYYYMMDD') || ltrim(to_char(SEQ_SEGMENT_CODE.NEXTVAL,'0000'))
+        </if>
+        <if test="sequence_type == 'PLAN_CODE'">
+            to_char(sysdate, 'YYYYMM')   || ltrim(to_char(SEQ_PLAN_CODE.NEXTVAL, '0000'))
+        </if>
+        <if test="sequence_type == 'REPAY_NO'">
+            ltrim(to_char(SEQ_REPAY_NO.NEXTVAL, '0000000000'))
+        </if>
+        <if test="sequence_type == 'MEMB_NO'">
+            ltrim(to_char(SEQ_MEMB_NO.NEXTVAL, '00000000'))
+        </if>
+        <if test="sequence_type == 'SLIP_I_NO'">
+            LPAD(SEQ_SLIP_I_NO.NEXTVAL, 14, '0')
+        </if>
+        <if test="sequence_type == 'PRDTN_NO'">
+            LPAD(SEQ_PRDTN_NO.NEXTVAL, 10, '0')
+        </if>
+        <if test="sequence_type == 'PRESENTATION_CODE'">
+            ltrim(to_char(SEQ_PRESENTATION_CODE.NEXTVAL, '0000000000'))
+        </if>
+        <if test="sequence_type == 'CATEGORYURL_CODE'">
+            ltrim(to_char(SEQ_CATEGORYURL_CODE.NEXTVAL, '0000000000'))
+        </if>
+        <if test="sequence_type == 'CMS_NO'">
+            LTRIM(TO_CHAR(SEQ_CMS_NO.NEXTVAL,'000000000000'))
+        </if>
+        <if test="sequence_type == 'LINK_NO'">
+            ltrim(to_char(SEQ_LINK_NO.NEXTVAL, '000000000000'))
+        </if>
+        <if test="sequence_type == 'EVENT_NO'">
+            ltrim(to_char(SEQ_EVENT_NO.NEXTVAL, '0000000000'))
+        </if>
+        <if test="sequence_type == 'APPLY_SEQ'">
+            ltrim(to_char(SEQ_APPLY_SEQ.NEXTVAL, '0000000000'))
+        </if>
+        <if test="sequence_type == 'PLANCLASS_CODE'">
+            ltrim(to_char(SEQ_PLANCLASS_CODE.NEXTVAL, '00000000'))
+        </if>
+        <if test="sequence_type == 'CUST_NO'">
+            ltrim(to_char(sysdate,'yyyymm'))|| ltrim(to_char(
+            <if test='condition_flag == "0"'>
+                SEQ_CUST_NO_EVEN.NEXTVAL
+            </if>
+            <if test='condition_flag == "1"'>
+                SEQ_CUST_NO_ODD.NEXTVAL
+            </if>
+            , '000000'))
+        </if>
+        <if test="sequence_type == 'ORDER_NO'">
+            to_char(sysdate, 'yyyymmdd') || ltrim(to_char(
+            <if test="condition_flag == 'SUN'">
+                SEQ_ORDER_NO_SUN.NEXTVAL
+            </if>
+            <if test="condition_flag == 'MON'">
+                SEQ_ORDER_NO_MON.NEXTVAL
+            </if>
+            <if test="condition_flag == 'TUE'">
+                SEQ_ORDER_NO_TUE.NEXTVAL
+            </if>
+            <if test="condition_flag == 'WED'">
+                SEQ_ORDER_NO_WED.NEXTVAL
+            </if>
+            <if test="condition_flag == 'THU'">
+                SEQ_ORDER_NO_THU.NEXTVAL
+            </if>
+            <if test="condition_flag == 'FRI'">
+                SEQ_ORDER_NO_FRI.NEXTVAL
+            </if>
+            <if test="condition_flag == 'SAT'">
+                SEQ_ORDER_NO_SAT.NEXTVAL
+            </if>
+            ,'000000'))
+        </if>
+        <if test="sequence_type == 'GOODS_SELECT_NO'">
+            to_char(sysdate, 'yyyymmdd') || ltrim(to_char(
+            <if test="condition_flag == 'SUN'">
+                SEQ_GOODS_SELECT_NO_SUN.NEXTVAL
+            </if>
+            <if test="condition_flag == 'MON'">
+                SEQ_GOODS_SELECT_NO_MON.NEXTVAL
+            </if>
+            <if test="condition_flag == 'TUE'">
+                SEQ_GOODS_SELECT_NO_TUE.NEXTVAL
+            </if>
+            <if test="condition_flag == 'WED'">
+                SEQ_GOODS_SELECT_NO_WED.NEXTVAL
+            </if>
+            <if test="condition_flag == 'THU'">
+                SEQ_GOODS_SELECT_NO_THU.NEXTVAL
+            </if>
+            <if test="condition_flag == 'FRI'">
+                SEQ_GOODS_SELECT_NO_FRI.NEXTVAL
+            </if>
+            <if test="condition_flag == 'SAT'">
+                SEQ_GOODS_SELECT_NO_SAT.NEXTVAL
+            </if>
+            ,'00000000'))
+        </if>
+        <if test="sequence_type == 'RECEIPT_NO'">
+            to_char(sysdate, 'yyyymmdd') || ltrim(to_char(
+            <if test="condition_flag == 'SUN'">
+               SEQ_RECEIPT_NO_SUN.NEXTVAL
+            </if>
+            <if test="condition_flag == 'MON'">
+               SEQ_RECEIPT_NO_MON.NEXTVAL
+            </if>
+            <if test="condition_flag == 'TUE'">
+               SEQ_RECEIPT_NO_TUE.NEXTVAL
+            </if>
+            <if test="condition_flag == 'WED'">
+               SEQ_RECEIPT_NO_WED.NEXTVAL
+            </if>
+            <if test="condition_flag == 'THU'">
+               SEQ_RECEIPT_NO_THU.NEXTVAL
+            </if>
+            <if test="condition_flag == 'FRI'">
+               SEQ_RECEIPT_NO_FRI.NEXTVAL
+            </if>
+            <if test="condition_flag == 'SAT'">
+               SEQ_RECEIPT_NO_SAT.NEXTVAL
+            </if>
+            ,'00000000'))
+        </if>
+        <if test="sequence_type == 'SEQ_FRAME_NO'">
+            SEQ_FRAME_NO.NEXTVAL
+        </if>
+        <if test="sequence_type == 'VRS_NO'">
+            TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') || LPAD(SEQ_VRS_NO.NEXTVAL, 6, '0')
+        </if>
+        <if test="sequence_type == 'INIPAYLOG_NO'">
+             SEQ_INIPAYLOG_NO.NEXTVAL
+        </if> 
+        <if test="sequence_type == 'API_TEST_CUST_DI'">
+            ltrim(to_char(SEQ_API_TEST_CUST_DI.NEXTVAL, '000000'))
+        </if>
+        <if test="sequence_type == 'TMOBILEORDERTMP_SEQ'">
+             TMOBILEORDERTMP_SEQ.NEXTVAL
+        </if> 
+        <if test="sequence_type == 'PANAVER_SALES_NO'">
+        	TO_CHAR(SYSDATE,'YYYYMMDD') || LPAD(SEQ_PANAVER_SALES_NO.NEXTVAL,6,'0')
+        </if>
+        <if test="sequence_type == 'PACOPN_SALES_NO'">
+            TO_CHAR(SYSDATE,'YYYYMMDD') || LPAD(SEQ_PACOPN_SALES_NO.NEXTVAL,6,'0')
+        </if>
+        <if test="sequence_type == 'PAWEMP_SALES_NO'">
+        	TO_CHAR(SYSDATE,'YYYYMMDD') || LPAD(SEQ_PAWEMP_SALES_NO.NEXTVAL,6,'0')
+        </if>
+        <if test="sequence_type == 'PAINTP_SETTLEMENT_NO'">
+        	TO_CHAR(SYSDATE,'YYYYMMDD') || LPAD(SEQ_PAINTP_SETTLEMENT_NO.NEXTVAL,6,'0')
+        </if>
+         <if test="sequence_type == 'PASSG_SETTLEMENT_NO'">
+        	TO_CHAR(SYSDATE,'YYYYMMDD') || LPAD(SEQ_PASSG_SETTLEMENT_NO.NEXTVAL,6,'0')
+        </if>
+        <if test="sequence_type == 'DELVSETTLE_NO'">
+        	TO_CHAR(SYSDATE,'YYYYMMDD') || LPAD(SEQ_DELVSETTLE_NO.NEXTVAL,6,'0')
+        </if>
+        <if test="sequence_type == 'PALTON_SETTLEMENT_NO'">
+        	TO_CHAR(SYSDATE,'YYYYMMDD') || LPAD(SEQ_PALTON_SETTLEMENT_NO.NEXTVAL,6,'0')
+        </if>
+        <if test="sequence_type == 'SEQ_MASS_EP'">
+        	TO_CHAR(SYSDATE,'YYYYMMDD') || LPAD(SEQ_MASS_EP.NEXTVAL,6,'0')
+        </if>  
+        <if test="sequence_type == 'PAFAPLE_SETTLEMENT_NO'">
+        	TO_CHAR(SYSDATE,'YYYYMMDD') || LPAD(SEQ_PAFAPLE_SETTLEMENT_NO.NEXTVAL,6,'0')
+        </if>   
+        <if test="sequence_type == 'PAFAPLE_SHIP_SETTLEMENT_NO'">
+        	TO_CHAR(SYSDATE,'YYYYMMDD') || LPAD(SEQ_PAFAPLE_SHIP_SETTLEMENT_NO.NEXTVAL,6,'0')
+        </if>     
+            from dual
+    </select>
+
+    <select id="selectSequenceNoCondition" parameterType="hashMap" resultType="string">
+        select /* system.xml : common.system.selectSequenceNoCondition by system */
+        <if test="sequence_type == 'CUST_NO'">
+            mod(to_char(sysdate, 'MM'),2)
+        </if>
+        <if test="sequence_type == 'ORDER_NO' or sequence_type == 'GOODS_SELECT_NO' or sequence_type == 'RECEIPT_NO'">
+            decode(to_number(to_char(sysdate, 'D')), 1,'SUN', 2,'MON', 3,'TUE', 4,'WED', 5,'THU', 6,'FRI', 7,'SAT')
+        </if>
+            from dual
+    </select>
+
+    <select id="selectMaxNo" databaseId="Oracle" parameterType="hashMap" resultType="string">
+        select /* system.xml : common.system.selectMaxNo by system */
+               /*+ INDEX_DESC( ${tableName} PK_${tableName} ) */ ${columnName}
+            from ${tableName}
+        <trim prefix="WHERE" prefixOverrides="AND">
+            <if test="modQuery != null"> ${modQuery} </if>
+            and rownum = 1
+        </trim>
+    </select>
+
+    <select id="selectSeqNo" databaseId="Oracle" parameterType="hashMap" resultType="string">
+        select /* system.xml : common.system.selectSeqNo by system */
+               /*+ INDEX_DESC( A PK_${table_name}) */ ${column_name} + 1
+            from ${table_name} A
+          where A.${column_name} like to_char(#{arg_date,jdbcType=DATE},'YYYYMMDD')||'%'
+            and ROWNUM = 1
+            <if test="mod_query != null"> ${mod_query} </if>
+    </select>
+
+    <select id="selectSeqNoEmpty" parameterType="hashMap" resultType="string">
+        select /* system.xml : common.system.selectSeqNoEmpty by system */
+               to_char(#{arg_date},'YYYYMMDD') || lpad(to_char('1'), #{seq_format}, '0')
+            from dual
+    </select>
+    
+    <select id="selectSeqNoFormat" parameterType="hashMap" resultType="string">
+        SELECT LTRIM(TO_CHAR(NVL(MAX(TO_NUMBER(${columnName})), 0) + 1, ${format}))  
+          FROM ${tableName} A   
+        <trim prefix="WHERE" prefixOverrides="AND">
+            <if test="modQuery != null"> ${modQuery} </if>
+        </trim> 
+    </select>
+    
+    <insert id="insertApiTracking" parameterType="com.cware.netshopping.domain.model.ApiTracking">
+        INSERT /* system.xml : common.system.insertApiTracking by partner */
+          INTO TAPITRACKING_LOG (
+                 TRACKING_NO 
+               , API_CODE
+               , IP_ADDR
+               , API_TIME
+               , API_RESULT_CODE 
+               , API_RESULT_MSG
+               , INSERT_ID
+               , INSERT_DATE
+               , MODIFY_ID 
+               , MODIFY_DATE 
+               , API_INPUT_PARAM
+               , API_TYPE
+          ) VALUES ( 
+                TO_CHAR(SYSDATE,'YYYYMMDD') || LPAD(SEQ_TRACKING_NO.NEXTVAL,6,'0')
+               , NVL(SUBSTRB(#{apiCode , jdbcType=VARCHAR}, 1, 20), 'apiCodeNull')
+               , SUBSTRB(#{ipAddr , jdbcType=VARCHAR}, 1, 20)
+               , NVL(#{startDate , jdbcType=TIMESTAMP}, SYSDATE)
+               , NVL(SUBSTRB(#{resultCode , jdbcType=VARCHAR}, 1, 5), '500')
+               , SUBSTRB(#{resultMsg , jdbcType=VARCHAR},1, 2000)
+               , SUBSTRB(#{userId , jdbcType=VARCHAR}, 1, 10)  
+               , SYSDATE
+               , SUBSTRB(#{userId , jdbcType=VARCHAR}, 1, 10)
+               , SYSDATE
+               , SUBSTRB(#{prm , jdbcType=VARCHAR},1,4000)
+               , #{apiType , jdbcType=VARCHAR}
+          )
+    </insert>
+    
+    
+    <insert id="insertPaApiTracking" parameterType="com.cware.netshopping.domain.model.PaApiTracking">
+        INSERT /* system.xml : common.system.insertApiTracking by partner */
+          INTO TPAAPITRACKING_LOG (
+                 TRACKING_NO
+               , API_SITE_GB
+               , API_CODE
+               , IP_ADDR
+               , API_TIME
+               , API_RESULT_CODE 
+               , API_RESULT_MSG
+               , INSERT_ID
+               , INSERT_DATE
+               , MODIFY_ID 
+               , MODIFY_DATE 
+               , API_INPUT_PARAM
+               , API_TYPE
+          ) VALUES ( 
+                TO_CHAR(SYSDATE,'YYYYMMDDHH24') || LPAD(SEQ_PA_TRACKING_NO.NEXTVAL,6,'0')
+               , #{siteGb , jdbcType=VARCHAR}
+               , NVL(SUBSTRB(#{apiCode , jdbcType=VARCHAR}, 1, 30), 'NONE')
+               , SUBSTRB(#{ipAddr , jdbcType=VARCHAR}, 1, 20)
+               , NVL(#{startDate , jdbcType=TIMESTAMP}, SYSDATE)
+               , NVL(SUBSTRB(#{resultCode , jdbcType=VARCHAR}, 1, 4), '999')
+               , SUBSTRB(#{resultMsg , jdbcType=VARCHAR},1, 2000)
+               , SUBSTRB(#{userId , jdbcType=VARCHAR}, 1, 10)  
+               , SYSDATE
+               , SUBSTRB(#{userId , jdbcType=VARCHAR}, 1, 10)
+               , SYSDATE
+               , SUBSTRB(#{prm , jdbcType=VARCHAR},1,4000)
+               , #{apiType , jdbcType=VARCHAR}
+          )
+    </insert>
+    
+    <select id="selectSsgApiInfo" parameterType="string" resultType="hashMap">
+        SELECT /* system.xml : common.system.selectSsgApiInfo by ssg */
+               (SELECT REPLACE(REMARK, '{version}', REMARK1) FROM TCODE WHERE CODE_LGROUP = 'B710' AND CODE_MGROUP = #{value}) API_URL
+             , (SELECT CODE_SNAME FROM TCODE WHERE CODE_LGROUP = 'B710' AND CODE_MGROUP = #{value}) INTERNAL_URL
+             , (SELECT REMARK FROM TCODE WHERE CODE_LGROUP = 'B712' AND CODE_MGROUP = 'SSGCOM') API_KEY
+          FROM DUAL
+    </select>
+    
+    <select id="selectPaApiInfo" parameterType="hashMap" resultType="hashMap">
+        SELECT /* system.xml : common.system.selectPaApiInfo by pa */
+               (SELECT REMARK     FROM TCODE WHERE CODE_LGROUP = 'B710' AND CODE_MGROUP = #{apiCode, jdbcType=VARCHAR}) API_URL
+             , (SELECT REMARK1    FROM TCODE WHERE CODE_LGROUP = 'B710' AND CODE_MGROUP = #{apiCode, jdbcType=VARCHAR}) REMARK1
+             , (SELECT REMARK     FROM TCODE WHERE CODE_LGROUP = 'B713' AND CODE_MGROUP = #{onlineCode, jdbcType=VARCHAR}) PA_ONLINE
+             , (SELECT REMARK     FROM TCODE WHERE CODE_LGROUP = 'B713' AND CODE_MGROUP = #{broadCode, jdbcType=VARCHAR}) PA_BROAD
+             , (SELECT CODE_NAME   FROM TCODE WHERE CODE_LGROUP = 'B710' AND CODE_MGROUP = #{apiCode, jdbcType=VARCHAR}) API_NAME   
+             , (SELECT CODE_SNAME FROM TCODE WHERE CODE_LGROUP = 'B710' AND CODE_MGROUP = #{apiCode, jdbcType=VARCHAR}) INTERNAL_URL
+             , (SELECT REMARK1    FROM TCODE WHERE CODE_LGROUP = 'B713' AND CODE_MGROUP = #{broadCode, jdbcType=VARCHAR}) INTP_ENTP_CODE
+             , (SELECT CONTENT    FROM TCODE WHERE CODE_LGROUP = 'B710' AND CODE_MGROUP = #{apiCode, jdbcType=VARCHAR}) INTERNAL_XML_URL
+             , (SELECT REMARK3    FROM TCODE WHERE CODE_LGROUP = 'B710' AND CODE_MGROUP = #{apiCode, jdbcType=VARCHAR}) PA_INTP_BROAD
+             , (SELECT REMARK4    FROM TCODE WHERE CODE_LGROUP = 'B710' AND CODE_MGROUP = #{apiCode, jdbcType=VARCHAR}) PA_INTP_ONLINE          
+        FROM DUAL
+    </select>
+    
+    
+      <select id="selectPaApiInfo4Url" parameterType="String" resultType="hashMap">
+        SELECT /* system.xml : common.system.selectPaApiInfo by pa */
+               (SELECT REMARK FROM TCODE WHERE CODE_LGROUP = 'B710' AND CODE_MGROUP = #{apiCode, jdbcType=VARCHAR}) API_URL
+             , (SELECT REMARK1 FROM TCODE WHERE CODE_LGROUP = 'B710' AND CODE_MGROUP = #{apiCode, jdbcType=VARCHAR}) REMARK1
+             , (SELECT CODE_SNAME FROM TCODE WHERE CODE_LGROUP = 'B710' AND CODE_MGROUP = #{apiCode, jdbcType=VARCHAR}) INTERNAL_URL
+          FROM DUAL
+    </select>
+    
+    <select id="checkCloseHistory" parameterType="String" resultType="String">
+        SELECT /* system.xml : common.system.checkCloseHistory by ssg */
+               PROC_YN
+          FROM TCLOSEHISTORY
+         WHERE CLOSE_DATE = TO_DATE('29991231', 'YYYYMMDD')
+           AND PRG_ID = #{prg_id, jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertCloseHistory" parameterType="String">
+        INSERT INTO TCLOSEHISTORY /* system.xml : common.system.insertCloseHistory by ssg */
+                      (CLOSE_DATE,
+                       PRG_ID,
+                       OK_YN,
+                       PROC_YN,
+                       ERR_CODE,
+                       ERR_TEXT,
+                       INSERT_ID,
+                       INSERT_DATE,
+                       MODIFY_DATE)
+                    VALUES
+                      (TO_DATE('29991231', 'YYYYMMDD'),
+                       #{prg_id, jdbcType=VARCHAR},
+                       '0',
+                       '1',
+                       '',
+                       '',
+                       'SYSTEM',
+                       SYSDATE,
+                       SYSDATE)
+    </insert>
+    
+    <update id="updateCloseHistory" parameterType="HashMap">
+        UPDATE TCLOSEHISTORY /* system.xml : common.system.updateCloseHistory by ssg */
+           SET OK_YN = #{ok_yn, jdbcType=VARCHAR},
+               PROC_YN = #{proc_yn, jdbcType=VARCHAR},
+               MODIFY_DATE = SYSDATE
+         WHERE CLOSE_DATE = TO_DATE('29991231', 'YYYYMMDD')
+           AND PRG_ID = #{prg_id, jdbcType=VARCHAR}
+           <if test="proc_flag == 0">
+           AND PROC_YN = '0'
+           </if>
+    </update>
+    
+    <select id="selectTconfig" parameterType="hashMap" resultType="hashMap">
+       SELECT /* popup.xml : common.system.retrieveVerifyPost by retrieveVerifyPost */
+              A.ITEM
+            , A.VAL
+         FROM TCONFIG A
+        WHERE UPPER(A.ITEM) LIKE UPPER('POST_SERVER%')
+    </select>
+    
+    <select id="selectPaprocCheck" parameterType="hashMap" resultType="int">
+        SELECT  /* goods.xml : common.system.selectPaprocCheck by Goods */
+               COUNT(1)
+          FROM TCODE C
+         WHERE C.CODE_LGROUP = 'V001'
+           AND C.CODE_MGROUP = #{program_id, jdbcType=VARCHAR}
+           AND C.USE_YN      = '1'
+    </select>    
+    <select id="selectCodeRemarkChkForRequestMap" parameterType="String" resultType="String">
+        SELECT /* system.xml : common.system.selectCodeRemarkChkForRequestMap by GMKT */
+               C.REMARK2
+		  FROM TCODE C
+		 WHERE C.CODE_LGROUP = 'B710'
+		   AND C.CODE_MGROUP = #{apiCode, jdbcType=VARCHAR}
+    </select>
+    <insert id="insertPaRequestMap" parameterType="com.cware.netshopping.domain.model.PaRequestMap">
+        INSERT INTO TPAREQUESTMAP_LOG /* system.xml : common.system.insertParequestmap by GMKT */
+		  (PA_CODE,
+		   REQ_API_CODE,
+		   REQ_URL,
+		   REQ_HEADER,
+		   REQUESTMAP,
+		   RESPONSEMAP,
+		   REMARK,
+		   INSERT_DATE)
+		VALUES
+		  (#{paCode, jdbcType=VARCHAR},
+		   #{reqApiCode, jdbcType=VARCHAR},
+		   #{reqUrl, jdbcType=VARCHAR},
+		   #{reqHeader, jdbcType=VARCHAR},
+		   #{requestMap, jdbcType=CLOB},
+		   #{responseMap, jdbcType=CLOB},
+		   #{remark, jdbcType=VARCHAR},
+		   SYSDATE)
+    </insert>
+    <select id="getVal" parameterType="String" resultType="String">
+        SELECT /* system.xml : common.system.getVal by GMKT */
+               C.VAL
+		  FROM TCONFIG C
+		 WHERE C.ITEM = #{item, jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectCloseHistory" parameterType="String" resultType="hashMap">
+        SELECT /* system.xml : common.system.checkCloseHistory */
+               PROC_YN
+             , OK_YN
+             , PRG_ID
+             , TO_CHAR(MODIFY_DATE , 'YYYYMMDDHH24MISS') AS MODIFY_DATE
+             , TO_CHAR(INSERT_DATE , 'YYYYMMDDHH24MISS') AS INSERT_DATE
+             , ERR_CODE
+             , ERR_TEXT 
+          FROM TCLOSEHISTORY
+         WHERE CLOSE_DATE 	= TO_DATE('29991231', 'YYYYMMDD')
+           AND PRG_ID 		= #{prg_id	, jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectTcodeVal" parameterType="hashMap" resultType="String">
+        SELECT /* system.xml : common.system.selectTcodeVal */
+               TC.REMARK
+          FROM TCODE TC
+         WHERE TC.CODE_LGROUP		= #{codeLGroup	, jdbcType=VARCHAR}
+           AND TC.CODE_MGROUP		= #{codeMGroup	, jdbcType=VARCHAR}
+    </select> 
+</mapper>

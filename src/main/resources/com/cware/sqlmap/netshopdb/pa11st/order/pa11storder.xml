@@ -1,0 +1,1366 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pa11st.order">
+    <update id="updatePaOrdermPreCancel" parameterType="hashMap">
+        UPDATE TPAORDERM /* pa11storder.xml : pa11st.order.updatePaOrdermPreCancel by IF_PA11STAPI_03_004 */
+           SET API_RESULT_CODE = #{apiResultCode , jdbcType=VARCHAR}
+             , API_RESULT_MESSAGE = #{apiResultMessage , jdbcType=VARCHAR}
+             <if test='apiResultCode == "0"'>
+             , PRE_CANCEL_YN = '1'
+             , PRE_CANCEL_REASON = #{preCancelReason , jdbcType=VARCHAR}
+             , PROC_DATE = SYSDATE
+             </if>
+         WHERE PA_ORDER_NO  = #{ordNo , jdbcType=VARCHAR}
+           AND PA_ORDER_SEQ = #{ordPrdSeq , jdbcType=VARCHAR}
+           AND PA_CODE = #{paCode , jdbcType=VARCHAR}
+           <choose>
+            <when test="clmReqSeq != '' and clmReqSeq != null">
+            AND PA_CLAIM_NO  = #{clmReqSeq , jdbcType=VARCHAR}
+            AND PA_ORDER_GB  IN ('40','45')
+            </when>
+            <otherwise>
+            AND PA_ORDER_GB = '10'
+            </otherwise>
+           </choose>
+           
+    </update>
+    
+    <insert id="insertCancelPa11stOrderList" parameterType="hashMap" >
+        INSERT INTO TPA11STORDERLIST( /* pa11storder.xml : pa11st.delivery.insertCancelPa11stOrderList by IF_PA11STAPI_03_007 */
+            CREATE_DT
+          , DLV_NO
+          , ORD_CN_DTLS_RSN
+          , ORD_CN_QTY
+          , ORD_CN_MNBD_CD
+          , ORD_CN_RSN_CD
+          , ORD_CN_STAT_CD
+          , ORD_NO
+          , ORD_PRD_CN_SEQ
+          , ORD_PRD_SEQ
+          , PRD_NO
+          , SLCT_PRD_OPT_NM
+          , REFER_SEQ
+          , PA_ORDER_GB
+          , PROC_FLAG
+          , INSERT_DATE
+          , MODIFY_DATE
+          , CANCEL_PROC_ID
+          )
+        VALUES
+          ( 
+              #{createDt , jdbcType=TIMESTAMP}
+            , #{dlvNo , jdbcType=VARCHAR}
+            , #{ordCnDtlsRsn , jdbcType=VARCHAR}
+            , #{ordCnQty , jdbcType=NUMERIC}
+            , #{ordCnMnbdCd , jdbcType=VARCHAR}
+            , #{ordCnRsnCd , jdbcType=VARCHAR}
+            , #{ordCnStatCd , jdbcType=VARCHAR}
+            , #{ordNo , jdbcType=VARCHAR}
+            , #{ordPrdCnSeq , jdbcType=NUMERIC}
+            , #{ordPrdSeq , jdbcType=NUMERIC}
+            , #{prdNo , jdbcType=NUMERIC}
+            , #{slctPrdOptNm , jdbcType=VARCHAR}
+            , #{referSeq , jdbcType=NUMERIC}
+            , #{paOrderGb , jdbcType=VARCHAR}
+            , #{procFlag , jdbcType=VARCHAR}
+            , #{insertDate , jdbcType=TIMESTAMP}
+            , #{modifyDate , jdbcType=TIMESTAMP}
+            , #{cancelProcId , jdbcType=VARCHAR}
+          )
+    </insert>
+    
+    <select id="selectPa11stOrdCancelList" resultType="hashMap">
+        SELECT /* pa11storder.xml : pa11st.order.selectPa11stOrdCancelList by IF_PA11STAPI_03_008 */
+               PM.PA_ORDER_NO
+             , PM.PA_ORDER_SEQ
+             , OD.DO_FLAG
+             , PT.ORD_PRD_CN_SEQ
+             , PM.MAPPING_SEQ
+             , DECODE(TC.CODE_MGROUP,'11','PA_BROAD','12','PA_ONLINE') AS PA_API_KEY
+             , PM.PA_CODE
+             , PT.DLV_NO
+             , PT.ORD_CN_QTY
+             , SM.SLIP_NO
+             , TO_CHAR(PT.CREATE_DT,'YYYYMMDDHH24MISS') AS CREATE_DT
+             , PG.PA_DELY_GB
+             , PM.ORDER_NO
+             , PM.ORDER_G_SEQ
+             , PM.ORDER_D_SEQ
+             , PM.ORDER_W_SEQ
+             , OD.GOODS_GB
+             , SM.SLIP_I_NO
+             , OD.GOODS_CODE
+             , OD.GOODSDT_CODE
+             , PT.PA_ORDER_GB
+             , SM.DELY_GB
+          FROM TPAORDERM PM
+             , TPA11STORDERLIST PT
+             , TORDERDT OD
+             , TSLIPM SM
+             , TSLIPDT SD
+             , TCODE TC
+             , TPADELYGB PG
+         WHERE PM.PA_ORDER_NO  = PT.ORD_NO
+           AND PM.PA_ORDER_SEQ = PT.ORD_PRD_SEQ
+           AND PM.PA_SHIP_NO   = PT.DLV_NO
+           AND PM.ORDER_NO     = OD.ORDER_NO
+           AND PM.ORDER_G_SEQ  = OD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ  = OD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ  = OD.ORDER_W_SEQ
+           AND PM.PA_CODE      = TC.CODE_MGROUP
+           AND PM.ORDER_NO     = SD.ORDER_NO(+)
+           AND PM.ORDER_G_SEQ  = SD.ORDER_G_SEQ(+)
+           AND PM.ORDER_D_SEQ  = SD.ORDER_D_SEQ(+)
+           AND PM.ORDER_W_SEQ  = SD.ORDER_W_SEQ(+)
+           AND SD.SLIP_I_NO    = SM.SLIP_I_NO(+)
+           AND SM.DELY_GB      = PG.DELY_GB(+)
+           AND TC.CODE_LGROUP  = 'O501'
+           AND TC.CODE_GROUP   = '01'
+           AND TC.USE_YN       = '1'
+           AND PT.PA_ORDER_GB  = '20'
+           AND PM.PA_ORDER_GB  = '10'
+           AND PT.WITHDRAW_YN  = '0'
+           AND (PT.PROC_FLAG    &lt; '10' OR PT.PROC_FLAG = '90')
+           AND PM.PA_CODE      IN ('11','12')
+           AND PG.PA_CODE(+)   = '01'
+           AND PM.INSERT_DATE > SYSDATE - 15
+           
+    </select>
+    
+    <update id="updatePa11stOrderListProcFlag" parameterType="hashMap">
+        UPDATE TPA11STORDERLIST /* pa11storder.xml : pa11st.order.updatePa11stOrderListProcFlag by IF_PA11STAPI_03_008 */
+           SET PROC_FLAG      = #{PROC_FLAG , jdbcType=VARCHAR}
+             , MODIFY_DATE    = SYSDATE
+         WHERE ORD_NO         = #{PA_ORDER_NO , jdbcType=VARCHAR}
+           AND ORD_PRD_SEQ    = #{PA_ORDER_SEQ , jdbcType=NUMERIC}
+           AND DLV_NO         = #{DLV_NO , jdbcType=VARCHAR}
+           AND ORD_PRD_CN_SEQ = #{ORD_PRD_CN_SEQ , jdbcType=NUMERIC}
+           AND PA_ORDER_GB    = '20'
+    </update>
+    
+    <select id="selectBusinessDayAccount" parameterType="hashMap" resultType="int">
+        SELECT /* pa11storder.xml : pa11st.order.selectBusinessDayAccount by IF_PA11STAPI_03_008 */
+               TRUNC(TO_NUMBER(SYSDATE - TO_DATE(#{CREATE_DT, jdbcType=VARCHAR},'YYYYMMDDHH24MISS'))*24) - 
+               (FUN_GET_DELYDAY_CNT(#{DELY_GB, jdbcType=VARCHAR},TO_DATE(SUBSTR(#{CREATE_DT, jdbcType=VARCHAR},1,8),'YYYYMMDD'), SYSDATE,'0') * 24)
+               AS BUSINESS_DAY
+          FROM DUAL
+    </select>
+    
+    <update id="updatePaOrdermCancelRefusal" parameterType="hashMap">
+        UPDATE TPAORDERM /* pa11storder.xml : pa11st.order.updatePaOrdermCancelRefusal by IF_PA11STAPI_03_009 */
+           SET PA_DO_FLAG         = #{PA_DO_FLAG , jdbcType=VARCHAR}
+             , PROC_DATE          = SYSDATE
+             , API_RESULT_CODE    = #{API_RESULT_CODE , jdbcType=VARCHAR}
+             , API_RESULT_MESSAGE = #{API_RESULT_MESSAGE , jdbcType=VARCHAR}
+         WHERE PA_ORDER_NO    = #{PA_ORDER_NO , jdbcType=VARCHAR}
+           AND PA_SHIP_NO     = #{DLV_NO , jdbcType=VARCHAR}
+           AND PA_CODE        = #{PA_CODE , jdbcType=VARCHAR}
+           AND PA_ORDER_GB    = '10'
+           AND PA_DO_FLAG     &lt; '40'
+    </update>
+    
+    <update id="updatePa11stOrderListRefusalProcFlag" parameterType="hashMap">
+        UPDATE TPA11STORDERLIST /* pa11storder.xml : pa11st.order.updatePa11stOrderListRefusalProcFlag by IF_PA11STAPI_03_009 */
+           SET PROC_FLAG      = #{PROC_FLAG , jdbcType=VARCHAR}
+             , MODIFY_DATE    = SYSDATE
+         WHERE ORD_NO         = #{PA_ORDER_NO , jdbcType=VARCHAR}
+           AND DLV_NO         = #{DLV_NO , jdbcType=VARCHAR}
+           AND PA_ORDER_GB    = '20'
+           AND (PROC_FLAG    &lt; '10' OR PROC_FLAG = '90')
+    </update>
+    
+    <select id="selectDeliveryReqOutCancelTarget" parameterType="hashMap" resultType="hashMap">
+        SELECT /* pa11storder.xml : pa11st.order.selectDeliveryReqOutCancelTarget by PaClaimController */
+               SD.SLIP_NO
+             , CD.GOODS_CODE
+             , CD.GOODSDT_CODE
+             , SD.DELY_QTY AS DELY_QTY
+             , CD.CLAIM_QTY AS CLAIM_QTY
+             , CD.ORDER_NO
+             , CD.ORDER_G_SEQ
+             , CD.ORDER_D_SEQ
+             , CD.ORDER_W_SEQ
+             , SD.SLIP_I_NO
+             , CD.GOODS_GB
+             , SD.WH_CODE
+             , WH.STOCK_CHECK_YN
+            <!-- , CASE WHEN SD.DIRECT_YN = '0' AND SD.SLIP_PROC = '00' AND SD.GS_IF_PROC = '10' -->
+            , CASE WHEN SD.DIRECT_YN = '0' AND SD.SLIP_PROC = '00'
+                    THEN 'GoodsFlow'
+                    WHEN SD.DIRECT_YN = '1'
+                    THEN 'Direct'
+                    ELSE 'Nomal'
+                END AS DELY_TYPE
+          FROM (SELECT C.ORDER_NO
+                     , C.ORDER_G_SEQ
+                     , C.ORDER_D_SEQ
+                     , MAX(C.ORDER_W_SEQ) AS ORDER_W_SEQ
+                     , C.GOODS_CODE
+                     , C.GOODSDT_CODE
+                     , SUM(C.SYSLAST) AS CLAIM_QTY
+                     , C.GOODS_GB
+                  FROM TCLAIMDT C
+                     , TORDERDT TD
+                 WHERE C.CLAIM_GB = '30'
+                   AND C.DO_FLAG IN('10', '50')
+                   AND C.SYSLAST > 0
+                   AND C.ORDER_NO = TD.ORDER_NO
+                   AND C.ORDER_G_SEQ = TD.ORDER_G_SEQ
+                   AND C.ORDER_D_SEQ = TD.ORDER_D_SEQ
+                   AND C.ORDER_NO    = #{ORDER_NO , jdbcType=VARCHAR}
+                   AND C.ORDER_G_SEQ = #{ORDER_G_SEQ , jdbcType=VARCHAR}
+                   AND C.ORDER_D_SEQ = #{ORDER_D_SEQ , jdbcType=VARCHAR}
+                   AND C.SLIP_NO IS NULL
+                   AND NOT EXISTS ( SELECT '1'
+                                      FROM TORDERPROC OP
+                                     WHERE OP.ORDER_NO    = C.ORDER_NO
+                                       AND OP.ORDER_G_SEQ = C.ORDER_G_SEQ
+                                       AND OP.ORDER_D_SEQ = C.ORDER_D_SEQ
+                                       AND OP.ORDER_W_SEQ = C.ORDER_W_SEQ
+                                       AND OP.DO_FLAG >= '52'
+                                   )
+                 GROUP BY C.ORDER_NO
+                        , C.ORDER_G_SEQ
+                        , C.ORDER_D_SEQ
+                        , C.GOODS_CODE
+                        , C.GOODSDT_CODE
+                        , C.GOODS_GB) CD
+             <![CDATA[
+             , (SELECT MIN(D.SLIP_I_NO) AS SLIP_I_NO
+                     , MAX(SLIP_NO) AS SLIP_NO
+                     , MAX(SLIP_SEQ) AS SLIP_SEQ
+                     , D.ORDER_NO
+                     , D.ORDER_G_SEQ
+                     , D.ORDER_D_SEQ
+                     , SUM(D.DELY_QTY) AS DELY_QTY
+                     , M.WH_CODE AS WH_CODE
+                     , M.DIRECT_YN
+                     , M.SLIP_PROC
+                     <!--, M.GS_IF_PROC-->
+                  FROM TSLIPDT D
+                     , TSLIPM M
+                 WHERE D.SLIP_I_NO   = M.SLIP_I_NO
+                   AND D.ORDER_NO    = #{ORDER_NO , jdbcType=VARCHAR}
+                   AND D.ORDER_G_SEQ = #{ORDER_G_SEQ , jdbcType=VARCHAR}
+                   AND D.ORDER_D_SEQ = #{ORDER_D_SEQ , jdbcType=VARCHAR}
+                   AND M.SLIP_PROC < '40'
+                   AND M.DELY_TYPE = '20'
+                   AND M.REDELY_YN = '0'
+                   AND M.SLIP_FLAG = '1'
+                   AND M.SLIP_GB   < '105'
+                   AND D.DELY_QTY  > 0
+        ]]>
+                 GROUP BY D.ORDER_NO
+                        , D.ORDER_G_SEQ
+                        , D.ORDER_D_SEQ
+                        , M.WH_CODE
+                        , M.DIRECT_YN
+                        , M.SLIP_PROC) SD
+                       <!-- , M.GS_IF_PROC) SD-->
+              , TWAREHOUSE WH
+         WHERE CD.ORDER_NO    = SD.ORDER_NO
+           AND CD.ORDER_G_SEQ = SD.ORDER_G_SEQ
+           AND CD.ORDER_D_SEQ = SD.ORDER_D_SEQ
+           AND SD.WH_CODE     = WH.WH_CODE 
+           AND CD.CLAIM_QTY   = SD.DELY_QTY
+    </select>
+    
+    <update id="updatedirectClaimdt" parameterType="hashMap">
+        UPDATE TCLAIMDT CD /* pa11storder.xml : pa11st.order.updatedirectClaimdt by PaClaimController */
+           SET DO_FLAG        = '60'
+             , LAST_PROC_ID   = #{MODIFY_ID, jdbcType=VARCHAR}
+             , LAST_PROC_DATE = TO_DATE(#{MODIFY_DATE, jdbcType=VARCHAR},'YYYY/MM/DD HH24:MI:SS')
+         WHERE ORDER_NO    = #{ORDER_NO , jdbcType=VARCHAR}
+           AND ORDER_G_SEQ = #{ORDER_G_SEQ , jdbcType=VARCHAR}
+           AND ORDER_D_SEQ = #{ORDER_D_SEQ , jdbcType=VARCHAR}
+           AND CLAIM_GB    = '30'
+           AND DO_FLAG     IN('10','50')    
+           AND SYSLAST     > 0
+           AND CD.SLIP_NO IS NULL
+           AND NOT EXISTS ( SELECT '1'
+                              FROM TORDERPROC OP
+                             WHERE OP.ORDER_NO    = CD.ORDER_NO
+                               AND OP.ORDER_G_SEQ = CD.ORDER_G_SEQ
+                               AND OP.ORDER_D_SEQ = CD.ORDER_D_SEQ
+                               AND OP.ORDER_W_SEQ = CD.ORDER_W_SEQ
+                               AND OP.DO_FLAG >= '52'
+                          )
+    </update>
+    
+    <update id="updateTordergoods" parameterType="hashMap" >
+        UPDATE TORDERGOODS /* pa11storder.xml : pa11st.order.updatedirectClaimdt by PaClaimController */
+           SET RETURN_QTY  = RETURN_QTY + #{CLAIM_QTY, jdbcType=NUMERIC}
+         WHERE ORDER_NO    = #{ORDER_NO, jdbcType=VARCHAR}
+           AND ORDER_G_SEQ = #{ORDER_G_SEQ, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectSlipINoSequence" resultType="String">
+        SELECT /* pa11storder.xml : pa11st.order.selectSlipINoSequence by PaClaimController */
+               LPAD(SEQ_SLIP_I_NO.NEXTVAL, 14, '0')
+          FROM DUAL
+    </select>
+    
+    <insert id="insertCancelSlipm" parameterType="hashMap">
+        INSERT /* pa11storder.xml : pa11st.order.insertCancelSlipm by PaClaimController */
+          INTO TSLIPM (
+               SLIP_I_NO
+             , CUST_NO
+             , RECEIVER_SEQ
+             , WH_CODE
+             , SLIP_NO
+             , SLIP_FLAG
+             , SLIP_GB
+             , DELY_TYPE
+             , SLIP_PROC_ID
+             , DELY_GB
+             , MIXPACK_FLAG
+             , CREATE_SEQ
+             , CREATE_DATE
+             , SLIP_PROC
+             , SLIP_PROC_DATE
+             , OUT_CLOSE_YN
+             , OUT_CLOSE_DATE
+             , DIRECT_YN
+             , V_VOLUME_RESULT
+             , MSG_NOTE
+             , PRINTER_NO)
+             <!--, OUT_BEF_CLAIM_YN) -->
+        SELECT #{NEW_SLIP_I_NO, jdbcType=VARCHAR}
+             , CUST_NO
+             , RECEIVER_SEQ
+             , WH_CODE
+             , SLIP_NO
+             , '2'
+             , '201'
+             , DELY_TYPE
+             , #{LAST_PROC_ID, jdbcType=VARCHAR}
+             , '40'
+             , MIXPACK_FLAG
+             , CREATE_SEQ
+             , TO_DATE(SYSDATE)
+             , '60'
+             , SYSDATE
+             , '1'
+             , TO_DATE(SYSDATE)
+             , DIRECT_YN
+             , V_VOLUME_RESULT
+             , MSG_NOTE
+             , SLIP_I_NO
+             <!--, '1' -->
+          FROM TSLIPM
+         WHERE SLIP_I_NO = #{SLIP_I_NO, jdbcType=VARCHAR}
+    </insert>
+    
+    <insert id="insertClaimSlipdt" parameterType="hashMap">
+        INSERT /* pa11storder.xml : pa11st.order.insertClaimSlipdt by PaClaimController */
+          INTO TSLIPDT (
+               SLIP_I_NO
+             , SLIP_SEQ
+             , GOODS_CODE
+             , GOODSDT_CODE
+             , ORDER_NO
+             , ORDER_G_SEQ
+             , ORDER_D_SEQ
+             , ORDER_W_SEQ
+             , RETURN_QTY
+             , RETURN_QC_CODE
+             , DELY_AMT
+             , GOODS_TYPE
+             , DELY_QTY
+             , DELY_NET
+             , DELY_VAT
+             , BUY_PRICE)
+             <!--, SALE_PRICE)-->
+        SELECT #{NEW_SLIP_I_NO, jdbcType=VARCHAR}
+             , LPAD(ROWNUM, 3, '0')
+             , D.GOODS_CODE
+             , D.GOODSDT_CODE
+             , D.ORDER_NO
+             , D.ORDER_G_SEQ
+             , D.ORDER_D_SEQ
+             , D.ORDER_W_SEQ 
+             , D.SYSLAST 
+             , #{RETURN_QC_CODE, jdbcType=VARCHAR}
+             , D.SYSLAST_AMT
+             , DECODE(G.GIFT_YN, '1', '30', DECODE(D.GOODS_GB, '20', '20', '10'))
+             , 0
+             , D.SYSLAST_NET
+             , D.SYSLAST_VAT
+             , D.BUY_PRICE
+             <!--, D.SALE_PRICE -->
+          FROM TCLAIMDT D
+             , TGOODS G
+         WHERE D.ORDER_NO    = #{ORDER_NO, jdbcType=VARCHAR}
+           AND D.ORDER_G_SEQ = #{ORDER_G_SEQ, jdbcType=VARCHAR}
+           AND D.ORDER_D_SEQ = #{ORDER_D_SEQ, jdbcType=VARCHAR}
+           AND D.CLAIM_GB    = '30'
+           AND D.SYSLAST     > 0
+           AND D.GOODS_CODE  = G.GOODS_CODE
+    </insert>
+    
+    <update id="updateOrderstock" parameterType="hashMap">
+        UPDATE TORDERSTOCK /* pa11storder.xml : pa11st.order.updateOrderstock by PaClaimController */
+           SET OUT_PLAN_QTY = OUT_PLAN_QTY - #{CLAIM_QTY, jdbcType=NUMERIC}
+         WHERE WH_CODE      = #{WH_CODE, jdbcType=VARCHAR}
+           AND GOODS_CODE   = #{GOODS_CODE, jdbcType=VARCHAR}
+           AND GOODSDT_CODE = #{GOODSDT_CODE, jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updateSlipcreate40" parameterType="hashMap">
+         UPDATE TSLIPCREATE /* pa11storder.xml : pa11st.order.updateSlipcreate40 by PaClaimController */
+            SET CREATE_QTY   = CREATE_QTY - #{CLAIM_QTY, jdbcType=NUMERIC}
+          WHERE GOODS_CODE   = #{GOODS_CODE, jdbcType=VARCHAR}
+            AND GOODSDT_CODE = #{GOODSDT_CODE, jdbcType=VARCHAR}
+            AND WH_CODE      = #{WH_CODE, jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updateSlipM" parameterType="hashMap">
+        UPDATE TSLIPM /* pa11storder.xml : pa11st.order.updateSlipM by PaClaimController */
+           SET SLIP_PROC      = '80'
+             , OUT_CLOSE_YN   = '1'
+             , OUT_CLOSE_DATE = TO_DATE(SYSDATE)
+             , DELY_GB        = '40'
+             , REAL_DELY_DATE = TO_DATE(SYSDATE)
+             , SLIP_PROC_DATE = SYSDATE
+             , SLIP_PROC_ID   = #{LAST_PROC_ID, jdbcType=VARCHAR}
+             <!--, OUT_BEF_CLAIM_YN = '1' -->
+         WHERE SLIP_I_NO IN (SELECT M.SLIP_I_NO
+                               FROM TSLIPM M, TSLIPDT D
+                              WHERE M.SLIP_I_NO = D.SLIP_I_NO
+                                AND D.ORDER_NO = #{ORDER_NO, jdbcType=VARCHAR}
+                                AND D.ORDER_G_SEQ = #{ORDER_G_SEQ, jdbcType=VARCHAR}
+                                AND D.ORDER_D_SEQ = #{ORDER_D_SEQ, jdbcType=VARCHAR}
+                                AND M.SLIP_FLAG = '1' 
+                                AND M.SLIP_PROC &lt; '40')
+    </update>
+    
+    <select id="chkSyslastDelyQty" parameterType="hashMap" resultType="int">
+        SELECT /* pa11storder.xml : pa11st.order.updateSlipM by PaClaimController */
+               COUNT(1) AS CHK_CNT
+          FROM TORDERDT A
+         WHERE A.ORDER_NO = #{ORDER_NO, jdbcType=VARCHAR}
+           AND A.ORDER_G_SEQ = #{ORDER_G_SEQ, jdbcType=VARCHAR}
+           AND A.ORDER_D_SEQ = #{ORDER_D_SEQ, jdbcType=VARCHAR}
+           AND DO_FLAG &lt; 80
+           AND A.DELY_TYPE = '20'
+           AND A.SYSLAST = (SELECT SUM(XB.DELY_QTY)
+                              FROM TSLIPM XA
+                                 , TSLIPDT XB 
+                             WHERE XA.SLIP_I_NO = XB.SLIP_I_NO 
+                               AND XB.ORDER_NO = A.ORDER_NO
+                               AND XB.ORDER_G_SEQ = A.ORDER_G_SEQ
+                               AND XB.ORDER_D_SEQ = A.ORDER_D_SEQ
+                               AND XA.SLIP_FLAG = '1'
+                               AND XA.SLIP_GB = '101'
+                               AND XA.SLIP_PROC = '80')
+    </select>
+    
+    <update id="updateOrderDt" parameterType="hashMap">
+        UPDATE TORDERDT OD /* pa11storder.xml : pa11st.order.updateOrderDt by PaClaimController */
+           SET DO_FLAG = '80'
+             , LAST_PROC_DATE = SYSDATE
+             , LAST_PROC_ID   = #{LAST_PROC_ID, jdbcType=VARCHAR}
+         WHERE OD.ORDER_NO    = #{ORDER_NO, jdbcType=VARCHAR}
+           AND OD.ORDER_G_SEQ = #{ORDER_G_SEQ, jdbcType=VARCHAR}
+           AND OD.ORDER_D_SEQ = #{ORDER_D_SEQ, jdbcType=VARCHAR}
+           AND OD.DO_FLAG &lt; 80
+           AND OD.DELY_TYPE = '20'
+           AND OD.SYSLAST = (SELECT SUM(XB.DELY_QTY)
+                              FROM TSLIPM XA
+                                 , TSLIPDT XB 
+                             WHERE XA.SLIP_I_NO = XB.SLIP_I_NO 
+                               AND XB.ORDER_NO = OD.ORDER_NO
+                               AND XB.ORDER_G_SEQ = OD.ORDER_G_SEQ
+                               AND XB.ORDER_D_SEQ = OD.ORDER_D_SEQ
+                               AND XA.SLIP_FLAG = '1'
+                               AND XA.SLIP_GB = '101'
+                               AND XA.SLIP_PROC = '80')
+    </update>
+    
+    <select id="chkSlipProcMin" parameterType="hashMap" resultType="int">
+        SELECT /* pa11storder.xml : pa11st.order.chkSlipProcMin by PaClaimController */
+                  COUNT(1) AS CHK_CNT
+          FROM TORDERDT A
+         WHERE A.ORDER_NO    = #{ORDER_NO, jdbcType=VARCHAR}
+           AND A.ORDER_G_SEQ = #{ORDER_G_SEQ, jdbcType=VARCHAR}
+           AND A.ORDER_D_SEQ = #{ORDER_D_SEQ, jdbcType=VARCHAR}
+           AND DO_FLAG &lt; 80
+           AND A.DELY_TYPE = '20'
+           AND A.DO_FLAG &lt; (SELECT MIN(XA.SLIP_PROC)
+                                        FROM TSLIPM XA
+                                               , TSLIPDT XB 
+                                       WHERE XA.SLIP_I_NO = XB.SLIP_I_NO 
+                                          AND XB.ORDER_NO = A.ORDER_NO
+                                          AND XB.ORDER_G_SEQ = A.ORDER_G_SEQ
+                                          AND XB.ORDER_D_SEQ = A.ORDER_D_SEQ
+                                          AND XA.SLIP_FLAG = '1'
+                                          AND XA.SLIP_GB = '101'
+                                          AND XA.SLIP_PROC &lt; '80')
+    </select>
+    
+    <update id="updateOrderSlipDoFlagSync" parameterType="hashMap">
+        UPDATE TORDERDT OD /* pa11storder.xml : pa11st.order.updateOrderSlipDoFlagSync by PaClaimController */
+              SET DO_FLAG = (SELECT MIN(XA.SLIP_PROC)
+                              FROM TSLIPM XA
+                                 , TSLIPDT XB 
+                             WHERE XA.SLIP_I_NO = XB.SLIP_I_NO 
+                               AND XB.ORDER_NO = OD.ORDER_NO
+                               AND XB.ORDER_G_SEQ = OD.ORDER_G_SEQ
+                               AND XB.ORDER_D_SEQ = OD.ORDER_D_SEQ
+                               AND XA.SLIP_FLAG = '1'
+                               AND XA.SLIP_GB = '101'
+                               AND XA.SLIP_PROC &lt; '80')
+                 , LAST_PROC_DATE = SYSDATE
+                 , LAST_PROC_ID = #{LAST_PROC_ID, jdbcType=VARCHAR}
+         WHERE OD.ORDER_NO    = #{ORDER_NO, jdbcType=VARCHAR}
+           AND OD.ORDER_G_SEQ = #{ORDER_G_SEQ, jdbcType=VARCHAR}
+           AND OD.ORDER_D_SEQ = #{ORDER_D_SEQ, jdbcType=VARCHAR}
+           AND OD.DO_FLAG &lt; 80
+           AND OD.DELY_TYPE = '20'
+           AND OD.DO_FLAG &lt; (SELECT MIN(XA.SLIP_PROC)
+                              FROM TSLIPM XA
+                                 , TSLIPDT XB 
+                             WHERE XA.SLIP_I_NO = XB.SLIP_I_NO 
+                               AND XB.ORDER_NO = OD.ORDER_NO
+                               AND XB.ORDER_G_SEQ = OD.ORDER_G_SEQ
+                               AND XB.ORDER_D_SEQ = OD.ORDER_D_SEQ
+                               AND XA.SLIP_FLAG = '1'
+                               AND XA.SLIP_GB = '101'
+                               AND XA.SLIP_PROC &lt; '80')
+    </update>
+    
+    <select id="selectCancelPa11stOrderListExists" parameterType="hashMap" resultType="int">
+        SELECT /* pa11storder.xml : pa11st.order.selectCancelPa11stOrderListExists by PaClaimController */
+               COUNT(1) AS CNT
+          FROM TPA11STORDERLIST OT
+         WHERE ORD_NO = #{ordNo , jdbcType=VARCHAR}
+           AND ORD_PRD_SEQ = #{ordPrdSeq , jdbcType=NUMERIC}
+           AND ORD_PRD_CN_SEQ = #{ordPrdCnSeq , jdbcType=NUMERIC}
+           AND PA_ORDER_GB = '20'
+    </select>
+    
+    <select id="selectCancelRefusalExists" parameterType="hashMap" resultType="int">
+        SELECT /* pa11storder.xml : pa11st.order.selectCancelRefusalExists by IF_PA11STAPI_03_009 */
+               COUNT(1) AS CNT
+          FROM TPAORDERM OT
+         WHERE PA_ORDER_NO = #{PA_ORDER_NO , jdbcType=VARCHAR}
+           AND PA_SHIP_NO  = #{DLV_NO , jdbcType=VARCHAR}
+           AND PA_CODE     = #{PA_CODE , jdbcType=VARCHAR}
+           AND PA_ORDER_GB = '10'
+           AND PA_DO_FLAG  = '30'
+    </select>
+    
+    <select id="selectCancelWithdrawExists" parameterType="com.cware.netshopping.domain.Pa11storderlistVO" resultType="hashMap">
+        SELECT /* pa11storder.xml : pa11st.order.selectCancelWithdrawtExists by IF_PA11STAPI_03_020 */
+               OT.WITHDRAW_YN
+          FROM TPA11STORDERLIST OT
+         WHERE OT.ORD_NO = #{ordNo , jdbcType=VARCHAR}
+           AND OT.ORD_PRD_SEQ = #{ordPrdSeq , jdbcType=NUMERIC}
+           AND OT.ORD_PRD_CN_SEQ = #{ordPrdCnSeq , jdbcType=NUMERIC}
+           AND OT.DLV_NO = #{dlvNo , jdbcType=NUMERIC}
+           AND OT.PA_ORDER_GB = '20'
+    </select>
+    
+    <update id="updateWithdrawYn" parameterType="com.cware.netshopping.domain.Pa11storderlistVO">
+    	UPDATE TPA11STORDERLIST /* pa11storder.xml : pa11st.order.updateWithdrawYn by IF_PA11STAPI_03_020 */
+    	   SET WITHDRAW_YN = '1'
+    	   	 , MODIFY_DATE = SYSDATE
+         WHERE ORD_NO = #{ordNo , jdbcType=VARCHAR}
+           AND ORD_PRD_SEQ = #{ordPrdSeq , jdbcType=NUMERIC}
+           AND ORD_PRD_CN_SEQ = #{ordPrdCnSeq , jdbcType=NUMERIC}
+           AND DLV_NO = #{dlvNo , jdbcType=NUMERIC}
+           AND PA_ORDER_GB = '20'
+    </update>
+    
+    <select id="selectPa11stOrderListProcFlag" parameterType="com.cware.netshopping.domain.Pa11storderlistVO" resultType="String">
+    	SELECT /* pa11storder.xml : pa11st.order.selectPa11stOrderListProcFlag by IF_PA11STAPI_03_021 */
+    		   PO.PROC_FLAG
+		  FROM TPA11STORDERLIST PO
+		 WHERE PO.PA_ORDER_GB = '20'
+		   AND PO.ORD_NO = #{ordNo, jdbcType=VARCHAR}
+		   AND PO.ORD_PRD_SEQ = #{ordPrdSeq, jdbcType=VARCHAR}
+		   AND PO.DLV_NO = #{dlvNo, jdbcType=VARCHAR}
+		   AND PO.ORD_PRD_CN_SEQ = #{ordPrdCnSeq, jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="mergePa11stOrderList" parameterType="com.cware.netshopping.domain.Pa11storderlistVO">
+        MERGE /* pa11storder.xml : pa11st.order.mergePa11stOrderList by IF_PA11STAPI_03_021 */
+          INTO TPA11STORDERLIST USING DUAL ON ( ORD_NO 			= #{ordNo, 		jdbcType=VARCHAR}
+								           	AND ORD_PRD_SEQ 	= #{ordPrdSeq,	jdbcType=VARCHAR}
+								           	AND ORD_PRD_CN_SEQ 	= #{ordPrdCnSeq,jdbcType=VARCHAR}
+								           	AND DLV_NO 			= #{dlvNo,		jdbcType=VARCHAR}
+								           	AND PA_ORDER_GB		= '20')
+               WHEN MATCHED THEN
+                UPDATE
+                    SET PROC_FLAG   = '10'
+					  , MODIFY_DATE = DECODE(PROC_FLAG, '10', MODIFY_DATE, #{modifyDate , jdbcType=TIMESTAMP})
+					  , CANCEL_PROC_ID = 'PA11'
+               WHEN NOT MATCHED THEN
+                INSERT (
+		            CREATE_DT
+		          , DLV_NO
+		          , ORD_CN_DTLS_RSN
+		          , ORD_CN_QTY
+		          , ORD_CN_MNBD_CD
+		          , ORD_CN_RSN_CD
+		          , ORD_CN_STAT_CD
+		          , ORD_NO
+		          , ORD_PRD_CN_SEQ
+		          , ORD_PRD_SEQ
+		          , PRD_NO
+		          , SLCT_PRD_OPT_NM
+		          , REFER_SEQ
+		          , PA_ORDER_GB
+		          , PROC_FLAG
+		          , INSERT_DATE
+		          , MODIFY_DATE
+		          , CANCEL_PROC_ID
+		          )
+		        VALUES
+		          (   #{createDt , jdbcType=TIMESTAMP}
+		            , #{dlvNo , jdbcType=VARCHAR}
+		            , #{ordCnDtlsRsn , jdbcType=VARCHAR}
+		            , #{ordCnQty , jdbcType=NUMERIC}
+		            , #{ordCnMnbdCd , jdbcType=VARCHAR}
+		            , #{ordCnRsnCd , jdbcType=VARCHAR}
+		            , #{ordCnStatCd , jdbcType=VARCHAR}
+		            , #{ordNo , jdbcType=VARCHAR}
+		            , #{ordPrdCnSeq , jdbcType=NUMERIC}
+		            , #{ordPrdSeq , jdbcType=NUMERIC}
+		            , #{prdNo , jdbcType=NUMERIC}
+		            , #{slctPrdOptNm , jdbcType=VARCHAR}
+		            , #{referSeq , jdbcType=NUMERIC}
+		            , #{paOrderGb , jdbcType=VARCHAR}
+		            , #{procFlag , jdbcType=VARCHAR}
+		            , #{insertDate , jdbcType=TIMESTAMP}
+		            , #{modifyDate , jdbcType=TIMESTAMP}
+		            , #{cancelProcId , jdbcType=VARCHAR}
+		          )
+    </insert>
+    
+    <select id="selectOrderdtDoFlag" parameterType="com.cware.netshopping.domain.Pa11storderlistVO" resultType="String">
+    	SELECT /* pa11storder.xml : pa11st.order.selectPa11stOrderListProcFlag by IF_PA11STAPI_03_021 */
+    		   OD.DO_FLAG
+    	  FROM TPAORDERM PM
+    	     , TORDERDT OD
+    	 WHERE PM.ORDER_NO 		= OD.ORDER_NO
+    	   AND PM.ORDER_G_SEQ 	= OD.ORDER_G_SEQ
+    	   AND PM.ORDER_D_SEQ 	= OD.ORDER_D_SEQ
+    	   AND PM.ORDER_W_SEQ 	= OD.ORDER_W_SEQ
+    	   AND PM.PA_CODE IN ('11', '12')
+    	   AND PM.PA_ORDER_GB 	= '10'
+    	   AND PM.PA_ORDER_NO 	= #{ordNo, 		jdbcType=VARCHAR}
+		   AND PM.PA_ORDER_SEQ 	= #{ordPrdSeq,	jdbcType=VARCHAR}
+		   AND PM.PA_SHIP_NO 	= #{dlvNo,		jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectOrderInputTargetList" resultType="hashMap">
+    	SELECT /* pa11storder.xml : pa11st.order.selectOrderInputTargetList by Pa11stOrderController */
+    		   POM.PA_ORDER_NO
+		  FROM TPAORDERM POM
+		 WHERE POM.PA_CODE IN ('11', '12')
+		   AND POM.PA_ORDER_GB = '10'
+		   AND POM.CREATE_YN = '0'
+		   AND POM.PRE_CANCEL_YN = '0'
+		   AND POM.INSERT_DATE > TRUNC(SYSDATE)-5
+		   AND rownum &lt; 150
+		 GROUP BY POM.PA_ORDER_NO
+    </select>
+    
+    <select id="selectOrderInputTargetDtList" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* pa11storder.xml : pa11st.order.selectOrderInputTargetDtList by Pa11stOrderController */
+    		   /*+  LEADING(PM) USE_NL(OL PGM PGD)  */
+	           '' AS ORDER_TYPE
+	         ,  PM.PA_ORDER_NO
+	         , PM.PA_CODE
+	         , PM.MAPPING_SEQ
+	         , TC.REMARK1 AS MEDIA_CODE
+	         , TO_CHAR(OL.ORD_DT, 'YYYYMMDDHH24MISS') AS ORDER_DATE
+	         , PGD.GOODS_CODE
+	         , PGD.GOODSDT_CODE
+	         , OL.ORD_QTY AS ORDER_QTY
+	         , TO_CHAR(PGP.APPLY_DATE, 'YYYYMMDDHH24MISS') APPLY_DATE
+	         , PGP.SUPPLY_PRICE
+	         , (OL.ORD_PAY_AMT - DLV_CST ) AS RSALE_AMT
+	         , OL.LST_SELLER_DSC_PRC AS SELLER_DC_AMT
+	         , NVL((PGP.LUMP_SUM_DC_AMT * OL.ORD_QTY),0) AS LUMP_SUM_DC_AMT
+             , NVL((PGP.LUMP_SUM_ENTP_DC_AMT),0) AS LUMP_SUM_ENTP_DC_AMT
+             , NVL((PGP.LUMP_SUM_OWN_DC_AMT),0) AS LUMP_SUM_OWN_DC_AMT
+	         , OL.ORD_NM AS CUST_NAME
+	         , CWARE_ENC_DEC(OL.ORD_PRTBL_TEL, 'D') AS CUST_TEL1
+	         , CWARE_ENC_DEC(OL.ORD_TLPHN_NO, 'D') AS CUST_TEL2
+	         , OL.RCVR_NM AS RECEIVER_NAME
+	         , CWARE_ENC_DEC(OL.RCVR_TLPHN, 'D') AS RECEIVER_TEL
+	         , CWARE_ENC_DEC(OL.RCVR_PRTBL_NO, 'D') AS RECEIVER_HP
+	         , CWARE_ENC_DEC(OL.RCVR_BASE_ADDR, 'D') || ' ' || CWARE_ENC_DEC(OL.RCVR_DTLS_ADDR, 'D') AS RECEIVER_ADDR
+	         , REPLACE(REPLACE(OL.ORD_DLV_REQ_CONT,'&lt;![CDATA[',''),']]&gt;','') AS MSG
+	         , CWARE_ENC_DEC(OL.RCVR_MAIL_NO,'D') AS RCVR_MAIL_NO
+	         , CWARE_ENC_DEC(OL.RCVR_MAIL_NO_SEQ,'D') AS RCVR_MAIL_NO_SEQ
+	         , CWARE_ENC_DEC(OL.RCVR_BASE_ADDR,'D') AS RCVR_BASE_ADDR
+	         , CWARE_ENC_DEC(OL.RCVR_DTLS_ADDR,'D') AS RCVR_DTLS_ADDR
+	         , TYPE_ADD
+	         , OL.PRD_NO AS PA_GOODS_CODE
+	         , (DLV_CST + BM_DLV_CST) as SHPFEE_COST
+	         , PGP.PRICE_SEQ
+			 , 0 AS SD_PROMO_PRICE
+			 , NVL(NVL(PP.COUPON_DC_AMT,
+		        (SELECT /*+INDEX_DESC (PPT IDX_TPAPROMOTARGET_04)*/
+		                     CASE WHEN  PPT.PROC_GB   = 'D'   THEN 0
+		                          WHEN  PPT.USE_CODE != '00'  THEN 0
+		                     ELSE  PPT.DO_AMT
+		                     END
+		                FROM TPAPROMOTARGET PPT
+		                   , TPROMOM PM
+		               WHERE PPT.GOODS_CODE         = PGP.GOODS_CODE
+		                 AND PPT.PA_CODE            = PGP.PA_CODE    
+		                 AND PPT.PROMO_NO           = PM.PROMO_NO
+		                 AND PM.COUPON_YN           = '1'
+		                 AND PM.IMMEDIATELY_YN        = '1'
+		                 AND PPT.TRANS_DATE IS NOT NULL
+		                 AND NVL(PM.ALCOUT_PROMO_YN, '0') = '1'
+		                 AND PPT.TRANS_DATE &lt; OL.ORD_DT
+		                 AND ((OL.ORD_DT BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE ) 
+		                     OR (OL.ORD_DT > PPT.PROMO_EDATE AND  PPT.PROC_GB = 'D')
+		                     OR (PM.REMARK4_N IS NOT NULL AND PM.REMARK4_N = 1)
+		                     )
+		                  AND ROWNUM = 1)
+		                  ), 0) AS OUT_PROMO_PRICE
+			 , PGP.DC_AMT
+			 , PM.REMARK4_N
+			 , PGP.SALE_PRICE AS SALE_PRICE
+			 , (OL.LST_TMALL_DSC_PRC / OL.ORD_QTY) AS PA_DC_AMT
+			 , OL.SEL_PRC
+			 , NVL(OL.SELLER_DSC_PRC, 0 ) AS SELLER_DISCOUNT_PRICE 
+			 , OL.ORD_OPT_WON_STL
+			 , OL.SLCT_PRD_OPT_NM
+			 , PP.COUPON_PROMO_NO AS PROMO_NO
+       		 , PP.COUPON_OWN_COST AS OWN_COST
+       	     , PP.COUPON_ENTP_COST AS ENTP_COST
+       		 , TO_CHAR(PROMO.PROMO_BDATE, 'yyyy/mm/dd hh24:mi:ss') AS COUPON_PROMO_BDATE
+       		 , TO_CHAR(PROMO.PROMO_EDATE, 'yyyy/mm/dd hh24:mi:ss') AS COUPON_PROMO_EDATE
+       		 , TO_CHAR(OL.PRD_STCK_NO) AS PA_OPTION_CODE
+       		 , TO_CHAR(GP.APPLY_DATE, 'YYYYMMDDHH24MISS') AS STOA_APPLY_DATE
+	      FROM TPAORDERM PM
+	         , TPA11STORDERLIST OL
+	         , TCODE TC
+	         , TPA11STGOODS PGM
+	         , TPAGOODSDTMAPPING PGD
+	         , TPAGOODSPRICE PGP
+	         , TPAGOODSPRICEAPPLY PP
+             , TPROMOM PROMO
+             , TGOODSPRICE GP
+	     WHERE PM.PA_ORDER_NO 	 = OL.ORD_NO
+	       AND PM.PA_ORDER_SEQ 	 = OL.ORD_PRD_SEQ
+	       AND PM.PA_SHIP_NO 	 = OL.DLV_NO
+	       AND PM.PA_ORDER_GB 	 = OL.PA_ORDER_GB
+	       AND PM.PA_CODE 		 = TC.CODE_MGROUP
+	       AND PGM.GOODS_CODE 	 = PGD.GOODS_CODE
+	       AND PGM.PA_CODE 		 = PGD.PA_CODE
+	       AND TO_CHAR(OL.PRD_NO) 		 = PGM.PRODUCT_NO
+	       AND OL.PRD_STCK_NO 	 = PGD.PA_OPTION_CODE
+	       AND PGD.GOODS_CODE 	 = PGP.GOODS_CODE
+	       AND PM.PA_CODE 		 = PGP.PA_CODE
+	       AND PGD.PA_CODE IN ('11','12')
+	       AND PGP.ROWID 		 = (SELECT /*+ INDEX_DESC(I PK_TPAGOODSPRICE) */
+			       				 		   ROWID 
+			       					  FROM TPAGOODSPRICE I 
+			       					 WHERE I.GOODS_CODE 	= PGP.GOODS_CODE 
+			       					   AND I.PA_CODE 		= PM.PA_CODE 
+			       					   AND I.TRANS_DATE &lt;= OL.ORD_DT
+			       					   AND I.TRANS_DATE IS NOT NULL 
+			       					   AND ROWNUM = 1)
+		   AND PGM.GOODS_CODE    = PP.GOODS_CODE                                 
+           AND PGM.PA_GROUP_CODE = PP.PA_GROUP_CODE
+           AND PGM.PA_CODE       = PP.PA_CODE
+           AND (PP.APPLY_DATE, PP.PRICE_APPLY_SEQ) = (SELECT /*+ INDEX_DESC (PP2 PK_TPAGOODSPRICEAPPLY)*/
+                                                                              PP2.APPLY_DATE, PP2.PRICE_APPLY_SEQ
+                                                                     FROM TPAGOODSPRICEAPPLY PP2
+                                                                    WHERE PP2.GOODS_CODE = PP.GOODS_CODE
+                                                                       AND PP2.PA_GROUP_CODE = PP.PA_GROUP_CODE
+                                                                       AND PP2.PA_CODE = PP.PA_CODE
+                                                                       AND PP2.APPLY_DATE &lt;= OL.ORD_DT
+                                                                       AND PP2.TRANS_DATE &lt;= OL.ORD_DT
+                                                                       AND ROWNUM = 1 )
+           AND PP.COUPON_PROMO_NO = PROMO.PROMO_NO(+)
+           AND GP.GOODS_CODE = PP.GOODS_CODE
+           AND GP.ROWID = (SELECT /*+ INDEX_DESC (GP2 PK_TGOODSPRICE)*/
+                                     GP2.ROWID
+                             FROM TGOODSPRICE GP2
+                            WHERE GP2.GOODS_CODE  = GP.GOODS_CODE
+                              AND GP2.APPLY_DATE &lt; OL.ORD_DT
+                              AND ROWNUM = 1)
+	       AND TC.CODE_LGROUP 	 = 'O501'
+	       AND PM.PA_ORDER_GB  	 = '10'
+	       AND PM.CREATE_YN 	 = '0'
+	       AND PM.PRE_CANCEL_YN  = '0'
+	       AND PA_ORDER_NO          = #{PA_ORDER_NO , jdbcType=VARCHAR}
+		   AND PGP.SALE_PRICE 	 = OL.SEL_PRC <!-- 실시간 가격변경 조건(판매가) 추가  --> 
+
+	   <!-- 제휴OUT상품연동 REQ_PRM_041 : S -->
+	   UNION ALL
+	   SELECT  /*+ LEADING(PM) USE_NL(OL ADGM) */
+	           'DEAL' AS ORDER_TYPE
+	         , PM.PA_ORDER_NO
+	         , PM.PA_CODE
+	         , PM.MAPPING_SEQ
+	         , TC.REMARK1 AS MEDIA_CODE
+	         , TO_CHAR(OL.ORD_DT, 'YYYYMMDDHH24MISS') AS ORDER_DATE
+	         , ADGM.GOODS_CODE
+	         , ADGM.GOODSDT_CODE
+	         , OL.ORD_QTY AS ORDER_QTY
+	         , TO_CHAR(PGP.APPLY_DATE, 'YYYYMMDDHH24MISS') APPLY_DATE
+	         , PGP.SUPPLY_PRICE
+	         , (OL.ORD_PAY_AMT - DLV_CST ) AS RSALE_AMT
+	         <!-- 옵션상품할인가 = 판매가(객단가) * 수량 - ( 대표상품 판매가(객단가) * 수량 + 옵션가 - 대표상품 판매자할인가 ) --> 
+	         , TO_NUMBER(SUBSTR(OL.SELLER_STOCK_CD, 16, LENGTH(OL.SELLER_STOCK_CD)-15) ) * ORD_QTY - ( OL.SEL_PRC * OL.ORD_QTY + OL.ORD_OPT_WON_STL - OL.LST_SELLER_DSC_PRC ) AS SELLER_DC_AMT
+	         , NVL((PGP.LUMP_SUM_DC_AMT * OL.ORD_QTY),0) AS LUMP_SUM_DC_AMT
+             , NVL((PGP.LUMP_SUM_ENTP_DC_AMT),0) AS LUMP_SUM_ENTP_DC_AMT
+             , NVL((PGP.LUMP_SUM_OWN_DC_AMT),0) AS LUMP_SUM_OWN_DC_AMT
+	         , OL.ORD_NM AS CUST_NAME
+	         , CWARE_ENC_DEC(OL.ORD_PRTBL_TEL, 'D') AS CUST_TEL1
+	         , CWARE_ENC_DEC(OL.ORD_TLPHN_NO, 'D') AS CUST_TEL2
+	         , OL.RCVR_NM AS RECEIVER_NAME
+	         , CWARE_ENC_DEC(OL.RCVR_TLPHN, 'D') AS RECEIVER_TEL
+	         , CWARE_ENC_DEC(OL.RCVR_PRTBL_NO, 'D') AS RECEIVER_HP
+	         , CWARE_ENC_DEC(OL.RCVR_BASE_ADDR, 'D') || ' ' || CWARE_ENC_DEC(OL.RCVR_DTLS_ADDR, 'D') AS RECEIVER_ADDR
+	         , OL.ORD_DLV_REQ_CONT AS MSG
+	         , CWARE_ENC_DEC(OL.RCVR_MAIL_NO,'D') AS RCVR_MAIL_NO
+	         , CWARE_ENC_DEC(OL.RCVR_MAIL_NO_SEQ,'D') AS RCVR_MAIL_NO_SEQ
+	         , CWARE_ENC_DEC(OL.RCVR_BASE_ADDR,'D') AS RCVR_BASE_ADDR
+	         , CWARE_ENC_DEC(OL.RCVR_DTLS_ADDR,'D') AS RCVR_DTLS_ADDR
+	         , TYPE_ADD
+	         , OL.PRD_NO AS PA_GOODS_CODE
+	         , (DLV_CST + BM_DLV_CST) as SHPFEE_COST
+	         , PGP.PRICE_SEQ
+			 , 0 AS SD_PROMO_PRICE
+			 , NVL(NVL(PP.COUPON_DC_AMT,       
+			        (SELECT /*+INDEX_DESC (PPT IDX_TPAPROMOTARGET_04)*/
+			                     CASE WHEN  PPT.PROC_GB   = 'D'   THEN 0
+			                          WHEN  PPT.USE_CODE != '00'  THEN 0
+			                     ELSE  PPT.DO_AMT
+			                     END
+			                FROM TPAPROMOTARGET PPT
+			                   , TPROMOM PM
+			               WHERE PPT.GOODS_CODE         = PGP.GOODS_CODE
+			                 AND PPT.PA_CODE            = PGP.PA_CODE    
+			                 AND PPT.PROMO_NO           = PM.PROMO_NO
+			                 AND PM.COUPON_YN           = '1'
+			                 AND PM.IMMEDIATELY_YN        = '1'
+			                 AND PPT.TRANS_DATE IS NOT NULL
+			                 AND NVL(PM.ALCOUT_PROMO_YN, '0') = '1'
+			                 AND PPT.TRANS_DATE &lt; OL.ORD_DT
+			                 AND ((OL.ORD_DT BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE ) 
+			                     OR (OL.ORD_DT > PPT.PROMO_EDATE AND  PPT.PROC_GB = 'D')
+			                     OR (PM.REMARK4_N IS NOT NULL AND PM.REMARK4_N = 1)
+			                     )
+			                  AND ROWNUM = 1)
+			                  ), 0) AS OUT_PROMO_PRICE          
+			 , PGP.DC_AMT
+			 , PM.REMARK4_N
+			 , PGP.SALE_PRICE AS SALE_PRICE
+			 , (OL.LST_TMALL_DSC_PRC / OL.ORD_QTY) AS PA_DC_AMT
+			 , OL.SEL_PRC
+			 , NVL(OL.SELLER_DSC_PRC, 0 ) AS SELLER_DISCOUNT_PRICE 
+			 , OL.ORD_OPT_WON_STL
+			 , OL.SLCT_PRD_OPT_NM			 
+			 , PP.COUPON_PROMO_NO AS PROMO_NO
+	         , PP.COUPON_OWN_COST AS OWN_COST
+	         , PP.COUPON_ENTP_COST AS ENTP_COST
+	         , TO_CHAR(PROMO.PROMO_BDATE, 'yyyy/mm/dd hh24:mi:ss') AS COUPON_PROMO_BDATE
+	         , TO_CHAR(PROMO.PROMO_EDATE, 'yyyy/mm/dd hh24:mi:ss') AS COUPON_PROMO_EDATE
+	         , TO_CHAR(OL.PRD_STCK_NO) AS PA_OPTION_CODE
+             , TO_CHAR(GP.APPLY_DATE, 'YYYYMMDDHH24MISS') AS STOA_APPLY_DATE
+	      FROM TPAORDERM PM
+	         , TPA11STORDERLIST OL
+	         , TCODE TC
+             , TGDS_ALCOUT_DEAL_GOODS_MAPP ADGM
+	         , TPAGOODSPRICE PGP
+	         , TPAGOODSPRICEAPPLY PP
+             , TPROMOM PROMO
+             , TGOODSPRICE GP
+	     WHERE PM.PA_ORDER_NO = OL.ORD_NO
+	       AND PM.PA_ORDER_SEQ = OL.ORD_PRD_SEQ
+	       AND PM.PA_SHIP_NO = OL.DLV_NO
+	       AND PM.PA_ORDER_GB = OL.PA_ORDER_GB
+	       AND PM.PA_CODE = TC.CODE_MGROUP
+	       AND PM.PA_CODE = ADGM.PA_CODE
+	       AND TO_CHAR(OL.PRD_NO) = ADGM.PA_GOODS_CODE 
+	       AND SUBSTR(OL.SELLER_STOCK_CD, 1, 8) = ADGM.GOODS_CODE
+	       AND SUBSTR(OL.SELLER_STOCK_CD, 9, 3) = ADGM.GOODSDT_CODE
+	       AND ADGM.GOODS_CODE = PGP.GOODS_CODE
+	       AND PM.PA_CODE = PGP.PA_CODE
+	       AND PGP.ROWID = (SELECT /*+ INDEX_DESC(I PK_TPAGOODSPRICE) */
+	       						   ROWID 
+	       					  FROM TPAGOODSPRICE I 
+	       					 WHERE I.GOODS_CODE = PGP.GOODS_CODE 
+	       					   AND I.PA_CODE = PM.PA_CODE 
+	       					   AND I.TRANS_DATE &lt;= OL.ORD_DT
+	       					   AND I.TRANS_DATE IS NOT NULL 
+	       					   AND ROWNUM = 1)					   
+	       AND ADGM.GOODS_CODE  = PP.GOODS_CODE                                 
+           AND PP.PA_GROUP_CODE = '01'
+           AND PM.PA_CODE       = PP.PA_CODE
+           AND (PP.APPLY_DATE, PP.PRICE_APPLY_SEQ) = (SELECT /*+ INDEX_DESC (PP2 PK_TPAGOODSPRICEAPPLY)*/
+			                                                                              PP2.APPLY_DATE, PP2.PRICE_APPLY_SEQ
+			                                                                     FROM TPAGOODSPRICEAPPLY PP2
+			                                                                    WHERE PP2.GOODS_CODE = PP.GOODS_CODE
+			                                                                       AND PP2.PA_GROUP_CODE = PP.PA_GROUP_CODE
+			                                                                       AND PP2.PA_CODE = PP.PA_CODE
+			                                                                       AND PP2.APPLY_DATE &lt;= OL.ORD_DT
+			                                                                       AND PP2.TRANS_DATE &lt;= OL.ORD_DT
+			                                                                       AND ROWNUM = 1 )
+           AND PP.COUPON_PROMO_NO = PROMO.PROMO_NO(+)  
+           AND GP.GOODS_CODE = PP.GOODS_CODE
+           AND GP.ROWID = (SELECT /*+ INDEX_DESC (GP2 PK_TGOODSPRICE)*/
+                                     GP2.ROWID
+                             FROM TGOODSPRICE GP2
+                            WHERE GP2.GOODS_CODE  = GP.GOODS_CODE
+                              AND GP2.APPLY_DATE &lt; OL.ORD_DT
+                              AND ROWNUM = 1)
+	       AND TC.CODE_LGROUP = 'O501'
+	       AND PM.PA_ORDER_GB = '10'
+	       AND PM.CREATE_YN = '0'
+	       AND PM.PRE_CANCEL_YN = '0'
+		   AND PA_ORDER_NO          = #{PA_ORDER_NO , jdbcType=VARCHAR}
+		   <!-- 실시간 가격변경 조건(판매가) 추가 : 제휴OUT딜상품의경우 SELLER_PRICE 다를수있어서 SELLER_STOCK_CD 으로 사용  --> 
+	       AND PGP.SALE_PRICE = TO_NUMBER(SUBSTR(OL.SELLER_STOCK_CD, 16, LENGTH(SELLER_STOCK_CD)-15) )
+	   <!-- 제휴OUT상품연동 REQ_PRM_041 : E -->
+    </select>
+    
+    
+   
+    <select id="selectRefusalInfo" parameterType="String" resultType="hashMap">
+    	SELECT /* pa11storder.xml : pa11st.order.selectRefusalInfo by Pa11stOrderController */
+			   PM.PA_ORDER_NO
+			 , PM.PA_ORDER_SEQ
+    	  FROM TPAORDERM PM
+    	 WHERE PM.MAPPING_SEQ = #{mappingSeq, jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectCancelInputTargetList" resultType="hashMap">
+    	SELECT /* pa11storder.xml : pa11st.order.selectCancelInputTargetList by Pa11stOrderController */
+ 			   POM.PA_ORDER_NO
+ 			 , POM.PA_ORDER_SEQ
+ 			 , POM.PA_SHIP_NO
+ 			 , POM.PA_CLAIM_NO
+		  FROM TPAORDERM POM
+		 WHERE POM.PA_CODE IN ('11', '12')
+		   AND POM.PA_ORDER_GB = '20'
+		   AND POM.CREATE_YN = '0'
+		   AND POM.PRE_CANCEL_YN = '0'
+		   AND POM.OUT_BEF_CLAIM_GB = '0'
+		   AND POM.INSERT_DATE > TRUNC(SYSDATE) - 5
+    </select>
+    
+    <select id="selectCancelInputTargetDtList" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* pa11storder.xml : pa11st.order.selectCancelInputTargetDtList by Pa11stOrderController */
+    		   PM.MAPPING_SEQ
+		     , OPM.ORDER_NO
+		     , OPM.ORDER_G_SEQ
+		     , PM.PA_PROC_QTY
+		     , (SELECT CS_LGROUP || CS_MGROUP || CS_SGROUP FROM TPACLAIMCODE PC WHERE PA_CLAIM_CODE = PO.ORD_CN_RSN_CD AND PA_CODE ='01' AND CLAIM_GB ='20') AS CANCEL_CODE
+		     , OPM.PRE_CANCEL_YN
+		 FROM TPAORDERM PM   /*취소건*/
+		     , TPAORDERM OPM  /*원주문건*/
+		     , TPA11STORDERLIST PO
+		 WHERE PM.PA_ORDER_NO = OPM.PA_ORDER_NO
+		   AND PM.PA_ORDER_SEQ = OPM.PA_ORDER_SEQ
+		   AND PM.PA_SHIP_NO = OPM.PA_SHIP_NO
+		   AND PM.PA_CODE = OPM.PA_CODE
+		   AND PM.PA_CODE IN ('11', '12')
+		   AND PM.PA_ORDER_GB = '20'
+		   AND PM.OUT_BEF_CLAIM_GB = '0'
+		   AND PM.CREATE_YN = '0'
+		   AND PM.PRE_CANCEL_YN = '0'
+		   AND PM.INSERT_DATE > TRUNC(SYSDATE) - 5
+		   AND OPM.PA_ORDER_GB = '10'
+		   AND (OPM.CREATE_YN = '1' OR OPM.PRE_CANCEL_YN = '1')
+		   AND PM.PA_ORDER_NO = PO.ORD_NO
+		   AND PM.PA_ORDER_SEQ = PO.ORD_PRD_SEQ
+		   AND PM.PA_SHIP_NO = PO.DLV_NO
+		   AND PM.PA_CLAIM_NO = PO.ORD_PRD_CN_SEQ
+		   AND PM.PA_ORDER_GB = PO.PA_ORDER_GB
+		   AND PM.PA_ORDER_NO 	= #{paOrderNo, jdbcType=VARCHAR}
+		   AND PM.PA_ORDER_SEQ 	= #{paOrderSeq, jdbcType=VARCHAR} 
+ 		   AND PM.PA_SHIP_NO 	= #{paShipNo, jdbcType=VARCHAR}
+ 		   AND PM.PA_CLAIM_NO 	= #{paClaimNo, jdbcType=VARCHAR}
+ 		   
+    	UNION ALL
+    	
+    	SELECT PM.MAPPING_SEQ
+			 , '' AS ORDER_NO
+			 , '' AS ORDER_G_SEQ
+			 , '' AS PA_PROC_QTY
+			 , '' AS CANCEL_CODE
+			 , '1' AS PRE_CANCEL_YN
+	     FROM TPAORDERM PM
+	    WHERE PM.PA_CODE IN ('11', '12')
+	      AND PM.PA_ORDER_GB = '20'
+	      AND PM.CREATE_YN = '0'
+	      AND PM.PRE_CANCEL_YN = '0'
+	      AND PM.OUT_BEF_CLAIM_GB = '0'
+	      AND PM.INSERT_DATE > TRUNC(SYSDATE) - 5
+	      AND PM.PA_ORDER_NO 	= #{paOrderNo, jdbcType=VARCHAR}
+		  AND PM.PA_ORDER_SEQ 	= #{paOrderSeq, jdbcType=VARCHAR} 
+ 		  AND PM.PA_SHIP_NO 	= #{paShipNo, jdbcType=VARCHAR}
+ 		  AND PM.PA_CLAIM_NO 	= #{paClaimNo, jdbcType=VARCHAR}
+	      AND NOT EXISTS (SELECT 1 
+	                        FROM TPA11STORDERLIST OL 
+	                       WHERE PM.PA_ORDER_NO = OL.ORD_NO 
+	                         AND PM.PA_ORDER_SEQ = OL.ORD_PRD_SEQ 
+	                         AND PM.PA_SHIP_NO = OL.DLV_NO
+	                         AND OL.ORD_PRD_CN_SEQ = '100000000'
+	                         AND OL.PA_ORDER_GB = '10')
+    </select>
+    
+    <update id="updatePreCancelYn" parameterType="hashMap">
+    	UPDATE TPAORDERM /* pa11storder.xml : pa11st.order.updatePreCancelYn by Pa11stOrderController */
+    	   SET PRE_CANCEL_YN = #{preCancelYn, jdbcType=VARCHAR}
+    	     , PRE_CANCEL_REASON = #{preCancelReason, jdbcType=VARCHAR}
+    	 WHERE MAPPING_SEQ = #{mappingSeq, jdbcType=VARCHAR}
+    	   AND CREATE_YN = '0'
+    	   AND PRE_CANCEL_YN = '0'
+    </update>
+    
+    <select id="selectPa11stOrdCancelApprovalList" parameterType="hashMap" resultType="hashMap">
+        SELECT PO.ORD_NO
+             , PO.ORD_PRD_SEQ
+             , PO.ORD_PRD_CN_SEQ
+             , PO.PA_ORDER_GB
+             , PO.DLV_NO
+             , PO.ORD_CN_QTY
+             , OM.PA_CODE
+          FROM TPA11STORDERLIST PO
+             , TPAORDERM OM
+         WHERE PO.ORD_NO = #{ordNo, jdbcType=VARCHAR}
+           AND PO.ORD_PRD_SEQ = #{ordPrdSeq, jdbcType=VARCHAR}
+           AND PO.ORD_PRD_CN_SEQ = #{ordPrdCnSeq, jdbcType=VARCHAR} 
+           AND PO.PA_ORDER_GB = '20'
+           AND PO.PROC_FLAG &lt; '10'
+           AND OM.PA_ORDER_NO = PO.ORD_NO
+           AND OM.PA_ORDER_SEQ = PO.ORD_PRD_SEQ
+           AND OM.PA_ORDER_GB = '10'
+           AND ROWNUM = 1
+    </select>
+    
+    <!--
+    <select id="selectOrderTagetDt" parameterType="String" resultType="hashMap">
+       SELECT /* pa11storder.xml : pa11st.order.selectOrderTagetDt by Pa11stOrderController */
+           PM.PA_ORDER_GB,
+           PM.PA_ORDER_NO,
+           PM.PA_ORDER_SEQ,
+           PM.ORDER_NO,
+           NVL(PGM.GOODS_CODE,"") as GOODS_CODE
+       FROM TPAORDERM PM
+           , TPA11STORDERLIST OL
+           , TCODE TC
+           , TPA11STGOODS PGM
+       WHERE PM.PA_ORDER_NO = OL.ORD_NO
+         AND PM.PA_ORDER_SEQ = OL.ORD_PRD_SEQ
+         AND PM.PA_SHIP_NO = OL.DLV_NO
+         AND PM.PA_ORDER_GB = OL.PA_ORDER_GB
+         AND PM.PA_CODE = TC.CODE_MGROUP
+         AND OL.PRD_NO = PGM.PRODUCT_NO
+         AND TC.CODE_LGROUP = 'O501'
+         AND PM.PA_ORDER_GB = '10'
+         AND PM.CREATE_YN = '0'
+         AND PM.PRE_CANCEL_YN = '0'
+         AND PM.PA_ORDER_NO = #{paOrderNo, jdbcType=VARCHAR}
+    </select>
+    -->
+    
+    <select id="selectCancelWithoutOrderList" parameterType="hashMap" resultType="hashMap">
+       SELECT PM.PA_ORDER_NO /* pa11storder.xml : pa11st.order.selectCancelWithoutOrderList by Pa11stOrderController */
+             ,PM.PA_ORDER_SEQ
+             ,PM.PA_SHIP_NO
+             ,PM.PA_CLAIM_NO
+       FROM TPAORDERM PM
+       WHERE PM.PA_ORDER_GB = '20'
+         AND PM.PA_ORDER_NO  = #{paOrderNo, jdbcType=VARCHAR}
+         AND PM.PA_ORDER_SEQ = #{paOrderSeq, jdbcType=VARCHAR} 
+         AND PM.PA_SHIP_NO   = #{paShipNo, jdbcType=VARCHAR}
+         AND PM.PA_CLAIM_NO  = #{paClaimNo, jdbcType=VARCHAR}
+         AND  NOT EXISTS 
+         	  (SELECT OM.PA_ORDER_NO
+               FROM  TPAORDERM OM 
+               WHERE OM.PA_ORDER_GB = '10'
+               AND   PM.PA_ORDER_NO = OM.PA_ORDER_NO
+               AND   PM.PA_ORDER_SEQ = OM.PA_ORDER_SEQ
+               AND   PM.PA_SHIP_NO   = OM.PA_SHIP_NO
+               AND   OM.CREATE_YN   = '1'
+               AND   OM.PRE_CANCEL_YN = '0' 
+               )
+    </select>
+    
+    
+   <select id="selectPaOrderM" parameterType="com.cware.netshopping.domain.model.Paorderm" resultType="int">
+       SELECT COUNT(1)
+       FROM TPAORDERM PM
+       WHERE PM.PA_ORDER_GB = '20'
+         AND PM.PA_ORDER_NO  = #{paOrderNo, jdbcType=VARCHAR}
+         AND PM.PA_ORDER_SEQ = #{paOrderSeq, jdbcType=VARCHAR} 
+         AND PM.PA_SHIP_NO   = #{paShipNo, jdbcType=VARCHAR}
+         AND PM.PA_CLAIM_NO  = #{paClaimNo, jdbcType=VARCHAR}
+       
+    </select>
+    
+    
+    
+    
+    <update id="updatePreCancelReason" parameterType="com.cware.netshopping.domain.model.Paorderm">
+       UPDATE TPAORDERM /* pa11storder.xml : pa11st.order.updatePreCancelReason by Pa11stOrderController */
+       SET PRE_CANCEL_YN = '1'
+         , PRE_CANCEL_REASON = #{preCancelReason, jdbcType=VARCHAR}
+       WHERE PA_ORDER_GB  in ('10','20')  
+         AND PA_ORDER_NO  = #{paOrderNo, jdbcType=VARCHAR}
+         AND PA_ORDER_SEQ = #{paOrderSeq, jdbcType=VARCHAR}
+         AND PA_SHIP_NO   = #{paShipNo, jdbcType=VARCHAR}
+         AND PA_CLAIM_NO  = #{paClaimNo, jdbcType=VARCHAR}
+    </update>
+    
+    <!-- 옵티마이저가  /*+INDEX_DESC (PPT IDX_TPAPROMOTARGET_04)*/를 계속 의도대로 사용하지 않아 ORDER BY 절로 수정  -->
+    <select id="selectOrderPromo" parameterType="hashMap" resultType="com.cware.netshopping.domain.OrderpromoVO">
+       SELECT /* pa11storder.xml : pa11st.order.selectOrderPromo by Pa11stOrderController */ 
+       	       * 
+         FROM (   SELECT  B.SEQ
+		            	 , B.PROC_GB 
+		                 , A.PROMO_NO AS PROMO_NO
+		                 , B.PA_CODE
+		                 , G.GOODS_CODE
+		                 , A.DO_TYPE
+		                 , A.COUPON_YN
+		                 , A.MEDIA_CODE
+		                 , A.PROMO_BDATE AS COUPON_PROMO_BDATE
+		                 , A.PROMO_EDATE AS COUPON_PROMO_EDATE
+		                 , B.DO_AMT AS PROC_COST
+		                 , B.OWN_COST AS OWN_PROC_COST
+		                 , B.ENTP_COST AS ENTP_PROC_COST                 
+		            FROM TPROMOM          A
+		                ,TPAPROMOTARGET   B
+		                ,TGOODS           G
+		                ,TPA11STGOODS     PG
+		           WHERE 1=1           
+		             AND A.PROMO_NO       = B.PROMO_NO
+		             AND B.GOODS_CODE     = G.GOODS_CODE
+		             AND B.GOODS_CODE     = #{GOODS_CODE,jdbcType=VARCHAR}
+		             AND A.COUPON_YN      = '1'
+		             AND A.APP_TYPE       = '10'
+		             AND B.GOODS_CODE     = PG.GOODS_CODE
+		             AND B.PA_CODE        = PG.PA_CODE
+		             AND A.IMMEDIATELY_YN = '1'
+		             AND NVL(A.ALCOUT_PROMO_YN, '0') = '0'
+		             AND A.GOODS_ALL_YN   = '0'
+		             AND ((B.USE_CODE       = '00' AND B.PROC_GB IN ('I', 'U') )  OR (B.PROC_GB = 'D') ) 
+		             AND TRANS_DATE       IS NOT NULL
+		             AND TRANS_DATE       &lt; TO_DATE(#{ORDER_DATE,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS')
+		             AND ((TO_DATE(#{ORDER_DATE,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') BETWEEN B.TRANS_DATE AND B.PROMO_EDATE)
+		             	   OR (TO_DATE(#{ORDER_DATE,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') > B.PROMO_EDATE AND B.PROC_GB = 'D'))              
+		             AND G.GIFT_YN        = '0'
+		        ORDER BY B.TRANS_DATE DESC )
+        WHERE ROWNUM           = 1  
+    </select>     
+    
+    <!-- 제휴OUT 할인 프로모션 API 추가(REQ_PRM_040) : S -->
+    <!-- 제휴OUT프로모션 조회 -->
+    <select id="selectOrderPaPromo" parameterType="hashMap" resultType="com.cware.netshopping.domain.OrderpromoVO">
+       SELECT /* pa11storder.xml : pa11st.order.selectOrderPaPromo by Pa11stOrderController */ 
+       	       * 
+         FROM (   SELECT  B.SEQ
+		            	 , B.PROC_GB 
+		                 , A.PROMO_NO AS PROMO_NO
+		                 , B.PA_CODE
+		                 , G.GOODS_CODE
+		                 , A.DO_TYPE
+		                 , A.COUPON_YN
+		                 , A.MEDIA_CODE
+		                 , A.PROMO_BDATE AS COUPON_PROMO_BDATE
+		                 , A.PROMO_EDATE AS COUPON_PROMO_EDATE
+		                 , B.DO_AMT AS PROC_COST
+		                 , B.OWN_COST AS OWN_PROC_COST
+		                 , B.ENTP_COST AS ENTP_PROC_COST                 
+		            FROM TPROMOM          A
+		                ,TPAPROMOTARGET   B
+		                ,TGOODS           G
+		                ,TPA11STGOODS     PG
+		           WHERE 1=1           
+		             AND A.PROMO_NO       = B.PROMO_NO
+		             AND B.GOODS_CODE     = G.GOODS_CODE
+		             AND B.GOODS_CODE     = #{GOODS_CODE,jdbcType=VARCHAR}
+		             AND A.COUPON_YN      = '1'
+		             AND A.APP_TYPE       = '10'
+		             AND B.GOODS_CODE     = PG.GOODS_CODE
+		             AND B.PA_CODE        = PG.PA_CODE
+		             AND A.IMMEDIATELY_YN = '1'
+		             AND NVL(A.ALCOUT_PROMO_YN, '0') = '1'
+		             AND A.GOODS_ALL_YN   = '0'
+		             AND ((B.USE_CODE       = '00' AND B.PROC_GB IN ('I', 'U') )  OR (B.PROC_GB = 'D') ) 
+		             AND TRANS_DATE       IS NOT NULL
+		             AND TRANS_DATE       &lt; TO_DATE(#{ORDER_DATE,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS')
+		             AND ((TO_DATE(#{ORDER_DATE,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') BETWEEN B.TRANS_DATE AND B.PROMO_EDATE)
+		             	   OR (TO_DATE(#{ORDER_DATE,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') > B.PROMO_EDATE AND B.PROC_GB = 'D'))              
+		             AND G.GIFT_YN        = '0'
+		        ORDER BY B.TRANS_DATE DESC )
+        WHERE ROWNUM           = 1  
+    </select>       
+    
+    <select id="countOrderList" parameterType="com.cware.netshopping.domain.Pa11storderlistVO" resultType="int">
+        SELECT /* pa11storder.xml : pa11st.order.countOrderList by IF_PA11STAPI_03_021 */
+               COUNT(1) AS CNT
+          FROM TPA11STORDERLIST OT
+         WHERE ORD_NO      = #{ordNo , jdbcType=VARCHAR}
+           AND ORD_PRD_SEQ = #{ordPrdSeq , jdbcType=NUMERIC}
+           AND DLV_NO      = #{dlvNo , jdbcType=VARCHAR}
+           AND PA_ORDER_GB = '10'
+    </select>
+    
+     <select id="selectDelyType" parameterType="String" resultType="String">
+        SELECT /* pa11storder.xml: pa11st.order.selectDelyType by Pa11stOrderController*/
+               TG.DELY_TYPE
+		  FROM TGOODS       TG
+		     , TPA11STGOODS PG
+		 WHERE TG.GOODS_CODE = PG.GOODS_CODE 
+		   AND PG.PRODUCT_NO = #{prdNo, jdbcType = VARCHAR}
+    </select>  
+    
+    <select id="selectPa11stOrderList" parameterType="com.cware.netshopping.domain.Pa11storderlistVO" resultType="com.cware.netshopping.domain.Pa11storderlistVO">
+        SELECT /* pa11storder.xml : pa11st.order.selectPa11stOrderList by Pa11stOrderController */
+               OT.ORD_NO
+               , OT.ORD_NM
+               , OT.RCVR_NM
+               , OT.RCVR_TLPHN
+               , OT.RCVR_PRTBL_NO
+               , OT.RCVR_MAIL_NO
+               , OT.RCVR_MAIL_NO_SEQ
+               , OT.RCVR_BASE_ADDR
+               , OT.RCVR_DTLS_ADDR
+               , OT.TYPE_ADD
+          FROM TPA11STORDERLIST OT
+         WHERE ORD_NO      = #{ordNo , jdbcType=VARCHAR}
+           AND ORD_PRD_SEQ = #{ordPrdSeq , jdbcType=NUMERIC}
+           AND DLV_NO      = #{dlvNo , jdbcType=VARCHAR}
+           AND PA_ORDER_GB = '10'
+    </select>
+    
+     <select id="selectPaMobileOrderAutoCancelList" parameterType="hashMap" resultType="hashMap">
+        SELECT /* pa11storder.xml : pa11st.order.selectPaMobileOrderAutoCancelList by Pa11stOrderController */
+               A.ORDER_NO
+             , A.ORDER_G_SEQ
+             , A.ORDER_DATE
+             , PM.PA_ORDER_NO
+             , PM.PA_ORDER_SEQ
+             , PM.PA_CODE
+          FROM TORDERDT A
+               LEFT OUTER JOIN TMOBILEGOODSDELYPLAN B
+                 ON A.ORDER_NO = B.ORDER_NO
+                AND A.ORDER_G_SEQ = B.ORDER_G_SEQ
+                AND A.ORDER_D_SEQ = B.ORDER_D_SEQ
+                AND A.ORDER_W_SEQ = B.ORDER_W_SEQ
+             , TORDERPROC C
+             , TGOODS D
+               LEFT OUTER JOIN TGOODSADDINFO E
+                 ON D.GOODS_CODE = E.GOODS_CODE
+               LEFT OUTER JOIN TLGS_ORDER_CANCEL_EXCEPT_FIX EF
+                 ON D.GOODS_CODE = EF.GOODS_CODE
+               LEFT OUTER JOIN TLGS_ORDER_CANCEL_EXCEPT_PLAN EP
+                 ON D.GOODS_CODE = EP.GOODS_CODE
+                AND TRUNC(SYSDATE) BETWEEN EP.EXCEPT_FROM_DATE AND EP.EXCEPT_TO_DATE
+                AND EP.STATUS = '10'
+             , TENTERPRISE F
+	         	LEFT OUTER JOIN TMOBILEENTPEXCEPT ME
+		             ON F.ENTP_CODE = ME.ENTP_CODE
+                LEFT OUTER JOIN TLGS_MOBILE_ENTP_EXCEPT_PLAN MP
+                     ON F.ENTP_CODE = MP.ENTP_CODE
+                    AND TRUNC(SYSDATE) BETWEEN MP.EXCEPT_FROM_DATE AND MP.EXCEPT_TO_DATE
+                    AND MP.STATUS = '10'
+             , TMD G
+             , TPAORDERM PM
+         WHERE A.DO_FLAG > '20'
+           AND A.DO_FLAG &lt; '40'
+           AND A.GOODS_CODE = D.GOODS_CODE
+           AND A.ORDER_NO = C.ORDER_NO
+           AND A.ORDER_G_SEQ = C.ORDER_G_SEQ
+           AND A.ORDER_D_SEQ = C.ORDER_D_SEQ
+           AND A.ORDER_W_SEQ = C.ORDER_W_SEQ
+           AND C.DO_FLAG = '25' 
+           AND D.ENTP_CODE = F.ENTP_CODE
+           AND D.MD_CODE = G.MD_CODE
+           AND A.ORDER_NO = PM.ORDER_NO
+           AND A.ORDER_G_SEQ = PM.ORDER_G_SEQ
+           AND A.ORDER_D_SEQ = PM.ORDER_D_SEQ
+           AND A.ORDER_W_SEQ = PM.ORDER_W_SEQ
+           AND PM.PA_CODE IN ('11','12')
+           AND PM.PA_ORDER_GB IN ('10', '40')
+           AND PM.REMARK3_N IS NULL
+           AND D.SOURCING_MEDIA = '61'
+           AND E.TV_LIVE_GB = '2'
+           AND NVL(EP.EXCEPT_GB, NVL(EF.EXCEPT_GB, NVL(MP.MOBILE_EXCEPT_GB, NVL(ME.MOBILE_EXCEPT_GB, '1')))) = '1' 
+           AND EXISTS (SELECT 'X'
+                         FROM TENTERPRISE W, TMD E
+                        WHERE D.ENTP_CODE = W.ENTP_CODE
+                          AND W.MD_CODE = E.MD_CODE
+                          AND E.SOURCING_MEDIA = '61')
+           AND D.GIFT_YN = '0'
+           AND D.INSTALL_YN = '0'
+           AND D.INVI_GOODS_TYPE = '00'
+           AND NVL(E.ORDER_CREATE_YN, '0') = '0'
+           AND A.MEDIA_CODE = 'EX01'
+           AND NVL(E.RESERVE_YN, '0') = '0' /*예약상품제외*/
+           AND E.DAWN_YN != '1' /*새벽배송 동원홈푸드 상품제외*/
+           AND NVL(A.APPN_DAY_OUT_YN, '0') != '1' /* 지정일 출고는 당사만 하기때문에 제외 */
+           AND NVL(A.RESERV_ORD_YN, '0')   != '1' /* 예약주문은 당사만 하기때문에 제외 */
+           AND A.ORDER_DATE &lt; TRUNC(SYSDATE) - INTERVAL '2' DAY
+           AND C.PROC_DATE >= TRUNC(ADD_MONTHS(SYSDATE - INTERVAL '2' DAY,-1))
+           AND C.PROC_DATE &lt; TRUNC(SYSDATE) - INTERVAL '2' DAY
+	       AND E.GLOBAL_DELY_YN = '0'
+	       AND E.EM_MULTI_GOODS_YN = '0'
+           /*현재일이 배송예정일 마감일 당일인 주문 처리
+           AND (CASE
+                 WHEN B.DELY_PLAN_DELAY_DATE IS NOT NULL THEN
+                  TRUNC(B.DELY_PLAN_DELAY_DATE)
+                 ELSE
+		          (FUN_GET_DELYDAY_HOLI_DATE_MOB('10',
+                                  TRUNC(C.PROC_DATE),
+                                 '1',
+                                 NVL(ME.BASE_DELY_DAY,3))) END) = TRUNC(SYSDATE)*/
+           /*현재일이 배송예정일 마감일 당일인 주문 처리 or 배송예정일 마감일이 당일 이전인 지난 주문까지 처리 시 사용*/
+           AND (CASE
+                 WHEN B.DELY_PLAN_DELAY_DATE IS NOT NULL THEN
+                  TRUNC(B.DELY_PLAN_DELAY_DATE)
+                 ELSE
+		          (FUN_GET_DELYDAY_HOLI_DATE_ENTP('10',
+                                  TRUNC(C.PROC_DATE),
+                                 '1',
+                                 NVL(EP.EXCEPT_DELY_DAY, NVL(EF.EXCEPT_DELY_DAY, NVL(MP.BASE_DELY_DAY, NVL(ME.BASE_DELY_DAY, 3)))),
+                                 D.ENTP_CODE))  END) &lt;= TRUNC(SYSDATE)
+           AND (EXISTS (SELECT 'X'
+                          FROM TMOBILEENTPEXCEPT W
+                         WHERE W.ENTP_CODE = D.ENTP_CODE
+                           AND W.MOBILE_EXCEPT_GB = '1') OR
+                EXISTS (SELECT 'X'
+                          FROM TLGS_MOBILE_ENTP_EXCEPT_PLAN MP
+                         WHERE D.ENTP_CODE = MP.ENTP_CODE
+                           AND TRUNC(SYSDATE) BETWEEN MP.EXCEPT_FROM_DATE AND MP.EXCEPT_TO_DATE
+                           AND MP.STATUS = '10' ) OR
+                EXISTS (SELECT 'X'
+                          FROM TLGS_ORDER_CANCEL_EXCEPT_FIX EF
+                         WHERE EF.GOODS_CODE = D.GOODS_CODE) OR
+                EXISTS (SELECT 'X'
+                          FROM TLGS_ORDER_CANCEL_EXCEPT_PLAN EP
+                         WHERE D.GOODS_CODE = EP.GOODS_CODE
+                           AND TRUNC(SYSDATE) BETWEEN EP.EXCEPT_FROM_DATE AND EP.EXCEPT_TO_DATE
+                           AND EP.STATUS = '10'  ) )
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TCLAIMDT W
+                            WHERE W.ORDER_NO = A.ORDER_NO
+                              AND W.CUST_NO = A.CUST_NO)
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TCANCELDT W
+                            WHERE W.ORDER_NO = A.ORDER_NO
+                              AND W.CUST_NO = A.CUST_NO)  
+         GROUP BY A.ORDER_NO, A.ORDER_G_SEQ, A.ORDER_DATE, PM.PA_ORDER_NO, PM.PA_ORDER_SEQ, PM.PA_CODE
+         ORDER BY A.ORDER_DATE ASC
+    </select>
+    
+</mapper>

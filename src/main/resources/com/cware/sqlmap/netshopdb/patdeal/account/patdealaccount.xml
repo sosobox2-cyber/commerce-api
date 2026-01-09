@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="patdeal.account">
+
+	<select id="selectSettlementSeq" parameterType="com.cware.netshopping.domain.model.PaTdealSettlement" resultType="int">
+		SELECT /* patdealaccount.xml: patdeal.account.selectSettlementSeq by PaTdealAccountController*/
+	    	   COUNT(*) AS CNT
+	  	  FROM TPATDEALSETTLEMENT OL
+	 	 WHERE OL.SEQ = #{seq , jdbcType=VARCHAR}
+	</select>
+  
+  	<insert id="insertPaTdealSettlement" parameterType="com.cware.netshopping.domain.model.PaTdealSettlement">
+        INSERT /* patdealaccount.xml: patdeal.account.insertPaTdealSettlement by PaTdealAccountController*/
+          INTO TPATDEALSETTLEMENT ( 
+          	   MALL_OPTION_NO	 			, MALL_NAME						, COMMISSION_RATE				, PARTNER_DISCOUNT_AMT
+          	 , COMPANY_NAME					, SETTLEMENT_YMDT				, MEMO 							, MALL_DELIVERY_ADJUST_AMT
+          	 , REFUND_ADJUST_AMT			, PURCHASE_PRICE				, MALL_PRODUCT_NO				, PRODUCT_NAME
+			 , MALL_DISCOUNT_AMT			, PARTNER_PRODUCT_ADJUST_AMT	, PARTNER_NO					, SETTLEMENT_DELIVERY_TYPE_LABEL
+			 , PARTNER_DELIVERY_ADJUST_AMT	, MALL_DELIVERY_AMT				, IMMEDIATE_DISCOUNTED_PRICE	, SEQ
+			 , VALUE_ADDED_TAX_TYPE_LABEL	, ORDER_NO						, PARTNER_NAME					, COMMISSION_AMT
+			 , ORDER_PRODUCT_OPTION_NO		, ORDER_CNT						, MALL_PRODUCT_ADJUST_AMT		, SETTLEMENT_AMT
+			 , SALES_AMT					, DELIVERY_AMT					, ORDER_PRODUCT_NO				, REFUND_YMDT
+			 , PATNER_TYPE					, OPTION_MANAGEMENT_CD			, REFUND_CNT					, PAY_YMDT
+			 , PRODUCT_OPTION				, ORDER_GB						, SHIPPING_NO
+
+        	) 
+        VALUES(
+			  #{mallOptionNo	 		 , jdbcType=NUMERIC} 	, #{mallName				, jdbcType=VARCHAR} 	, #{commissionRate			 , jdbcType=NUMERIC} 	, #{partnerDiscountAmt			, jdbcType=NUMERIC}	
+			, #{companyName		 		 , jdbcType=VARCHAR} 	, #{settlementYmdt			, jdbcType=VARCHAR} 	, #{memo					 , jdbcType=VARCHAR}  	, #{mallDeliveryAdjustAmt		, jdbcType=NUMERIC}	
+			, #{refundAdjustAmt	 		 , jdbcType=NUMERIC} 	, #{purchasePrice		    , jdbcType=NUMERIC} 	, #{mallProductNo			 , jdbcType=NUMERIC} 	, #{productName					, jdbcType=VARCHAR} 
+			, #{mallDiscountAmt		 	 , jdbcType=NUMERIC} 	, #{partnerProductAdjustAmt , jdbcType=NUMERIC} 	, #{partnerNo				 , jdbcType=NUMERIC} 	, #{settlementDeliveryTypeLabel	, jdbcType=VARCHAR} 
+			, #{partnerDeliveryAdjustAmt , jdbcType=NUMERIC} 	, #{mallDeliveryAmt			, jdbcType=NUMERIC} 	, #{immediateDiscountedPrice , jdbcType=NUMERIC}  	, #{seq							, jdbcType=NUMERIC}
+			, #{valueAddedTaxTypeLabel	 , jdbcType=VARCHAR} 	, #{orderNo					, jdbcType=VARCHAR} 	, #{partnerName				 , jdbcType=VARCHAR}  	, #{commissionAmt				, jdbcType=NUMERIC}
+			, #{orderProductOptionNo	 , jdbcType=NUMERIC} 	, #{orderCnt				, jdbcType=NUMERIC} 	, #{mallProductAdjustAmt	 , jdbcType=NUMERIC}  	, #{settlementAmt				, jdbcType=NUMERIC}
+			, #{salesAmt 				 , jdbcType=NUMERIC} 	, #{deliveryAmt				, jdbcType=NUMERIC} 	, #{orderProductNo			 , jdbcType=NUMERIC} 	, #{refundYmdt					, jdbcType=VARCHAR}
+			, #{partnerType			 	 , jdbcType=VARCHAR} 	, #{optionManagementCd		, jdbcType=VARCHAR} 	, #{refundCnt				 , jdbcType=NUMERIC} 	, #{payYmdt						, jdbcType=VARCHAR}
+			, #{option 		 			 , jdbcType=VARCHAR} 	, #{orderGb					, jdbcType=VARCHAR} 	, #{shippingNo				 , jdbcType=VARCHAR} 		
+        )  
+     </insert>
+</mapper>

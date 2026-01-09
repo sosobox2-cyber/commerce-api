@@ -1,0 +1,553 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="palton.common">
+	<insert id="insertPaDisplayCategory" parameterType="com.cware.netshopping.domain.model.PaLtonDispCtgr">
+        INSERT /* paltoncommon.xml : paltoncommon.insertPaDisplayCategory by PaLtonCommonController-goodsKinds-display-list */
+	        INTO TPALTONDISPLAYCATEGORY
+	           ( 
+	             DISP_CAT_ID 
+	           , DISP_CAT_NM 
+	           , DISP_CAT_DESC 
+	           , UPR_DISP_CAT_ID 
+	           , DEPTH_NO 
+	           , LEAF_YN 
+	           , PRIO_RNK 
+	           , MALL_DVS_CD 
+	           , DISP_YN 
+	           , MOD_DATE 
+	           , USE_YN 
+	           , INSERT_ID
+	           , INSERT_DATE  
+	           , MODIFY_ID 
+	           , MODIFY_DATE 
+	           )
+	      VALUES 
+	           ( 
+	             #{dispCatId, 	 jdbcType=VARCHAR}
+	           , #{dispCatNm, 	 jdbcType=VARCHAR}
+	           , #{dispCatDesc,  jdbcType=VARCHAR}
+	           , #{uprDispCatId, jdbcType=VARCHAR}
+	           , #{depthNo, 	 jdbcType=NUMERIC}
+	           , #{leafYn, 		 jdbcType=VARCHAR}
+	           , #{prioRnk, 	 jdbcType=NUMERIC}
+	           , #{mallDvsCd, 	 jdbcType=VARCHAR}
+	           , #{dispYn, 		 jdbcType=VARCHAR}
+	           , #{modDate, 	 jdbcType=VARCHAR}
+	           , #{useYn, 		 jdbcType=VARCHAR}
+	           , 'PALTON'
+	           , SYSDATE
+	           , 'PALTON'
+	           , SYSDATE
+	           )  
+     </insert>
+     
+     <insert id="insertDisInfoList" parameterType="com.cware.netshopping.domain.model.PaLtonDispList">
+        INSERT /* paltoncommon.xml : paltoncommon.insertDisInfoList by PaLtonCommonController-goodsKinds-std-list */
+          INTO TPALTONSTANDARDDISPLIST
+             ( 
+               STD_CAT_ID
+             , MALL_DVS_CD
+             , DISP_CAT_ID
+             , INSERT_ID
+             , INSERT_DATE  
+             , MODIFY_ID 
+             , MODIFY_DATE 
+             )
+        VALUES 
+             ( 
+               #{stdCatId,  jdbcType=VARCHAR}
+             , #{mallDvsCd, jdbcType=VARCHAR}
+             , #{dispCatId, jdbcType=VARCHAR}
+             , 'PALTON'
+             , SYSDATE
+             , 'PALTON'
+             , SYSDATE
+             )  
+     </insert>
+     
+     <insert id="insertAttrInfoList" parameterType="com.cware.netshopping.domain.model.PaLtonAttrList">
+        INSERT /* paltoncommon.xml : paltoncommon.insertAttrInfoList by PaLtonCommonController-goodsKinds-std-list */
+          INTO TPALTONSTANDARDATTRLIST
+             ( 
+               STD_CAT_ID
+             , ATTR_PI_TYPE
+             , ATTR_ID
+             , PRIO_RNK
+             , INSERT_ID
+             , INSERT_DATE  
+             , MODIFY_ID 
+             , MODIFY_DATE 
+             )
+        VALUES 
+             ( 
+               #{stdCatId,   jdbcType=VARCHAR}
+             , #{attrPiType, jdbcType=VARCHAR}
+             , #{attrId,     jdbcType=NUMERIC}
+             , #{prioRnk,    jdbcType=NUMERIC}
+             , 'PALTON'
+             , SYSDATE
+             , 'PALTON'
+             , SYSDATE
+             )  
+     </insert>
+     
+     <insert id="insertPdItmsInfoList" parameterType="com.cware.netshopping.domain.model.PaLtonPdItmsList">
+        INSERT /* paltoncommon.xml : paltoncommon.insertPdItmsInfoList by PaLtonCommonController-goodsKinds-std-list */
+          INTO TPALTONSTANDARDPDITEMSLIST
+             ( 
+               STD_CAT_ID
+             , PD_ITMS_CD
+             , INSERT_ID
+             , INSERT_DATE  
+             , MODIFY_ID 
+             , MODIFY_DATE 
+             )
+        VALUES 
+             ( 
+               #{stdCatId, jdbcType=VARCHAR}
+             , #{pdItmsCd, jdbcType=VARCHAR}
+             , 'PALTON'
+             , SYSDATE
+             , 'PALTON'
+             , SYSDATE
+             )  
+     </insert>
+     
+     <insert id="insertStdCtgrInfoList" parameterType="com.cware.netshopping.domain.model.PaLtonStdCtgr">
+        INSERT /* paltoncommon.xml : paltoncommon.insertStdCtgrInfoList by PaLtonCommonController-goodsKinds-std-list */
+          INTO TPALTONSTANDARDCATEGORY
+             ( 
+               STD_CAT_ID 
+             , STD_CAT_NM 
+             , STD_CAT_DESC 
+             , UPR_STD_CAT_ID 
+             , DEPTH_NO 
+             , LEAF_YN 
+             , PRIO_RNK 
+             , TDF_CD 
+             , AGE_LIMIT_CD 
+             , SMARTPICK_YN 
+             , DEDUCT_CULT_YN 
+             , ABAND_PICKUP_YN 
+             , EXCH_MONEY_YN 
+             , COUNSEL_PROD_YN 
+             , MOD_DATE 
+             , USE_YN 
+             , CHL_ATHN 
+             , CHL_CFM 
+             , CHL_SUPS 
+             , CMCN_ATHN 
+             , CMCN_REG 
+             , CMCN_TNTT 
+             , ELC_ATHN 
+             , ELC_CFM 
+             , ELC_SUPS 
+             , LIFE_ATHN 
+             , LIFE_CFM 
+             , LIFE_SUPS 
+             , LIFE_STD 
+             , CHEM_LIFE 
+             , CHEM_BIOC 
+             , ETC 
+             , INSERT_ID
+             , INSERT_DATE  
+             , MODIFY_ID 
+             , MODIFY_DATE 
+             )
+        VALUES 
+             ( 
+               #{stdCatId,      jdbcType=VARCHAR}
+             , #{stdCatNm,      jdbcType=VARCHAR}
+             , #{stdCatDesc,    jdbcType=VARCHAR}
+             , #{uprStdCatId,   jdbcType=VARCHAR}
+             , #{depthNo,       jdbcType=NUMERIC}
+             , #{leafYn,        jdbcType=VARCHAR}
+             , #{prioRnk,       jdbcType=NUMERIC}
+             , #{tdfCd,         jdbcType=VARCHAR}
+             , #{ageLimitCd,    jdbcType=VARCHAR}
+             , #{smartpickYn,   jdbcType=VARCHAR}
+             , #{deductCultYn,  jdbcType=VARCHAR}
+             , #{abandPickupYn, jdbcType=VARCHAR}
+             , #{exchMoneyYn,   jdbcType=VARCHAR}
+             , #{counselProdYn, jdbcType=VARCHAR}
+             , #{modDate,       jdbcType=VARCHAR}
+             , #{useYn,         jdbcType=VARCHAR}
+             , #{chlAthn,       jdbcType=VARCHAR}
+             , #{chlCfm,        jdbcType=VARCHAR}
+             , #{chlSups,       jdbcType=VARCHAR}
+             , #{cmcnAthn,      jdbcType=VARCHAR}
+             , #{cmcnReg,       jdbcType=VARCHAR}
+             , #{cmcnTntt,      jdbcType=VARCHAR}
+             , #{elcAthn,       jdbcType=VARCHAR}
+             , #{elcCfm,        jdbcType=VARCHAR}
+             , #{elcSups,       jdbcType=VARCHAR}
+             , #{lifeAthn,      jdbcType=VARCHAR}
+             , #{lifeCfm,       jdbcType=VARCHAR}
+             , #{lifeSups,      jdbcType=VARCHAR}
+             , #{lifeStd,       jdbcType=VARCHAR}
+             , #{chemLife,      jdbcType=VARCHAR}
+             , #{chemBioc,      jdbcType=VARCHAR}
+             , #{etc,           jdbcType=VARCHAR}
+             , 'PALTON'
+             , SYSDATE
+             , 'PALTON'
+             , SYSDATE
+             )  
+     </insert>
+     
+     <insert id="insertPaLtonBrand" parameterType="com.cware.netshopping.domain.model.PaBrand">
+        INSERT /* paltoncommon.xml : paltoncommon.insertPaLtonBrand by PaLtonCommonController-brand-List */
+          INTO TPABRAND
+             ( 
+               PA_GROUP_CODE
+             , PA_BRAND_NO
+             , PA_BRAND_NAME
+             , USE_YN
+             , INSERT_ID
+             , INSERT_DATE
+             , MODIFY_ID
+             , MODIFY_DATE 
+             )
+        VALUES 
+             ( 
+               #{paGroupCode, jdbcType=VARCHAR}
+             , #{paBrandNo,   jdbcType=VARCHAR}
+             , #{paBrandName, jdbcType=VARCHAR}
+             , #{useYn, 	  jdbcType=VARCHAR}
+             , 'PALTON'
+             , SYSDATE
+             , 'PALTON'
+             , SYSDATE
+             )
+    </insert>
+    
+    
+	<select id="selectSlipInsertList" resultType="hashMap" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">
+        SELECT /* paltoncommon.xml : palton.paltoncommon.selectSlipInsertList by PaLtonCommonController-returnSlipInsert  */
+               NVL(EU.POST_NO,'99999') AS POST_NO
+             , NVL(EU.POST_ADDR,'없음') AS POST_ADDR
+             , NVL(EU.ADDR,'-') as ADDR
+             , NVL(EU.STD_ROAD_POST,'999999') AS STD_ROAD_POST
+             , NVL(EU.STD_POST_ADDR1,'없음') AS STD_POST_ADDR1
+             , NVL(EU.STD_POST_ADDR2,'-') AS STD_POST_ADDR2
+             , EU.ENTP_CODE
+             , EU.ENTP_MAN_SEQ
+             , EU.ENTP_MAN_GB 
+             , EU.ENTP_MAN_NAME
+             , EU.ENTP_MAN_DDD || '-' || EU.ENTP_MAN_TEL1 || '-' || EU.ENTP_MAN_TEL2 AS ENTP_MAN_TEL
+             , EU.ENTP_MAN_HP1 || DECODE(EU.ENTP_MAN_HP1, NULL, '', '-') || EU.ENTP_MAN_HP2 || DECODE(EU.ENTP_MAN_HP2, NULL, '', '-') || EU.ENTP_MAN_HP3 AS ENTP_MAN_HP
+          FROM TENTPUSER   EU
+             , TENTERPRISE EP
+         WHERE EU.ENTP_CODE    = EP.ENTP_CODE    
+           AND EU.ENTP_CODE    = #{entpCode, jdbcType=VARCHAR}
+           AND EU.ENTP_MAN_SEQ = #{entpManSeq, jdbcType=VARCHAR}
+           <if test="paAddrSeq == null or paAddrSeq == '' ">
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TPAENTPSLIP PL               
+                            WHERE EU.ENTP_CODE    = PL.ENTP_CODE
+                              AND EU.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+                              AND PL.PA_CODE      = #{paCode, jdbcType=VARCHAR})
+           </if>
+    </select>
+    
+    
+     <insert id="insertPaLtonEntpSlip" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">    
+        INSERT /* paltoncommon.xml : palton.paltoncommon.insertPaLtonEntpSlip by PaLtonCommonController-entpShipInsert */
+          INTO TPAENTPSLIP
+             ( ENTP_CODE
+             , ENTP_MAN_SEQ
+             , PA_CODE
+             , PA_ADDR_SEQ
+             , PA_ADDR_GB
+             , TRANS_TARGET_YN
+             , LAST_SYNC_DATE
+             , INSERT_DATE
+             , INSERT_ID
+             , MODIFY_DATE
+             , MODIFY_ID )
+        VALUES 
+             ( 
+               #{entpCode, jdbcType=VARCHAR}
+             , #{entpManSeq, jdbcType=VARCHAR}
+             , #{paCode, jdbcType=VARCHAR}
+             , #{paAddrSeq, jdbcType=VARCHAR}
+             , #{paAddrGb, jdbcType=VARCHAR}
+             , #{transTargetYn, jdbcType=VARCHAR}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{insertId, jdbcType=VARCHAR}
+             , #{modifyDate, jdbcType=TIMESTAMP}
+             , #{modifyId, jdbcType=VARCHAR}
+             )  
+    </insert>
+    
+     <select id="selectEntpSlipUpdateList" resultType="hashMap" parameterType="String">
+        SELECT /* paltoncommon.xml : palton.paltoncommon.selectEntpSlipUpdateList by PaLtonCommonController-entpShipUpdate */
+               NVL(EU.POST_NO,'99999') AS POST_NO
+             , NVL(EU.POST_ADDR,'없음') AS POST_ADDR
+             , NVL(EU.ADDR,'-') as ADDR
+             , NVL(EU.STD_ROAD_POST,'999999') AS STD_ROAD_POST
+             , NVL(EU.STD_POST_ADDR1,'없음') AS STD_POST_ADDR1
+             , NVL(EU.STD_POST_ADDR2,'-') AS STD_POST_ADDR2
+             , EU.ENTP_CODE
+             , EU.ENTP_MAN_SEQ
+             , EU.ENTP_MAN_GB 
+             , EU.ENTP_MAN_NAME
+             , EU.ENTP_MAN_DDD || '-' || EU.ENTP_MAN_TEL1 || '-' || EU.ENTP_MAN_TEL2 AS ENTP_MAN_TEL
+             , EU.ENTP_MAN_HP1 || DECODE(EU.ENTP_MAN_HP1, NULL, '', '-') || EU.ENTP_MAN_HP2 || DECODE(EU.ENTP_MAN_HP2, NULL, '', '-') || EU.ENTP_MAN_HP3 AS ENTP_MAN_HP
+             , PL.PA_CODE
+             , PL.PA_ADDR_SEQ
+          FROM TENTPUSER EU
+             , TENTERPRISE EP
+             , TPAENTPSLIP PL
+         WHERE EU.ENTP_CODE = EP.ENTP_CODE
+           AND EU.ENTP_CODE = PL.ENTP_CODE
+           AND EU.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+           AND PL.PA_CODE IN ('81','82')
+           AND PL.PA_ADDR_GB IN ('20','30')
+           AND PL.TRANS_TARGET_YN = '1'
+           AND PL.PA_ADDR_SEQ IS NOT NULL
+    </select>
+    
+     <select id="selectEntpSlipUpdate" resultType="hashMap" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">
+        SELECT /* paltoncommon.xml : palton.paltoncommon.selectEntpSlipUpdate by PaLtonSellerService */
+               NVL(EU.POST_NO,'99999') AS POST_NO
+             , NVL(EU.POST_ADDR,'없음') AS POST_ADDR
+             , NVL(EU.ADDR,'-') as ADDR
+             , NVL(EU.STD_ROAD_POST,'999999') AS STD_ROAD_POST
+             , NVL(EU.STD_POST_ADDR1,'없음') AS STD_POST_ADDR1
+             , NVL(EU.STD_POST_ADDR2,'-') AS STD_POST_ADDR2
+             , EU.ENTP_CODE
+             , EU.ENTP_MAN_SEQ
+             , EU.ENTP_MAN_GB 
+             , EU.ENTP_MAN_NAME
+             , EU.ENTP_MAN_DDD || '-' || EU.ENTP_MAN_TEL1 || '-' || EU.ENTP_MAN_TEL2 AS ENTP_MAN_TEL
+             , EU.ENTP_MAN_HP1 || DECODE(EU.ENTP_MAN_HP1, NULL, '', '-') || EU.ENTP_MAN_HP2 || DECODE(EU.ENTP_MAN_HP2, NULL, '', '-') || EU.ENTP_MAN_HP3 AS ENTP_MAN_HP
+             , PL.PA_CODE
+             , PL.PA_ADDR_SEQ
+          FROM TENTPUSER EU
+             , TENTERPRISE EP
+             , TPAENTPSLIP PL
+         WHERE EU.ENTP_CODE = EP.ENTP_CODE
+           AND EU.ENTP_CODE = PL.ENTP_CODE
+           AND EU.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+           AND PL.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PL.TRANS_TARGET_YN = '1'
+           AND PL.PA_ADDR_SEQ IS NOT NULL
+           AND PL.ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+           AND PL.ENTP_MAN_SEQ = #{entpManSeq, jdbcType=VARCHAR}
+    </select>
+    
+     <update id="updatePaLtonEntpSlip" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">
+        UPDATE /* paltoncommon.xml : palton.paltoncommon.updatePaltonEntpSlip */
+               TPAENTPSLIP
+           SET TRANS_TARGET_YN = #{transTargetYn, jdbcType=VARCHAR}
+             , MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+             , MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+         WHERE ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+           AND PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PA_ADDR_SEQ = #{paAddrSeq, jdbcType=VARCHAR}
+    </update>
+    
+    
+    <select id="selectEntpSlipCost" resultType="hashMap" parameterType="hashMap">
+       SELECT  /* paltoncommon.xml : palton.paltoncommon.selectEntpSlipCost */
+	          CSC.PA_CODE
+	        , CSC.GROUP_CODE
+	        , CSC.ORD_COST
+	        , CSC.RETURN_COST
+	        , CSC.ISLAND_COST
+	        , CSC.JEJU_COST
+	        , CSC.SHIP_COST_BASE_AMT
+	        , CSC.ENTP_CODE
+	        , CSC.SHIP_COST_CODE
+	     FROM TPACUSTSHIPCOST CSC  
+	    WHERE CSC.TRANS_TARGET_YN = '1'
+	    <if test='modCase == "MODIFY"'>
+		  AND CSC.GROUP_CODE IS NOT NULL
+	    </if>
+	    <if test='modCase == "INSERT"'>
+		  AND CSC.GROUP_CODE IS NULL
+	    </if>
+	      AND CSC.PA_CODE IN ('81','82')
+	 ORDER BY CSC.ENTP_CODE, CSC.ORD_COST, CSC.SHIP_COST_BASE_AMT
+    </select>
+    
+    <select id="selectAddShipCost" resultType="hashMap" parameterType="hashMap">
+       SELECT  /* paltoncommon.xml : palton.paltoncommon.selectAddShipCost*/
+	          AC.PA_CODE
+	        , AC.ISLAND_COST
+	        , AC.JEJU_COST
+	     FROM TPALTONADDSHIPCOST AC  
+	    WHERE AC.DV_CST_POL_NO IS NULL
+    </select>
+    
+     <update id="updatePaLtonCustShipCost" parameterType="hashMap">
+    	UPDATE /* paltoncommon.xml : palton.paltoncommon.updatePaLtonCustShipCost by PaLtonCommonController-entpCustShipCostUpdate */
+		       TPACUSTSHIPCOST
+		   SET TRANS_TARGET_YN 		= '0'
+			<if test='delvCostPlcNo != null and delvCostPlcNo != ""'>
+    		 , GROUP_CODE			= #{delvCostPlcNo,	jdbcType=VARCHAR}
+			</if>
+			 , MODIFY_ID        	= #{modifyId, 		jdbcType=VARCHAR}
+		     , MODIFY_DATE     		= #{modifyDate,		jdbcType=TIMESTAMP}
+         WHERE ENTP_CODE      	= #{entpCode,		jdbcType=VARCHAR}
+           AND PA_CODE        	= #{paCode,			jdbcType=VARCHAR}
+           AND SHIP_COST_CODE 	= #{shipCostCode,	jdbcType=VARCHAR}
+    </update>
+    
+    <insert id="insertPaLtonOrigin" parameterType="com.cware.netshopping.domain.model.PaLtonRetrieveCode">
+        INSERT /* paltoncommon.xml : paltoncommon.insertPaLtonOrigin by PaLtonCommonController-retrieve-common-code */
+          INTO TPAORIGIN
+             ( 
+               PA_GROUP_CODE  
+	         , PA_ORIGIN_CODE  
+	         , PA_ORIGIN_NAME  
+	         , REMARK1  
+	         , REMARK2  
+	         , REMARK3  
+	         , REMARK4 
+             , INSERT_ID
+             , INSERT_DATE  
+             , MODIFY_ID 
+             , MODIFY_DATE 
+             )
+        VALUES 
+             ( 
+               '08'
+             , #{cd,             jdbcType=VARCHAR}
+             , #{cdNm,           jdbcType=VARCHAR}
+             , #{refcChrValEpn1, jdbcType=VARCHAR}
+             , #{refcChrValEpn2, jdbcType=VARCHAR}
+             , #{refcChrValEpn3, jdbcType=VARCHAR}
+             , #{refcChrValEpn4, jdbcType=VARCHAR}
+             , 'PALTON'
+             , SYSDATE
+             , 'PALTON'
+             , SYSDATE
+             )  
+     </insert>
+
+    <update id="updatePaLtonAddShipCost" parameterType="hashMap">
+    	UPDATE /* paltoncommon.xml : palton.paltoncommon.updatePaLtonAddShipCost by PaLtonCommonController-entpCustShipCostUpdate */
+		       TPALTONADDSHIPCOST
+		   SET DV_CST_POL_NO= #{delvCostPlcNo,jdbcType=VARCHAR}
+         WHERE PA_CODE= #{paCode,jdbcType=VARCHAR}
+           AND ISLAND_COST= #{islandCost,jdbcType=NUMERIC}
+           AND JEJU_COST= #{jejuCost,jdbcType=NUMERIC}
+    </update>
+    
+    <delete id="deletePaLtonSettlement" parameterType="hashMap">
+        DELETE /* paltoncommon.xml : palton.paltoncommon.deletePaLtonSettlement */ 
+          FROM TPALTONSETTLEMENT
+         WHERE FLAG = #{flag, jdbcType=VARCHAR}
+           AND TO_DATE(SE_STD_DT,'YYYY-MM-DD') BETWEEN TO_DATE(#{startDate, jdbcType=VARCHAR}, 'YYYY-MM-DD')
+                                    AND TO_DATE(#{endDate, jdbcType=VARCHAR}, 'YYYY-MM-DD')
+    </delete>
+
+    <insert id="insertPaLtonSettlement" parameterType="com.cware.netshopping.domain.model.PaLtonSettlement">
+        INSERT /* paltoncommon.xml : paltoncommon.insertPaLtonSettlement by PaLtonCommonController */
+          INTO TPALTONSETTLEMENT
+             (
+               PALTON_SETTLEMENT_NO
+             , FLAG
+			 , SALES_TYP_CD
+			 , TR_NO
+			 , TR_CTRT_NO
+			 , LRTR_NO
+			 , STR_CD
+			 , BIZP_REG_NO
+			 , TR_NM
+			 , TDF_DVS_CD
+			 , SE_STD_DT
+			 , OD_NO
+			 , OD_SEQ
+			 , PROC_SEQ
+			 , OD_TYP_CD
+			 , SITM_NO
+			 , SITM_NM
+			 , SPD_NO
+			 , SPD_NM
+			 , SCAT_NO
+			 , SL_CH_NO
+			 , SL_QTY
+			 , SL_UPRC
+			 , SL_AMT
+			 , PY_DTTM
+			 , RTNG_CMPT_DTTM
+			 , SND_DTTM
+			 , DV_CMPT_DTTM
+			 , OCO_DC_SPT_AMT	 
+			 , SLR_DC_SPT_AMT
+			 , SALES_AWAR_NO
+			 , CART_MALL_NO
+			 , THDY_PD_YN
+			 , PR_TYP_CD
+			 , PR_KND_CD
+			 , PR_SFCO_SHR_AMT
+			 , PR_ENTP_SHR_AMT
+			 , PR_NO
+			 , OD_FVR_NO
+			 , OD_CST_TYP_CD
+			 , OCO_DV_CST_AMT
+			 , SLR_DV_CST_AMT
+			 , CUST_DV_CST_AMT
+			 , CST_EXMT_RSN_CD
+			 , CST_EXMT_RSN_CD_NM
+             , INSERT_DATE  
+             , MODIFY_DATE 
+             )
+        VALUES 
+             (
+               #{paltonSettlementNo	, jdbcType=VARCHAR}
+             , #{flag				, jdbcType=VARCHAR}
+			 , #{salesTypCd			, jdbcType=VARCHAR}
+			 , #{trNo				, jdbcType=VARCHAR}
+			 , #{trCtrtNo			, jdbcType=VARCHAR}
+			 , #{lrtrNo				, jdbcType=VARCHAR}
+			 , #{strCd				, jdbcType=VARCHAR}
+			 , #{bizpRegNo			, jdbcType=VARCHAR}
+			 , #{trNm				, jdbcType=VARCHAR}
+			 , #{tdfDvsCd			, jdbcType=VARCHAR}
+			 , #{seStdDt			, jdbcType=VARCHAR}
+			 , #{odNo				, jdbcType=VARCHAR}
+			 , #{odSeq				, jdbcType=VARCHAR}
+			 , #{procSeq			, jdbcType=VARCHAR}
+			 , #{odTypCd			, jdbcType=VARCHAR}
+			 , #{sitmNo				, jdbcType=VARCHAR}
+			 , #{sitmNm				, jdbcType=VARCHAR}
+			 , #{spdNo				, jdbcType=VARCHAR}
+			 , #{spdNm				, jdbcType=VARCHAR}
+			 , #{scatNo				, jdbcType=VARCHAR}
+			 , #{slChNo				, jdbcType=VARCHAR}
+			 , #{slQty				, jdbcType=NUMERIC}
+			 , #{slUprc				, jdbcType=NUMERIC}
+			 , #{slAmt				, jdbcType=NUMERIC}
+			 , #{pyDttm				, jdbcType=VARCHAR}
+			 , #{rtngCmptDttm		, jdbcType=VARCHAR}
+			 , #{sndDttm			, jdbcType=VARCHAR}
+			 , #{dvCmptDttm			, jdbcType=VARCHAR}
+			 , #{ocoDcSptAmt		, jdbcType=NUMERIC}
+			 , #{slrDcSptAmt		, jdbcType=NUMERIC}
+			 , #{salesAwarNo		, jdbcType=VARCHAR}
+			 , #{cartMallNo			, jdbcType=VARCHAR}
+			 , #{thdyPdYn			, jdbcType=VARCHAR}
+			 , #{prTypCd			, jdbcType=VARCHAR}
+			 , #{prKndCd			, jdbcType=VARCHAR}
+			 , #{prSfcoShrAmt		, jdbcType=NUMERIC}
+			 , #{prEntpShrAmt		, jdbcType=NUMERIC}
+			 , #{prNo				, jdbcType=VARCHAR}
+			 , #{odFvrNo			, jdbcType=VARCHAR}
+			 , #{odCstTypCd			, jdbcType=VARCHAR}
+			 , #{ocoDvCstAmt		, jdbcType=NUMERIC}
+			 , #{slrDvCstAmt		, jdbcType=NUMERIC}
+			 , #{custDvCstAmt		, jdbcType=NUMERIC}
+			 , #{cstExmtRsnCd		, jdbcType=VARCHAR}
+			 , #{cstExmtRsnCdNm		, jdbcType=VARCHAR}
+             , SYSDATE  
+             , SYSDATE 
+             )  
+     </insert>
+</mapper>

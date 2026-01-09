@@ -1,0 +1,2927 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pagmkt.goods">
+    <select id="selectPaGmktGoodsPriceOne" parameterType="com.cware.netshopping.domain.PaGmktGoodsVO" resultType="com.cware.netshopping.domain.PaGmktGoodsPriceVO">
+        SELECT DISTINCT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectPaGmktGoodsPriceOne by PaGmktGoodsController-goodspriceModify */
+               PP.GOODS_CODE
+             , PP.PA_CODE
+             , PP.APPLY_DATE
+             , PP.SALE_PRICE 
+             , PP.SUPPLY_PRICE
+             , ROUND(((PP.SALE_PRICE-PP.DC_AMT)-NVL(#{doCost, jdbcType=NUMERIC},0)) * ((100-TC.REMARK1)/ 100)) AS NEW_SUPPLY_PRICE
+             , PP.COMMISION
+             , PP.DC_AMT
+             , PP.PRICE_SEQ
+             , PP.LUMP_SUM_DC_AMT
+             , PP.LUMP_SUM_ENTP_DC_AMT
+             , PP.LUMP_SUM_OWN_DC_AMT
+          FROM TPAGOODSPRICE PP
+             , TCODE TC
+         WHERE PP.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PP.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND TC.CODE_LGROUP = 'O579'
+           AND TC.CODE_GROUP  = '02'
+           AND PP.ROWID = ( SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE)*/  
+                                   GP.ROWID
+                              FROM TPAGOODSPRICE GP
+                             WHERE GP.GOODS_CODE = PP.GOODS_CODE
+                               AND GP.PA_CODE = PP.PA_CODE
+                               AND GP.APPLY_DATE &lt; SYSDATE
+                               AND ROWNUM = 1
+                          )
+    </select>
+        		 
+    <select id="selectPaPromoTarget" parameterType="hashMap" resultType="hashMap">
+		SELECT *
+		  FROM (
+				SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectPaPromoTarget by PaGmktGoodsController */
+					   PPMT.PROC_GB
+					 , PPMT.PROMO_NO
+					 , PPMT.SEQ
+					 , PPMT.GOODS_CODE
+					 , PPMT.PROMO_BDATE
+					 , PPMT.PROMO_EDATE
+					 , PP.SALE_PRICE
+					 , PP.DC_AMT
+					 , PPMT.STANDARD_APP_AMT
+					 , PPMT.LIMIT_AMT
+					 , PPMT.AMT_RATE_FLAG
+					 , PPMT.DO_RATE
+					 , PPMT.DO_AMT
+					 , PPMT.DO_AMT 		AS DO_COST
+					 , PPMT.OWN_COST 	AS DO_OWN_COST 
+					 , PPMT.ENTP_COST   AS DO_ENTP_COST 
+					 , PPMT.TRANS_DATE
+					 , PPMT.PA_GROUP_CODE
+					 , PPMT.PA_CODE
+					 , PM.ALCOUT_PROMO_YN
+				  FROM TPAPROMOTARGET PPMT
+				  	 , TPPROMOTARGET	 PT
+				     , TPAGOODSPRICE PP
+				     , TPROMOM PM
+			     WHERE 1=1		           
+				   AND PPMT.USE_CODE         	= '00'
+		           AND PT.PROMO_NO 				= PM.PROMO_NO
+		           AND PT.GOODS_CODE 			= PPMT.GOODS_CODE 
+		           AND PT.GIFT_AMT				= DECODE(PPMT.AMT_RATE_FLAG ,1, PPMT.DO_AMT , PPMT.DO_RATE) 
+				   AND PPMT.PROMO_BDATE  	&lt;= SYSDATE
+				   AND PPMT.PROMO_EDATE  	   >= SYSDATE
+				   AND PM.PROMO_BDATE  		&lt;= SYSDATE
+				   AND PM.PROMO_EDATE  	   	   >= SYSDATE
+				   AND PPMT.GOODS_CODE       	= #{goodsCode		, jdbcType=VARCHAR}
+				   AND PPMT.PA_CODE 		 	= #{paCode			, jdbcType=VARCHAR}
+				   <if test='promoNo != null and promoNo != ""'>
+				   AND PPMT.PROMO_NO			= #{promoNo			, jdbcType=VARCHAR}
+				   </if>
+				   AND PPMT.PA_GROUP_CODE LIKE '%'|| #{paGroupCode	, jdbcType=VARCHAR} ||'%'
+				   AND PP.PA_CODE 			 	= PPMT.PA_CODE
+				   AND PP.GOODS_CODE 		 	= PPMT.GOODS_CODE
+				   AND PPMT.ROWID               = (SELECT /*+INDEX_DESC (PTT IDX_TPAPROMOTARGET_02)*/
+                                                              ROWID 
+                                                     FROM TPAPROMOTARGET PTT
+                                                    WHERE PTT.PROMO_NO      = PPMT.PROMO_NO
+                                                      AND PTT.PA_CODE       = PPMT.PA_CODE
+                                                      AND PTT.GOODS_CODE    = PPMT.GOODS_CODE
+                                                      AND PTT.PA_GROUP_CODE LIKE '%'|| PPMT.PA_GROUP_CODE || '%'
+                                                      AND PTT.PROC_GB      != 'D'
+                                                      AND PTT.DO_AMT  	    > 0
+                                                      AND PTT.USE_CODE      = '00'
+                                                      AND ROWNUM = 1 )
+				   AND PP.ROWID  			 	= ( SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE) */  
+									                	   GP.ROWID
+									               	  FROM TPAGOODSPRICE GP
+									             	 WHERE GP.APPLY_DATE &lt; SYSDATE
+									                   AND GP.GOODS_CODE 	= PP.GOODS_CODE
+									                   AND GP.PA_CODE 		= PP.PA_CODE
+									                   AND ROWNUM =1 )
+		           AND PPMT.PROMO_NO 		 	= PM.PROMO_NO
+		           AND PM.COUPON_YN 			= '1'
+		           AND PM.IMMEDIATELY_YN 	 	= '1'
+		           AND PPMT.PROC_GB 		   != 'D'
+		           AND NOT EXISTS ( SELECT 'X'
+			                       	  FROM TPAPROMOTARGET PPMT3
+			                       	 WHERE PPMT3.PROMO_NO 		= PPMT.PROMO_NO
+			                       	   AND PPMT3.PA_CODE 		= PPMT.PA_CODE
+			                       	   AND PPMT3.PA_GROUP_CODE LIKE '%'|| PPMT.PA_GROUP_CODE || '%'
+			            			   AND PPMT3.GOODS_CODE 	= PPMT.GOODS_CODE
+			                       	   AND PPMT3.INSERT_DATE   >= PPMT.INSERT_DATE
+			                       	   AND PPMT3.PROC_GB 		= 'D')
+		           AND NVL(PM.ALCOUT_PROMO_YN, '0') = #{alcoutPromoYn	, jdbcType=VARCHAR}
+                   AND NOT EXISTS ( SELECT 1
+                        			  FROM TPAPROMOTARGETEXCEPT TPE
+                       				 WHERE TPE.TARGET_GB = '00'
+			                           AND TPE.TARGET_CODE = PPMT.GOODS_CODE
+			                           AND TPE.USE_YN = '1'
+			                           AND (TPE.PA_GROUP_CODE_ALL_YN = '1' OR TPE.PA_GROUP_CODE LIKE '%02%'))
+		      ORDER BY PPMT.DO_AMT DESC   )
+		 WHERE ROWNUM = 1      
+    </select>
+    
+    <select id="selectPaPromoDeleteTarget" parameterType="hashMap" resultType="hashMap">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectPaPromoDeleteTarget by PaGmktGoodsController */
+               /*+INDEX_DESC (PPMT IDX_TPAPROMOTARGET_02)*/
+               PPMT.PROC_GB
+             , PPMT.PROMO_NO
+             , PPMT.PA_CODE
+             , PPMT.GOODS_CODE
+             , PPMT.SEQ
+             , PPMT.TRANS_DATE
+             , PPMT.DO_AMT AS DO_COST
+             , PPMT.OWN_COST  AS DO_OWN_COST
+             , PPMT.ENTP_COST AS DO_ENTP_COST
+             , PPMT.INSERT_DATE
+             , PPMT.PROMO_BDATE
+             , PPMT.PROMO_EDATE
+             , PPMT.STANDARD_APP_AMT
+             , PPMT.LIMIT_AMT
+             , PPMT.AMT_RATE_FLAG
+             , PPMT.DO_RATE
+             , PPMT.DO_AMT
+             , PPMT.PA_GROUP_CODE
+             , PP.SALE_PRICE
+             , PP.DC_AMT
+			 , PPMT.PA_CODE
+			 , PPMT.PA_GROUP_CODE
+          FROM TPAPROMOTARGET PPMT
+             , TPROMOM PM
+             , TPAGOODSPRICE PP
+         WHERE PPMT.PROC_GB 				= 'D' 
+           AND PPMT.TRANS_DATE 				IS NULL
+           <!--  AND SYSDATE 						> PPMT.PROMO_EDATE-->
+           AND PPMT.PROMO_NO 				= PM.PROMO_NO
+           AND PM.COUPON_YN 				= '1'
+           AND PM.IMMEDIATELY_YN 			= '1'
+           AND PP.PA_CODE 			 	= PPMT.PA_CODE
+		   AND PP.GOODS_CODE 		 	= PPMT.GOODS_CODE
+		   AND PP.ROWID  			 	= ( SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE) */  
+							                	   GP.ROWID
+							               	  FROM TPAGOODSPRICE GP
+							             	 WHERE GP.APPLY_DATE &lt; SYSDATE
+							                   AND GP.GOODS_CODE 	= PP.GOODS_CODE
+							                   AND GP.PA_CODE 		= PP.PA_CODE
+							                   AND ROWNUM =1 )
+           AND NVL(PM.ALCOUT_PROMO_YN, '0') = #{alcoutPromoYn	, jdbcType=VARCHAR}
+           AND PPMT.GOODS_CODE 				= #{goodsCode		, jdbcType=VARCHAR}
+           AND PPMT.PA_CODE 				= #{paCode			, jdbcType=VARCHAR}
+	 	   AND PPMT.PA_GROUP_CODE LIKE '%' || #{paGroupCode		, jdbcType=VARCHAR} ||'%'
+           AND EXISTS 	  ( SELECT /*+INDEX_DESC (PPMT3 IDX_TPAPROMOTARGET_04)*/
+          						   'X'
+					          FROM TPAPROMOTARGET PPMT3
+					         WHERE PPMT3.PROMO_NO  		= PPMT.PROMO_NO
+					           AND PPMT3.PA_CODE	 	= PPMT.PA_CODE
+					           AND PPMT3.PA_GROUP_CODE LIKE '%'|| PPMT.PA_GROUP_CODE || '%'
+						       AND PPMT3.GOODS_CODE     = PPMT.GOODS_CODE
+					           AND PPMT3.INSERT_DATE &lt; PPMT.INSERT_DATE
+					           AND PPMT3.TRANS_DATE    IS NOT NULL
+					           AND PPMT3.DO_AMT  	    > 0
+					           AND PPMT3.PROC_GB 	   != 'D'
+					           AND ROWNUM 				= 1)
+           AND ROWNUM = 1
+    </select>    
+    
+    <!-- 
+    <select id="selectPaGmktPromoTarget" parameterType="hashMap" resultType="hashMap">
+       	SELECT  /* pagmktgoods.xml : pagmkt.pagmktgoods.selectPaGmktPromoTarget by PaGmktGoodsController-goodsInsertModify */   
+    		   XX.PROC_GB,
+    	       XX.PROMO_NO,
+           	   XX.SEQ,
+           	   XX.GOODS_CODE,
+           	   XX.SALE_PRICE,
+          	   XX.DC_AMT,
+           	   XX.DO_COST, 
+           	   XX.AMT_RATE_FLAG,
+           	   XX.DO_RATE,
+           	   XX.DO_AMT,
+           	   XX.STANDARD_APP_AMT,
+           	   XX.LIMIT_AMT,
+               XX.OWN_COST AS DO_OWN_COST,
+               XX.ENTP_COST AS DO_ENTP_COST,
+               XX.TRANS_DATE,
+               XX.PA_GROUP_CODE
+          FROM ( SELECT  X.PROC_GB,
+		               X.PROMO_NO,
+		               X.SEQ,
+		               X.GOODS_CODE,
+				       X.SALE_PRICE,
+				       X.DC_AMT,
+				       X.DO_COST,
+				       X.AMT_RATE_FLAG,
+				       X.DO_RATE,
+				       X.DO_AMT,
+				       X.STANDARD_APP_AMT,
+				       X.LIMIT_AMT,
+               		   X.OWN_COST,         
+               		   X.ENTP_COST,
+               		   X.TRANS_DATE,
+               		   X.PA_GROUP_CODE
+				  FROM (SELECT  /*+ PLACE_DISTINCT(PP) */
+				  				DISTINCT PPMT.PROC_GB,
+				  						PPMT.PROMO_NO,
+				                        PPMT.SEQ,
+				                        PPMT.GOODS_CODE,
+				                        PPMT.PROMO_BDATE,
+				                        PPMT.PROMO_EDATE,
+				                        PP.SALE_PRICE,
+				                        PP.DC_AMT,
+				                        PPMT.STANDARD_APP_AMT,
+				                        PPMT.LIMIT_AMT,
+				                        PPMT.AMT_RATE_FLAG,
+				                        PPMT.DO_RATE,
+				                        PPMT.DO_AMT,
+				                        PPMT.DO_AMT AS DO_COST,  
+				                        PPMT.OWN_COST,
+				                        PPMT.ENTP_COST,
+				                        PPMT.TRANS_DATE,
+				                        PPMT.PA_GROUP_CODE
+				          FROM TPAPROMOTARGET PPMT,TPAGOODSPRICE PP,TPROMOM PM
+				         WHERE 1=1		           
+				           AND PPMT.USE_CODE = '00'
+				           AND PPMT.PROMO_BDATE &lt;= SYSDATE
+				           AND PPMT.PROMO_EDATE >= SYSDATE
+				           AND PPMT.GOODS_CODE = #{goodsCode, jdbcType=NUMERIC}
+				           AND PPMT.PA_CODE = #{paCode, jdbcType=NUMERIC}
+				           AND PPMT.PA_GROUP_CODE IN ('02', '02,03') 
+				           AND PPMT.INSERT_DATE =(SELECT /*+INDEX_DESC (PPMT2 IDX_TPAPROMOTARGET_02)*/
+				           								  		PPMT2.INSERT_DATE
+				                                    FROM TPAPROMOTARGET PPMT2, TPROMOM PM2
+				                                   WHERE PPMT2.GOODS_CODE = PPMT.GOODS_CODE
+				                                     AND PPMT2.PA_CODE = PPMT.PA_CODE
+				                                     AND PPMT2.PA_GROUP_CODE = PPMT.PA_GROUP_CODE
+				                                     AND PPMT2.PROMO_BDATE &lt;= SYSDATE
+                                              		 AND PPMT2.PROMO_EDATE >= SYSDATE
+							                         AND PPMT2.PROMO_NO = PM2.PROMO_NO
+							                         AND PM2.COUPON_YN = '1'
+							                         AND PM2.IMMEDIATELY_YN = '1'
+							                         AND NVL(PM2.ALCOUT_PROMO_YN, '0') = '0'
+                                              		 AND PPMT2.PROC_GB != 'D'
+							                         AND NOT EXISTS (
+							                         	 SELECT 1
+							                           		FROM TPAPROMOTARGET PPMT3
+							                           		WHERE PPMT3.PROMO_NO = PPMT2.PROMO_NO
+							                           		AND PPMT3.PA_CODE = PPMT2.PA_CODE
+							                           		AND PPMT3.PA_GROUP_CODE = PPMT2.PA_GROUP_CODE
+	            											AND PPMT3.GOODS_CODE = PPMT2.GOODS_CODE
+							                           		AND PPMT3.INSERT_DATE >= PPMT2.INSERT_DATE
+							                           		AND PPMT3.PROC_GB = 'D'
+							                          	 )
+                                              		  AND ROWNUM = 1 
+                                              		 )
+				           AND PP.PA_CODE = PPMT.PA_CODE
+				           AND PP.GOODS_CODE = PPMT.GOODS_CODE
+				           AND PP.ROWID = ( SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE) */  
+				                                     GP.ROWID
+				                                FROM TPAGOODSPRICE GP
+				                               WHERE GP.APPLY_DATE &lt; SYSDATE
+				                                 AND GP.GOODS_CODE = PP.GOODS_CODE
+				                                 AND GP.PA_CODE = PP.PA_CODE
+				                                 AND ROWNUM =1  
+				                             )
+                           AND PPMT.PROMO_NO = PM.PROMO_NO
+                           AND PM.COUPON_YN = '1'
+                           AND PM.IMMEDIATELY_YN = '1'
+                           AND NVL(PM.ALCOUT_PROMO_YN, '0') = '0'
+                           AND PPMT.PROC_GB != 'D'
+                           AND NOT EXISTS (
+	                       		SELECT 1
+	                       		FROM TPAPROMOTARGET PPMT3
+	                       		WHERE PPMT3.PROMO_NO = PPMT.PROMO_NO
+	                       		AND PPMT3.PA_CODE = PPMT.PA_CODE
+	                       		AND PPMT3.PA_GROUP_CODE = PPMT.PA_GROUP_CODE
+	            				AND PPMT3.GOODS_CODE = PPMT.GOODS_CODE
+	                       		AND PPMT3.INSERT_DATE >= PPMT.INSERT_DATE
+	                       		AND PPMT3.PROC_GB = 'D'
+	                       		)
+				           ) X
+		           ORDER BY X.DO_AMT DESC)XX
+        WHERE ROWNUM = 1        
+        UNION ALL
+    	SELECT     
+    		   XX.PROC_GB,
+    	       XX.PROMO_NO,
+           	   XX.SEQ,
+           	   XX.GOODS_CODE,
+           	   XX.SALE_PRICE,
+          	   XX.DC_AMT,
+           	   XX.DO_COST, 
+           	   XX.AMT_RATE_FLAG,
+           	   XX.DO_RATE,
+           	   XX.DO_AMT,
+           	   XX.STANDARD_APP_AMT,
+           	   XX.LIMIT_AMT,
+               XX.OWN_COST AS DO_OWN_COST,
+               XX.ENTP_COST AS DO_ENTP_COST,
+               XX.TRANS_DATE,
+               XX.PA_GROUP_CODE
+          FROM ( SELECT  X.PROC_GB,
+		               X.PROMO_NO,
+		               X.SEQ,
+		               X.GOODS_CODE,
+				       X.SALE_PRICE,
+				       X.DC_AMT,
+				       X.DO_COST,
+				       X.AMT_RATE_FLAG,
+				       X.DO_RATE,
+				       X.DO_AMT,
+				       X.STANDARD_APP_AMT,
+				       X.LIMIT_AMT,
+               		   X.OWN_COST,         
+               		   X.ENTP_COST,
+               		   X.TRANS_DATE,
+               		   X.PA_GROUP_CODE
+				  FROM (SELECT  /*+ PLACE_DISTINCT(PP) */
+				  				DISTINCT PPMT.PROC_GB,
+				  						PPMT.PROMO_NO,
+				                        PPMT.SEQ,
+				                        PPMT.GOODS_CODE,
+				                        PPMT.PROMO_BDATE,
+				                        PPMT.PROMO_EDATE,
+				                        PP.SALE_PRICE,
+				                        PP.DC_AMT,
+				                        PPMT.STANDARD_APP_AMT,
+				                        PPMT.LIMIT_AMT,
+				                        PPMT.AMT_RATE_FLAG,
+				                        PPMT.DO_RATE,
+				                        PPMT.DO_AMT,
+				                        PPMT.DO_AMT AS DO_COST,  
+				                        PPMT.OWN_COST,
+				                        PPMT.ENTP_COST,
+				                        PPMT.TRANS_DATE,
+				                        PPMT.PA_GROUP_CODE
+				          FROM TPAPROMOTARGET PPMT,TPAGOODSPRICE PP,TPROMOM PM
+				         WHERE 1=1		           
+				           AND PPMT.USE_CODE = '00'
+				           AND PPMT.PROMO_BDATE &lt;= SYSDATE
+				           AND PPMT.PROMO_EDATE >= SYSDATE
+				           AND PPMT.GOODS_CODE = #{goodsCode, jdbcType=NUMERIC}
+				           AND PPMT.PA_CODE = #{paCode, jdbcType=NUMERIC}
+				           AND PPMT.PA_GROUP_CODE IN ('02', '02,03') 
+				           AND PPMT.INSERT_DATE =(SELECT /*+INDEX_DESC (PPMT2 IDX_TPAPROMOTARGET_02)*/
+				           								  		PPMT2.INSERT_DATE
+				                                    FROM TPAPROMOTARGET PPMT2, TPROMOM PM2
+				                                   WHERE PPMT2.GOODS_CODE = PPMT.GOODS_CODE
+				                                     AND PPMT2.PA_CODE = PPMT.PA_CODE
+				                                     AND PPMT2.PA_GROUP_CODE = PPMT.PA_GROUP_CODE
+				                                     AND PPMT2.PROMO_BDATE &lt;= SYSDATE
+                                              		 AND PPMT2.PROMO_EDATE >= SYSDATE
+							                         AND PPMT2.PROMO_NO = PM2.PROMO_NO
+							                         AND PM2.COUPON_YN = '1'
+							                         AND PM2.IMMEDIATELY_YN = '1'
+							                         AND NVL(PM2.ALCOUT_PROMO_YN, '0') = '1'
+                                              		 AND PPMT2.PROC_GB != 'D'
+							                         AND NOT EXISTS (
+							                           		SELECT 1
+							                           		FROM TPAPROMOTARGET PPMT3
+							                           		WHERE PPMT3.PROMO_NO = PPMT2.PROMO_NO
+							                           		AND PPMT3.PA_CODE = PPMT2.PA_CODE
+							                           		AND PPMT3.PA_GROUP_CODE = PPMT2.PA_GROUP_CODE
+							                           		AND PPMT3.GOODS_CODE = PPMT2.GOODS_CODE
+							                           		AND PPMT3.INSERT_DATE >= PPMT2.INSERT_DATE
+							                           		AND PPMT3.PROC_GB = 'D'
+							                           		)
+                                              		  AND ROWNUM = 1 
+                                              		 )
+				           AND PP.PA_CODE = PPMT.PA_CODE
+				           AND PP.GOODS_CODE = PPMT.GOODS_CODE
+				           AND PP.ROWID = ( SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE) */  
+				                                     GP.ROWID
+				                                FROM TPAGOODSPRICE GP
+				                               WHERE GP.APPLY_DATE &lt; SYSDATE
+				                                 AND GP.GOODS_CODE = PP.GOODS_CODE
+				                                 AND GP.PA_CODE = PP.PA_CODE
+				                                 AND ROWNUM =1  
+				                             )
+                           AND PPMT.PROMO_NO = PM.PROMO_NO
+                           AND PM.COUPON_YN = '1'
+                           AND PM.IMMEDIATELY_YN = '1'
+                           AND NVL(PM.ALCOUT_PROMO_YN, '0') = '1'
+                           AND PPMT.PROC_GB != 'D'
+                           AND NOT EXISTS (
+	                       		SELECT 1
+	                       		FROM TPAPROMOTARGET PPMT3
+	                       		WHERE PPMT3.PROMO_NO = PPMT.PROMO_NO
+	                       		AND PPMT3.PA_CODE = PPMT.PA_CODE
+	                       		AND PPMT3.PA_GROUP_CODE = PPMT.PA_GROUP_CODE
+	            				AND PPMT3.GOODS_CODE = PPMT.GOODS_CODE
+	                       		AND PPMT3.INSERT_DATE >= PPMT.INSERT_DATE
+	                       		AND PPMT3.PROC_GB = 'D'
+	                       		)
+				           ) X
+		           ORDER BY X.DO_AMT DESC)XX
+        WHERE ROWNUM = 1 
+    </select>
+     --><!--  
+    <select id="selectPaPromoTarget" parameterType="hashMap" resultType="hashMap">
+    	SELECT  /* pagmktgoods.xml : pagmkt.pagmktgoods.selectPaPromoTarget by PaGmktGoodsController-goodsInsertModify */   
+    		   XX.PROC_GB,
+    	       XX.PROMO_NO,
+           	   XX.SEQ,
+           	   XX.GOODS_CODE,
+           	   XX.SALE_PRICE,
+          	   XX.DC_AMT,
+           	   XX.DO_COST, 
+           	   XX.AMT_RATE_FLAG,
+           	   XX.DO_RATE,
+           	   XX.DO_AMT,
+           	   XX.STANDARD_APP_AMT,
+           	   XX.LIMIT_AMT,
+               XX.OWN_COST AS DO_OWN_COST,
+               XX.ENTP_COST AS DO_ENTP_COST,
+               XX.TRANS_DATE,
+               XX.PA_GROUP_CODE
+          FROM ( SELECT  X.PROC_GB,
+		               X.PROMO_NO,
+		               X.SEQ,
+		               X.GOODS_CODE,
+				       X.SALE_PRICE,
+				       X.DC_AMT,
+				       X.DO_COST,
+				       X.AMT_RATE_FLAG,
+				       X.DO_RATE,
+				       X.DO_AMT,
+				       X.STANDARD_APP_AMT,
+				       X.LIMIT_AMT,
+               		   X.OWN_COST,         
+               		   X.ENTP_COST,
+               		   X.TRANS_DATE,
+               		   X.PA_GROUP_CODE
+				  FROM (SELECT  /*+ PLACE_DISTINCT(PP) */
+				  				DISTINCT PPMT.PROC_GB,
+				  						PPMT.PROMO_NO,
+				                        PPMT.SEQ,
+				                        PPMT.GOODS_CODE,
+				                        PPMT.PROMO_BDATE,
+				                        PPMT.PROMO_EDATE,
+				                        PP.SALE_PRICE,
+				                        PP.DC_AMT,
+				                        PPMT.STANDARD_APP_AMT,
+				                        PPMT.LIMIT_AMT,
+				                        PPMT.AMT_RATE_FLAG,
+				                        PPMT.DO_RATE,
+				                        PPMT.DO_AMT,
+				                        PPMT.DO_AMT AS DO_COST,  
+				                        PPMT.OWN_COST,
+				                        PPMT.ENTP_COST,
+				                        PPMT.TRANS_DATE,
+				                        PPMT.PA_GROUP_CODE
+				          FROM TPAPROMOTARGET PPMT,TPAGOODSPRICE PP,TPROMOM PM
+				         WHERE 1=1		           
+				           AND PPMT.USE_CODE = '00'
+				           AND PPMT.PROMO_BDATE &lt;= SYSDATE
+				           AND PPMT.PROMO_EDATE >= SYSDATE
+				           AND PPMT.GOODS_CODE = #{goodsCode, jdbcType=NUMERIC}
+				           AND PPMT.PA_CODE = #{paCode, jdbcType=NUMERIC}
+				           AND PPMT.PA_GROUP_CODE IN ('02', '02,03') 
+				           AND PPMT.INSERT_DATE =(SELECT /*+INDEX_DESC (PPMT2 IDX_TPAPROMOTARGET_02)*/
+				           								  		PPMT2.INSERT_DATE
+				                                    FROM TPAPROMOTARGET PPMT2, TPROMOM PM2
+				                                   WHERE PPMT2.GOODS_CODE = PPMT.GOODS_CODE
+				                                     AND PPMT2.PA_CODE = PPMT.PA_CODE
+				                                     AND PPMT2.PA_GROUP_CODE = PPMT.PA_GROUP_CODE
+				                                     AND PPMT2.PROMO_BDATE &lt;= SYSDATE
+                                              		 AND PPMT2.PROMO_EDATE >= SYSDATE
+							                         AND PPMT2.PROMO_NO = PM2.PROMO_NO
+							                         AND PM2.COUPON_YN = '1'
+							                         AND PM2.IMMEDIATELY_YN = '1'
+							                         AND NVL(PM2.ALCOUT_PROMO_YN, '0') = '0'
+                                              		 AND PPMT2.PROC_GB != 'D'
+							                         AND NOT EXISTS (
+							                         	 SELECT 1
+							                           		FROM TPAPROMOTARGET PPMT3
+							                           		WHERE PPMT3.PROMO_NO = PPMT2.PROMO_NO
+							                           		AND PPMT3.PA_CODE = PPMT2.PA_CODE
+							                           		AND PPMT3.PA_GROUP_CODE = PPMT2.PA_GROUP_CODE
+	            											AND PPMT3.GOODS_CODE = PPMT2.GOODS_CODE
+							                           		AND PPMT3.INSERT_DATE >= PPMT2.INSERT_DATE
+							                           		AND PPMT3.PROC_GB = 'D'
+							                          	 )
+                                              		  AND ROWNUM = 1 
+                                              		 )
+				           AND PP.PA_CODE = PPMT.PA_CODE
+				           AND PP.GOODS_CODE = PPMT.GOODS_CODE
+				           AND PP.ROWID = ( SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE) */  
+				                                     GP.ROWID
+				                                FROM TPAGOODSPRICE GP
+				                               WHERE GP.APPLY_DATE &lt; SYSDATE
+				                                 AND GP.GOODS_CODE = PP.GOODS_CODE
+				                                 AND GP.PA_CODE = PP.PA_CODE
+				                                 AND ROWNUM =1  
+				                             )
+                           AND PPMT.PROMO_NO = PM.PROMO_NO
+                           AND PM.COUPON_YN = '1'
+                           AND PM.IMMEDIATELY_YN = '1'
+                           AND NVL(PM.ALCOUT_PROMO_YN, '0') = '0'
+                           AND PPMT.PROC_GB != 'D'
+                           AND NOT EXISTS (
+	                       		SELECT 1
+	                       		FROM TPAPROMOTARGET PPMT3
+	                       		WHERE PPMT3.PROMO_NO = PPMT.PROMO_NO
+	                       		AND PPMT3.PA_CODE = PPMT.PA_CODE
+	                       		AND PPMT3.PA_GROUP_CODE = PPMT.PA_GROUP_CODE
+	            				AND PPMT3.GOODS_CODE = PPMT.GOODS_CODE
+	                       		AND PPMT3.INSERT_DATE >= PPMT.INSERT_DATE
+	                       		AND PPMT3.PROC_GB = 'D'
+	                       		)
+				           ) X
+		           ORDER BY X.DO_AMT DESC)XX
+        WHERE ROWNUM = 1        
+
+        UNION ALL
+    	SELECT     
+    		   XX.PROC_GB,
+    	       XX.PROMO_NO,
+           	   XX.SEQ,
+           	   XX.GOODS_CODE,
+           	   XX.SALE_PRICE,
+          	   XX.DC_AMT,
+           	   XX.DO_COST, 
+           	   XX.AMT_RATE_FLAG,
+           	   XX.DO_RATE,
+           	   XX.DO_AMT,
+           	   XX.STANDARD_APP_AMT,
+           	   XX.LIMIT_AMT,
+               XX.OWN_COST AS DO_OWN_COST,
+               XX.ENTP_COST AS DO_ENTP_COST,
+               XX.TRANS_DATE,
+               XX.PA_GROUP_CODE
+          FROM ( SELECT  X.PROC_GB,
+		               X.PROMO_NO,
+		               X.SEQ,
+		               X.GOODS_CODE,
+				       X.SALE_PRICE,
+				       X.DC_AMT,
+				       X.DO_COST,
+				       X.AMT_RATE_FLAG,
+				       X.DO_RATE,
+				       X.DO_AMT,
+				       X.STANDARD_APP_AMT,
+				       X.LIMIT_AMT,
+               		   X.OWN_COST,         
+               		   X.ENTP_COST,
+               		   X.TRANS_DATE,
+               		   X.PA_GROUP_CODE
+				  FROM (SELECT  /*+ PLACE_DISTINCT(PP) */
+				  				DISTINCT PPMT.PROC_GB,
+				  						PPMT.PROMO_NO,
+				                        PPMT.SEQ,
+				                        PPMT.GOODS_CODE,
+				                        PPMT.PROMO_BDATE,
+				                        PPMT.PROMO_EDATE,
+				                        PP.SALE_PRICE,
+				                        PP.DC_AMT,
+				                        PPMT.STANDARD_APP_AMT,
+				                        PPMT.LIMIT_AMT,
+				                        PPMT.AMT_RATE_FLAG,
+				                        PPMT.DO_RATE,
+				                        PPMT.DO_AMT,
+				                        PPMT.DO_AMT AS DO_COST,  
+				                        PPMT.OWN_COST,
+				                        PPMT.ENTP_COST,
+				                        PPMT.TRANS_DATE,
+				                        PPMT.PA_GROUP_CODE
+				          FROM TPAPROMOTARGET PPMT,TPAGOODSPRICE PP,TPROMOM PM
+				         WHERE 1=1		           
+				           AND PPMT.USE_CODE = '00'
+				           AND PPMT.PROMO_BDATE &lt;= SYSDATE
+				           AND PPMT.PROMO_EDATE >= SYSDATE
+				           AND PPMT.GOODS_CODE = #{goodsCode, jdbcType=NUMERIC}
+				           AND PPMT.PA_CODE = #{paCode, jdbcType=NUMERIC}
+				           AND PPMT.PA_GROUP_CODE IN ('02', '02,03') 
+				           AND PPMT.INSERT_DATE =(SELECT /*+INDEX_DESC (PPMT2 IDX_TPAPROMOTARGET_02)*/
+				           								  		PPMT2.INSERT_DATE
+				                                    FROM TPAPROMOTARGET PPMT2, TPROMOM PM2
+				                                   WHERE PPMT2.GOODS_CODE = PPMT.GOODS_CODE
+				                                     AND PPMT2.PA_CODE = PPMT.PA_CODE
+				                                     AND PPMT2.PA_GROUP_CODE = PPMT.PA_GROUP_CODE
+				                                     AND PPMT2.PROMO_BDATE &lt;= SYSDATE
+                                              		 AND PPMT2.PROMO_EDATE >= SYSDATE
+							                         AND PPMT2.PROMO_NO = PM2.PROMO_NO
+							                         AND PM2.COUPON_YN = '1'
+							                         AND PM2.IMMEDIATELY_YN = '1'
+							                         AND NVL(PM2.ALCOUT_PROMO_YN, '0') = '1'
+                                              		 AND PPMT2.PROC_GB != 'D'
+							                         AND NOT EXISTS (
+							                           		SELECT 1
+							                           		FROM TPAPROMOTARGET PPMT3
+							                           		WHERE PPMT3.PROMO_NO = PPMT2.PROMO_NO
+							                           		AND PPMT3.PA_CODE = PPMT2.PA_CODE
+							                           		AND PPMT3.PA_GROUP_CODE = PPMT2.PA_GROUP_CODE
+							                           		AND PPMT3.GOODS_CODE = PPMT2.GOODS_CODE
+							                           		AND PPMT3.INSERT_DATE >= PPMT2.INSERT_DATE
+							                           		AND PPMT3.PROC_GB = 'D'
+							                           		)
+                                              		  AND ROWNUM = 1 
+                                              		 )
+				           AND PP.PA_CODE = PPMT.PA_CODE
+				           AND PP.GOODS_CODE = PPMT.GOODS_CODE
+				           AND PP.ROWID = ( SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE) */  
+				                                     GP.ROWID
+				                                FROM TPAGOODSPRICE GP
+				                               WHERE GP.APPLY_DATE &lt; SYSDATE
+				                                 AND GP.GOODS_CODE = PP.GOODS_CODE
+				                                 AND GP.PA_CODE = PP.PA_CODE
+				                                 AND ROWNUM =1  
+				                             )
+                           AND PPMT.PROMO_NO = PM.PROMO_NO
+                           AND PM.COUPON_YN = '1'
+                           AND PM.IMMEDIATELY_YN = '1'
+                           AND NVL(PM.ALCOUT_PROMO_YN, '0') = '1'
+                           AND PPMT.PROC_GB != 'D'
+                           AND NOT EXISTS (
+	                       		SELECT 1
+	                       		FROM TPAPROMOTARGET PPMT3
+	                       		WHERE PPMT3.PROMO_NO = PPMT.PROMO_NO
+	                       		AND PPMT3.PA_CODE = PPMT.PA_CODE
+	                       		AND PPMT3.PA_GROUP_CODE = PPMT.PA_GROUP_CODE
+	            				AND PPMT3.GOODS_CODE = PPMT.GOODS_CODE
+	                       		AND PPMT3.INSERT_DATE >= PPMT.INSERT_DATE
+	                       		AND PPMT3.PROC_GB = 'D'
+	                       		)
+				           ) X
+		           ORDER BY X.DO_AMT DESC)XX
+        WHERE ROWNUM = 1 
+        
+  UNION
+  	
+  		SELECT  /* pagmktgoods.xml : pagmkt.pagmktgoods.selectPaPromoTarget by PaGmktGoodsController-goodsInsertModify */   
+    		   XX.PROC_GB,
+    	       XX.PROMO_NO,
+           	   XX.SEQ,
+           	   XX.GOODS_CODE,
+           	   XX.SALE_PRICE,
+          	   XX.DC_AMT,
+           	   XX.DO_COST, 
+           	   XX.AMT_RATE_FLAG,
+           	   XX.DO_RATE,
+           	   XX.DO_AMT,
+           	   XX.STANDARD_APP_AMT,
+           	   XX.LIMIT_AMT,
+               XX.OWN_COST AS DO_OWN_COST,
+               XX.ENTP_COST AS DO_ENTP_COST,
+               XX.TRANS_DATE,
+               XX.PA_GROUP_CODE
+          FROM ( SELECT  X.PROC_GB,
+		               X.PROMO_NO,
+		               X.SEQ,
+		               X.GOODS_CODE,
+				       X.SALE_PRICE,
+				       X.DC_AMT,
+				       X.DO_COST,
+				       X.AMT_RATE_FLAG,
+				       X.DO_RATE,
+				       X.DO_AMT,
+				       X.STANDARD_APP_AMT,
+				       X.LIMIT_AMT,
+               		   X.OWN_COST,         
+               		   X.ENTP_COST,
+               		   X.TRANS_DATE,
+               		   X.PA_GROUP_CODE
+				  FROM (SELECT  /*+ PLACE_DISTINCT(PP) */
+				  				DISTINCT PPMT.PROC_GB,
+				  						PPMT.PROMO_NO,
+				                        PPMT.SEQ,
+				                        PPMT.GOODS_CODE,
+				                        PPMT.PROMO_BDATE,
+				                        PPMT.PROMO_EDATE,
+				                        PP.SALE_PRICE,
+				                        PP.DC_AMT,
+				                        PPMT.STANDARD_APP_AMT,
+				                        PPMT.LIMIT_AMT,
+				                        PPMT.AMT_RATE_FLAG,
+				                        PPMT.DO_RATE,
+				                        PPMT.DO_AMT,
+				                        PPMT.DO_AMT AS DO_COST,  
+				                        PPMT.OWN_COST,
+				                        PPMT.ENTP_COST,
+				                        PPMT.TRANS_DATE,
+				                        PPMT.PA_GROUP_CODE
+				          FROM TPAPROMOTARGET PPMT,TPAGOODSPRICE PP,TPROMOM PM
+				         WHERE 1=1		           
+				           AND PPMT.USE_CODE = '00'
+				           AND PPMT.PROMO_BDATE &lt;= SYSDATE
+				           AND PPMT.PROMO_EDATE >= SYSDATE
+				           AND PPMT.GOODS_CODE = #{goodsCode, jdbcType=NUMERIC}
+				           AND PPMT.PA_CODE = #{paCode, jdbcType=NUMERIC}
+				           AND PPMT.PA_GROUP_CODE IN ('03', '02,03') 
+				           AND PPMT.INSERT_DATE =(SELECT /*+INDEX_DESC (PPMT2 IDX_TPAPROMOTARGET_02)*/
+				           								  		PPMT2.INSERT_DATE
+				                                    FROM TPAPROMOTARGET PPMT2, TPROMOM PM2
+				                                   WHERE PPMT2.GOODS_CODE = PPMT.GOODS_CODE
+				                                     AND PPMT2.PA_CODE = PPMT.PA_CODE
+				                                     AND PPMT2.PA_GROUP_CODE = PPMT.PA_GROUP_CODE
+				                                     AND PPMT2.PROMO_BDATE &lt;= SYSDATE
+                                              		 AND PPMT2.PROMO_EDATE >= SYSDATE
+							                         AND PPMT2.PROMO_NO = PM2.PROMO_NO
+							                         AND PM2.COUPON_YN = '1'
+							                         AND PM2.IMMEDIATELY_YN = '1'
+							                         AND NVL(PM2.ALCOUT_PROMO_YN, '0') = '0'
+                                              		 AND PPMT2.PROC_GB != 'D'
+							                         AND NOT EXISTS (
+							                         	 SELECT 1
+							                           		FROM TPAPROMOTARGET PPMT3
+							                           		WHERE PPMT3.PROMO_NO = PPMT2.PROMO_NO
+							                           		AND PPMT3.PA_CODE = PPMT2.PA_CODE
+							                           		AND PPMT3.PA_GROUP_CODE = PPMT2.PA_GROUP_CODE
+	            											AND PPMT3.GOODS_CODE = PPMT2.GOODS_CODE
+							                           		AND PPMT3.INSERT_DATE >= PPMT2.INSERT_DATE
+							                           		AND PPMT3.PROC_GB = 'D'
+							                          	 )
+                                              		  AND ROWNUM = 1 
+                                              		 )
+				           AND PP.PA_CODE = PPMT.PA_CODE
+				           AND PP.GOODS_CODE = PPMT.GOODS_CODE
+				           AND PP.ROWID = ( SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE) */  
+				                                     GP.ROWID
+				                                FROM TPAGOODSPRICE GP
+				                               WHERE GP.APPLY_DATE &lt; SYSDATE
+				                                 AND GP.GOODS_CODE = PP.GOODS_CODE
+				                                 AND GP.PA_CODE = PP.PA_CODE
+				                                 AND ROWNUM =1  
+				                             )
+                           AND PPMT.PROMO_NO = PM.PROMO_NO
+                           AND PM.COUPON_YN = '1'
+                           AND PM.IMMEDIATELY_YN = '1'
+                           AND NVL(PM.ALCOUT_PROMO_YN, '0') = '0'
+                           AND PPMT.PROC_GB != 'D'
+                           AND NOT EXISTS (
+	                       		SELECT 1
+	                       		FROM TPAPROMOTARGET PPMT3
+	                       		WHERE PPMT3.PROMO_NO = PPMT.PROMO_NO
+	                       		AND PPMT3.PA_CODE = PPMT.PA_CODE
+	                       		AND PPMT3.PA_GROUP_CODE = PPMT.PA_GROUP_CODE
+	            				AND PPMT3.GOODS_CODE = PPMT.GOODS_CODE
+	                       		AND PPMT3.INSERT_DATE >= PPMT.INSERT_DATE
+	                       		AND PPMT3.PROC_GB = 'D'
+	                       		)
+				           ) X
+		           ORDER BY X.DO_AMT DESC)XX
+        WHERE ROWNUM = 1        
+
+        UNION ALL
+    	SELECT     
+    		   XX.PROC_GB,
+    	       XX.PROMO_NO,
+           	   XX.SEQ,
+           	   XX.GOODS_CODE,
+           	   XX.SALE_PRICE,
+          	   XX.DC_AMT,
+           	   XX.DO_COST, 
+           	   XX.AMT_RATE_FLAG,
+           	   XX.DO_RATE,
+           	   XX.DO_AMT,
+           	   XX.STANDARD_APP_AMT,
+           	   XX.LIMIT_AMT,
+               XX.OWN_COST AS DO_OWN_COST,
+               XX.ENTP_COST AS DO_ENTP_COST,
+               XX.TRANS_DATE,
+               XX.PA_GROUP_CODE
+          FROM ( SELECT  X.PROC_GB,
+		               X.PROMO_NO,
+		               X.SEQ,
+		               X.GOODS_CODE,
+				       X.SALE_PRICE,
+				       X.DC_AMT,
+				       X.DO_COST,
+				       X.AMT_RATE_FLAG,
+				       X.DO_RATE,
+				       X.DO_AMT,
+				       X.STANDARD_APP_AMT,
+				       X.LIMIT_AMT,
+               		   X.OWN_COST,         
+               		   X.ENTP_COST,
+               		   X.TRANS_DATE,
+               		   X.PA_GROUP_CODE
+				  FROM (SELECT  /*+ PLACE_DISTINCT(PP) */
+				  				DISTINCT PPMT.PROC_GB,
+				  						PPMT.PROMO_NO,
+				                        PPMT.SEQ,
+				                        PPMT.GOODS_CODE,
+				                        PPMT.PROMO_BDATE,
+				                        PPMT.PROMO_EDATE,
+				                        PP.SALE_PRICE,
+				                        PP.DC_AMT,
+				                        PPMT.STANDARD_APP_AMT,
+				                        PPMT.LIMIT_AMT,
+				                        PPMT.AMT_RATE_FLAG,
+				                        PPMT.DO_RATE,
+				                        PPMT.DO_AMT,
+				                        PPMT.DO_AMT AS DO_COST,  
+				                        PPMT.OWN_COST,
+				                        PPMT.ENTP_COST,
+				                        PPMT.TRANS_DATE,
+				                        PPMT.PA_GROUP_CODE
+				          FROM TPAPROMOTARGET PPMT,TPAGOODSPRICE PP,TPROMOM PM
+				         WHERE 1=1		           
+				           AND PPMT.USE_CODE = '00'
+				           AND PPMT.PROMO_BDATE &lt;= SYSDATE
+				           AND PPMT.PROMO_EDATE >= SYSDATE
+				           AND PPMT.GOODS_CODE = #{goodsCode, jdbcType=NUMERIC}
+				           AND PPMT.PA_CODE = #{paCode, jdbcType=NUMERIC}
+				           AND PPMT.PA_GROUP_CODE IN ('03', '02,03')
+				           AND PPMT.INSERT_DATE =(SELECT /*+INDEX_DESC (PPMT2 IDX_TPAPROMOTARGET_02)*/
+				           								  		PPMT2.INSERT_DATE
+				                                    FROM TPAPROMOTARGET PPMT2, TPROMOM PM2
+				                                   WHERE PPMT2.GOODS_CODE = PPMT.GOODS_CODE
+				                                     AND PPMT2.PA_CODE = PPMT.PA_CODE
+				                                     AND PPMT2.PA_GROUP_CODE = PPMT.PA_GROUP_CODE
+				                                     AND PPMT2.PROMO_BDATE &lt;= SYSDATE
+                                              		 AND PPMT2.PROMO_EDATE >= SYSDATE
+							                         AND PPMT2.PROMO_NO = PM2.PROMO_NO
+							                         AND PM2.COUPON_YN = '1'
+							                         AND PM2.IMMEDIATELY_YN = '1'
+							                         AND NVL(PM2.ALCOUT_PROMO_YN, '0') = '1'
+                                              		 AND PPMT2.PROC_GB != 'D'
+							                         AND NOT EXISTS (
+							                           		SELECT 1
+							                           		FROM TPAPROMOTARGET PPMT3
+							                           		WHERE PPMT3.PROMO_NO = PPMT2.PROMO_NO
+							                           		AND PPMT3.PA_CODE = PPMT2.PA_CODE
+							                           		AND PPMT3.PA_GROUP_CODE = PPMT2.PA_GROUP_CODE
+							                           		AND PPMT3.GOODS_CODE = PPMT2.GOODS_CODE
+							                           		AND PPMT3.INSERT_DATE >= PPMT2.INSERT_DATE
+							                           		AND PPMT3.PROC_GB = 'D'
+							                           		)
+                                              		  AND ROWNUM = 1 
+                                              		 )
+				           AND PP.PA_CODE = PPMT.PA_CODE
+				           AND PP.GOODS_CODE = PPMT.GOODS_CODE
+				           AND PP.ROWID = ( SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE) */  
+				                                     GP.ROWID
+				                                FROM TPAGOODSPRICE GP
+				                               WHERE GP.APPLY_DATE &lt; SYSDATE
+				                                 AND GP.GOODS_CODE = PP.GOODS_CODE
+				                                 AND GP.PA_CODE = PP.PA_CODE
+				                                 AND ROWNUM =1  
+				                             )
+                           AND PPMT.PROMO_NO = PM.PROMO_NO
+                           AND PM.COUPON_YN = '1'
+                           AND PM.IMMEDIATELY_YN = '1'
+                           AND NVL(PM.ALCOUT_PROMO_YN, '0') = '1'
+                           AND PPMT.PROC_GB != 'D'
+                           AND NOT EXISTS (
+	                       		SELECT 1
+	                       		FROM TPAPROMOTARGET PPMT3
+	                       		WHERE PPMT3.PROMO_NO = PPMT.PROMO_NO
+	                       		AND PPMT3.PA_CODE = PPMT.PA_CODE
+	                       		AND PPMT3.PA_GROUP_CODE = PPMT.PA_GROUP_CODE
+	            				AND PPMT3.GOODS_CODE = PPMT.GOODS_CODE
+	                       		AND PPMT3.INSERT_DATE >= PPMT.INSERT_DATE
+	                       		AND PPMT3.PROC_GB = 'D'
+	                       		)
+				           ) X
+		           ORDER BY X.DO_AMT DESC)XX
+        WHERE ROWNUM = 1 
+   
+    </select>
+    -->
+     
+     
+     
+    <select id="selectPaIacPromoTarget" parameterType="hashMap" resultType="hashMap">
+    	
+  		<!-- 옥션 -->
+  		SELECT  /* pagmktgoods.xml : pagmkt.pagmktgoods.selectPaIacPromoTarget by PaGmktGoodsController-goodsInsertModify */   
+    		   XX.PROC_GB,
+    	       XX.PROMO_NO,
+           	   XX.SEQ,
+           	   XX.GOODS_CODE,
+           	   XX.SALE_PRICE,
+          	   XX.DC_AMT,
+           	   XX.DO_COST, 
+           	   XX.AMT_RATE_FLAG,
+           	   XX.DO_RATE,
+           	   XX.DO_AMT,
+           	   XX.STANDARD_APP_AMT,
+           	   XX.LIMIT_AMT,
+               XX.OWN_COST AS DO_OWN_COST,
+               XX.ENTP_COST AS DO_ENTP_COST,
+               XX.TRANS_DATE,
+               XX.PA_GROUP_CODE
+          FROM ( SELECT  X.PROC_GB,
+		               X.PROMO_NO,
+		               X.SEQ,
+		               X.GOODS_CODE,
+				       X.SALE_PRICE,
+				       X.DC_AMT,
+				       X.DO_COST,
+				       X.AMT_RATE_FLAG,
+				       X.DO_RATE,
+				       X.DO_AMT,
+				       X.STANDARD_APP_AMT,
+				       X.LIMIT_AMT,
+               		   X.OWN_COST,         
+               		   X.ENTP_COST,
+               		   X.TRANS_DATE,
+               		   X.PA_GROUP_CODE
+				  FROM (SELECT  /*+ PLACE_DISTINCT(PP) */
+				  				DISTINCT PPMT.PROC_GB,
+				  						PPMT.PROMO_NO,
+				                        PPMT.SEQ,
+				                        PPMT.GOODS_CODE,
+				                        PPMT.PROMO_BDATE,
+				                        PPMT.PROMO_EDATE,
+				                        PP.SALE_PRICE,
+				                        PP.DC_AMT,
+				                        PPMT.STANDARD_APP_AMT,
+				                        PPMT.LIMIT_AMT,
+				                        PPMT.AMT_RATE_FLAG,
+				                        PPMT.DO_RATE,
+				                        PPMT.DO_AMT,
+				                        PPMT.DO_AMT AS DO_COST,  
+				                        PPMT.OWN_COST,
+				                        PPMT.ENTP_COST,
+				                        PPMT.TRANS_DATE,
+				                        PPMT.PA_GROUP_CODE
+				          FROM TPAPROMOTARGET PPMT,TPAGOODSPRICE PP,TPROMOM PM
+				         WHERE 1=1		           
+				           AND PPMT.USE_CODE = '00'
+				           AND PPMT.PROMO_BDATE &lt;= SYSDATE
+				           AND PPMT.PROMO_EDATE >= SYSDATE
+				           AND PPMT.GOODS_CODE = #{goodsCode, jdbcType=NUMERIC}
+				           AND PPMT.PA_CODE = #{paCode, jdbcType=NUMERIC}
+				           AND PPMT.PA_GROUP_CODE IN ('03', '02,03') <!--SD분리-->
+				           AND PPMT.INSERT_DATE =(SELECT /*+INDEX_DESC (PPMT2 IDX_TPAPROMOTARGET_02)*/
+				           								  		PPMT2.INSERT_DATE
+				                                    FROM TPAPROMOTARGET PPMT2, TPROMOM PM2
+				                                   WHERE PPMT2.GOODS_CODE = PPMT.GOODS_CODE
+				                                     AND PPMT2.PA_CODE = PPMT.PA_CODE
+				                                     AND PPMT2.PA_GROUP_CODE = PPMT.PA_GROUP_CODE
+				                                     AND PPMT2.PROMO_BDATE &lt;= SYSDATE
+                                              		 AND PPMT2.PROMO_EDATE >= SYSDATE
+							                         AND PPMT2.PROMO_NO = PM2.PROMO_NO
+							                         AND PM2.COUPON_YN = '1'
+							                         AND PM2.IMMEDIATELY_YN = '1'
+							                         AND NVL(PM2.ALCOUT_PROMO_YN, '0') = '0'
+                                              		 AND PPMT2.PROC_GB != 'D'
+							                         AND NOT EXISTS (
+							                         	 SELECT 1
+							                           		FROM TPAPROMOTARGET PPMT3
+							                           		WHERE PPMT3.PROMO_NO = PPMT2.PROMO_NO
+							                           		AND PPMT3.PA_CODE = PPMT2.PA_CODE
+							                           		AND PPMT3.PA_GROUP_CODE = PPMT2.PA_GROUP_CODE
+	            											AND PPMT3.GOODS_CODE = PPMT2.GOODS_CODE
+							                           		AND PPMT3.INSERT_DATE >= PPMT2.INSERT_DATE
+							                           		AND PPMT3.PROC_GB = 'D'
+							                          	 )
+                                              		  AND ROWNUM = 1 
+                                              		 )
+				           AND PP.PA_CODE = PPMT.PA_CODE
+				           AND PP.GOODS_CODE = PPMT.GOODS_CODE
+				           AND PP.ROWID = ( SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE) */  
+				                                     GP.ROWID
+				                                FROM TPAGOODSPRICE GP
+				                               WHERE GP.APPLY_DATE &lt; SYSDATE
+				                                 AND GP.GOODS_CODE = PP.GOODS_CODE
+				                                 AND GP.PA_CODE = PP.PA_CODE
+				                                 AND ROWNUM =1  
+				                             )
+                           AND PPMT.PROMO_NO = PM.PROMO_NO
+                           AND PM.COUPON_YN = '1'
+                           AND PM.IMMEDIATELY_YN = '1'
+                           AND NVL(PM.ALCOUT_PROMO_YN, '0') = '0'
+                           AND PPMT.PROC_GB != 'D'
+                           AND NOT EXISTS (
+	                       		SELECT 1
+	                       		FROM TPAPROMOTARGET PPMT3
+	                       		WHERE PPMT3.PROMO_NO = PPMT.PROMO_NO
+	                       		AND PPMT3.PA_CODE = PPMT.PA_CODE
+	                       		AND PPMT3.PA_GROUP_CODE = PPMT.PA_GROUP_CODE
+	            				AND PPMT3.GOODS_CODE = PPMT.GOODS_CODE
+	                       		AND PPMT3.INSERT_DATE >= PPMT.INSERT_DATE
+	                       		AND PPMT3.PROC_GB = 'D'
+	                       		)
+				           ) X
+		           ORDER BY X.DO_AMT DESC)XX
+        WHERE ROWNUM = 1        
+        <!-- 프로모션 별 운영관리 기능 효율화(REQ_PRM_040) : S -->
+        UNION ALL
+    	SELECT     
+    		   XX.PROC_GB,
+    	       XX.PROMO_NO,
+           	   XX.SEQ,
+           	   XX.GOODS_CODE,
+           	   XX.SALE_PRICE,
+          	   XX.DC_AMT,
+           	   XX.DO_COST, 
+           	   XX.AMT_RATE_FLAG,
+           	   XX.DO_RATE,
+           	   XX.DO_AMT,
+           	   XX.STANDARD_APP_AMT,
+           	   XX.LIMIT_AMT,
+               XX.OWN_COST AS DO_OWN_COST,
+               XX.ENTP_COST AS DO_ENTP_COST,
+               XX.TRANS_DATE,
+               XX.PA_GROUP_CODE
+          FROM ( SELECT  X.PROC_GB,
+		               X.PROMO_NO,
+		               X.SEQ,
+		               X.GOODS_CODE,
+				       X.SALE_PRICE,
+				       X.DC_AMT,
+				       X.DO_COST,
+				       X.AMT_RATE_FLAG,
+				       X.DO_RATE,
+				       X.DO_AMT,
+				       X.STANDARD_APP_AMT,
+				       X.LIMIT_AMT,
+               		   X.OWN_COST,         
+               		   X.ENTP_COST,
+               		   X.TRANS_DATE,
+               		   X.PA_GROUP_CODE
+				  FROM (SELECT  /*+ PLACE_DISTINCT(PP) */
+				  				DISTINCT PPMT.PROC_GB,
+				  						PPMT.PROMO_NO,
+				                        PPMT.SEQ,
+				                        PPMT.GOODS_CODE,
+				                        PPMT.PROMO_BDATE,
+				                        PPMT.PROMO_EDATE,
+				                        PP.SALE_PRICE,
+				                        PP.DC_AMT,
+				                        PPMT.STANDARD_APP_AMT,
+				                        PPMT.LIMIT_AMT,
+				                        PPMT.AMT_RATE_FLAG,
+				                        PPMT.DO_RATE,
+				                        PPMT.DO_AMT,
+				                        PPMT.DO_AMT AS DO_COST,  
+				                        PPMT.OWN_COST,
+				                        PPMT.ENTP_COST,
+				                        PPMT.TRANS_DATE,
+				                        PPMT.PA_GROUP_CODE
+				          FROM TPAPROMOTARGET PPMT,TPAGOODSPRICE PP,TPROMOM PM
+				         WHERE 1=1		           
+				           AND PPMT.USE_CODE = '00'
+				           AND PPMT.PROMO_BDATE &lt;= SYSDATE
+				           AND PPMT.PROMO_EDATE >= SYSDATE
+				           AND PPMT.GOODS_CODE = #{goodsCode, jdbcType=NUMERIC}
+				           AND PPMT.PA_CODE = #{paCode, jdbcType=NUMERIC}
+				           AND PPMT.PA_GROUP_CODE IN ('03', '02,03') <!--SD분리-->
+				           AND PPMT.INSERT_DATE =(SELECT /*+INDEX_DESC (PPMT2 IDX_TPAPROMOTARGET_02)*/
+				           								  		PPMT2.INSERT_DATE
+				                                    FROM TPAPROMOTARGET PPMT2, TPROMOM PM2
+				                                   WHERE PPMT2.GOODS_CODE = PPMT.GOODS_CODE
+				                                     AND PPMT2.PA_CODE = PPMT.PA_CODE
+				                                     AND PPMT2.PA_GROUP_CODE = PPMT.PA_GROUP_CODE
+				                                     AND PPMT2.PROMO_BDATE &lt;= SYSDATE
+                                              		 AND PPMT2.PROMO_EDATE >= SYSDATE
+							                         AND PPMT2.PROMO_NO = PM2.PROMO_NO
+							                         AND PM2.COUPON_YN = '1'
+							                         AND PM2.IMMEDIATELY_YN = '1'
+							                         AND NVL(PM2.ALCOUT_PROMO_YN, '0') = '1'
+                                              		 AND PPMT2.PROC_GB != 'D'
+							                         AND NOT EXISTS (
+							                           		SELECT 1
+							                           		FROM TPAPROMOTARGET PPMT3
+							                           		WHERE PPMT3.PROMO_NO = PPMT2.PROMO_NO
+							                           		AND PPMT3.PA_CODE = PPMT2.PA_CODE
+							                           		AND PPMT3.PA_GROUP_CODE = PPMT2.PA_GROUP_CODE
+							                           		AND PPMT3.GOODS_CODE = PPMT2.GOODS_CODE
+							                           		AND PPMT3.INSERT_DATE >= PPMT2.INSERT_DATE
+							                           		AND PPMT3.PROC_GB = 'D'
+							                           		)
+                                              		  AND ROWNUM = 1 
+                                              		 )
+				           AND PP.PA_CODE = PPMT.PA_CODE
+				           AND PP.GOODS_CODE = PPMT.GOODS_CODE
+				           AND PP.ROWID = ( SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE) */  
+				                                     GP.ROWID
+				                                FROM TPAGOODSPRICE GP
+				                               WHERE GP.APPLY_DATE &lt; SYSDATE
+				                                 AND GP.GOODS_CODE = PP.GOODS_CODE
+				                                 AND GP.PA_CODE = PP.PA_CODE
+				                                 AND ROWNUM =1  
+				                             )
+                           AND PPMT.PROMO_NO = PM.PROMO_NO
+                           AND PM.COUPON_YN = '1'
+                           AND PM.IMMEDIATELY_YN = '1'
+                           AND NVL(PM.ALCOUT_PROMO_YN, '0') = '1'
+                           AND PPMT.PROC_GB != 'D'
+                           AND NOT EXISTS (
+	                       		SELECT 1
+	                       		FROM TPAPROMOTARGET PPMT3
+	                       		WHERE PPMT3.PROMO_NO = PPMT.PROMO_NO
+	                       		AND PPMT3.PA_CODE = PPMT.PA_CODE
+	                       		AND PPMT3.PA_GROUP_CODE = PPMT.PA_GROUP_CODE
+	            				AND PPMT3.GOODS_CODE = PPMT.GOODS_CODE
+	                       		AND PPMT3.INSERT_DATE >= PPMT.INSERT_DATE
+	                       		AND PPMT3.PROC_GB = 'D'
+	                       		)
+				           ) X
+		           ORDER BY X.DO_AMT DESC)XX
+        WHERE ROWNUM = 1 
+        <!-- 프로모션 별 운영관리 기능 효율화(REQ_PRM_040) : E -->
+    </select>
+    
+    <update id="updatePaPromoTargetCalc" parameterType="com.cware.netshopping.domain.model.PaPromoTarget">
+        UPDATE TPAPROMOTARGET PPMT /* pagmktgoods.xml : pagmkt.pagmktgoods.updatePaPromoTargetCalc by PaGmktGoodsController-goodspriceModify */
+           SET PPMT.DO_COST      = #{doCost, jdbcType=NUMERIC},
+               PPMT.MODIFY_DATE  = SYSDATE
+         WHERE PPMT.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PPMT.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PPMT.PROMO_NO = #{promoNo, jdbcType=VARCHAR}
+           AND PPMT.SEQ = #{seq, jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updatePaPromoTarget" parameterType="com.cware.netshopping.domain.PaGmktGoodsVO">
+        UPDATE TPAPROMOTARGET PPMT /* pagmktgoods.xml : pagmkt.pagmktgoods.updatePaPromoTarget by PaGmktGoodsController-goodspriceModify */
+		   SET PPMT.MODIFY_DATE   = SYSDATE ,
+			   <choose>
+			   <when test='doCost != null and doCost == 0 '>
+			   PPMT.EXCEPT_REASON =  '마진률 초과  , 연동 예외 시간 : ' || TO_CHAR(SYSDATE , 'YYYY/MM/DD HH24:MI:SS')
+			   </when>
+			   <otherwise>
+			   PPMT.TRANS_DATE    = SYSDATE,
+			   PPMT.EXCEPT_REASON = NULL,
+			   PPMT.DO_COST       = #{doCost, jdbcType=NUMERIC},
+		       PPMT.DO_OWN_COST   = #{doOwnCost, jdbcType=NUMERIC},
+		       PPMT.DO_ENTP_COST  = #{doEntpCost, jdbcType=NUMERIC}
+			   </otherwise>
+			   </choose>  		       
+		 WHERE PPMT.GOODS_CODE 	= #{goodsCode, jdbcType=VARCHAR}
+		   AND PPMT.PA_CODE 	= #{paCode, jdbcType=VARCHAR}
+		   AND PPMT.PROMO_NO 	= #{promoNo, jdbcType=VARCHAR}
+           AND PPMT.SEQ 		= #{seq, jdbcType=VARCHAR}
+    </update>
+    
+    <insert id="insertPaGmktGoodsPrice"  parameterType="com.cware.netshopping.domain.PaGmktGoodsPriceVO">
+         INSERT INTO TPAGOODSPRICE /* pagmktgoods.xml : pagmkt.pagmktgoods.insertPaGmktGoodsPrice by PaGmktGoodsController-goodspriceModify */
+				  (GOODS_CODE,
+				   PA_CODE,
+				   APPLY_DATE,
+				   TRANS_ID,
+				   TRANS_DATE,
+				   SALE_PRICE,
+				   SUPPLY_PRICE,
+				   COMMISION,
+				   DC_AMT,
+				   INSERT_ID,
+				   INSERT_DATE,
+				   MODIFY_ID,
+				   MODIFY_DATE,
+				   PRICE_SEQ,
+				   SUPPLY_SEQ,
+				   LUMP_SUM_DC_AMT,
+				   LUMP_SUM_ENTP_DC_AMT,
+				   LUMP_SUM_OWN_DC_AMT
+				   )
+				VALUES
+				  (
+				   #{goodsCode, jdbcType=VARCHAR},
+				   #{paCode, jdbcType=VARCHAR},
+				   #{applyDate, jdbcType=TIMESTAMP},
+				   #{transId, jdbcType=VARCHAR},
+				   SYSDATE,
+				   #{salePrice, jdbcType=VARCHAR},
+				   #{newSupplyPrice, jdbcType=VARCHAR},
+				   #{commision, jdbcType=VARCHAR},
+				   #{dcAmt, jdbcType=VARCHAR},
+				   #{insertId, jdbcType=VARCHAR},
+				   SYSDATE,
+				   #{modifyId, jdbcType=VARCHAR},
+				   SYSDATE,
+				   #{priceSeq, jdbcType=VARCHAR},
+				   #{supplySeq, jdbcType=VARCHAR},
+				   #{lumpSumDcAmt, jdbcType=VARCHAR}				   
+				  )
+    </insert>
+    
+    <select id="selectPaGmktGoodsPriceUpdateTargetCnt" parameterType="com.cware.netshopping.domain.PaGmktGoodsPriceVO" resultType="int">
+    	SELECT COUNT(1)
+		  FROM (SELECT /*+ INDEX_DESC (PP PK_TPAGOODSPRICE)*/
+		         	   PP.TRANS_DATE
+		          FROM TPAGOODSPRICE PP
+		         WHERE PP.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+		           AND PP.PA_CODE = #{paCode, jdbcType=VARCHAR}
+		           AND ROWNUM = 1) X
+		 WHERE X.TRANS_DATE IS NULL
+    </select>
+    
+    <update id="updatePaGmktGoodsPrice"  parameterType="com.cware.netshopping.domain.PaGmktGoodsPriceVO">
+        UPDATE /* pagmktgoods.xml : pagmkt.pagmktgoods.updatePaGmktGoodsPrice by PaGmktGoodsController-goodspriceModify */
+               /*+ INDEX_DESC (PP PK_TPAGOODSPRICE)*/
+               TPAGOODSPRICE PP
+           SET PP.TRANS_ID = 'PAG'
+             , PP.TRANS_DATE = SYSDATE 
+             , PP.MODIFY_ID = 'PAG'
+             , PP.MODIFY_DATE = SYSDATE
+         WHERE PP.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}  
+           AND PP.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PP.APPLY_DATE = #{applyDate, jdbcType=TIMESTAMP}
+           AND ROWNUM = 1
+    </update>
+    
+    <update id="updatePaGmktGoodsOffer"  parameterType="com.cware.netshopping.domain.PaGmktGoodsOfferVO">
+        UPDATE /* pagmktgoods.xml : pagmkt.pagmktgoods.updatePaGmktGoodsOffer by PaGmktGoodsController-goodsInsert */
+               TPAGOODSOFFER PO
+           SET PO.TRANS_TARGET_YN = '0'
+             , PO.MODIFY_ID = 'PAG'
+             , PO.MODIFY_DATE = SYSDATE
+         WHERE PO.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}  
+           AND PO.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectGmktGoodsInsertOne" parameterType="hashMap" resultType="hashMap">
+        SELECT DISTINCT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGmktGoodsInsertOne by PaGmktGoodsController-selectPostGoods */
+        	   GG.PA_STATUS,
+               GG.PA_GROUP_CODE,
+               GP.DC_AMT,
+               GP.LUMP_SUM_DC_AMT,
+               GP.LUMP_SUM_ENTP_DC_AMT,
+               GP.LUMP_SUM_OWN_DC_AMT,
+               E.DELY_GB,
+               GG.ESM_CATEGORY_CODE,
+               GG.SITE_CATEGORY_CODE,
+               GG.ORIGIN_ENUM,
+               GG.ORIGIN_DT,
+               GG.ESM_GOODS_CODE,
+               GG.PA_SALE_GB,
+               PG.GOODS_CODE,
+               PG.GOODS_NAME,
+               PG.ORDER_MAX_QTY,
+               PG.CUST_ORD_QTY_CHECK_TERM,
+               PG.ADULT_YN,
+               GP.SALE_PRICE,
+               fun_get_order_able_qty(pg.goods_code,'' ,G.WH_CODE) AS TRANS_ORDER_ABLE_QTY,
+               GG.BRAND_NO,
+               GSD.GMKT_SHIP_NO,
+               GSD.BUNDLE_NO,
+               PES.PA_ADDR_SEQ AS RETURN_MAN_SEQ,
+               PCS.ORD_COST,
+               PCS.RETURN_COST,
+               PGI.IMAGE_URL,
+               PGI.IMAGE_P,
+               PGI.IMAGE_AP,
+               PGI.IMAGE_BP,
+               PG.SHIP_COST_CODE,
+               G.LMSD_CODE,
+               GK.LGROUP_NAME || '-' || GK.MGROUP_NAME || '-' || GK.SGROUP_NAME || '-' || GK.DGROUP_NAME AS LMSD_NAME,
+               G.BRAND_CODE,
+               B.BRAND_NAME,
+               G.COLLECT_YN
+          FROM TPAPRODUCT        PG,
+               TPAGOODSPRICE     GP,
+               TPAGMKTGOODS      GG,
+               TPAGMKTSHIPCOSTDT GSD,
+               TPACUSTSHIPCOST   PCS,
+               TPAGOODSIMAGE     PGI,
+               TPAENTPSLIP       PES,
+               TGOODS G,
+               TENTERPRISE       E,
+		       TGOODSKINDS       GK,
+		       TBRAND            B
+         WHERE PG.GOODS_CODE = GP.GOODS_CODE
+           AND GP.GOODS_CODE = GG.GOODS_CODE
+           AND GP.PA_CODE = GG.PA_CODE
+           AND DECODE(G.DELY_TYPE,'10','100001',PG.ENTP_CODE) = GSD.ENTP_CODE
+           AND DECODE(G.DELY_TYPE,'10','003',PG.SHIP_MAN_SEQ) = GSD.ENTP_MAN_SEQ
+           AND PG.SHIP_COST_CODE = GSD.SHIP_COST_CODE
+           AND GG.PA_CODE = PCS.PA_CODE
+           AND GSD.ENTP_CODE = PCS.ENTP_CODE
+           AND GSD.SHIP_COST_CODE = PCS.SHIP_COST_CODE
+           AND PGI.GOODS_CODE = PG.GOODS_CODE
+           AND PGI.PA_GROUP_CODE = '02'
+           AND PES.ENTP_CODE = DECODE(G.DELY_TYPE,'10','100001',PG.ENTP_CODE)
+           AND PES.ENTP_MAN_SEQ = DECODE(G.DELY_TYPE,'10','002',PG.RETURN_MAN_SEQ)
+           AND PES.PA_CODE = '21'
+           AND PES.PA_ADDR_GB = '20'
+           AND PG.GOODS_CODE = G.GOODS_CODE
+           AND E.ENTP_CODE = G.ENTP_CODE
+           AND G.LMSD_CODE = GK.LMSD_CODE
+           AND G.BRAND_CODE = B.BRAND_CODE
+           AND GP.ROWID = (SELECT /*+ INDEX_DESC (PP PK_TPAGOODSPRICE)*/
+                        PP.ROWID
+                         FROM TPAGOODSPRICE PP
+                        WHERE PP.GOODS_CODE = GG.GOODS_CODE
+                          AND PP.APPLY_DATE &lt; SYSDATE
+                          AND PP.PA_CODE = GG.PA_CODE
+                          AND ROWNUM = 1)
+           <if test='goodsCode != null and goodsCode != ""'>
+           AND PG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           <!-- 
+           <if test='isModify == null or isModify == ""'>
+           AND GG.PA_STATUS IN ('10','20')
+           AND GG.ESM_GOODS_CODE IS NULL
+           </if>
+           <if test='isModify != null and isModify != ""'>
+           AND GG.PA_STATUS = '30'
+           AND GG.TRANS_TARGET_YN = '1'
+           </if>
+            -->
+      ORDER BY GG.PA_GROUP_CODE ASC
+    </select>
+    <select id="selectGmktGoodsOfferInsertOne" parameterType="hashMap" resultType="hashMap">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGmktGoodsOfferInsertOne by PaGmktGoodsController-selectPostGoods */
+               PGO.PA_OFFER_TYPE,
+               PGO.PA_OFFER_CODE,
+               DBMS_LOB.SUBSTR(PGO.PA_OFFER_EXT, 3000, 1) AS PA_OFFER_EXT,
+               POM.TRANS_COLUMN_YN,
+               CASE
+                 WHEN POM.TRANS_COLUMN_YN = '1' THEN
+                  KC.KC_NO
+                 ELSE
+                  NULL
+               END AS KC_INFO
+          FROM TPAGOODSOFFER PGO, TPAOFFERCODEMAPPING POM, TGOODSKCINFO KC
+         WHERE PGO.PA_GROUP_CODE = '02'
+           AND PGO.USE_YN = '1'
+           AND PGO.PA_GROUP_CODE = POM.PA_GROUP_CODE(+)
+           AND PGO.PA_OFFER_TYPE = POM.PA_OFFER_TYPE(+)
+           AND PGO.PA_OFFER_CODE = POM.PA_OFFER_CODE(+)
+           AND PGO.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PGO.GOODS_CODE = KC.GOODS_CODE(+)
+    </select>
+    
+    <resultMap id="result-describe" type="hashMap">
+        <result property="TOP_IMAGE" column="TOP_IMAGE" />
+        <result property="BOTTOM_IMAGE" column="BOTTOM_IMAGE" />
+        <result property="DESCRIBE_EXT1" column="DESCRIBE_EXT1" jdbcType="CLOB" javaType="java.lang.String" />
+        <result property="NOTICE_EXT" column="NOTICE_EXT" jdbcType="CLOB" javaType="java.lang.String" />
+        <result property="COLLECT_IMAGE" column="COLLECT_IMAGE" />
+    </resultMap>
+    
+    <select id="selectGmktGoodsDescribeInsertOne" parameterType="hashMap" resultMap="result-describe">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGmktGoodsDescribeInsertOne by PaGmktGoodsController-selectPostGoods */
+			   C1.CODE_NAME AS TOP_IMAGE
+			 , C2.CODE_NAME AS BOTTOM_IMAGE
+			 , NVL((SELECT REPLACE(DS.DESCRIBE_EXT, chr(10), '')
+					  FROM TDESCRIBE DS
+					 WHERE DS.DESCRIBE_CODE ='998'
+					   AND DS.GOODS_CODE = GG.GOODS_CODE)
+		          ,(SELECT DECODE(DS.WEB_FLAG, '1',  REPLACE(DS.DESCRIBE_EXT, chr(10), ''), DS.DESCRIBE_NOTE)
+					  FROM TDESCRIBE DS
+					 WHERE DS.DESCRIBE_CODE ='999'
+					   AND DS.GOODS_CODE = GG.GOODS_CODE)) AS DESCRIBE_EXT1
+			 , DECODE(T.COLLECT_YN,'0','',(SELECT CODE_NAME
+                                        	 FROM TCODE C
+                                       	    WHERE C.CODE_LGROUP = 'O507'
+                                         	  AND C.CODE_MGROUP = '99')) AS COLLECT_IMAGE
+             , NVL((SELECT /*+ INDEX_DESC (TNM IDX_TPANOTICEM_03)*/
+             			   TNM.NOTICE_EXT
+					  FROM TPANOTICEM TNM
+					     , TPANOTICETARGET TNT
+					     , TPANOTICEAPPLY TNA
+					 WHERE TNM.NOTICE_NO  = TNT.NOTICE_NO
+					   AND TNT.GOODS_CODE = GG.GOODS_CODE
+					   AND TNM.USE_CODE   = '00'
+					   AND INSTR(TNM.PA_GROUP_CODE, GG.PA_GROUP_CODE) > 0
+					   AND TNT.NOTICE_NO  = TNA.NOTICE_NO
+					   AND TNT.GOODS_CODE = TNA.GOODS_CODE
+					   AND TNA.PA_GROUP_CODE = GG.PA_GROUP_CODE
+					   AND ROWNUM = 1), '') AS NOTICE_EXT
+			 , NVL((SELECT TSB.DESCRIBE_NOTE
+			 		  FROM TDESCRIBE TSB
+			 		 WHERE TSB.DESCRIBE_CODE = '200'
+			 		   AND TSB.GOODS_CODE 	 = GG.GOODS_CODE), '') AS GOODS_COM
+		  FROM TPAGMKTGOODS GG
+		  	 , TGOODS T
+			 , TCODE C1
+			 , TCODE C2
+		 WHERE GG.GOODS_CODE = T.GOODS_CODE
+       	   AND C1.CODE_LGROUP = 'O507'
+		   AND C1.CODE_MGROUP = DECODE(GG.PA_CODE,'21','03','04')
+		   AND C2.CODE_LGROUP = 'O507'
+		   AND C2.CODE_MGROUP = GG.PA_CODE
+		   AND GG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+		   AND rownum = 1
+    </select>
+    <update id="updatePaGmktGoodsInsert" parameterType="com.cware.netshopping.domain.model.PaGmktGoods">
+        UPDATE /* pagmktgoods.xml : pagmkt.pagmktgoods.updatePaGmktGoodsInsert by PaGmktGoodsController-selectPostGoods */
+               TPAGMKTGOODS GG
+           SET GG.ESM_GOODS_CODE = #{esmGoodsCode, jdbcType=VARCHAR},
+               GG.TRANS_ORDER_ABLE_QTY = #{transOrderAbleQty, jdbcType=VARCHAR},
+               GG.PA_STATUS = '30',
+               GG.MODIFY_DATE = SYSDATE,
+               GG.MODIFY_ID = 'PAG',
+               GG.TRANS_TARGET_YN = '0',
+               GG.TRANS_SALE_YN = '1',
+               GG.TRANS_DISCOUNT_YN = '1',
+               GG.RETURN_NOTE = '',
+               GG.TRANS_COMPLETE_DATE = SYSDATE,
+               GG.SELLING_PERIOD = TRUNC(SYSDATE) + 90
+         WHERE GG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND GG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND GG.ESM_GOODS_CODE IS NULL
+           <if test='itemNo == null or itemNoExtra == null'>
+           AND GG.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+           </if>
+    </update>
+    <!--COUNT ESM_GOODS_CODE가 있는것은 반려대상이 아님 , COUNT == 1 이면 RETURN -->
+    <select id="selectChkPaStatus" parameterType="com.cware.netshopping.domain.model.PaGmktGoods" resultType="int">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectChkPaStatus by PaGmktGoodsController-selectPostGoods */
+               COUNT(1)
+          FROM TPAGMKTGOODS
+         WHERE GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND ESM_GOODS_CODE IS NOT NULL
+    </select>
+    <update id="updatePaGmktGoodsInsertReject" parameterType="com.cware.netshopping.domain.model.PaGmktGoods">
+        UPDATE /* pagmktgoods.xml : pagmkt.pagmktgoods.updatePaGmktGoodsInsertReject by PaGmktGoodsController-selectPostGoods */
+               TPAGMKTGOODS GG
+           SET GG.RETURN_NOTE = #{returnNote, jdbcType=VARCHAR},
+               GG.PA_STATUS = #{paStatus, jdbcType=VARCHAR},
+               GG.TRANS_TARGET_YN = '0',
+               GG.MODIFY_DATE = SYSDATE,
+               GG.MODIFY_ID = 'PAG',
+               GG.SELLING_PERIOD = ''
+         WHERE GG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND GG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND GG.PA_STATUS IN ('10','20')
+    </update>
+    <update id="updatePaGmktGoodsInsertSuccessFail" parameterType="com.cware.netshopping.domain.model.PaGmktGoods">
+        UPDATE /* pagmktgoods.xml : pagmkt.pagmktgoods.updatePaGmktGoodsInsertFail by PaGmktGoodsController-selectPostGoods */
+               TPAGMKTGOODS GG
+           SET GG.RETURN_NOTE = #{returnNote, jdbcType=VARCHAR},
+               GG.PA_SALE_GB = #{paSaleGb, jdbcType=VARCHAR},
+               <if test='paStatus != null and paStatus != ""'>
+               GG.PA_STATUS = #{paStatus, jdbcType=VARCHAR},
+               </if>
+               GG.TRANS_SALE_YN = '1',
+               GG.MODIFY_DATE = SYSDATE,
+               GG.MODIFY_ID = 'PAG'
+         WHERE GG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND GG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND GG.PA_STATUS = '30'
+    </update>
+    
+    <select id="selectSiteGoodsNoTarget" parameterType="hashMap" resultType="hashMap">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectSiteGoodsNoTarget by PaGmktGoodsController-getGoodsStatus */
+               GG.ESM_GOODS_CODE,
+               GG.GOODS_CODE,
+               GG.PA_CODE,
+               GG.PA_SALE_GB
+          FROM TPAGMKTGOODS GG
+         WHERE GG.ESM_GOODS_CODE IS NOT NULL
+           AND GG.ITEM_NO IS NULL
+           AND GG.TRANS_COMPLETE_DATE &lt; SYSDATE - INTERVAL '1' MINUTE 
+           <if test='goodsCode != null and goodsCode != ""'>
+           AND GG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           <if test='paCode != null and paCode != ""'>
+           AND GG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           </if>
+    </select>
+    <update id="updateEsmGoodsCode" parameterType="com.cware.netshopping.domain.model.PaGmktGoods" >
+        UPDATE TPAGMKTGOODS GG /* pagmktgoods.xml : pagmkt.pagmktgoods.updateEsmGoodsCode by PaGmktGoodsController-goodsModify */
+          SET GG.ESM_GOODS_CODE = #{esmGoodsCode, jdbcType=VARCHAR}
+        WHERE GG.GOODS_CODE =  #{goodsCode, jdbcType=VARCHAR}
+          AND GG.ESM_GOODS_CODE IS NULL
+    </update>
+    <update id="updateSiteGoodsNoExtraTarget" parameterType="com.cware.netshopping.domain.model.PaGmktGoods" >
+        UPDATE TPAGMKTGOODS GG /* pagmktgoods.xml : pagmkt.pagmktgoods.updateSiteGoodsNoExtraTarget by PaGmktGoodsController-getGoodsStatus */
+          SET GG.ITEM_NO = #{itemNoExtra, jdbcType=VARCHAR},
+              <!-- GG.MODIFY_DATE = SYSDATE, -->
+              GG.TRANS_COMPLETE_DATE = SYSDATE
+        WHERE GG.ESM_GOODS_CODE = #{esmGoodsCode, jdbcType=VARCHAR}
+          AND GG.ITEM_NO IS NULL
+          AND GG.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+    </update>
+    <update id="updateSiteGoodsNoTarget" parameterType="com.cware.netshopping.domain.model.PaGmktGoods" >
+        UPDATE TPAGMKTGOODS GG /* pagmktgoods.xml : pagmkt.pagmktgoods.updateSiteGoodsNoTarget by PaGmktGoodsController-getGoodsStatus */
+          SET GG.ITEM_NO = #{itemNo, jdbcType=VARCHAR},
+              <!-- GG.MODIFY_DATE = SYSDATE, -->
+              GG.TRANS_COMPLETE_DATE = SYSDATE
+        WHERE GG.ESM_GOODS_CODE = #{esmGoodsCode, jdbcType=VARCHAR}
+          AND GG.ITEM_NO IS NULL
+          AND GG.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+    </update>
+    <select id="selectSiteGoodsNoCheck" parameterType="com.cware.netshopping.domain.model.PaGmktGoods" resultType="int" >
+        SELECT COUNT(1) /* pagmktgoods.xml : pagmkt.pagmktgoods.selectSiteGoodsNoCheck by PaGmktGoodsController-goodsModify */
+		  FROM TPAGMKTGOODS GG
+		 WHERE GG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+		   AND GG.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+		   AND GG.ITEM_NO IS NULL
+		   AND GG.PA_STATUS != '30'
+    </select>
+    
+    <update id="execSP_PA_GOODS_AUTO_INSERT1" statementType="CALLABLE" parameterType="hashMap">
+        {call SP_PA_GOODS_AUTO_INSERT(
+                           '02',
+                           '',
+                           #{out_code,   jdbcType=NUMERIC, mode=OUT},
+                           #{out_msg,   jdbcType=VARCHAR, mode=OUT}
+                           )}
+        /* pagmktgoods.xml : pagmkt.pagmktgoods.sp_pa_goods_auto_insert1 */
+    </update>
+    
+    <!-- 수정대상 리스트 조회 -->
+    <select id="selectGmktGoodsModifyList" parameterType="hashMap" resultType="hashMap">
+          SELECT
+         		TOTAL.*
+         	FROM (
+	              SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGmktGoodsModifyList by PaGmktGoodsController-putGoods */
+						T.GOODS_CODE,
+						T.PA_CODE,
+						T.ENTP_CODE,
+						T.SHIP_MAN_SEQ,
+						T.SHIP_COST_CODE,
+						T.RETURN_MAN_SEQ,
+						T.MODIFY_DATE,
+						T.WH_CODE
+					FROM ( SELECT X.GOODS_CODE,
+								  X.PA_CODE,
+								  X.ENTP_CODE,
+								  X.SHIP_MAN_SEQ,
+								  X.SHIP_COST_CODE,
+								  X.RETURN_MAN_SEQ,
+								 (SELECT MIN(X2.MODIFY_DATE) FROM TPAGMKTGOODS X2 WHERE X.GOODS_CODE = X2.GOODS_CODE) AS MODIFY_DATE,
+                				  X.WH_CODE
+						    FROM (SELECT DISTINCT GG.GOODS_CODE,
+						                          GG.PA_CODE,
+						                          PG.ENTP_CODE,
+						                          PG.SHIP_MAN_SEQ,
+						                          PG.SHIP_COST_CODE,
+						                          PG.RETURN_MAN_SEQ,
+                                      			  G.WH_CODE,
+                                      			  G.SOURCING_CODE
+							        FROM TPAGMKTGOODS GG, TPAPRODUCT PG, TGOODS G
+							       WHERE GG.GOODS_CODE = PG.GOODS_CODE
+							         AND GG.PA_STATUS = '30'
+                       				 AND PG.GOODS_CODE = G.GOODS_CODE
+							         AND GG.TRANS_TARGET_YN = '1'
+							         AND GG.PA_SALE_GB = '20'
+							         <choose>
+							         <when test='massTargetYn != null and massTargetYn != ""'>
+							         AND GG.MASS_TARGET_YN   = #{massTargetYn , jdbcType=VARCHAR}
+							         </when>
+							         <otherwise>
+							         AND GG.MASS_TARGET_YN  NOT IN ('1','2','9')
+							         </otherwise>
+							         </choose>          							         
+							          
+							         
+					               UNION
+					               
+							      SELECT DISTINCT GG2.GOODS_CODE,
+							                      GG2.PA_CODE,
+							                      PG2.ENTP_CODE,
+							                      PG2.SHIP_MAN_SEQ,
+							                      PG2.SHIP_COST_CODE,
+							                      PG2.RETURN_MAN_SEQ,
+                                    			  G.WH_CODE,
+                                    			  G.SOURCING_CODE
+							        FROM TPAGMKTGOODS GG2, TPAPRODUCT PG2, TGOODS G
+							       WHERE GG2.GOODS_CODE = PG2.GOODS_CODE
+                       				 AND PG2.GOODS_CODE = G.GOODS_CODE
+							         AND GG2.PA_STATUS = '10'
+							         AND GG2.ITEM_NO IS NULL
+							         AND EXISTS (SELECT '1'
+									               FROM TPAGMKTGOODS GG3
+									              WHERE GG3.GOODS_CODE = GG2.GOODS_CODE
+									                AND GG3.PA_STATUS = '30')
+							         <choose>
+							          <when test='massTargetYn != null and massTargetYn != ""'>
+							         AND GG2.MASS_TARGET_YN   = #{massTargetYn , jdbcType=VARCHAR}
+							         </when>
+							         <otherwise>
+							         AND GG2.MASS_TARGET_YN  NOT IN ('1','2','9')
+							         </otherwise>
+							         </choose>         
+									                
+									                
+									                
+								   UNION
+								  SELECT DISTINCT GG4.GOODS_CODE,
+					                              GG4.PA_CODE,
+					                              PG4.ENTP_CODE,
+					                              PG4.SHIP_MAN_SEQ,
+					                              PG4.SHIP_COST_CODE,
+					                              PG4.RETURN_MAN_SEQ,
+                                        		  G.WH_CODE,
+                                        		  G.SOURCING_CODE
+					                FROM TPAGMKTGOODS GG4, TPAPRODUCT PG4, TGOODS G
+					               WHERE GG4.GOODS_CODE = PG4.GOODS_CODE
+                           			 AND GG4.GOODS_CODE = G.GOODS_CODE
+					                 AND GG4.PA_STATUS = '30'
+					                 AND EXISTS (SELECT '1'
+						                           FROM TPAGMKTGOODS GG5
+						                          WHERE GG5.GOODS_CODE = GG4.GOODS_CODE
+						                            AND GG5.ITEM_NO IS NULL
+						                            AND GG5.PA_STATUS = '10')
+							         <choose>
+							         <when test='massTargetYn != null and massTargetYn != ""'>
+							         AND GG4.MASS_TARGET_YN   = #{massTargetYn , jdbcType=VARCHAR}
+							         </when>
+							         <otherwise>
+							         AND GG4.MASS_TARGET_YN  NOT IN ('1','2','9')
+							         </otherwise>
+							         </choose>    
+						             ) X 
+						             	 ) T
+        WHERE FUN_GET_ORDER_ABLE_QTY(T.GOODS_CODE, '%', T.WH_CODE) > 0
+				ORDER BY T.PA_CODE, T.MODIFY_DATE, T.ENTP_CODE, T.SHIP_MAN_SEQ, T.SHIP_COST_CODE, T.RETURN_MAN_SEQ 
+			) TOTAL WHERE ROWNUM &lt;= #{targetCnt,jdbcType=NUMERIC}
+    </select>    
+    <select id="selectGmktGoodsInsertList" parameterType="hashMap" resultType="hashMap">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGmktGoodsInsertList by PaGmktGoodsController-postGoods */
+			   DISTINCT TG.GOODS_CODE
+			 , PG.PA_CODE
+          FROM TPAGMKTGOODS  PG
+             , TPAPRODUCT    TG
+             , TGOODS        GD
+             , TCODE         TC
+             , TPAGOODSPRICE PP
+         WHERE TG.GOODS_CODE = PG.GOODS_CODE
+           AND TG.GOODS_CODE = GD.GOODS_CODE
+           AND TC.CODE_LGROUP = 'O505'
+           AND TC.CODE_MGROUP = PG.PA_CODE
+           AND PP.GOODS_CODE = PG.GOODS_CODE
+           AND PP.PA_CODE = PG.PA_CODE
+           AND PP.ROWID = (SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE)*/
+                            GP.ROWID
+                             FROM TPAGOODSPRICE GP
+                            WHERE GP.GOODS_CODE = PG.GOODS_CODE
+                              AND GP.APPLY_DATE &lt; SYSDATE
+                              AND GP.PA_CODE = PG.PA_CODE
+                              AND ROWNUM = 1)
+           AND GD.SIGN_GB = '80'
+           AND GD.GIFT_YN = '0'
+           AND GD.INVI_GOODS_TYPE = '00'         
+           AND PG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND EXISTS ( SELECT '1'
+                          FROM TPAGOODSTARGET PGT 
+                         WHERE PGT.GOODS_CODE = PG.GOODS_CODE
+                           AND PGT.PA_CODE = PG.PA_CODE
+                           AND PGT.PA_GROUP_CODE = PG.PA_GROUP_CODE)
+           AND EXISTS ( SELECT '1' 
+                          FROM TDESCRIBE DB 
+                         WHERE DB.GOODS_CODE = GD.GOODS_CODE 
+                           AND DB.DESCRIBE_CODE IN ('998','999')
+                           AND DB.DESCRIBE_EXT IS NOT NULL
+                           AND ROWNUM = 1 )  
+           AND EXISTS ( SELECT '1'
+                          FROM TGOODSIMAGE GI
+                         WHERE GI.GOODS_CODE = GD.GOODS_CODE
+                           AND NVL(IMAGE_C,IMAGE_G) IS NOT NULL
+                           AND ROWNUM = 1 )
+           AND NOT EXISTS ( SELECT '1'
+                              FROM TPAGMKTGOODS PGG
+                             WHERE PGG.GOODS_CODE = GD.GOODS_CODE
+                               AND PGG.PA_STATUS = '30' )
+           AND NOT EXISTS ( SELECT '1'
+                     FROM TPAGMKTGOODS PGG2
+                    WHERE PGG2.GOODS_CODE = GD.GOODS_CODE
+                      AND PGG2.ITEM_NO IS NOT NULL )
+           AND GD.ENTP_CODE NOT IN (SELECT TC.CODE_MGROUP FROM TCODE TC WHERE TC.CODE_LGROUP = 'T001' AND INSTR(TC.CODE_GROUP, PG.PA_GROUP_CODE) > 0 )
+      ORDER BY GOODS_CODE
+    </select>
+    <select id="selectChkShipCost" parameterType="String" resultType="int">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectChkShipCost by PaGmktV2GoodsController-goods-insert */
+		       CASE WHEN SUBSTR(SHIP_COST_CODE,0,2) != 'QN'
+               THEN
+                  '1'
+               ELSE
+                  '0'
+               END      
+          FROM (    
+                SELECT CD.ENTP_CODE
+                      ,CD.SHIP_COST_CODE
+                      ,SUM(DECODE(CUST_AREA_GB, '10', ORD_COST_AMT, 0))  AS ORD_COST_AMT_10
+                      ,SUM(DECODE(CUST_AREA_GB, '10', RET_COST_AMT, 0))  AS RET_COST_AMT_10
+                      ,SUM(DECODE(CUST_AREA_GB, '10', EXCH_COST_AMT, 0)) AS EXCH_COST_AMT_10
+                      ,SUM(DECODE(CUST_AREA_GB, '20', ORD_COST_AMT, 0))  AS ORD_COST_AMT_20
+                      ,SUM(DECODE(CUST_AREA_GB, '20', RET_COST_AMT, 0))  AS RET_COST_AMT_20
+                      ,SUM(DECODE(CUST_AREA_GB, '20', EXCH_COST_AMT, 0)) AS EXCH_COST_AMT_20
+                      ,SUM(DECODE(CUST_AREA_GB, '30', ORD_COST_AMT, 0))  AS ORD_COST_AMT_30
+                      ,SUM(DECODE(CUST_AREA_GB, '30', RET_COST_AMT, 0))  AS RET_COST_AMT_30
+                      ,SUM(DECODE(CUST_AREA_GB, '30', EXCH_COST_AMT, 0)) AS EXCH_COST_AMT_30  
+                  FROM TSHIPCOSTDT CD, TGOODS TG  
+                 WHERE CD.APPLY_DATE = (SELECT MAX(APPLY_DATE)
+                                        FROM TSHIPCOSTDT CD1
+                                       WHERE CD1.ENTP_CODE      = CD.ENTP_CODE
+                                         AND CD1.CUST_AREA_GB   IN ('10', '20', '30')
+                                         AND CD1.SHIP_COST_CODE = CD.SHIP_COST_CODE
+                                         AND CD1.APPLY_DATE     &lt; SYSDATE)
+                 AND CD.ENTP_CODE      = DECODE(TG.DELY_TYPE, '10', '100001', TG.ENTP_CODE)
+                 AND CD.SHIP_COST_CODE = TG.SHIP_COST_CODE
+                 AND TG.GOODS_CODE = #{goodsCode,jdbcType=VARCHAR}
+            GROUP BY CD.ENTP_CODE, CD.SHIP_COST_CODE
+            ) X
+    </select>
+    <select id="selectPaEbayCheckGoods" parameterType="String" resultType="hashMap">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectPaEbayCheckGoods by PaGmktGoodsController */
+			   G.GOODS_CODE
+             , NVL((SELECT CASE WHEN DECODE(GP.SALE_PRICE, 0, 0, ROUND((GP.SALE_PRICE - GP.BUY_PRICE) / GP.SALE_PRICE * 100, 2)) >=
+		                           ( SELECT DECODE(G.SOURCING_MEDIA, '01', REMARK, REMARK1)
+									   FROM TCODE
+		                              WHERE CODE_LGROUP = 'O582'
+		                                AND CODE_MGROUP = '30') THEN 'Y'
+		                        WHEN ( SELECT COUNT(1)
+										 FROM TPAGOODSEVENT SD
+										WHERE SYSDATE BETWEEN SD.START_DATE AND SD.END_DATE 
+										  AND SD.PA_GROUP_CODE IN ('02', '03')
+										  AND SD.USE_YN = '1'
+										  AND DECODE(GP.SALE_PRICE, 0, 0, ROUND((GP.SALE_PRICE - GP.BUY_PRICE) / GP.SALE_PRICE * 100, 2)) >= TO_NUMBER(FUN_GETCONFIG('PA_EVENT_LIMIT_MARGIN'))
+										  AND SD.GOODS_CODE = G.GOODS_CODE) > 0 THEN 'Y'
+		                   ELSE 'N' END
+		              FROM TGOODSPRICE GP
+		             WHERE GP.GOODS_CODE = G.GOODS_CODE
+		               AND GP.APPLY_DATE = ( SELECT MAX(GPS.APPLY_DATE)
+											   FROM TGOODSPRICE GPS
+											  WHERE GPS.GOODS_CODE = G.GOODS_CODE
+											    AND GPS.APPLY_DATE &lt;= SYSDATE)),'N') AS MARGIN_RATE_GMKT
+		     , NVL((SELECT CASE WHEN GP.SALE_PRICE >= (SELECT DECODE(SOURCING_MEDIA, '01', REMARK, REMARK1)
+											             FROM TCODE
+											            WHERE CODE_LGROUP = 'O582'
+											              AND CODE_MGROUP = '40') THEN 'Y'
+		                        ELSE 'N' END
+		              FROM TGOODSPRICE GP
+		             WHERE GP.GOODS_CODE = G.GOODS_CODE
+		               AND GP.APPLY_DATE = ( SELECT MAX(GPS.APPLY_DATE)
+											   FROM TGOODSPRICE GPS
+											  WHERE GPS.GOODS_CODE = G.GOODS_CODE
+												AND GPS.APPLY_DATE &lt; SYSDATE)),'N') AS SALE_PRICE_YN_GMKT
+             , CASE WHEN G.SOURCING_MEDIA = '01' THEN CASE WHEN CEIL(fun_get_order_able_qty(G.GOODS_CODE, '', G.WH_CODE) * C1.CODE_GROUP) >= 3 OR G.BUY_MED ='13' THEN 'Y'
+														   ELSE 'N' END
+					ELSE CASE WHEN CEIL(fun_get_order_able_qty(G.GOODS_CODE, '', G.WH_CODE) * C2.CODE_GROUP) >= 3 THEN 'Y'
+							  ELSE 'N' END
+					 END AS STOCK_QTY
+             , CASE WHEN G.OMBUDSMAN_YN = '0' THEN 'Y'
+					ELSE 'N' END AS OMBUDSMAN_YN
+             , CASE WHEN G.BROAD_SALE_YN = '0' THEN 'Y'
+					ELSE 'N' END AS BROAD_SALE_YN
+             , CASE WHEN G.INVI_GOODS_TYPE = '00' THEN 'Y'
+					ELSE 'N' END AS INVI_GOODS_TYPE_YN
+             , CASE WHEN G.ORDER_MEDIA_ALL_YN = '1' OR INSTR(G.ORDER_MEDIA, '62') > 0 THEN 'Y'
+					ELSE 'N' END AS ORDER_MEDIA_YN
+             , CASE WHEN NVL(G.SALE_END_DATE, SYSDATE + 1) > SYSDATE THEN 'Y'
+					ELSE 'N' END AS SALE_END_YN
+          FROM TGOODS G, TCODE C1, TCODE C2
+         WHERE C1.CODE_LGROUP = 'O505'
+           AND C1.CODE_MGROUP = '21'
+           AND C2.CODE_LGROUP = 'O505'
+           AND C2.CODE_MGROUP = '22'
+           AND G.GOODS_CODE = #{goodsCode,jdbcType=VARCHAR}
+    </select>
+    <!-- 상품수정 update -->
+    <update id="updateGmktGoodsModify" parameterType="com.cware.netshopping.domain.model.PaGmktGoods" >
+        UPDATE TPAGMKTGOODS GG /* pagmktgoods.xml : pagmkt.pagmktgoods.updateGmktGoodsModify by PaGmktGoodsController-putGoods */
+           SET GG.TRANS_TARGET_YN 	= '0'
+             , GG.TRANS_DISCOUNT_YN = '1'
+             , GG.TRANS_SALE_YN 	= '1'
+             , GG.RETURN_NOTE 		= ''
+             , GG.SALE_STOP_DATE	= NULL
+             , GG.MODIFY_ID 		='PAG'
+             , GG.MODIFY_DATE 		= SYSDATE
+             , GG.SELLING_PERIOD 	= CASE WHEN GG.PA_SALE_GB = '20' 
+                                    	   THEN NVL2(GG.SELLING_PERIOD	, GG.SELLING_PERIOD+91, '')
+                                   	       ELSE NVL(GG.SELLING_PERIOD	, '')
+                                      END
+         WHERE GG.ESM_GOODS_CODE 	= #{esmGoodsCode	, jdbcType=VARCHAR}
+           AND GG.PA_CODE 			= #{paCode			, jdbcType=VARCHAR}
+    </update>
+    <!-- 상품일괄수정시 옵션재등록을위한 TARGET =1 update -->
+    <update id="updateGmktGoodsdtMappingforGoodsModify" parameterType="hashMap" >
+        UPDATE TPAGOODSDTMAPPING PM /* pagmktgoods.xml : pagmkt.pagmktgoods.updateGmktGoodsdtMappingforGoodsModify by PaGmktGoodsController-putGoods */
+           SET PM.TRANS_TARGET_YN = '1'
+         WHERE PM.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PM.PA_CODE = #{paCode, jdbcType=VARCHAR}
+    </update>
+    <!-- 상품판매중지 대상 조회 -->
+    <select id="selectGmktGoodsPriceSaleModifyList" parameterType="hashMap" resultType="hashMap">
+    	
+    	SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGmktGoodsPriceSaleModifyList by PaGmktGoodsController-putGoodsPriceSaleYn */
+		     TOTAL.*
+		  FROM (
+		        SELECT DISTINCT 
+		               GG.ESM_GOODS_CODE,
+		               PG.GOODS_CODE,
+		               PG.GOODS_NAME,
+		               GG.TRANS_TARGET_YN,
+		               GG.PA_SALE_GB,
+		               GG.TRANS_SALE_YN,
+		               GG.PA_CODE,
+		               CEIL(FUN_GET_ORDER_ABLE_QTY(TG.GOODS_CODE, '%', TG.WH_CODE) * FUN_TCODE_GROUP('O505',GG.PA_CODE)) AS TRANS_ORDER_ABLE_QTY,
+		               PP.SALE_PRICE,
+		               GG.MODIFY_DATE
+		          FROM TPAPRODUCT PG, TPAGMKTGOODS GG, TPAGOODSPRICE PP, TGOODS TG
+		         WHERE PG.GOODS_CODE = GG.GOODS_CODE
+		           AND GG.GOODS_CODE = PP.GOODS_CODE
+		           AND PP.GOODS_CODE = TG.GOODS_CODE
+		           AND PP.PA_CODE = GG.PA_CODE
+		           AND GG.TRANS_SALE_YN = '1'
+		           AND GG.PA_STATUS IN ('30','90')
+		           AND GG.PA_SALE_GB = '30'
+		           AND GG.ESM_GOODS_CODE IS NOT NULL
+		           AND PP.ROWID = (SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE)*/
+		                                  GP.ROWID
+		                             FROM TPAGOODSPRICE GP
+		                            WHERE GP.GOODS_CODE = GG.GOODS_CODE
+		                              AND GP.APPLY_DATE &lt; SYSDATE
+		                              AND GP.PA_CODE = GG.PA_CODE
+		                              AND ROWNUM = 1)		       
+		           <if test='goodsCode != null and goodsCode != ""'>
+		           AND GG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+		           </if>
+		           <if test='paCode != null and paCode != ""'>
+		           AND GG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+		           </if>
+		         ORDER BY GG.MODIFY_DATE
+	          ) TOTAL 
+        WHERE ROWNUM &lt;= #{targetCnt,jdbcType=NUMERIC}
+    </select>
+    <!-- 판매상태,재고 변경건 update -->
+    <!-- 판매상태,재고 변경 API가 판매중지API용도로 변경됨에 따라 TRANS_DISCOUNT_YN을 procedure로 관리하도록 변경,trans_discount 관련 로직제거 -->
+    <update id="updateGmktGoodsSaleYn" parameterType="com.cware.netshopping.domain.model.PaGmktGoods" >
+        UPDATE TPAGMKTGOODS GG /* pagmktgoods.xml : pagmkt.pagmktgoods.updateGmktGoodsSaleYn by PaGmktGoodsController-putGoodsPriceSaleYn */
+           SET GG.TRANS_SALE_YN 	= '0'
+			 , GG.SALE_STOP_DATE 	= SYSDATE
+             , GG.MODIFY_ID 		='PAG'
+             , GG.MODIFY_DATE 		= SYSDATE
+             , GG.PA_SALE_GB 		= '30'
+         WHERE GG.ESM_GOODS_CODE 	= #{esmGoodsCode, jdbcType=VARCHAR}
+           AND GG.PA_CODE 			= #{paCode		, jdbcType=VARCHAR}
+           <if test='paGroupCode != null and paGroupCode != ""'>
+           AND GG.PA_GROUP_CODE 	= #{paGroupCode	, jdbcType=VARCHAR}
+           </if>
+    </update>
+    <!-- 가격 변경건 update -->
+    <update id="updateGmktGoodsPrice" parameterType="com.cware.netshopping.domain.model.PaGmktGoods" >
+        UPDATE TPAGOODSPRICE PP /* pagmktgoods.xml : pagmkt.pagmktgoods.updateGmktGoodsPrice by PaGmktGoodsController-putGoodsPriceSaleYn */
+           SET PP.TRANS_ID = 'PAG',
+               PP.TRANS_DATE = SYSDATE
+         WHERE PP.GOODS_CODE =
+               (SELECT DISTINCT GOODS_CODE
+                  FROM TPAGMKTGOODS GG
+                 WHERE GG.ESM_GOODS_CODE = #{esmGoodsCode, jdbcType=VARCHAR})
+           AND PP.PA_CODE = #{paCode, jdbcType=VARCHAR}
+    </update>
+    <!-- 상품명 변경건 조회 -->
+    <select id="selectGmktGoodsNameModifyList" parameterType="hashMap" resultType="hashMap">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGmktGoodsNameModifyList by PaGmktGoodsController-putGoodsName */
+               PG.GOODS_CODE,
+               PG.GOODS_NAME,
+               GG.PA_CODE,
+               GG.ITEM_NO,
+               GG.ESM_GOODS_CODE
+          FROM TPAPRODUCT PG, TPAGMKTGOODS GG
+         WHERE PG.GOODS_CODE = GG.GOODS_CODE
+           AND GG.TRANS_TARGET_NAME_YN = '1'
+           AND GG.PA_SALE_GB = '20'
+           AND GG.PA_STATUS = '30'
+           <if test='goodsCode != null and goodsCode != ""'>
+           AND GG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           <if test='paCode != null and paCode != ""'>
+           AND GG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           </if>
+    </select>
+    <!-- 상품명 변경 update -->
+    <update id="updateGmktGoodsNameYn" parameterType="com.cware.netshopping.domain.model.PaGmktGoods" >
+        UPDATE TPAGMKTGOODS GG /* pagmktgoods.xml : pagmkt.pagmktgoods.updateGmktGoodsNameYn by PaGmktGoodsController-putGoodsName */
+           SET GG.TRANS_TARGET_NAME_YN = '0',
+               GG.MODIFY_ID ='PAG',
+               GG.MODIFY_DATE = SYSDATE
+         WHERE GG.ESM_GOODS_CODE = #{esmGoodsCode, jdbcType=VARCHAR}
+           AND GG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+    </update>
+    <select id="selectEsmGoodsNo" parameterType="hashMap" resultType="String">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectEsmGoodsNo by PaGmktGoodsController */
+               GG.ESM_GOODS_CODE
+          FROM TPAGMKTGOODS GG
+         WHERE GG.ESM_GOODS_CODE IS NOT NULL
+           <if test='goodsCode != null and goodsCode != ""'>
+           AND GG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           <if test='paCode != null and paCode != ""'>
+           AND GG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           </if>
+    </select>
+    <!-- 상품가격 조회 -->
+    <select id="selectGmktGoodsPrice" parameterType="hashMap" resultType="hashMap">
+		   SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGmktGoodsPrice by PaGmktGoodsController-putSellerDiscount */
+		          PGP.DC_AMT 
+		     FROM TPAGOODSPRICE PGP, TPAGMKTGOODS PGG
+		    WHERE PGP.GOODS_CODE = PGG.GOODS_CODE
+			  AND PGP.PA_CODE IN ('21', '22')
+			  AND PGG.PA_STATUS = '30'
+			  AND PGP.ROWID = (SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE)*/
+			                          GP.ROWID
+			                     FROM TPAGOODSPRICE GP
+			                    WHERE GP.APPLY_DATE &lt; SYSDATE
+			                      AND GP.GOODS_CODE = PGP.GOODS_CODE
+			                      AND GP.PA_CODE = PGP.PA_CODE
+			                      AND ROWNUM = 1)
+           <if test='goodsCode != null and goodsCode != ""'>
+           AND PGP.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           <if test='paCode != null and paCode != ""'>
+           AND PGP.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           </if>
+    </select>
+    <!-- 옵션등록/수정 전체리스트 -->
+    <select id="selectGoodsOptionList" parameterType="hashMap" resultType="hashMap">
+       SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGoodsOptionList by PaGmktGoodsController */
+        	TOTAL.* 
+          FROM ( SELECT 
+	                PM.GOODS_CODE, PM.PA_CODE, MIN(PM.MODIFY_DATE)  
+		          FROM TPAGOODSDTMAPPING PM
+			         WHERE PM.PA_CODE = #{paCode, jdbcType=VARCHAR}
+			         <if test='isModify != null and isModify != ""'>
+			           AND PM.PA_OPTION_CODE IS NOT NULL
+			         </if>
+			         <if test='isModify == null or isModify == ""'>
+			           AND PM.PA_OPTION_CODE IS NULL
+			         </if>
+			           AND PM.TRANS_TARGET_YN = '1'
+			           AND EXISTS (SELECT 1
+			                  FROM TPAGMKTGOODS GG
+			                 WHERE GG.PA_STATUS = '30'
+			                   AND GG.PA_SALE_GB = '20'
+			                   AND GG.GOODS_CODE = PM.GOODS_CODE
+			                   AND GG.ESM_GOODS_CODE IS NOT NULL
+			                   )
+			      	GROUP BY PM.GOODS_CODE, PM.PA_CODE    
+			      ORDER BY MIN(PM.MODIFY_DATE)  
+		       ) TOTAL
+		  <if test='targetCnt != null and targetCnt != ""'>
+		  	WHERE ROWNUM &lt;= #{targetCnt,jdbcType=NUMERIC}
+		  </if>   
+    </select>
+    <!-- 옵션등록/수정 단일리스트 -->
+    <select id="selectGoodsOption" parameterType="hashMap" resultType="hashMap">
+        SELECT DISTINCT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGoodsOption by PaGmktGoodsController */
+               PM.GOODS_CODE,
+               PM.GOODSDT_CODE,
+               PD.GOODSDT_INFO_KIND,
+               PD.GOODSDT_INFO,
+               NVL(DECODE(TG.SALE_GB, '00', CEIL(FUN_GET_ORDER_ABLE_QTY(PD.GOODS_CODE, PD.GOODSDT_CODE, TG.WH_CODE) * TC.CODE_GROUP), 0), 0) AS TRANS_ORDER_ABLE_QTY,
+               <!--  CEIL(FUN_GET_ORDER_ABLE_QTY(TG.GOODS_CODE, '%', TG.WH_CODE) * FUN_TCODE_GROUP('O505', PM.PA_CODE)) AS TRANS_ORDER_ABLE_QTY,-->
+               GG.ESM_GOODS_CODE,
+               PD.SALE_GB,
+               (SELECT 
+	              MAX(NVL(PM.COMBINATION_YN, 0))
+	             FROM TPAGOODSDTMAPPING PM2
+	            WHERE PM2.GOODS_CODE = PM.GOODS_CODE
+	              AND PM2.PA_CODE = PM.PA_CODE ) AS COMBINATION_YN    
+          FROM TPAGOODSDTMAPPING PM, TPAPRODUCTOPTION PD, TGOODS TG, TPAGMKTGOODS GG, TCODE TC, TGOODSDT GD
+         WHERE PM.GOODS_CODE = PD.GOODS_CODE
+           AND PM.GOODSDT_CODE = PD.GOODSDT_CODE
+           AND PD.GOODS_CODE = TG.GOODS_CODE
+           AND TG.GOODS_CODE = GG.GOODS_CODE
+           AND GD.GOODS_CODE = PD.GOODS_CODE
+           AND GD.GOODSDT_CODE = PD.GOODSDT_CODE
+           AND PM.PA_CODE = GG.PA_CODE
+           AND TC.CODE_LGROUP   = 'O505'
+           AND TC.CODE_MGROUP   = GG.PA_CODE
+           AND GG.ESM_GOODS_CODE IS NOT NULL
+           AND PM.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PM.PA_CODE = #{paCode, jdbcType=VARCHAR}
+        ORDER BY PM.GOODSDT_CODE
+    </select>
+    
+    <select id="selectGoodsOptionBO" parameterType="hashMap" resultType="hashMap">
+        SELECT DISTINCT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGoodsOption by PaGmktGoodsController */
+               PM.GOODS_CODE,
+               PM.GOODSDT_CODE,
+               PD.GOODSDT_INFO_KIND,
+               PD.GOODSDT_INFO,
+               NVL(DECODE(TG.SALE_GB, '00', CEIL(FUN_GET_ORDER_ABLE_QTY(PD.GOODS_CODE, PD.GOODSDT_CODE, TG.WH_CODE) * TC.CODE_GROUP), 0), 0) AS TRANS_ORDER_ABLE_QTY,
+               GG.ESM_GOODS_CODE,
+               PD.SALE_GB,
+               (SELECT 
+	              MAX(NVL(PM.COMBINATION_YN, 0))
+	             FROM TPAGOODSDTMAPPING PM2
+	            WHERE PM2.GOODS_CODE = PM.GOODS_CODE
+	              AND PM2.PA_CODE = PM.PA_CODE ) AS COMBINATION_YN    
+          FROM TPAGOODSDTMAPPING PM, TPAPRODUCTOPTION PD, TGOODS TG, TPAGMKTGOODS GG, TCODE TC, TGOODSDT GD
+         WHERE PM.GOODS_CODE = PD.GOODS_CODE
+           AND PM.GOODSDT_CODE = PD.GOODSDT_CODE
+           AND PD.GOODS_CODE = TG.GOODS_CODE
+           AND TG.GOODS_CODE = GG.GOODS_CODE
+           AND GD.GOODS_CODE = PD.GOODS_CODE
+           AND GD.GOODSDT_CODE = PD.GOODSDT_CODE
+           AND PM.PA_CODE = GG.PA_CODE
+           AND TC.CODE_LGROUP   = 'O505'
+           AND TC.CODE_MGROUP   = GG.PA_CODE
+           AND GG.ESM_GOODS_CODE IS NOT NULL
+           AND PM.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PM.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PM.TRANS_TARGET_YN = '1'
+        ORDER BY PM.GOODSDT_CODE
+    </select>
+    <!-- 옵션등록/수정 update -->
+    <update id="updateGoodsOption" parameterType="com.cware.netshopping.domain.model.PaGoodsdtMapping" >
+        UPDATE TPAGOODSDTMAPPING PM /* pagmktgoods.xml : pagmkt.pagmktgoods.updateGoodsOption by PaGmktGoodsController-putGoodsName */
+           SET PM.MODIFY_ID            = 'PAG',
+               PM.MODIFY_DATE          = SYSDATE,
+               PM.TRANS_TARGET_YN      = '0',
+               PM.TRANS_ORDER_ABLE_QTY = #{transOrderAbleQty, jdbcType=VARCHAR},
+               PM.PA_OPTION_CODE       = PM.GOODS_CODE || PM.GOODSDT_CODE
+         WHERE PM.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PM.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PM.GOODSDT_CODE = #{goodsdtCode, jdbcType=VARCHAR}
+           AND PM.TRANS_TARGET_YN = '1'
+    </update>
+    
+    <!-- 이미지 수정대상  조회 -->
+    <select id="selectGmktGoodsImageModify" parameterType="hashMap" resultType="hashMap">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGmktGoodsImageModify by PaGmktGoodsController-putGoodsImage */
+               PGI.GOODS_CODE,
+               PGI.IMAGE_P, 
+               PGI.IMAGE_AP, 
+               PGI.IMAGE_BP, 
+               PGI.IMAGE_CP, 
+               PGI.IMAGE_DP,
+               PGI.IMAGE_URL
+          FROM TPAGOODSIMAGE PGI
+         WHERE PGI.PA_GROUP_CODE = '02'
+           <if test='goodsCode != null and goodsCode != ""'>
+           AND PGI.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           AND PGI.TRANS_TARGET_YN = '1'
+    </select>
+    
+    <update id="updatePaGmktGoodsImage" parameterType="com.cware.netshopping.domain.model.PaGmktGoods">
+        UPDATE TPAGOODSIMAGE PGI /* pagmktgoods.xml : pagmkt.pagmktgoods.updatePaGmktGoodsImage by PaGmktGoodsController-putGoodsImage */
+           SET PGI.TRANS_TARGET_YN = '0',
+               PGI.MODIFY_ID = 'PAG',
+               PGI.MODIFY_DATE = SYSDATE
+         WHERE PGI.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PGI.PA_GROUP_CODE = '02'
+    </update>
+    
+    <update id="updatePaGmktGoodsStatus" parameterType="com.cware.netshopping.domain.model.PaGmktDelGoodsHis">
+        UPDATE TPAGMKTGOODS GG /* pagmktgoods.xml : pagmkt.pagmktgoods.updatePaGmktGoodsStatus by PaGmktGoodsController-deleteGoods */
+           SET GG.ITEM_NO = NULL,
+               GG.ESM_GOODS_CODE = NULL,
+               GG.PA_STATUS = '50',
+               GG.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP},
+               GG.MODIFY_ID = 'PAG'
+         WHERE GG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND GG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+    </update>
+    
+    <!-- 상품 삭제대상 조회 -->
+    <select id="selectGmktGoodsDeleteList" parameterType="hashMap" resultType="hashMap">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGmktGoodsDeleteList by PaGmktGoodsController-deleteGoods */
+               GG.GOODS_CODE,
+               GG.PA_CODE,
+               GG.ESM_GOODS_CODE,
+               GG.ITEM_NO
+          FROM TPAGMKTGOODS GG
+         WHERE GG.PA_SALE_GB = '30'
+           AND GG.PA_STATUS = '40'
+           <if test='goodsCode != null and goodsCode != ""'>
+           AND GG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           <if test='paCode != null and paCode != ""'>
+           AND GG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           </if>
+    </select>
+    
+    <!-- 상품 삭제이력 저장 -->
+    <insert id="insertPaGmktGoodsHistory" parameterType="com.cware.netshopping.domain.model.PaGmktDelGoodsHis">
+    INSERT INTO TPAGMKTDELGOODSHIS /* pagmktgoods.xml : pagmkt.pagmktgoods.insertPaGmktGoodsHistory by PaGmktGoodsController-deleteGoods */
+           ( 
+             GOODS_CODE,
+             SEQ,
+             PA_CODE,
+             ESM_GOODS_CODE,
+             ITEM_NO,
+             DELETE_DATE
+           ) 
+            VALUES 
+          ( 
+            #{goodsCode, jdbcType=VARCHAR},
+            #{seq, jdbcType=VARCHAR},
+            #{paCode, jdbcType=VARCHAR},
+            #{esmGoodsCode, jdbcType=VARCHAR},
+            #{itemNo, jdbcType=VARCHAR},
+            #{insertDate, jdbcType=TIMESTAMP}
+          )
+    </insert>
+    
+    <!-- 상품 판매자 부담 할인대상 조회 -->
+    <select id="selectGmktGoodsPriceList" parameterType="hashMap" resultType="hashMap">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGmktGoodsPriceList by PaGmktGoodsController-putSellerDiscount */
+               PGP.GOODS_CODE,
+               PGP.PA_CODE,
+               PGP.DC_AMT
+          FROM TPAGOODSPRICE PGP, TPAGMKTGOODS PGG
+         WHERE PGP.GOODS_CODE = PGG.GOODS_CODE
+           AND PGG.TRANS_DISCOUNT_YN = '1'
+           AND PGP.PA_CODE IN ('21', '22')
+           AND PGG.PA_STATUS = '30'
+           AND PGG.TRANS_COMPLETE_DATE &lt; SYSDATE - INTERVAL '1' MINUTE
+           AND PGP.ROWID = ( SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE)*/  
+                                     GP.ROWID
+                                FROM TPAGOODSPRICE GP
+                               WHERE GP.APPLY_DATE &lt; SYSDATE
+                                 AND GP.GOODS_CODE = PGP.GOODS_CODE
+                                 AND GP.PA_CODE = PGP.PA_CODE
+                                 AND ROWNUM =1  
+                             )
+    </select>
+    
+    <!-- 상품 판매자 부담 할인 DISCOUNT_YN 업데이트 -->
+    <update id="updatePaGmktTransDiscount" parameterType="hashMap">
+        UPDATE TPAGMKTGOODS GG /* pagmktgoods.xml : pagmkt.pagmktgoods.upadtePaGmktTransDiscount by PaGmktGoodsController-putSellerDiscount */
+           SET GG.TRANS_DISCOUNT_YN = '0'
+         WHERE GG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND GG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+    </update>
+    
+    <!-- G마켓 상품가격/재고/판매상태 현재상태 조회 -->
+    <select id="selectGmktGoodsPriceSaleRealTimeList" parameterType="hashMap" resultType="hashMap" >
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGmktGoodsPriceSaleRealTimeList by PaGmktGoodsController-getGoodsPriceSaleYnList */
+               GG.PA_CODE,
+               GG.GOODS_CODE,
+               GG.PA_SALE_GB,
+               GG.ESM_GOODS_CODE
+          FROM TPAGMKTGOODS GG
+         WHERE GG.PA_STATUS = '30'
+         <if test='goodsCode != null and goodsCode != ""'>
+           AND GG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+         </if>
+         <if test='paCode != null and paCode != ""'>
+           AND GG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+         </if>
+    </select>
+    
+    <update id="updatePaGoodsExtraTarget" parameterType="com.cware.netshopping.domain.model.PaGmktGoods">
+        UPDATE TPAGOODSTARGET PGT /* pagmktgoods.xml : pagmkt.pagmktgoods.updatePaGoodsExtraTarget by PaGmktV2GoodsController-goodsInsert */
+           SET PGT.PA_GOODS_CODE = #{itemNoExtra, jdbcType=VARCHAR},
+               PGT.PA_SALE_GB = '20',
+               PGT.MODIFY_ID = #{modifyId, jdbcType=VARCHAR},
+               PGT.MODIFY_DATE = SYSDATE
+         WHERE PGT.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PGT.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PGT.PA_GOODS_CODE IS NULL
+           AND PGT.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+    </update>
+    <update id="updatePaGoodsTarget" parameterType="com.cware.netshopping.domain.model.PaGmktGoods">
+        UPDATE TPAGOODSTARGET PGT /* pagmktgoods.xml : pagmkt.pagmktgoods.updatePaGoodsTarget by PaGmktV2GoodsController-goodsInsert */
+           SET PGT.PA_GOODS_CODE = #{itemNo, jdbcType=VARCHAR},
+               PGT.PA_SALE_GB = '20',
+               PGT.MODIFY_ID = #{modifyId, jdbcType=VARCHAR},
+               PGT.MODIFY_DATE = SYSDATE
+         WHERE PGT.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PGT.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PGT.PA_GOODS_CODE IS NULL
+           AND PGT.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+    </update>
+    <update id="updatePaGmktGoodsPaStatus" parameterType="com.cware.netshopping.domain.model.PaGmktGoods">
+        UPDATE TPAGMKTGOODS GG /* pagmktgoods.xml : pagmkt.pagmktgoods.updatePaGmktGoodsPaStatus by PaGmktV2GoodsController-goodsModify */
+		   SET GG.PA_STATUS = '30'
+		 WHERE GG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+		   AND GG.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectPaSaleNoGoodsSaleGb" parameterType="com.cware.netshopping.domain.model.PaSaleNoGoods" resultType="int">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectPaSaleNoGoodsSaleGb by PaGmktV2GoodsController-savePaGmktGoodsInsertSuccessFail */
+               COUNT(1)
+          FROM TPASALENOGOODS A
+         WHERE A.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND A.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND A.PA_SALE_GB = #{paSaleGb, jdbcType=VARCHAR}
+           AND A.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+           AND A.SEQ_NO = (SELECT MAX(B.SEQ_NO)
+                             FROM TPASALENOGOODS B
+                            WHERE B.GOODS_CODE = A.GOODS_CODE
+                              AND B.PA_CODE = A.PA_CODE
+                              AND B.PA_GROUP_CODE = A.PA_GROUP_CODE)
+    </select>
+    
+    <insert id="insertPaSaleNoGoods" parameterType="com.cware.netshopping.domain.model.PaSaleNoGoods">
+        INSERT INTO TPASALENOGOODS /* pagmktgoods.xml : pagmkt.pagmktgoods.insertPaSaleNoGoods by PaGmktV2GoodsController-savePaGmktGoodsInsertSuccessFail */
+          (PA_GROUP_CODE,
+           PA_CODE,
+           GOODS_CODE,
+           SEQ_NO,
+           PA_GOODS_CODE,
+           PA_SALE_GB,
+           INSERT_ID,
+           INSERT_DATE,
+           NOTE)
+        VALUES
+          (#{paGroupCode,jdbcType=VARCHAR},
+           #{paCode,jdbcType=VARCHAR},
+           #{goodsCode,jdbcType=VARCHAR},
+           #{seqNo,jdbcType=VARCHAR},
+           (SELECT ITEM_NO FROM TPAGMKTGOODS WHERE GOODS_CODE = #{goodsCode,jdbcType=VARCHAR} AND PA_GROUP_CODE = #{paGroupCode,jdbcType=VARCHAR}),
+           #{paSaleGb,jdbcType=VARCHAR},
+           #{insertId,jdbcType=VARCHAR},
+           SYSDATE,
+           #{note,jdbcType=VARCHAR})
+    </insert>
+    
+    <!-- 지마켓 발송정책 조회 STEP1 -->
+    <select id="selectGoodsForGmktPolicy" parameterType="hashMap" resultType="hashMap">
+        SELECT DISTINCT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGoodsForGmktPolicy by PaGmktV2GoodsController-goods-insert */
+               PG.GOODS_CODE,
+               GG.PA_CODE, 
+               PG.ENTP_CODE, 
+               PG.LMSD_CODE,
+               TG.INSTALL_YN
+          FROM TPAPRODUCT PG, TPAGMKTGOODS GG, TGOODS TG
+         WHERE PG.GOODS_CODE = GG.GOODS_CODE
+           AND GG.GOODS_CODE = TG.GOODS_CODE
+           AND TG.GOODS_CODE = #{goodsCode,jdbcType=VARCHAR}
+    </select>
+    <!-- 지마켓 발송정책 조회 STEP2 -->
+    <select id="selectPolicyForGmktPolicy" parameterType="com.cware.netshopping.domain.model.PaGmktPolicy" resultType="hashMap">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectPolicyForGmktPolicy by PaGmktV2GoodsController-goods-insert */
+               GPC.PA_CODE,
+               GPC.POLICY_NO,
+               GPC.POLICY_TYPE,
+               GPC.DURATION,
+               GPC.IS_DEFAULT
+          FROM TPAGMKTPOLICY GPC
+         WHERE GPC.POLICY_TYPE = #{policyType,jdbcType=VARCHAR}
+           AND GPC.DURATION = #{duration,jdbcType=VARCHAR}
+           AND GPC.PA_CODE = #{paCode,jdbcType=VARCHAR}
+           AND GPC.PA_GROUP_CODE = #{paGroupCode,jdbcType=VARCHAR}
+    </select>
+    <!-- 지마켓 발송정책 조회 STEP3 -->
+    <select id="selectExceptEntpForGmktPolicy" parameterType="hashMap" resultType="hashMap">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectExceptEntpForGmktPolicy by PaGmktV2GoodsController-goods-insert */
+               PPE.DURATION, PPE.POLICY_TYPE
+          FROM TPADELIVERYPOLICYEXCEPT PPE
+         WHERE PPE.TARGET_GB   = '00'
+           AND PPE.TARGET_CODE = #{entpCode, jdbcType = VARCHAR}
+           AND PPE.PA_GROUP_CODE = #{paGroupCode,jdbcType=VARCHAR}
+           AND PPE.USE_YN      = '1'
+    </select>
+    <!-- 지마켓 발송정책 조회 STEP4 -->
+    <select id="selectExceptCategoryForGmktPolicy" parameterType="String" resultType="hashMap">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectExceptCategoryForGmktPolicy by PaGmktV2GoodsController-goods-insert */
+               PPE.DURATION, PPE.POLICY_TYPE
+          FROM TPADELIVERYPOLICYEXCEPT PPE
+         WHERE PPE.TARGET_GB   = '10'
+           AND PPE.TARGET_CODE = SUBSTR(#{lmsdCode,jdbcType=VARCHAR}, 0, 4)
+           AND PPE.PA_GROUP_CODE = '02'
+           AND PPE.USE_YN      = '1'
+    </select>
+    <!-- 지마켓 배송비 조회 -->
+    <select id="selectCheckDeliveryFee" parameterType="hashMap" resultType="int">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectCheckDeliveryFee by PaGmktV2GoodsController-goods-modify */
+		       COUNT(1)
+		  FROM TPAGMKTSHIPCOSTDT PGS
+		 WHERE PGS.ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+		   AND PGS.ENTP_MAN_SEQ = #{entpManSeq, jdbcType=VARCHAR}
+		   AND PGS.SHIP_COST_CODE = #{shipCostCode, jdbcType=VARCHAR}
+		   AND (PGS.SHIP_COST_CODE LIKE 'CN%' OR PGS.SHIP_COST_CODE LIKE 'ID%')
+		   AND PGS.ORD_COST_AMT = '0'
+    </select>
+    
+    <!-- 지마켓&옥션 SellerId 추출쿼리 -->
+    <select id="selectGmktSellerId" parameterType="hashMap" resultType="String">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGmktSellerId by PaGmktV2GoodsController */
+      DISTINCT CASE
+		         WHEN COUNT(1) OVER() = 2 THEN
+		          'PAE'
+		         ELSE
+		          CASE
+		            WHEN GG2.PA_GROUP_CODE = '02' THEN
+		             'PAG'
+		            ELSE
+		             'PAA'
+		          END
+		       END
+		  FROM TPAGMKTGOODS GG2
+		 WHERE GG2.GOODS_CODE = #{goodsCode,jdbcType=VARCHAR}
+		   <if test='paSaleGb != null and paSaleGb != ""'>
+		   AND GG2.PA_SALE_GB = #{paSaleGb,jdbcType=VARCHAR} 
+		   </if>
+		   AND GG2.PA_STATUS IN ('30','90')
+    </select>
+    
+    <!-- 이베이 그룹코드 조회 -->
+    <select id="selectPaGmktGroupCode" parameterType="hashMap" resultType="hashMap" >
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectPaGmktGroupCode by PaGmktV2GoodsController */
+               GG.PA_GROUP_CODE,
+               GG.PA_STATUS
+          FROM TPAGMKTGOODS GG
+         WHERE GG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND GG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+    </select>
+    
+      <!-- Esm 판매기한 변경 대상 상품 조회 상품 (ESM으로 받아온 판매종료기한 - 오늘날짜 = 7일 이내)  -->
+    <select id="selectSalesDayModifyTarget" resultType="hashMap">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectSalesDayModifyTarget by PaGmktV2GoodsController */
+	           /*+ INDEX_DESC (PGG PK_TPAGMKTGOODS)*/  
+	           PGG.GOODS_CODE,
+	           PGG.ESM_GOODS_CODE,
+	           PGG.PA_CODE,
+	           PGG.PA_GROUP_CODE
+	      FROM TPAGMKTGOODS PGG 
+	     WHERE PGG.ESM_GOODS_CODE IS NOT NULL
+	       AND PGG.SELLING_PERIOD IS NOT NULL
+	       AND PGG.PA_SALE_GB = '20'
+	       AND PGG.PA_STATUS = '30'
+	       AND PGG.TRANS_TARGET_YN = '0'
+	       AND TRUNC(PGG.SELLING_PERIOD) - TRUNC(SYSDATE) > 0
+	           AND TRUNC(PGG.SELLING_PERIOD) - TRUNC(SYSDATE) &lt; 8   
+	           AND PGG.ROWID = ( SELECT PGG2.ROWID
+	                                FROM TPAGMKTGOODS PGG2
+	                               WHERE PGG2.GOODS_CODE = PGG.GOODS_CODE
+	                                 AND PGG2.PA_CODE = PGG.PA_CODE
+	                                 AND PGG2.PA_GROUP_CODE = PGG.PA_GROUP_CODE
+	                                 AND PGG2.PA_SALE_GB = '20'
+	                                 AND PGG2.PA_STATUS = '30'
+	                                 AND ROWNUM =1  
+	                            )
+                         
+    </select>
+    
+    <!-- 판매 종료일자가 7일 이내인 상품에 한하여 상품 수정 이 돌아 판매 기한 추가 연장 가능하도록  TARGET = 1 update -->
+    <update id="updateGmktGoodsforSalesDayModify" parameterType="hashMap" >
+        UPDATE TPAGMKTGOODS PGG /* pagmktgoods.xml : pagmkt.pagmktgoods.updateGmktGoodsforSalesDayModify by PaGmktV2GoodsController */
+           SET 
+           <if test='targetFlag == "1"'>
+               PGG.TRANS_TARGET_YN = '1',
+           </if> 
+               PGG.SELLING_PERIOD = TO_DATE(#{esmSaleDay, jdbcType=VARCHAR}, 'YYYYMMDD')
+         WHERE PGG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PGG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           <!-- AND PGG.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR} -->
+    </update>
+    
+    <!-- API코드로 TCODE에서 해당 API 타킷 건수 가져오기-->
+    <select id="selectCodeContentForTargetCnt" parameterType="String" resultType="String">
+        SELECT /* system.xml : common.system.selectCodeRemarkChkForRequestMap by GMKT */
+               C.CONTENT
+		  FROM TCODE C
+		 WHERE C.CODE_LGROUP = 'B710'
+		   AND C.CODE_MGROUP = #{apiCode, jdbcType=VARCHAR}
+    </select>
+    
+    <!--이베이 상품명 제한 문자 조회, PA_GROUP_CODE 02이나 현재는 G/A 모두 대상 -->
+    <select id="selectGoodsLimitCharList" parameterType="hashMap" resultType="hashMap" >
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGoodsLimitCharList by PaGmktV2GoodsController */
+		       GLC.SEQ,
+		       GLC.PA_GROUP_CODE,
+		       CASE WHEN GLC.ADD_CHAR = '1'
+		            THEN '\' || GLC.LIMIT_CHAR
+		            WHEN GLC.ADD_CHAR = '2'
+		            THEN '[' || GLC.LIMIT_CHAR || ']'
+		            ELSE GLC.LIMIT_CHAR
+		       END AS LIMIT_CHAR, 
+		       GLC.REPLACE_CHAR
+		  FROM TPAGOODSLIMITCHAR GLC
+		 WHERE GLC.PA_GROUP_CODE = '02'
+		   AND GLC.USE_YN = '1'
+		ORDER BY GLC.SEQ
+    </select>
+    
+    <!--G마켓 팔자주문 처리(수수료율 변경)리스트 조회 -->
+    <select id="selectGmktGoodsSellingOrderList" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGmktGoodsSellingOrderList by PaGmktGoodsController-putGoodsSellingOrderList */
+		    TOTAL.* 
+		  FROM (  SELECT 
+			          PSO.GOODS_CODE,
+			          PSO.PA_CODE
+			        FROM TPAGOODSSELLINGORDER PSO
+			       WHERE PSO.TRANS_TARGET_YN = '1'
+			      ORDER BY PSO.INSERT_DATE
+		      ) TOTAL
+		  <if test='targetCnt != null and targetCnt != ""'>
+		  	WHERE ROWNUM &lt;= #{targetCnt,jdbcType=NUMERIC}
+		  </if> 
+    </select>
+    <!--G마켓 팔자주문 처리(수수료율 변경)조회 -->
+    <select id="selectGmktGoodsSellingOrder" parameterType="hashMap" resultType="hashMap">
+	    SELECT DISTINCT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGmktGoodsSellingOrder by PaGmktGoodsController-putGoodsSellingOrder */
+	           GG.ESM_GOODS_CODE,
+	           PG.GOODS_CODE,
+	           PG.GOODS_NAME,
+	           GG.TRANS_TARGET_YN,
+	           GG.PA_SALE_GB,
+	           GG.TRANS_SALE_YN,
+	           GG.PA_CODE,
+	           CEIL(FUN_GET_ORDER_ABLE_QTY(TG.GOODS_CODE, '%', TG.WH_CODE) * FUN_TCODE_GROUP('O505',GG.PA_CODE)) AS TRANS_ORDER_ABLE_QTY,
+	           PP.SALE_PRICE,
+	           GG.MODIFY_DATE,
+	           (SELECT COUNT(*) 
+	                FROM TPAGMKTGOODS GG2 
+	              WHERE GG2.GOODS_CODE = GG.GOODS_CODE
+	                AND GG2.PA_GROUP_CODE = '03'
+	                AND GG2.PA_SALE_GB = '20'
+	                AND GG2.PA_STATUS = '30'
+	            ) AS IAC_CNT
+	        FROM TGOODS TG
+	           , TPAPRODUCT PG
+	           , TPAGMKTGOODS GG
+	           , TPAGOODSPRICE PP
+	           , TPAGOODSSELLINGORDER SO
+	       WHERE TG.GOODS_CODE = PG.GOODS_CODE
+	         AND PG.GOODS_CODE = GG.GOODS_CODE
+	         AND GG.GOODS_CODE = PP.GOODS_CODE
+	         AND PP.GOODS_CODE = SO.GOODS_CODE
+	         AND GG.PA_CODE = PP.PA_CODE
+	         AND GG.PA_GROUP_CODE = '02' 
+	         AND GG.PA_SALE_GB = '20'
+	         AND GG.PA_STATUS = '30'
+	         AND SO.TRANS_TARGET_YN = '1'
+	         AND TG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+	         AND GG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+	         AND PP.ROWID = (SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE)*/
+	                              GP.ROWID
+	                           FROM TPAGOODSPRICE GP
+	                          WHERE GP.GOODS_CODE = GG.GOODS_CODE
+	                            AND GP.APPLY_DATE &lt; SYSDATE
+	                            AND GP.PA_CODE = GG.PA_CODE
+	                            AND ROWNUM = 1) 
+		    
+    </select>
+    <!-- G마켓 팔자주문 처리 통신 후 TARGET OFF -->
+    <update id="updateGmktGoodsSellingOrder" parameterType="com.cware.netshopping.domain.model.PaGmktGoods" >
+        UPDATE TPAGOODSSELLINGORDER SO /* pagmktgoods.xml : pagmkt.pagmktgoods.updateGmktGoodsSellingOrder by PaGmktGoodsController-putGoodsSellingOrder */
+           SET SO.TRANS_TARGET_YN = '0',
+               SO.RETURN_NOTE = 'SUCCESS',
+               SO.MODIFY_ID ='PAG',
+               SO.MODIFY_DATE = SYSDATE,
+               SO.TRANS_COMPLETE_DATE = SYSDATE
+         WHERE SO.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND SO.PA_CODE = #{paCode, jdbcType=VARCHAR}
+    </update>
+    <!-- G마켓 팔자주문 처리 통신 후 TARGET OFF -->
+    <update id="updateGmktGoodsSellingOrderFail" parameterType="com.cware.netshopping.domain.model.PaGmktGoods" >
+        UPDATE TPAGOODSSELLINGORDER SO /* pagmktgoods.xml : pagmkt.pagmktgoods.updateGmktGoodsSellingOrderFail by PaGmktGoodsController-putGoodsSellingOrder */
+           SET SO.TRANS_TARGET_YN = '0',
+               SO.RETURN_NOTE = #{returnNote, jdbcType=VARCHAR},
+               SO.MODIFY_ID ='PAG',
+               SO.MODIFY_DATE = SYSDATE
+         WHERE SO.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND SO.PA_CODE = #{paCode, jdbcType=VARCHAR}
+    </update>
+    <insert id="insertPaGoodsAuthYnLog" parameterType="com.cware.netshopping.domain.model.PaGoodsAuthYnLog">
+        INSERT INTO TPAGOODSAUTHYNLOG /* pagmktgoods.xml : pagmkt.pagmktgoods.goods.insertPaGoodsAuthYnLog by PaGmktV2GoodsController */
+		  (PA_GROUP_CODE,
+		   PA_CODE,
+		   GOODS_CODE,
+		   SEQ_NO,
+		   AUTO_YN,
+		   INSERT_ID,
+		   INSERT_DATE,
+		   NOTE)
+		VALUES
+		  (#{paGroupCode,jdbcType=VARCHAR},
+		   #{paCode,jdbcType=VARCHAR},
+		   #{goodsCode,jdbcType=VARCHAR},
+		   #{seqNo,jdbcType=VARCHAR},
+		   #{autoYn,jdbcType=VARCHAR},
+		   #{insertId,jdbcType=VARCHAR},
+		   SYSDATE,
+		   #{note,jdbcType=VARCHAR}
+		   )
+    </insert>
+    <update id="updatePaGoodsTargetForAuthYn" parameterType="com.cware.netshopping.domain.model.PaGmktGoods">
+        UPDATE TPAGOODSTARGET PGT /* pagmktgoods.xml : pagmkt.pagmktgoods.updatePaGoodsTargetForAuthYn by PaGmktV2GoodsController */
+           SET PGT.AUTO_YN = #{autoYn, jdbcType=VARCHAR},
+               PGT.MODIFY_ID = #{modifyId, jdbcType=VARCHAR},
+               PGT.MODIFY_DATE = SYSDATE
+         WHERE PGT.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PGT.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PGT.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectGoodsOptionListForResister" parameterType="hashMap" resultType="hashMap">
+       SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGoodsOptionListForResister by PaGmktGoodsController */
+        	TOTAL.* 
+          FROM ( SELECT /*+ FULL(PM) */
+                  PM.GOODS_CODE, PM.PA_CODE, MIN(PM.MODIFY_DATE)  
+	              FROM TPAGOODSDTMAPPING PM
+	               WHERE PM.PA_CODE LIKE '2%'
+	                 AND PM.TRANS_TARGET_YN = '1'
+	                 AND EXISTS (SELECT 1
+	                        FROM TPAGMKTGOODS GG
+	                       WHERE GG.PA_STATUS = '30'
+	                         AND GG.PA_SALE_GB = '20'
+	                         AND GG.GOODS_CODE = PM.GOODS_CODE
+	                         AND GG.ESM_GOODS_CODE IS NOT NULL
+	                         AND ROUND((SYSDATE - GG.MODIFY_DATE)*24*60) > 3
+	                     )
+	              GROUP BY PM.GOODS_CODE, PM.PA_CODE    
+	            ORDER BY MIN(PM.MODIFY_DATE)  
+		       ) TOTAL
+		  <if test='targetCnt != null and targetCnt != ""'>
+		  	WHERE ROWNUM &lt;= #{targetCnt,jdbcType=NUMERIC}
+		  </if>
+    </select>
+    
+    <!-- 상품명 변경건 조회 -->
+    <select id="selectG9DisplayTransList" parameterType="hashMap" resultType="hashMap">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectG9DisplayTransList by PaGmktGoodsController-postG9Display */
+               PG.GOODS_CODE
+             , PG.GOODS_NAME
+             , GG.PA_CODE
+             , GG.ITEM_NO
+             , GG.ESM_GOODS_CODE
+             , DECODE(GG.G9_DISPLAY_YN,'1','true','false') AS G9_DISPLAY_YN
+          FROM TPAPRODUCT PG, TPAGMKTGOODS GG
+         WHERE PG.GOODS_CODE = GG.GOODS_CODE
+           AND GG.TRANS_G9_YN = '1'
+           AND GG.PA_SALE_GB = '20'
+           AND GG.PA_STATUS = '30'
+           AND GG.PA_GROUP_CODE = '02'
+           <!-- 에몬스상품 G9연동 제외처리 -->
+           AND PG.GOODS_CODE NOT IN ('20092656','20089734','22034762')
+           <if test='goodsCode != null and goodsCode != ""'>
+           AND GG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           <if test='paCode != null and paCode != ""'>
+           AND GG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           </if>
+    </select>
+    
+    <update id="updateGmktG9DisplayYn" parameterType="hashMap" >
+        UPDATE TPAGMKTGOODS GG /* pagmktgoods.xml : pagmkt.pagmktgoods.updateGmktG9DisplayYn by PaGmktGoodsController-postG9Display */
+           SET GG.TRANS_G9_YN    = '0',
+           <if test='g9DisplayYn != null and g9DisplayYn != ""'>
+           	   GG.G9_DISPLAY_YN  = #{g9DisplayYn, jdbcType=VARCHAR},
+           </if>
+               GG.MODIFY_ID      ='PAG',
+               GG.MODIFY_DATE    = SYSDATE
+         WHERE GG.ESM_GOODS_CODE = #{esmGoodsCode, jdbcType=VARCHAR}
+           AND GG.PA_CODE        = #{paCode, jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updatePaGmktGoodsdtMappingTrans" parameterType="com.cware.netshopping.domain.model.PaGmktGoods">
+        UPDATE /* pagmktgoods.xml : pagmkt.pagmktgoods.updatePaGmktGoodsdtMappingTrans by PaGmktGoodsController-selectPostGoods */
+               TPAGOODSDTMAPPING GM
+           SET GM.TRANS_TARGET_YN = '1',
+               GM.MODIFY_DATE = SYSDATE,
+               GM.MODIFY_ID = 'PAG'
+         WHERE GM.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND GM.PA_CODE = #{paCode, jdbcType=VARCHAR}
+    </update>
+    
+    <insert id="insertNewPaPromoTarget"  parameterType="com.cware.netshopping.domain.PaGmktGoodsVO">
+		INSERT INTO /* pagmktgoods.xml: pagmkt.pagmktgoods.insertPaPromoTarget by PaGmktGoodsController */
+			   TPAPROMOTARGET PPMT
+                             (PPMT.PROMO_NO
+                            , PPMT.PA_CODE
+                            , PPMT.GOODS_CODE
+                            , PPMT.SEQ
+                            , PPMT.DO_TYPE
+                            , PPMT.COUPON_YN
+                            , PPMT.IMMEDIATELY_YN
+                            , PPMT.PROMO_BDATE
+                            , PPMT.PROMO_EDATE
+                            , PPMT.AMT_RATE_FLAG
+                            , PPMT.DO_RATE
+                            , PPMT.DO_AMT
+                            , PPMT.STANDARD_APP_AMT
+                            , PPMT.LIMIT_AMT
+                            , PPMT.USE_CODE
+                            , PPMT.OWN_COST
+                            , PPMT.ENTP_COST
+                            , PPMT.INSERT_ID
+                            , PPMT.MODIFY_ID
+                            , PPMT.PROC_GB
+                            , PPMT.PA_GROUP_CODE
+                            , PPMT.TRANS_DATE
+                            , PPMT.INSERT_DATE
+                            , PPMT.MODIFY_DATE
+                            , PPMT.DO_COST
+                            , PPMT.DO_OWN_COST
+                            , PPMT.DO_ENTP_COST         
+                            , PPMT.EXCEPT_REASON                   
+                            )
+                         SELECT PM.PROMO_NO
+                              , PM.PA_CODE
+                              , PM.GOODS_CODE
+                              , LPAD((SELECT MAX(PM1.SEQ) + 1 
+                              	   FROM TPAPROMOTARGET PM1 
+                              	  WHERE PM1.GOODS_CODE 		= #{goodsCode	, jdbcType=VARCHAR}
+                              	  	AND PM1.PA_CODE 		= #{paCode		, jdbcType=VARCHAR}
+                              	  	AND PM1.PROMO_NO 		= #{promoNo		, jdbcType=VARCHAR}
+                              	  	AND PM1.PA_GROUP_CODE   LIKE '%' || #{paGroupCode	, jdbcType=VARCHAR} || '%'
+                              	  	), 4 ,'0') 
+                              , PM.DO_TYPE
+                              , PM.COUPON_YN
+                              , PM.IMMEDIATELY_YN
+                              , PM.PROMO_BDATE
+                              , PM.PROMO_EDATE
+                              , PM.AMT_RATE_FLAG
+                              , PM.DO_RATE
+                              , DECODE(#{doCost, jdbcType=NUMERIC}, 0 , 0 , PM.DO_AMT)
+                              , PM.STANDARD_APP_AMT
+                              , PM.LIMIT_AMT
+                              , PM.USE_CODE
+                              , DECODE(#{doCost, jdbcType=NUMERIC}, 0 , 0 , PM.OWN_COST)
+                              , DECODE(#{doCost, jdbcType=NUMERIC}, 0 , 0 , PM.ENTP_COST)
+                              , PM.INSERT_ID
+                              , 'BATCH'
+                              , DECODE(PM.PROC_GB, 'I', 'U', PM.PROC_GB)
+                              , PM.PA_GROUP_CODE 
+                              , SYSDATE
+                              , SYSDATE
+                              , SYSDATE
+                              , DECODE(#{doCost, jdbcType=NUMERIC}, 0 , 0 , PM.DO_COST)
+                              , DECODE(#{doCost, jdbcType=NUMERIC}, 0 , 0 , PM.DO_OWN_COST)
+                              , DECODE(#{doCost, jdbcType=NUMERIC}, 0 , 0 , PM.DO_ENTP_COST)
+                              , DECODE(#{doCost, jdbcType=NUMERIC}, 0 , '마진률 초과  , 연동 예외 시간 : ' || TO_CHAR(SYSDATE , 'YYYY/MM/DD HH24:MI:SS') , '')                                
+                           FROM TPAPROMOTARGET PM
+                          WHERE PM.GOODS_CODE 	= #{goodsCode	, jdbcType=VARCHAR}
+						    AND PM.PA_CODE 		= #{paCode		, jdbcType=VARCHAR}
+							AND PM.PROMO_NO 	= #{promoNo		, jdbcType=VARCHAR}
+					        AND PM.SEQ 			= #{seq			, jdbcType=VARCHAR}
+					        AND PM.PA_GROUP_CODE   LIKE '%' || #{paGroupCode	, jdbcType=VARCHAR} || '%'
+     </insert>
+     
+     <update id="updateTPapromoTarget4ExceptMemo"  parameterType="hashMap">
+		UPDATE /* pagmktgoods.xml : pagmkt.pagmktgoods.updateTPapromoTarget4ExceptMemo by PaGmktGoodsController */
+			   TPAPROMOTARGET T
+		   SET T.EXCEPT_REASON = #{EXCEPT_REASON	, jdbcType=VARCHAR}
+		 WHERE T.PROMO_NO      = #{PROMO_NO			, jdbcType=VARCHAR} 
+		   AND T.PA_CODE       = #{PA_CODE			, jdbcType=VARCHAR} 
+		   AND T.SEQ		   = #{SEQ				, jdbcType=VARCHAR} 
+		   AND T.GOODS_CODE	   = #{GOODS_CODE		, jdbcType=VARCHAR} 
+		   AND T.TRANS_DATE IS NULL
+    </update>
+    
+    <insert id="insertNewPaPromoTargetAmt0"  parameterType="com.cware.netshopping.domain.PaGmktGoodsVO">
+		INSERT INTO /* pagmktgoods.xml: pagmkt.pagmktgoods.insertNewPaPromoTargetAmt0 by PaGmktGoodsController */
+			   TPAPROMOTARGET PPMT
+                             (PPMT.PROMO_NO
+                            , PPMT.PA_CODE
+                            , PPMT.GOODS_CODE
+                            , PPMT.SEQ
+                            , PPMT.DO_TYPE
+                            , PPMT.COUPON_YN
+                            , PPMT.IMMEDIATELY_YN
+                            , PPMT.PROMO_BDATE
+                            , PPMT.PROMO_EDATE
+                            , PPMT.AMT_RATE_FLAG
+                            , PPMT.DO_RATE
+                            , PPMT.DO_AMT
+                            , PPMT.STANDARD_APP_AMT
+                            , PPMT.LIMIT_AMT
+                            , PPMT.USE_CODE
+                            , PPMT.OWN_COST
+                            , PPMT.ENTP_COST
+                            , PPMT.INSERT_ID
+                            , PPMT.MODIFY_ID
+                            , PPMT.PROC_GB
+                            , PPMT.PA_GROUP_CODE
+                            , PPMT.TRANS_DATE
+                            , PPMT.INSERT_DATE
+                            , PPMT.MODIFY_DATE
+                            , PPMT.DO_COST
+                            , PPMT.DO_OWN_COST
+                            , PPMT.DO_ENTP_COST                            
+                            )
+                         SELECT PM.PROMO_NO
+                              , PM.PA_CODE
+                              , PM.GOODS_CODE
+                              , LPAD((SELECT MAX(PM1.SEQ) + 1 
+                              	   FROM TPAPROMOTARGET PM1 
+                              	  WHERE PM1.GOODS_CODE 		= #{goodsCode	, jdbcType=VARCHAR}
+                              	  	AND PM1.PA_CODE 		= #{paCode		, jdbcType=VARCHAR}
+                              	  	AND PM1.PROMO_NO 		= #{promoNo		, jdbcType=VARCHAR}
+                              	  	AND PM1.PA_GROUP_CODE   LIKE '%' || #{paGroupCode	, jdbcType=VARCHAR} || '%'
+                              	  	), 4 ,'0') 
+                              , PM.DO_TYPE
+                              , PM.COUPON_YN
+                              , PM.IMMEDIATELY_YN
+                              , PM.PROMO_BDATE
+                              , PM.PROMO_EDATE
+                              , PM.AMT_RATE_FLAG
+                              , 0
+                              , 0
+                              , 0
+                              , 0
+                              , PM.USE_CODE
+                              , 0
+                              , 0
+                              , PM.INSERT_ID
+                              , 'BATCH'
+                              , DECODE(PM.PROC_GB, 'I', 'U', PM.PROC_GB)
+                              , PM.PA_GROUP_CODE 
+                              , SYSDATE
+                              , SYSDATE
+                              , SYSDATE
+                              , 0
+                              , 0
+                              , 0                                    
+                           FROM TPAPROMOTARGET PM
+                          WHERE PM.GOODS_CODE 	= #{goodsCode	, jdbcType=VARCHAR}
+						    AND PM.PA_CODE 		= #{paCode		, jdbcType=VARCHAR}
+							AND PM.PROMO_NO 	= #{promoNo		, jdbcType=VARCHAR}
+					        AND PM.SEQ 			= #{seq			, jdbcType=VARCHAR}
+					        AND PM.PA_GROUP_CODE   LIKE '%' || #{paGroupCode	, jdbcType=VARCHAR} || '%'
+     </insert>
+    
+     <select id="selectPaGmktGoodsModifyCheck" resultType="int" parameterType="com.cware.netshopping.domain.PaGmktGoodsVO">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGmktGoodsModifyCheck by PaGmktV2GoodsController-goodsModify */ 
+               COUNT(1)
+          FROM TPAGMKTGOODS T
+         WHERE T.ESM_GOODS_CODE = #{esmGoodsCode, jdbcType=VARCHAR}
+           AND T.MODIFY_DATE > #{lastModifyDate, jdbcType=TIMESTAMP}
+           AND T.PA_CODE = #{paCode, jdbcType=VARCHAR}
+    </select>   
+    
+    <select id="selectOptionErrorChk" resultType="int" parameterType="hashMap">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectOptionErrorChk by PaGmktV2GoodsController */ 
+               COUNT(1)
+  		  FROM TCODE T
+ 	 	 WHERE T.CODE_LGROUP = 'O570'
+ 	 	   AND T.USE_YN = '1'
+   		   AND INSTR(#{message, jdbcType=VARCHAR}, T.CODE_MGROUP) > 0   
+    </select>
+     
+    <update id="updateReturnNote"  parameterType="hashMap">
+		UPDATE /* pagmktgoods.xml : pagmkt.pagmktgoods.updateReturnNote by PaGmktGoodsController */
+			   TPAGMKTGOODS T
+		   SET T.RETURN_NOTE = #{message	, jdbcType=VARCHAR}
+		     , T.MODIFY_DATE = SYSDATE
+		 WHERE T.GOODS_CODE  = #{goodsCode	, jdbcType=VARCHAR} 
+		   AND T.PA_CODE     = #{paCode		, jdbcType=VARCHAR} 
+    </update> 
+     
+    <select id="selectMassGoodsModify" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* pagmktgoods.xml: pagmkt.pagmktgoods.selectMassGoodsModify */
+    	       DISTINCT GG.GOODS_CODE
+			 , GG.PA_CODE
+			 , PG.ENTP_CODE
+			 , PG.SHIP_MAN_SEQ
+			 , PG.SHIP_COST_CODE
+			 , PG.RETURN_MAN_SEQ
+             , G.WH_CODE
+             , (SELECT MIN(X2.MODIFY_DATE) 
+             	  FROM TPAGMKTGOODS X2 
+             	 WHERE GG.GOODS_CODE = X2.GOODS_CODE) AS MODIFY_DATE
+	      FROM TPAGMKTGOODS GG
+		     , TPAPRODUCT PG
+			 , TGOODS G
+	      WHERE GG.GOODS_CODE  		= PG.GOODS_CODE
+		    AND PG.GOODS_CODE  		= G.GOODS_CODE
+			<!-- AND GG.TRANS_TARGET_YN 	= '1'
+			AND GG.MASS_TARGET_YN 	= '2' -->
+			AND GG.MASS_TARGET_EP   = #{massTargetEp 	, jdbcType=VARCHAR}
+	   ORDER BY PA_CODE, MODIFY_DATE, ENTP_CODE, SHIP_MAN_SEQ, SHIP_COST_CODE, RETURN_MAN_SEQ 
+	</select> 
+	
+    <update id="updateMassTargetYn" parameterType="hashMap">
+		UPDATE /* pagmktgoods.xml : pagmkt.pagmktgoods.updateMassTargetYn  */
+			   TPAGMKTGOODS
+		   SET MASS_TARGET_YN 	= #{MASS_TARGET_YN 	, jdbcType=VARCHAR}
+		     , MASS_TARGET_CODE = NULL
+	 	 WHERE PA_CODE    		= #{PA_CODE			, jdbcType=VARCHAR}
+	 	   AND GOODS_CODE 		= #{GOODS_CODE		, jdbcType=VARCHAR}
+    </update> 
+    
+    <select id="selectEmsCodeItemNo" resultType="hashMap" parameterType="com.cware.netshopping.domain.PaGmktGoodsVO">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectEmsCodeItemNo by PaGmktV2GoodsController-goodsModify */
+                (SELECT G.ESM_GOODS_CODE FROM TPAGMKTGOODS G WHERE G.GOODS_CODE = #{goodsCode , jdbcType=VARCHAR} AND ROWNUM = 1 				) AS ESM_GOODS_CODE
+              , (SELECT G.ITEM_NO 		 FROM TPAGMKTGOODS G WHERE G.GOODS_CODE = #{goodsCode , jdbcType=VARCHAR} AND G.PA_GROUP_CODE = '02'	) AS GMKT_ITEM_NO
+              , (SELECT G.ITEM_NO 		 FROM TPAGMKTGOODS G WHERE G.GOODS_CODE = #{goodsCode , jdbcType=VARCHAR} AND G.PA_GROUP_CODE = '03'	) AS AUCTION_ITEM_NO
+          FROM DUAL
+    </select>  
+    
+    <update id="updateEsmGoodsCode4Retention" parameterType="com.cware.netshopping.domain.model.PaGmktGoods" >
+        UPDATE TPAGMKTGOODS GG /* pagmktgoods.xml : pagmkt.pagmktgoods.updateEsmGoodsCode4Retention */
+          SET GG.ESM_GOODS_CODE = #{esmGoodsCode, jdbcType=VARCHAR}
+        WHERE GG.GOODS_CODE 	=  #{goodsCode, jdbcType=VARCHAR}
+          AND GG.ESM_GOODS_CODE IS NULL
+    </update>
+    
+     <update id="updateSiteGoodsNoTarget4Retention" parameterType="com.cware.netshopping.domain.model.PaGmktGoods" >
+        UPDATE TPAGMKTGOODS GG /* pagmktgoods.xml : pagmkt.pagmktgoods.updateSiteGoodsNoTarget4Retention */
+          SET GG.ITEM_NO 		= #{itemNo			, jdbcType=VARCHAR}
+        WHERE GG.GOODS_CODE 	= #{goodsCode		, jdbcType=VARCHAR}
+          AND GG.PA_CODE 		= #{paCode			, jdbcType=VARCHAR}
+          AND GG.PA_GROUP_CODE  = #{paGroupCode		, jdbcType=VARCHAR}
+    </update>
+
+    <update id="updatePaGoodsTarget4Retention" parameterType="com.cware.netshopping.domain.model.PaGmktGoods">
+        UPDATE TPAGOODSTARGET PGT /* pagmktgoods.xml : pagmkt.pagmktgoods.updatePaGoodsTarget4Retention */
+           SET PGT.PA_GOODS_CODE 	= #{itemNo		, jdbcType=VARCHAR}
+             , PGT.MODIFY_ID 		= #{modifyId	, jdbcType=VARCHAR}
+             , PGT.MODIFY_DATE 		= SYSDATE
+         WHERE PGT.PA_CODE 			= #{paCode		, jdbcType=VARCHAR}
+           AND PGT.GOODS_CODE 		= #{goodsCode	, jdbcType=VARCHAR}
+           AND PGT.PA_GROUP_CODE 	= #{paGroupCode	, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectGmktEmsGoodsCode" parameterType="hashMap" resultType="String">
+        SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGmktEmsGoodsCode  */
+               GG.ESM_GOODS_CODE
+		  FROM TPAGMKTGOODS GG
+		 WHERE GG.GOODS_CODE = #{goodsCode	,	jdbcType=VARCHAR}
+		   AND GG.PA_CODE    = #{paCode		,	jdbcType=VARCHAR}
+		  <!--  AND GG.PA_SALE_GB = '20'
+		   AND GG.PA_STATUS IN ('30','90') -->
+		   AND ROWNUM = 1
+    </select>
+    
+    <select id="selectliveGmktGoodsCount" parameterType="hashMap" resultType="int">
+		SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selectliveGmktGoodsCount */
+			   COUNT(1) 
+	  	  FROM TPAGMKTGOODS GT
+	 	 WHERE GT.TRANS_COMPLETE_DATE IS NOT NULL
+	   	   AND (GT.SALE_STOP_DATE IS NULL OR GT.SALE_STOP_DATE > SYSDATE - 30)
+	   	   AND GT.GOODS_CODE       = #{goodsCode	,	jdbcType=VARCHAR}
+	   	   AND GT.PA_CODE          = #{paCode		,	jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectGmktGoodsRetentionExtendList" parameterType="hashMap" resultType="hashMap">
+		SELECT DISTINCT  /* pagmktgoods.xml : pagmkt.pagmktgoods.selectGmktGoodsRetentionExtendList */
+		       GG.ESM_GOODS_CODE
+		     , PG.GOODS_CODE
+		     , PG.GOODS_NAME
+		     , GG.TRANS_TARGET_YN
+		     , GG.PA_SALE_GB
+		     , GG.TRANS_SALE_YN
+		     , GG.PA_CODE
+		     , CEIL(FUN_GET_ORDER_ABLE_QTY(TG.GOODS_CODE, '%', TG.WH_CODE) * FUN_TCODE_GROUP('O505',GG.PA_CODE)) AS TRANS_ORDER_ABLE_QTY
+		     , PP.SALE_PRICE
+		     , GG.MODIFY_DATE
+		  FROM TPAPRODUCT PG
+		     , TPAGMKTGOODS GG
+		     , TPAGOODSPRICE PP
+		     , TGOODS TG
+		 WHERE PG.GOODS_CODE 	 = GG.GOODS_CODE
+		   AND GG.GOODS_CODE 	 = PP.GOODS_CODE
+		   AND PP.GOODS_CODE 	 = TG.GOODS_CODE
+		   AND PP.PA_CODE	 	 = GG.PA_CODE
+		   AND GG.ESM_GOODS_CODE IS NOT NULL
+		   AND GG.TRANS_SALE_YN  = '0'
+		   AND GG.PA_STATUS IN ('30','90')
+		   AND GG.PA_SALE_GB 	 = '30'
+		   AND GG.SALE_STOP_DATE BETWEEN SYSDATE - 28 AND SYSDATE - 27
+		   AND PP.ROWID 		 = (SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE)*/
+				                           GP.ROWID
+				                      FROM TPAGOODSPRICE GP
+				                     WHERE GP.GOODS_CODE = GG.GOODS_CODE
+				                       AND GP.APPLY_DATE &lt; SYSDATE
+				                       AND GP.PA_CODE = GG.PA_CODE
+				                       AND ROWNUM = 1)		       
+		   <if test='goodsCode != null and goodsCode != ""'>
+		   AND GG.GOODS_CODE  	 = #{goodsCode, jdbcType=VARCHAR}
+		   </if>
+		   <if test='paCode != null and paCode != ""'>
+		   AND GG.PA_CODE 		 = #{paCode, jdbcType=VARCHAR}
+		   </if>	          
+    </select>
+    
+    <update id="updateGmktSaleStopDate" parameterType="hashMap">
+        UPDATE TPAGMKTGOODS GG /* pagmktgoods.xml : pagmkt.pagmktgoods.updateGmktSaleStopDate */
+          SET GG.SALE_STOP_DATE = SYSDATE
+            , GG.SELLING_PERIOD = NVL2(GG.SELLING_PERIOD , GG.SELLING_PERIOD+ 365, )
+        WHERE GG.GOODS_CODE 	= #{goodsCode		, jdbcType=VARCHAR}
+          AND GG.PA_CODE 		= #{paCode			, jdbcType=VARCHAR}
+          AND GG.SALE_STOP_DATE BETWEEN SYSDATE - 28 AND SYSDATE - 27
+    </update>
+    
+     <!-- 이베이 상품 유효기간 갱신 대상 조회 -->
+    <select id="selecGoodsExpiry" parameterType="hashMap" resultType="hashMap">
+    	  SELECT /* pagmktgoods.xml : pagmkt.pagmktgoods.selecGoodsExpiry by PaGmktGoodsController-putGoodsPriceSaleYn */
+	               GG.ESM_GOODS_CODE,
+	               PG.GOODS_CODE,
+	               PG.GOODS_NAME,
+	               GG.TRANS_TARGET_YN,
+	               GG.PA_SALE_GB,
+	               GG.TRANS_SALE_YN,
+	               GG.PA_CODE,
+	               CEIL(FUN_GET_ORDER_ABLE_QTY(TG.GOODS_CODE, '%', TG.WH_CODE) * FUN_TCODE_GROUP('O505',GG.PA_CODE)) AS TRANS_ORDER_ABLE_QTY,
+	               PP.SALE_PRICE,
+	               GG.MODIFY_DATE
+	          FROM TPAPRODUCT PG
+	          		 , TPAGMKTGOODS GG
+	          		 , TPAGOODSPRICE PP
+	          		 , TGOODS TG
+	         WHERE PG.GOODS_CODE = GG.GOODS_CODE
+	           AND GG.GOODS_CODE = PP.GOODS_CODE
+	           AND PP.GOODS_CODE = TG.GOODS_CODE
+	           AND PP.PA_CODE = GG.PA_CODE
+	           AND GG.PA_SALE_GB = '20'
+               AND GG.PA_STATUS = '30'
+	           AND GG.TRANS_TARGET_YN = '1'
+	           AND GG.ESM_GOODS_CODE IS NOT NULL
+	           AND PP.ROWID = (SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE)*/
+	                                  GP.ROWID
+	                             FROM TPAGOODSPRICE GP
+	                            WHERE GP.GOODS_CODE = GG.GOODS_CODE
+	                              AND GP.APPLY_DATE &lt; SYSDATE
+	                              AND GP.PA_CODE = GG.PA_CODE
+	                              AND ROWNUM = 1)		       
+	           AND GG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+	           AND GG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+	           AND ROWNUM = 1
+    </select>
+    
+    <!-- 이베이 상품 유효기간 갱신 유무 조회 -->
+    <select id="selecGoodsExpiryDateYn" parameterType="String" resultType="hashMap">
+   	     SELECT DECODE(COUNT(1), 0, 'N', 'Y') AS EXPIRY_DATE
+	         FROM (SELECT NVL(TG.SELLING_PERIOD, SYSDATE - 365) AS SELLING_PERIOD,
+	                      RANK() OVER(ORDER BY NVL(TG.SELLING_PERIOD, SYSDATE - 365)) RANK
+	                 FROM TPAGMKTGOODS TG
+	                WHERE TG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}) AA
+	        WHERE RANK = 1
+	          AND SELLING_PERIOD &lt; SYSDATE
+    </select>
+    
+    <!-- 이베이 상품 유효기간 업데이트-->
+    <update id="updateGoodsExpiryDate" parameterType="hashMap">
+         UPDATE TPAGMKTGOODS GG /* pagmktgoods.xml : pagmkt.pagmktgoods.updateGoodsExpiryDate by PaGmktGoodsController */
+       		   SET GG.SELLING_PERIOD = NVL(GG.SELLING_PERIOD, SYSDATE ) + 365
+          WHERE GG.GOODS_CODE 	= #{goodsCode		, jdbcType=VARCHAR}
+           	  AND GG.PA_CODE 			= #{paCode			, jdbcType=VARCHAR}
+    </update>
+    
+</mapper>

@@ -1,0 +1,566 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+        
+<mapper namespace="passg.goods">
+
+	<select id="selectPaSsgEntpSlip" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaEntpSlip">
+        SELECT /* passggoods.xml : passg.goods.selectPaSsgEntpSlip by PaSsgGoodsController-goodsInsert */
+               distinct TE.ENTP_CODE
+             , TE.ENTP_MAN_SEQ 
+             , TE.ENTP_MAN_GB AS PA_ADDR_GB
+             , PG.PA_CODE
+          FROM TPAPRODUCT TG
+             , TENTPUSER TE
+             , TPASSGGOODS PG
+             , TGOODS GD
+         WHERE DECODE(GD.DELY_TYPE,'10','100001',TG.ENTP_CODE) = TE.ENTP_CODE
+           AND PG.GOODS_CODE = TG.GOODS_CODE
+           AND PG.GOODS_CODE = GD.GOODS_CODE
+           AND ( DECODE(GD.DELY_TYPE, '10', '002', TG.RETURN_MAN_SEQ) = TE.ENTP_MAN_SEQ
+			 OR  DECODE(GD.DELY_TYPE, '10', '003', TG.SHIP_MAN_SEQ) = TE.ENTP_MAN_SEQ )
+           <if test='paCode != null and paCode != ""'>
+           AND PG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           </if>
+           <if test='goodsCode != null and goodsCode != ""'>
+           AND TG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           AND PG.PA_STATUS NOT IN ('20','90')
+           AND NOT EXISTS ( SELECT 'X'
+                              FROM TPAENTPSLIP PS
+                             WHERE PS.ENTP_CODE = TE.ENTP_CODE
+                               AND PS.ENTP_MAN_SEQ = TE.ENTP_MAN_SEQ
+                               AND PS.PA_CODE = PG.PA_CODE
+                          )
+    </select>
+    
+    <resultMap id="paSsgGoodsVOMap" type="com.cware.netshopping.domain.PaSsgGoodsVO">
+		<result property="describeExt" column="DESCRIBE_EXT" jdbcType="CLOB" javaType="string" />
+		<result property="noticeExt" column="NOTICE_EXT" jdbcType="CLOB" javaType="string" />
+	</resultMap>
+	
+    <select id="selectPaSsgGoodsInfo" parameterType="hashMap" resultMap="paSsgGoodsVOMap">
+    	WITH PASSGGOODS AS ( /* passggoods.xml : passg.passggoods.selectPaSsgGoodsInfo by PaSsgGoodsController-goodsInsert */
+			SELECT PG.PA_GROUP_CODE
+				 , PG.PA_CODE
+				 , PG.GOODS_CODE
+				 , PG.GOODS_NAME
+				 , PG.ITEM_ID
+				 , PG.BRAND_ID
+				 , PG.STD_CTG_ID
+				 , PG.MANUFCO_NM
+				 , PG.ORPLC_ID
+				 , TG.ORDER_MIN_QTY
+				 , DECODE(TG.ORDER_MAX_QTY, 0, 999, TG.ORDER_MAX_QTY) AS ORDER_MAX_QTY
+				 , DECODE(G.CUST_ORD_QTY_CHECK_YN, '1', G.TERM_ORDER_QTY, 999) AS TERM_ORDER_QTY
+				 , TG.ADULT_YN
+				 , PG.PA_SALE_GB
+				 , PG.PA_STATUS
+				 , PP.SALE_PRICE
+				 , PP.DC_AMT
+				 , PP.LUMP_SUM_DC_AMT
+				 , PP.LUMP_SUM_OWN_DC_AMT
+				 , PP.LUMP_SUM_ENTP_DC_AMT
+				 , PP.APPLY_DATE
+				 , G.INSTALL_YN
+				 , G.ORDER_MAKE_YN
+				 , TG.SHIP_MAN_SEQ
+				 , TG.RETURN_MAN_SEQ
+				 , TG.ENTP_CODE
+				 , G.DELY_TYPE
+				 , TG.SHIP_COST_CODE
+				 , TG.TAX_YN
+				 , GK.FOOD_YN AS NO_RETURN_YN
+				 , G.COLLECT_YN
+				 , NVL(PG.EVENT_YN, '0') AS EVENT_YN
+			  FROM TPAPRODUCT TG
+				 , TPASSGGOODS PG
+				 , TGOODS G
+				 , TPAGOODSPRICE PP
+				 , TPAGOODSKINDS GK
+			 WHERE TG.GOODS_CODE = PG.GOODS_CODE
+			   AND PG.GOODS_CODE = G.GOODS_CODE
+			   AND PG.PA_CODE = PP.PA_CODE
+			   AND PG.GOODS_CODE = PP.GOODS_CODE
+			   AND PP.ROWID = (SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE)*/
+									  GP.ROWID
+								 FROM TPAGOODSPRICE GP
+								WHERE GP.GOODS_CODE = PG.GOODS_CODE
+								  AND GP.APPLY_DATE &lt; SYSDATE
+								  AND GP.PA_CODE = PG.PA_CODE
+								  AND ROWNUM = 1)
+			   AND GK.PA_GROUP_CODE = '10'
+			   AND PG.STD_CTG_ID = GK.PA_LMSD_KEY
+			<if test='goodsCode != null and goodsCode != ""'>
+				AND TG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+			</if>
+			<if test='paCode != null and paCode != ""'>
+				AND PG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+			</if>
+			<if test='modCase == "INSERT"'>
+				AND PG.PA_STATUS IN ('10', '20')
+				AND TG.SALE_GB = '00'
+			</if>
+			<if test='modCase == "MODIFY"'>
+				AND (( PG.TRANS_TARGET_YN = '1' 
+				AND PG.PA_SALE_GB = '20'
+				AND PG.PA_STATUS = '30')
+				 OR (PG.TRANS_SALE_YN = '1'
+				AND PG.PA_SALE_GB = '30'
+				AND PG.PA_STATUS >= '30'))
+			<!-- 
+				AND PG.PROC_STAT_CD = '20'
+			-->
+			</if>
+		)
+			SELECT SG.PA_GROUP_CODE
+				 , SG.PA_CODE
+				 , SG.GOODS_CODE
+				 , SG.GOODS_NAME
+				 , SG.ITEM_ID
+				 , SG.BRAND_ID
+				 , SG.STD_CTG_ID
+				 , SG.MANUFCO_NM
+				 , SG.ORPLC_ID
+				 , SG.ORDER_MIN_QTY
+				 , SG.ORDER_MAX_QTY
+				 , SG.TERM_ORDER_QTY
+				 , SG.ADULT_YN
+				 , PI.IMAGE_URL
+				 , PI.IMAGE_P
+				 , PI.IMAGE_AP
+				 , PI.IMAGE_BP
+				 , PI.IMAGE_CP
+				 , PI.IMAGE_DP
+				 , (SELECT CODE_NAME
+					  FROM TCODE C1
+					 WHERE C1.CODE_LGROUP = 'O507'
+					   AND C1.CODE_MGROUP = SG.PA_CODE) AS TOP_IMAGE
+				 , (SELECT CODE_NAME
+					  FROM TCODE C1
+					 WHERE C1.CODE_LGROUP = 'O507'
+					   AND C1.CODE_MGROUP = DECODE(SG.PA_CODE, 'A1', 'A3', 'A4')) AS BOTTOM_IMAGE
+				 , SG.PA_SALE_GB
+				 , SG.PA_STATUS
+				 , SG.SALE_PRICE
+				 , SG.DC_AMT
+				 , SG.LUMP_SUM_DC_AMT
+				 , SG.LUMP_SUM_OWN_DC_AMT
+				 , SG.LUMP_SUM_ENTP_DC_AMT
+				 , SG.APPLY_DATE
+				 , NVL((SELECT 1 FROM TDELYNOAREA NA WHERE NA.GOODS_CODE = SG.GOODS_CODE AND NA.AREA_GB = '20'),'0') AS NO_ISLAND_YN
+				 , NVL((SELECT 1 FROM TDELYNOAREA NA WHERE NA.GOODS_CODE = SG.GOODS_CODE AND NA.AREA_GB = '30'),'0') AS NO_JEJU_YN
+				 , PS1.PA_SHIP_POLICY_NO AS WHOUT_COST
+       			 , PS2.PA_SHIP_POLICY_NO AS RET_COST
+                 , PS3.PA_SHIP_POLICY_NO AS IS_COST
+                 , PS4.PA_SHIP_POLICY_NO AS JEJU_COST
+                 , SG.COLLECT_YN
+                 , NVL(ES1.PA_BUNDLE_NO, ES1.PA_GMKT_SHIP_NO) AS WHOUT_ADDR
+				 , NVL(ES2.PA_BUNDLE_NO, ES2.PA_GMKT_SHIP_NO) AS SNB_ADDR
+				 , SG.INSTALL_YN
+				 , SG.ORDER_MAKE_YN
+				 , DECODE(SG.INSTALL_YN, '1', '03', DECODE(AI.ORDER_CREATE_YN, '1', '05', '01')) as SHPP_ITEM_DIV_CD
+				 , DECODE(OG.REMARK3,'국외','Y','N') AS IMPORTED_YN
+				 , DECODE(SG.PA_CODE, 'A1', TC.REMARK, TC.REMARK1) AS FEE_RATE
+				 , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS SSG_SALE_START_DATE
+				 , '29991231235959' AS SSG_SALE_END_DATE
+				 , SG.TAX_YN
+				 , SG.NO_RETURN_YN
+			     , NVL((SELECT REPLACE (DS.DESCRIBE_EXT, chr(10), '')
+			              FROM TDESCRIBE DS
+			             WHERE DS.DESCRIBE_CODE = '998'
+			               AND DS.GOODS_CODE = SG.GOODS_CODE)
+			          ,(SELECT DECODE(DS.WEB_FLAG, '1',  REPLACE(DS.DESCRIBE_EXT, chr(10), ''), DS.DESCRIBE_NOTE)
+			              FROM TDESCRIBE DS
+			             WHERE DS.DESCRIBE_CODE = '999'
+			               AND DS.GOODS_CODE = SG.GOODS_CODE)) AS DESCRIBE_EXT
+				 , (SELECT /*+ INDEX_DESC (TNM IDX_TPANOTICEM_03)*/
+	             			   TNM.NOTICE_EXT
+						  FROM TPANOTICEM TNM
+						     , TPANOTICETARGET TNT
+						     , TPANOTICEAPPLY TNA
+						 WHERE TNM.NOTICE_NO  = TNT.NOTICE_NO
+						   AND TNT.GOODS_CODE = SG.GOODS_CODE
+						   AND TNM.USE_CODE   = '00'
+						   AND INSTR(TNM.PA_GROUP_CODE, SG.PA_GROUP_CODE) > 0
+						   AND TNT.NOTICE_NO  = TNA.NOTICE_NO
+						   AND TNT.GOODS_CODE = TNA.GOODS_CODE
+						   AND TNA.PA_GROUP_CODE = SG.PA_GROUP_CODE
+						   AND ROWNUM = 1) AS NOTICE_EXT
+				 , NVL((SELECT NVL(TSB.DESCRIBE_NOTE, '')
+		                  FROM TDESCRIBE TSB
+		                 WHERE TSB.GOODS_CODE = SG.GOODS_CODE
+		                   AND TSB.DESCRIBE_CODE = '200'),'') AS GOODS_COM
+				 , DECODE(SG.COLLECT_YN,'0','',(SELECT CODE_NAME
+	                                              FROM TCODE C1
+	                                             WHERE C1.CODE_LGROUP = 'O507'
+	                                               AND C1.CODE_MGROUP = '99')) AS COLLECT_IMAGE
+	             , SG.EVENT_YN
+			  FROM PASSGGOODS SG
+				 , TGOODSADDINFO AI
+				 , TPAGOODSIMAGE PI
+				 , TPACUSTSHIPCOST SC
+				 , TPASSGSHIPCOST PS1
+				 , TPASSGSHIPCOST PS2
+				 , TPASSGSHIPCOST PS3
+				 , TPASSGSHIPCOST PS4
+				 , TPAENTPSLIP ES1
+				 , TPAENTPSLIP ES2
+				 , TPAORIGIN OG
+				 , TCODE TC
+			 WHERE SG.GOODS_CODE = AI.GOODS_CODE
+			   AND SG.PA_GROUP_CODE = PI.PA_GROUP_CODE
+			   AND SG.GOODS_CODE = PI.GOODS_CODE
+			   AND SG.PA_CODE      = SC.PA_CODE
+			   AND SC.ENTP_CODE = DECODE(SG.DELY_TYPE,'10','100001',SG.ENTP_CODE)
+			   AND SG.SHIP_COST_CODE = SC.SHIP_COST_CODE
+			   AND SC.PA_CODE = PS1.PA_CODE
+			   AND SC.PA_CODE = PS2.PA_CODE
+			   AND SC.PA_CODE = PS3.PA_CODE
+			   AND SC.PA_CODE = PS4.PA_CODE
+			   AND DECODE(SUBSTR(SC.SHIP_COST_CODE, 0, 2),'ID','40','10') = PS1.SHPPCST_APL_UNIT_CD 
+			   AND PS2.SHPPCST_APL_UNIT_CD = '10'
+	           AND DECODE(SUBSTR(SC.SHIP_COST_CODE, 0, 2),'ID','40','10') = PS3.SHPPCST_APL_UNIT_CD 
+	           AND DECODE(SUBSTR(SC.SHIP_COST_CODE, 0, 2),'ID','40','10') = PS4.SHPPCST_APL_UNIT_CD
+			   AND PS1.SHPPCST_PLCY_DIV_CD = '10'
+			   AND PS2.SHPPCST_PLCY_DIV_CD = '20'
+			   AND PS3.SHPPCST_PLCY_DIV_CD = '60'
+			   AND PS4.SHPPCST_PLCY_DIV_CD = '70'
+			   AND DECODE(SG.COLLECT_YN,'1',0, SC.SHIP_COST_BASE_AMT) = PS1.SHIP_COST_BASE_AMT
+			   AND SC.ORD_COST    = PS1.SHIP_COST
+      	   	   AND SC.RETURN_COST = PS2.SHIP_COST
+      		   AND DECODE(SIGN(SC.ISLAND_COST - SC.ORD_COST),1,SC.ISLAND_COST - SC.ORD_COST,0) = PS3.SHIP_COST
+        	   AND DECODE(SIGN(SC.JEJU_COST - SC.ORD_COST),1,SC.JEJU_COST - SC.ORD_COST,0)     = PS4.SHIP_COST
+               AND SG.COLLECT_YN = PS1.COLLECT_YN
+			   AND SG.COLLECT_YN = PS2.COLLECT_YN
+			   AND PS3.COLLECT_YN = '0'
+			   AND PS4.COLLECT_YN = '0'
+			   AND PS1.PA_SHIP_POLICY_NO IS NOT NULL
+			   AND PS2.PA_SHIP_POLICY_NO IS NOT NULL
+			   AND PS3.PA_SHIP_POLICY_NO IS NOT NULL
+			   AND PS4.PA_SHIP_POLICY_NO IS NOT NULL
+			   AND ES1.PA_CODE    = SG.PA_CODE
+			   AND ES1.ENTP_CODE  = DECODE(SG.DELY_TYPE, '10', '100001', SG.ENTP_CODE)
+			   AND ES1.ENTP_MAN_SEQ = DECODE(SG.DELY_TYPE, '10', '003', SG.SHIP_MAN_SEQ)
+			   AND ES1.PA_ADDR_SEQ  IS NOT NULL
+			   AND ES2.PA_CODE    = SG.PA_CODE
+			   AND ES2.ENTP_CODE  = DECODE(SG.DELY_TYPE, '10', '100001', SG.ENTP_CODE)
+			   AND ES2.ENTP_MAN_SEQ = DECODE(SG.DELY_TYPE, '10', '002', SG.RETURN_MAN_SEQ)
+			   AND ES2.PA_ADDR_SEQ  IS NOT NULL
+			   AND OG.PA_GROUP_CODE = '10'
+			   AND OG.PA_ORIGIN_CODE = SG.ORPLC_ID
+			   AND TC.CODE_LGROUP = 'O699'
+			   AND TC.CODE_GROUP  = SG.PA_GROUP_CODE
+			   AND TC.ROWID = ( SELECT /*+ INDEX_DESC (TD IDX_TCODE_02)*/
+									   TD.ROWID
+								  FROM TCODE TD
+								 WHERE TD.CODE_LGROUP = TC.CODE_LGROUP
+								   AND TO_DATE(TD.CODE_MGROUP, 'YYYYMMDD') &lt; SYSDATE
+								   AND ROWNUM =1
+							  )
+    </select>
+  
+	<update id="updatePaSsgGoods"  parameterType="com.cware.netshopping.domain.PaSsgGoodsVO">
+        UPDATE /* passggoods.xml : passg.passggoods.updatePaSsgGoods by PaSsgGoodsController */
+               TPASSGGOODS PG
+           SET PG.ITEM_ID    = #{itemId, 	  jdbcType=VARCHAR}
+             , PG.PA_STATUS = #{paStatus, jdbcType=VARCHAR}
+             <if test='transOrderAbleQty > 0'>
+             , PG.TRANS_ORDER_ABLE_QTY = #{transOrderAbleQty, jdbcType=NUMERIC}
+             </if>
+             , PG.PA_SALE_GB      = #{paSaleGb,   jdbcType=VARCHAR}
+             , PG.TRANS_TARGET_YN = '0'
+             , PG.TRANS_SALE_YN   = '0'
+             , PG.PROC_STAT_CD	  = #{procStatCd,   jdbcType=VARCHAR}
+             , PG.MODIFY_ID 	  = #{modifyId,   jdbcType=VARCHAR}
+             , PG.MODIFY_DATE 	  = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE PG.GOODS_CODE 	  = #{goodsCode,  jdbcType=VARCHAR}  
+           AND PG.PA_CODE 		  = #{paCode,     jdbcType=VARCHAR}  
+    </update>
+    
+    <update id="updatePaSsgGoodsdt"  parameterType="com.cware.netshopping.domain.model.PaSsgGoodsdtMapping">
+        UPDATE /* passggoods.xml : passg.passggoods.updatePaSsgGoodsdt by PaSsgGoodsController */
+               TPASSGGOODSDTMAPPING PD
+           SET PD.MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+             , PD.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+             <if test='paOptionCode != null and paOptionCode != ""'>
+             , PD.PA_OPTION_CODE = #{paOptionCode, jdbcType=VARCHAR}
+             </if>
+             <if test='transOrderAbleQty != null and transOrderAbleQty != ""'>
+             , PD.TRANS_ORDER_ABLE_QTY = #{transOrderAbleQty, jdbcType=NUMERIC}
+              </if>
+         WHERE PD.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PD.GOODSDT_CODE = #{goodsdtCode, jdbcType=VARCHAR}
+           AND PD.PA_CODE = #{paCode, jdbcType=VARCHAR} 
+           AND PD.GOODSDT_SEQ = #{goodsdtSeq, jdbcType=VARCHAR} 
+	</update>
+	
+	<update id="updatePaSsgGoodsImage"  parameterType="com.cware.netshopping.domain.PaSsgGoodsVO">
+        UPDATE /* passggoods.xml : passg.passggoods.updatePaSsgGoods by PaSsgGoodsController-goodsInsert */
+               TPAGOODSIMAGE PI
+           SET PI.TRANS_TARGET_YN = '0'
+             , PI.MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+             , PI.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE PI.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}  
+           AND PI.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updatePaSsgGoodsPrice"  parameterType="com.cware.netshopping.domain.PaSsgGoodsVO">
+        UPDATE /* passggoods.xml : passg.passggoods.updatePaSsgGoodsPrice by PaSsgGoodsController-goodsInsert */
+               TPAGOODSPRICE PP
+           SET PP.TRANS_ID = #{modifyId, jdbcType=VARCHAR}
+             , PP.TRANS_DATE = SYSDATE 
+             , PP.MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+             , PP.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE PP.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}  
+           AND PP.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PP.APPLY_DATE = #{applyDate, jdbcType=TIMESTAMP}
+           AND PP.TRANS_DATE IS NULL
+    </update>
+    
+    <update id="updatepaSsgPromoGoodsPrice"  parameterType="com.cware.netshopping.domain.PaSsgGoodsVO">
+        UPDATE /* passggoods.xml : passg.passggoods.updatepaSsgPromoGoodsPrice by PaSsgGoodsController-goodsInsert */
+               TPAPROMOGOODSPRICE PP
+           SET PP.TRANS_ID			= #{modifyId, jdbcType=VARCHAR}
+             , PP.TRANS_DATE		= SYSDATE 
+         WHERE PP.GOODS_CODE		= #{goodsCode, jdbcType=VARCHAR}  
+           AND PP.PA_CODE			= #{paCode, jdbcType=VARCHAR}
+           AND PP.APPLY_DATE		= #{applyDate, jdbcType=TIMESTAMP}
+           AND PP.PROMO_SEQ			= #{promoSeq, jdbcType=VARCHAR}
+           AND PP.ALCOUT_PROMO_YN	= '1'
+           AND PP.TRANS_DATE IS NULL
+    </update>
+    
+    <update id="updatePaGoodsTarget" parameterType="com.cware.netshopping.domain.PaSsgGoodsVO">
+        UPDATE TPAGOODSTARGET PGT /* passggoods.xml : passg.passggoods.updatePaGoodsTarget by PaSsgGoodsController-goodsInsert */
+           SET PGT.PA_GOODS_CODE = #{itemId, jdbcType=VARCHAR}
+             , PGT.PA_SALE_GB = #{paSaleGb, jdbcType=VARCHAR}
+             , PGT.MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+             , PGT.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE PGT.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PGT.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PGT.PA_GOODS_CODE IS NULL
+    </update>
+    
+    <update id="updatePaSsgGoodsOffer"  parameterType="com.cware.netshopping.domain.PaSsgGoodsVO">
+        UPDATE /* passggoods.xml : passg.passggoods.updatePaSsgGoodsOffer by PaSsgGoodsController */
+               TPAGOODSOFFER PO
+           SET PO.TRANS_TARGET_YN = '0'
+             , PO.MODIFY_ID 	  = #{modifyId,    jdbcType=VARCHAR}
+             , PO.MODIFY_DATE 	  = #{modifyDate,  jdbcType=TIMESTAMP}
+         WHERE PO.GOODS_CODE 	  = #{goodsCode,   jdbcType=VARCHAR}  
+           AND PO.PA_GROUP_CODE   = #{paGroupCode, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectPaSsgGoodsApprovalList" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaSsgGoodsVO">
+        SELECT /* passggoods.xml : passg.passggoods.selectPaSsgGoodsApprovalList by PaSsgGoodsController-goodsModify */
+        	   PG.PA_CODE
+			 , PG.GOODS_CODE
+			 , PG.ITEM_ID
+		  FROM TPASSGGOODS PG
+		 WHERE PG.PA_STATUS		= '30' 
+		   AND PG.PROC_STAT_CD	= '10'		   
+    </select>
+    
+    <update id="updatePaSsgGoodsApproval"  parameterType="com.cware.netshopping.domain.PaSsgGoodsVO">
+        UPDATE /* passggoods.xml : passg.passggoods.updatePaSsgGoodsApproval by PaSsgGoodsController */
+               TPASSGGOODS PG
+           SET PG.PROC_STAT_CD	  = #{procStatCd, jdbcType=VARCHAR}
+             , PG.MODIFY_ID 	  = #{modifyId,   jdbcType=VARCHAR}
+             , PG.MODIFY_DATE 	  = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE PG.GOODS_CODE 	  = #{goodsCode,  jdbcType=VARCHAR}  
+           AND PG.PA_CODE 		  = #{paCode,     jdbcType=VARCHAR}  
+    </update>
+    
+    <select id="selectPaGoodsdtStockList" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaSsgGoodsVO">
+        SELECT /* passggoods.xml : passg.passggoods.selectPaGoodsdtStockList by PaSsgGoodsController */
+               PG.GOODS_CODE
+			 , PG.PA_CODE
+			 , PG.ITEM_ID
+          FROM TPASSGGOODS PG
+			 , TGOODS GD
+			 , TCODE TC
+		 WHERE PG.GOODS_CODE = GD.GOODS_CODE
+		   AND PG.PA_SALE_GB    = '20'
+		   AND PG.PA_STATUS     = '30'
+		   AND TC.CODE_LGROUP   = 'O505'
+		   AND TC.CODE_MGROUP   = PG.PA_CODE
+		   AND EXISTS ( SELECT 1
+						  FROM TPAPRODUCTOPTION PD
+							 , TPASSGGOODSDTMAPPING PM
+						 WHERE PG.GOODS_CODE = PD.GOODS_CODE
+						   AND PG.PA_CODE = PM.PA_CODE
+						   AND PD.GOODS_CODE = PM.GOODS_CODE
+						   AND PD.GOODSDT_CODE = PM.GOODSDT_CODE
+						   AND PM.USE_YN = '1'
+						   AND PM.PA_OPTION_CODE IS NOT NULL
+						   AND PM.TRANS_ORDER_ABLE_QTY != DECODE(PD.SALE_GB, 00, CEIL(FUN_GET_ORDER_ABLE_QTY(PD.GOODS_CODE, PD.GOODSDT_CODE, GD.WH_CODE) * TC.CODE_GROUP), 0)
+					  )
+           <if test='goodsCode != null and goodsCode != ""'>
+           AND PG.GOODS_CODE    = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           <if test='paCode != null and paCode != ""'>
+           AND PG.PA_CODE       = #{paCode, jdbcType=VARCHAR}
+           </if>
+           <if test='goodsCode == null or goodsCode == ""'>
+   		   AND EXISTS ( SELECT 'X'
+		                  FROM TPAPRODUCT P
+		                 WHERE P.GOODS_CODE = PG.GOODS_CODE
+		                   AND P.SALE_GB = '00')
+   		   </if>
+    </select>
+    
+	<select id="selectPaGoodsdtStockMappingList" parameterType="com.cware.netshopping.domain.PaSsgGoodsVO" resultType="com.cware.netshopping.domain.model.PaSsgGoodsdtMapping">
+        SELECT /* passggoods.xml : passg.passggoods.selectPaGoodsdtStockMappingList by PaSsgGoodsController */ 
+               PM.GOODS_CODE
+			 , PM.GOODSDT_CODE
+			 , PM.GOODSDT_SEQ
+			 , PM.PA_CODE
+			 , PM.PA_OPTION_CODE
+			 , DECODE(PD.SALE_GB, 00, CEIL(FUN_GET_ORDER_ABLE_QTY(PD.GOODS_CODE, PD.GOODSDT_CODE, GD.WH_CODE) * TC.CODE_GROUP), 0) AS TRANS_ORDER_ABLE_QTY
+          FROM TPASSGGOODS PG
+			 , TGOODS GD
+			 , TPAPRODUCT P
+			 , TCODE TC
+			 , TPAPRODUCTOPTION PD
+			 , TPASSGGOODSDTMAPPING PM
+		 WHERE PG.GOODS_CODE			= GD.GOODS_CODE
+		   AND PG.GOODS_CODE			= P.GOODS_CODE
+		   AND TC.CODE_LGROUP			= 'O505'
+		   AND TC.CODE_MGROUP			= PG.PA_CODE
+		   AND PG.GOODS_CODE			= PD.GOODS_CODE
+		   AND PG.PA_CODE				= PM.PA_CODE
+		   AND PD.GOODS_CODE			= PM.GOODS_CODE
+		   AND PD.GOODSDT_CODE			= PM.GOODSDT_CODE
+		   AND PM.USE_YN				= '1'
+		   AND PM.PA_OPTION_CODE		IS NOT NULL
+		   AND PM.TRANS_ORDER_ABLE_QTY	!= DECODE(PD.SALE_GB, 00, CEIL(FUN_GET_ORDER_ABLE_QTY(PD.GOODS_CODE, PD.GOODSDT_CODE, GD.WH_CODE) * TC.CODE_GROUP), 0)
+		   AND PG.PA_SALE_GB			= '20'
+		   AND PG.PA_STATUS				= '30'
+		   AND P.SALE_GB				= '00'
+		   AND PM.GOODS_CODE			= #{goodsCode, jdbcType=VARCHAR}
+		   AND PM.PA_CODE				= #{paCode, jdbcType=VARCHAR}
+	  ORDER BY PM.GOODS_CODE, PM.GOODSDT_CODE
+    </select>
+    
+    <select id="selectPaSellStateList" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaSsgGoodsVO">
+   		SELECT /* passggoods.xml : passg.passggoods.selectPaSellStateList by PaSsgGoodsController */
+			   TG.PA_CODE
+			 , TG.GOODS_CODE 
+			 , TG.ITEM_ID
+			 , TG.PA_SALE_GB
+			 , TG.PA_STATUS
+		  FROM TPASSGGOODS TG
+		 WHERE TG.TRANS_SALE_YN = '1'
+		   AND TG.ITEM_ID IS NOT NULL
+		   AND TG.PA_STATUS IN ('30','90','50')
+		   <!-- 
+		   AND TG.PROC_STAT_CD = '20'
+		   -->
+		   <if test='goodsCode != null and goodsCode != ""'>
+           AND TG.GOODS_CODE    = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           <if test='paCode != null and paCode != ""'>
+           AND TG.PA_CODE       = #{paCode, jdbcType=VARCHAR}
+           </if>
+	</select>
+	
+	<update id="updatePaGoodsStatus"  parameterType="com.cware.netshopping.domain.PaSsgGoodsVO">
+        UPDATE /* passggoods.xml : passg.passggood.updatePaGoodsStatus by PaSsgGoodsController */
+               TPASSGGOODS PD
+           SET PD.MODIFY_ID   = #{modifyId,   jdbcType=VARCHAR}
+             , PD.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+			 , PD.TRANS_SALE_YN = '0'
+         WHERE PD.GOODS_CODE   = #{goodsCode,   jdbcType=VARCHAR}
+           AND PD.PA_CODE      = #{paCode, 		jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectPaSsgDisplayList" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaSsgDisplayMapping">
+        SELECT /* passggoods.xml : passg.passggood.selectPaSsgDisplayList by PaSsgGoodsController */ 
+               A.SITE_NO
+			 , A.DISP_CTG_ID
+		  FROM TPASSGDISPLAYMAPPING A
+			 , TPASSGGOODS B
+			 , TPASSGDISPLAYCATEGORY C
+		 WHERE A.PA_LMSD_KEY = B.STD_CTG_ID
+		   AND A.SITE_NO = C.APL_SITE_NO
+		   AND A.DISP_CTG_ID = C.DISP_CTG_ID
+		   AND C.DISP_YN = '1'
+		   AND B.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectPaSsgGoodsdtInfoList" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaSsgGoodsdtMapping">
+        SELECT /* passggoods.xml : passg.passggoods.selectPaSsgGoodsdtInfoList by PaSsgGoodsController-goodsInsert */ 
+               PD.GOODS_CODE 
+             , DM.PA_CODE
+             , DM.GOODSDT_CODE
+             , DM.GOODSDT_SEQ
+             , DM.GOODSDT_INFO 
+             , DECODE(DM.USE_YN,'0',0,DECODE(DT.SALE_GB, '00', NVL(CEIL(FUN_GET_ORDER_ABLE_QTY(PD.GOODS_CODE, PD.GOODSDT_CODE, GD.WH_CODE) * TC.CODE_GROUP), 0), 0)) AS TRANS_ORDER_ABLE_QTY
+             , DM.PA_OPTION_CODE
+             , DM.USE_YN
+          FROM TPAPRODUCTOPTION PD
+             , TPASSGGOODSDTMAPPING DM
+             , TGOODS GD
+             , TCODE TC
+             , TGOODSDT DT
+         WHERE PD.GOODS_CODE   = DM.GOODS_CODE
+           AND PD.GOODS_CODE   = GD.GOODS_CODE
+           AND PD.GOODS_CODE   = DT.GOODS_CODE 
+           AND PD.GOODSDT_CODE = DM.GOODSDT_CODE
+           AND PD.GOODSDT_CODE = DT.GOODSDT_CODE 
+           AND TC.CODE_LGROUP  = 'O505'
+           AND DM.PA_CODE     = TC.CODE_MGROUP 
+           AND DM.PA_CODE      = #{paCode,    jdbcType=VARCHAR}
+           AND GD.GOODS_CODE   = #{goodsCode, jdbcType=VARCHAR}
+           AND (DM.PA_OPTION_CODE IS NOT NULL OR DM.USE_YN = '1')
+         ORDER BY PD.GOODS_CODE
+                , PD.GOODSDT_CODE
+    </select>
+    
+     <update id="updatePaSsgGoodsError"  parameterType="com.cware.netshopping.domain.PaSsgGoodsVO">
+        UPDATE /* passggoods.xml : passg.passggood.updatePaSsgGoodsError by PaSsgGoodsController */
+               TPASSGGOODS PD
+           SET PD.MODIFY_ID   = #{modifyId,   jdbcType=VARCHAR}
+             , PD.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+			 , PD.RETURN_NOTE = #{returnNote, jdbcType=TIMESTAMP}
+			 , PD.PA_SALE_GB  = #{paSaleGb, jdbcType=TIMESTAMP}
+			 , PD.PA_STATUS	  = #{paStatus, jdbcType=TIMESTAMP}
+			  <if test='itemId != null and itemId != ""'>
+             , PD.TRANS_SALE_YN = '1' 
+             </if>
+         WHERE PD.GOODS_CODE  = #{goodsCode,   jdbcType=VARCHAR}
+           AND PD.PA_CODE     = #{paCode, 		jdbcType=VARCHAR}
+    </update>
+    
+    <resultMap id="selectPaNoticeDataMap" type="hashMap">
+        <result column="NOTICE_EXT" property="NOTICE_EXT" jdbcType="CLOB"/>
+    </resultMap>
+    
+	<select id="selectPaNoticeData" parameterType="hashMap" resultMap="selectPaNoticeDataMap">
+        SELECT /*+ INDEX_DESC (TNM IDX_TPANOTICEM_03)*/
+               NVL(TNM.NOTICE_EXT, '') AS NOTICE_EXT
+		  FROM TPANOTICEM TNM
+		     , TPANOTICETARGET TNT
+		     , TPANOTICEAPPLY TNA
+		 WHERE TNM.NOTICE_NO  = TNT.NOTICE_NO
+		   AND TNT.GOODS_CODE = #{goodsCode , jdbcType=VARCHAR}
+		   AND TNM.USE_CODE   = '00'
+		   AND INSTR(TNM.PA_GROUP_CODE, #{paGroupCode , jdbcType=VARCHAR}) > 0
+		   AND TNT.NOTICE_NO  = TNA.NOTICE_NO
+		   AND TNT.GOODS_CODE = TNA.GOODS_CODE
+		   AND TNA.PA_GROUP_CODE = #{paGroupCode , jdbcType=VARCHAR}
+		   AND ROWNUM = 1
+ 	</select>
+ 	
+ 	<select id="selectSsgFoodInfo" parameterType="hashMap" resultType="hashMap">
+        SELECT /* passggoods.xml : passg.passggood.selectSsgFoodInfo by PaSsgGoodsController */
+               T.COMMCD
+			 , T.SELLTOTCAPA
+			 , T.SELLUNITCAPA
+			 , T.SELLUNITQTY
+		  FROM TGOODSSSGFOOD T
+		 WHERE T.GOODS_CODE =  #{goodsCode, jdbcType=VARCHAR}
+		   AND T.USE_YN = '1'
+    </select>
+</mapper>

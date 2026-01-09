@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.cware.netshopping.patdeal.repository.PaTdealCommonMapper">
+    
+    <select id="selectRegisterBrandTarget" resultType="com.cware.netshopping.domain.model.Brand">
+   		SELECT /* patdealcommon.xml : patdeal.PaTdealCommonMapper.selectRegisterBrandTarget */
+   			  TB.BRAND_CODE
+   			, TB.BRAND_NAME
+		  FROM TBRAND TB
+		 WHERE TB.USE_YN = '1'
+		 <if test='brandCode != null and brandCode != ""'>
+		   AND TB.BRAND_CODE = #{brandCode,    jdbcType=VARCHAR}
+		 </if>
+		   AND NOT EXISTS (SELECT 'X' 
+		   					 FROM TPABRAND PB
+			                WHERE PB.PA_BRAND_NAME = TB.BRAND_NAME
+			                  AND PB.PA_GROUP_CODE = '13')
+		   AND ROWNUM &lt; 500      
+    </select>
+    
+    <update id="updatePaTdealShipCost" parameterType="com.cware.netshopping.domain.model.PaTdealShipCost">
+        UPDATE /* patdealcommon.xml : patdeal.PaTdealCommonMapper.updatePaTdealShipCost */
+               TPATDEALSHIPCOST
+           SET TRANS_TARGET_YN = #{transTargetYn, jdbcType=VARCHAR}
+          <if test='areaFeeNo != null and areaFeeNo != ""'>
+		     , AREA_FEE_NO = #{areaFeeNo, jdbcType=VARCHAR}
+	      </if>
+	      <if test='templateGroupNo != null and templateGroupNo != ""'>
+		     , TEMPLATE_GROUP_NO = #{templateGroupNo, jdbcType=VARCHAR}
+	      </if>
+	      <if test='templateNo != null and templateNo != ""'>
+		     , TEMPLATE_NO = #{templateNo, jdbcType=VARCHAR}
+	      </if>
+             , MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+             , MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+         WHERE PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+           AND SHIP_MAN_SEQ = #{shipManSeq, jdbcType=VARCHAR}
+           AND RETURN_MAN_SEQ = #{returnManSeq, jdbcType=VARCHAR}
+           AND SHIP_COST_CODE = #{shipCostCode, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectShipCostGroupTarget" resultType="com.cware.netshopping.domain.PaTdealShipCostVO">
+   		SELECT /* patdealcommon.xml : patdeal.PaTdealCommonMapper.selectShipCostGroupTarget */
+   			   TC.*
+			  ,S.PA_ADDR_SEQ AS PA_SHIP_MAN_SEQ
+		   	  ,R.PA_ADDR_SEQ AS PA_RETURN_MAN_SEQ
+		  FROM TPATDEALSHIPCOST TC
+		 INNER JOIN TPAENTPSLIP S 
+		    ON S.ENTP_CODE = TC.ENTP_CODE
+		   AND S.ENTP_MAN_SEQ = TC.SHIP_MAN_SEQ
+		   AND S.PA_CODE = TC.PA_CODE
+		   AND S.PA_ADDR_SEQ IS NOT NULL
+		 INNER JOIN TPAENTPSLIP R 
+		    ON R.ENTP_CODE = TC.ENTP_CODE
+		   AND R.ENTP_MAN_SEQ = TC.RETURN_MAN_SEQ
+		   AND R.PA_CODE = TC.PA_CODE
+		   AND R.PA_ADDR_SEQ IS NOT NULL
+		 WHERE TC.PA_CODE = #{paCode, jdbcType=VARCHAR}
+		   AND TC.ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+		   AND TC.SHIP_MAN_SEQ = #{shipManSeq, jdbcType=VARCHAR}
+		   AND TC.RETURN_MAN_SEQ = #{returnManSeq, jdbcType=VARCHAR}
+		   AND TC.SHIP_COST_CODE = #{shipCostCode, jdbcType=VARCHAR}
+		   AND TC.AREA_FEE_NO IS NOT NULL
+		  <if test='registerYn != null and registerYn == "1"'>
+		   AND TC.TEMPLATE_NO IS NULL
+	      </if>
+	      <if test='registerYn != null and registerYn == "0"'>
+		   AND TC.TEMPLATE_NO IS NOT NULL
+	      </if>
+	       AND TC.TRANS_TARGET_YN = '1'
+
+    </select>
+    
+</mapper>

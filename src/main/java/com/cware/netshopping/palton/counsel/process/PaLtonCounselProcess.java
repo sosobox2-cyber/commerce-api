@@ -1,0 +1,37 @@
+package com.cware.netshopping.palton.counsel.process;
+
+import java.util.List;
+
+import com.cware.framework.core.basic.ParamMap;
+import com.cware.netshopping.domain.PaqnamVO;
+
+public interface PaLtonCounselProcess {
+	
+	/**
+	 * 롯데온 상품Q&A답변처리 대상 조회
+	 * @param ParamMap
+	 * @return String
+	 * @throws Exception
+	 */
+	List<PaqnamVO> selectPaLtonAnsQna(ParamMap paramMap) throws Exception;
+
+	String savePaLtonQnaTrans(PaqnamVO paQna) throws Exception;
+	
+	/**
+	 * 롯데온 판매자 연락답변 등록 처리 결과저장.
+	 * @param paramMap
+	 * @return String
+	 * @throws Exception
+	 */
+	List<PaqnamVO> updateSellerContact(ParamMap paramMap) throws Exception;
+
+	/**
+	 * 롯데온 판매자 문의 답변 등록 처리 결과저장.
+	 * @param paramMap
+	 * @return String
+	 * @throws Exception
+	 */
+	List<PaqnamVO> updateSellerInquiry(ParamMap paramMap) throws Exception;
+
+
+}

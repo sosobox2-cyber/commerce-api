@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pafaple.account">
+	<insert id="insertPaFapleOrderSettlementList" parameterType="com.cware.netshopping.domain.model.PaFapleOrderSettlement">
+        INSERT /* pafapleaccount.xml : pafaple.account.insertPaFapleOrderSettlementList by PaFapleAccountController */
+          INTO TPAFAPLESETTLEMENT (
+              PA_FAPLESETTLEMENT_NO	
+			  ,ORDER_ID				
+			  ,ORDER_SEQ				
+			  ,ORDER_TYPE				
+			  ,DELIVERY_DATE			
+			  ,ITEM_NO				
+			  ,ITEM_NAME				
+			  ,ATTR1_NAME				
+			  ,ATTR2_NAME				
+			  ,MARGIN					
+			  ,QTY					
+			  ,SALES_AMT				
+			  ,PURCHASE_AMT			
+			  ,PROFITS_AMT			
+			  ,SALECPON				
+			  ,OLD_ORDER_ID			
+			  ,COUPON_FAPLE_AMT		
+			  ,COMPLETE_DATE			
+			  ,GIVE_AMT				
+			  ,BRAND_ID_SALES_NAME	
+			  ,OPT_ID					
+             )
+        VALUES (
+             #{paFaplesettlementNo, jdbcType=VARCHAR}   
+			,#{orderId, jdbcType=VARCHAR}   
+			,#{orderSeq, jdbcType=VARCHAR}   
+			,#{orderType, jdbcType=VARCHAR}             
+			,#{deliveryDate, jdbcType=VARCHAR}          
+			,#{itemNo, jdbcType=VARCHAR}                
+			,#{itemName, jdbcType=VARCHAR}              
+			,#{attr1Name, jdbcType=VARCHAR}             
+			,#{attr2Name, jdbcType=VARCHAR}             
+			,#{margin, jdbcType=NUMERIC}                
+			,#{qty, jdbcType=NUMERIC}                   
+			,#{salesAmt, jdbcType=NUMERIC}              
+			,#{purchaseAmt, jdbcType=NUMERIC}           
+			,#{profitsAmt, jdbcType=NUMERIC}            
+			,#{salecpon, jdbcType=VARCHAR}              
+			,#{oldOrderId, jdbcType=VARCHAR}            
+			,#{couponFapleAmt, jdbcType=NUMERIC}        
+			,#{completeDate, jdbcType=VARCHAR}          
+			,#{giveAmt, jdbcType=NUMERIC}               
+			,#{brandIdSalesName, jdbcType=VARCHAR}      
+			,#{optId, jdbcType=VARCHAR}     
+             )
+    </insert>
+    
+    <select id="selectPaFapleOrderSettlementList" parameterType="com.cware.netshopping.domain.model.PaFapleOrderSettlement" resultType="int">
+		SELECT  /* pafapledelivery.xml : pafaple.account.selectPaFapleOrderSettlementList by PaFapleAccountController */
+	    	   COUNT(*) AS CNT
+	  	  FROM TPAFAPLESETTLEMENT OL
+	 	 WHERE OL.ORDER_ID = #{orderId , jdbcType=VARCHAR}
+	  	   AND OL.ORDER_SEQ = #{orderSeq , jdbcType=VARCHAR}
+	  	   <if test='orderType == "" or orderType == null '>
+	 	   AND OL.ORDER_TYPE IS NULL
+	  	   </if>
+	  	   <if test='orderType != "" and orderType != null '>
+	 	   AND OL.ORDER_TYPE = #{orderType , jdbcType=VARCHAR}
+	  	   </if>
+	</select>
+	
+    <select id="selectPaFapleShipSettlementList" parameterType="com.cware.netshopping.domain.model.PaFapleShipSettlement" resultType="int">
+		SELECT  /* pafapledelivery.xml : pafaple.account.selectPaFapleShipSettlementList by PaFapleAccountController */
+	    	   COUNT(*) AS CNT
+	  	  FROM TPAFAPLESHIPSETTLEMENT OL
+	 	 WHERE OL.ORDER_ID = #{orderId , jdbcType=VARCHAR}
+	  	   AND OL.OLD_ORDER_ID = #{oldOrderId , jdbcType=VARCHAR}
+	 	   AND OL.SENDER_FEE = #{senderFee , jdbcType=NUMERIC}
+	</select>
+	
+	<insert id="insertPaFapleShipSettlementList" parameterType="com.cware.netshopping.domain.model.PaFapleShipSettlement">
+        INSERT /* pafapleaccount.xml : pafaple.account.insertPaFapleShipSettlementList by PaFapleAccountController */
+          INTO TPAFAPLESHIPSETTLEMENT (
+              PA_FAPLESHIPSETTLEMENT_NO
+             ,SENDER_ID				
+             ,SENDER_NAME				
+             ,MEMBER_NAME				
+             ,ORDER_ID				
+             ,DELIVERY_DATE			
+             ,CHARGE_RATIO_OF_HQ		
+             ,NORMAL_SENDER_FEE		
+             ,FEE_HQ					
+             ,SENDER_FEE				
+             ,CONTENTS				
+             ,OLD_ORDER_ID			
+             ,ORDER_GB				
+             )
+        VALUES (
+             #{paFapleshipsettlementNo, jdbcType=VARCHAR}	 
+             ,#{senderId				, jdbcType=VARCHAR}	
+             ,#{senderName				, jdbcType=VARCHAR}	
+             ,#{memberName				, jdbcType=VARCHAR}	 
+             ,#{orderId				, jdbcType=VARCHAR}	 
+             ,#{deliveryDate			, jdbcType=VARCHAR}	 
+             ,#{chargeRatioOfHQ		, jdbcType=NUMERIC}	 
+             ,#{normalSenderFee		, jdbcType=NUMERIC}	 
+             ,#{feeHQ					, jdbcType=NUMERIC}	 
+             ,#{senderFee				, jdbcType=NUMERIC}	 
+             ,#{contents					, jdbcType=VARCHAR}	 
+             ,#{oldOrderId				, jdbcType=VARCHAR}	 
+             ,#{orderGb					, jdbcType=VARCHAR}	 
+             )
+    </insert>
+</mapper>

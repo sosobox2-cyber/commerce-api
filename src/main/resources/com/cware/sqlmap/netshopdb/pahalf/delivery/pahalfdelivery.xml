@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pahalf.delivery">
+	<select id="selectSlipOutProcList" resultType="hashMap">   
+	    SELECT /* pahalfdelivery.xml : selectSlipOutProcList by PaHalfDeliveryController */
+	    	   XX.ORD_NO
+	    	 , XX.ORD_NO_NM 
+	    	 , XX.MAPPING_SEQ
+	    	 , XX.SLIP_I_NO
+	    	 , XX.API_RESULT_MESSAGE
+	    	 , XX.OFF_NO
+	    	 , XX.CJ_NO
+	    	 , XX.PA_CODE
+	      FROM (SELECT DECODE(PM.PA_ORDER_GB, '10', PM.PA_ORDER_NO, OL.EXCHANGE_ORD_NO) AS ORD_NO
+	       		     , PM.PA_ORDER_SEQ AS ORD_NO_NM 
+	       		     , SM.SLIP_I_NO
+	       		     , PM.MAPPING_SEQ
+		             , CASE WHEN SM.SLIP_PROC = '80' AND SM.SLIP_NO IS NULL THEN SM.SLIP_I_NO
+				       	    ELSE SM.SLIP_NO 
+				       END AS CJ_NO
+				     , CASE WHEN SM.SLIP_PROC = '80' AND SM.SLIP_NO IS NULL THEN (SELECT A.PA_DELY_GB FROM TPADELYGB A WHERE A.PA_CODE = '12' AND A.DELY_GB = '99' AND ROWNUM = 1)
+				       	    ELSE DG.PA_DELY_GB
+				       END AS OFF_NO
+				     , PM.API_RESULT_MESSAGE
+				     , PM.PA_CODE
+		          FROM TPAORDERM PM
+		             , TSLIPM SM
+		             , TSLIPDT SD
+		             , TORDERGOODS OG
+		             , TPADELYGB DG
+		             , TPAHALFORDERLIST OL
+		         WHERE SM.SLIP_I_NO    = SD.SLIP_I_NO
+		           AND PM.ORDER_NO     = SD.ORDER_NO
+		           AND PM.ORDER_G_SEQ  = SD.ORDER_G_SEQ
+		           AND PM.ORDER_D_SEQ  = SD.ORDER_D_SEQ
+		           AND PM.ORDER_W_SEQ  = SD.ORDER_W_SEQ
+		           AND PM.ORDER_NO     = OG.ORDER_NO
+		           AND PM.ORDER_G_SEQ  = OG.ORDER_G_SEQ
+		           AND PM.PA_ORDER_NO  = OL.ORD_NO
+		           AND PM.PA_ORDER_SEQ = OL.ORD_NO_NM
+		           AND PM.PA_DO_FLAG   = '30'
+		           AND ((PM.PA_ORDER_GB = '10' AND OL.EXCHANGE_ORD_NO IS NULL) OR (PM.PA_ORDER_GB = '40' AND OL.EXCHANGE_ORD_NO IS NOT NULL))
+		           AND PM.PA_CODE     IN ('C1', 'C2')
+		           AND SM.SLIP_PROC   >= '40' 
+		           AND DG.PA_CODE = '12'
+		           AND SM.DELY_GB = DG.DELY_GB
+		           AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0 
+		           ) XX
+         WHERE XX.CJ_NO IS NOT NULL
+   	</select>
+	
+	<update id="updateSlipOutProc" parameterType="hashMap">
+      UPDATE TPAORDERM /* pahalfdelivery.xml : updateSlipOutProc by PaHalfDeliveryController */
+         SET PA_DO_FLAG         = '40' /*배송중(출고완료)*/
+           , API_RESULT_CODE    = '000000'
+           , API_RESULT_MESSAGE = '출고처리성공'
+           , PROC_DATE          = SYSDATE
+           , MODIFY_ID          = #{modifyId, jdbcType=VARCHAR}
+           , MODIFY_DATE        = SYSDATE
+       WHERE MAPPING_SEQ        = #{mappingSeq, jdbcType=VARCHAR}
+    </update>  
+    
+    <update id="updateSlipOutProcFail" parameterType="hashMap">
+      UPDATE TPAORDERM /* pahalfdelivery.xml : updateSlipOutProcFail by PaHalfDeliveryController */
+         SET API_RESULT_CODE    = '999999'
+           , API_RESULT_MESSAGE = #{apiResultMsg   ,jdbcType=VARCHAR}           
+           , MODIFY_ID          = #{modifyId ,jdbcType=VARCHAR}           
+           , MODIFY_DATE        = SYSDATE
+       WHERE MAPPING_SEQ        = #{mappingSeq, jdbcType=VARCHAR}
+    </update>
+</mapper>

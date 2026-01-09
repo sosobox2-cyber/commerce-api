@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.cware.netshopping.paqeen.repository.PaQeenGoodsMapper">
+
+	<select id="selectPaQeenGoodsInfo" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaQeenGoodsVO">
+		SELECT /* paqeengoods.xml : paqeen.goods.selectPaQeenGoodsInfo by PaQeenProductService */
+	    	TG.GOODS_CODE
+	      , PG.GOODS_NAME 
+	      , TG.ORDER_MAX_QTY
+	      , TG.ORDER_MIN_QTY
+	      , T.CUST_ORD_QTY_CHECK_YN
+	      , T.CUST_ORD_QTY_CHECK_TERM
+	      , T.TERM_ORDER_QTY
+	      , CEIL(FUN_GET_ORDER_ABLE_QTY(PG.GOODS_CODE,'%', T.WH_CODE) * TC2.CODE_GROUP) AS TRANS_ORDER_ABLE_QTY    
+	      , NVL((SELECT REPLACE (DS.DESCRIBE_EXT, chr(10), '')
+	                 FROM TDESCRIBE DS
+	                WHERE DS.DESCRIBE_CODE = '998'
+	                  AND DS.GOODS_CODE = TG.GOODS_CODE)
+	             ,(SELECT DECODE(DS.WEB_FLAG, '1',  REPLACE(DS.DESCRIBE_EXT, chr(10), ''), DS.DESCRIBE_NOTE)
+	                 FROM TDESCRIBE DS
+	                WHERE DS.DESCRIBE_CODE = '999'
+	                  AND DS.GOODS_CODE = TG.GOODS_CODE)) AS DESCRIBE_EXT  
+	      , NVL((SELECT DS.DESCRIBE_NOTE
+	               FROM TDESCRIBE DS
+	              WHERE DS.GOODS_CODE = TG.GOODS_CODE
+	                AND DS.DESCRIBE_CODE = '200'), '') AS GOODS_COM
+	      , (SELECT CODE_NAME
+	                 FROM TCODE C1
+	                WHERE C1.CODE_LGROUP = 'O507'
+	                  AND C1.CODE_MGROUP = PG.PA_CODE) AS TOP_IMAGE
+	      , (SELECT CODE_NAME
+	                 FROM TCODE C1
+	                WHERE C1.CODE_LGROUP = 'O507'
+	                  AND C1.CODE_MGROUP = DECODE(PG.PA_CODE, 'F1', 'F3', 'F4')) AS BOTTOM_IMAGE                 
+          , NVL((SELECT /*+ INDEX_DESC (TNM IDX_TPANOTICEM_03)*/
+                       TNM.NOTICE_EXT
+		          FROM TPANOTICEM TNM
+		             , TPANOTICETARGET TNT
+		             , TPANOTICEAPPLY TNA
+		         WHERE TNM.NOTICE_NO  = TNT.NOTICE_NO
+		           AND TNT.GOODS_CODE = TG.GOODS_CODE
+		           AND TNM.USE_CODE   = '00'
+		           AND INSTR(TNM.PA_GROUP_CODE, PG.PA_GROUP_CODE) > 0
+		           AND TNT.NOTICE_NO  = TNA.NOTICE_NO
+		           AND TNT.GOODS_CODE = TNA.GOODS_CODE
+		           AND TNA.PA_GROUP_CODE = PG.PA_GROUP_CODE
+		           AND ROWNUM = 1), '') AS NOTICE_EXT                                                                    
+	      , PG.PA_CODE
+	      , PG.PA_GROUP_CODE
+	      , PG.PA_STATUS
+	      , PG.PA_LMSD_KEY
+	      , PG.REIFIED_PRODUCT_ID
+	      , PG.PRODUCT_PROPOSAL_ID
+          , SC.PA_SHIPCOST_ID
+          , TI.IMAGE_URL
+          , TI.IMAGE_G 
+          , TI.IMAGE_AG 
+          , TI.IMAGE_BG 
+          , TI.IMAGE_CG 
+          , TI.IMAGE_DG
+          , TG.ORDER_CREATE_YN
+          , TG.INSTALL_YN
+          , PG.PA_BRAND_CODE     
+      FROM TPAPRODUCT   TG
+         , TPAQEENGOODS PG
+         , TGOODS T
+         , TCODE           TC2
+         , TPAGOODSPRICEAPPLY PP
+         , TPAQEENSHIPCOST SC 
+         , TGOODSIMAGE TI
+     WHERE TG.GOODS_CODE  = PG.GOODS_CODE
+       AND PG.GOODS_CODE    = T.GOODS_CODE
+       AND PG.GOODS_CODE  = PP.GOODS_CODE
+       AND PG.PA_CODE     = PP.PA_CODE
+       AND T.GOODS_CODE   = TI.GOODS_CODE
+       AND SC.PA_CODE     = PG.PA_CODE
+       AND SC.ENTP_CODE   = DECODE(T.DELY_TYPE, '10', '100001', T.ENTP_CODE)
+       AND SC.SHIP_MAN_SEQ  = DECODE(T.DELY_TYPE, '10', '003', T.SHIP_MAN_SEQ)
+       AND SC.RETURN_MAN_SEQ = DECODE(T.DELY_TYPE, '10', '002', T.RETURN_MAN_SEQ)
+       AND SC.SHIP_COST_CODE = T.SHIP_COST_CODE 
+       AND SC.PA_SHIPCOST_ID IS NOT NULL
+       AND (PP.APPLY_DATE, PP.PRICE_APPLY_SEQ) = (SELECT /*+ INDEX_DESC (PP2 PK_TPAGOODSPRICEAPPLY)*/
+                                 PP2.APPLY_DATE, PP2.PRICE_APPLY_SEQ
+                              FROM TPAGOODSPRICEAPPLY PP2
+                               WHERE PP2.GOODS_CODE = PP.GOODS_CODE
+                               AND PP2.PA_GROUP_CODE = PP.PA_GROUP_CODE
+                               AND PP2.PA_CODE = PP.PA_CODE
+                               AND PP2.APPLY_DATE &lt;= SYSDATE
+                               AND rownum = 1 )
+		     <if test='goodsCode != null and goodsCode != ""'>
+		        AND TG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+		     </if>
+		     <if test='paCode != null and paCode != ""'>
+		        AND PG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+		     </if>
+		     <if test='modCase == "MODIFY"'>
+		        AND (PG.TRANS_TARGET_YN  = '1' OR PP.TRANS_DATE IS NULL)
+		        AND PG.PA_SALE_GB    = '20'
+		        AND PG.PA_STATUS     = '30'
+		        AND PG.REIFIED_PRODUCT_ID IS NOT NULL
+		        AND PG.PRODUCT_PROPOSAL_ID IS NOT NULL
+		     </if>   
+		     <if test='modCase == "INSERT"'>
+		        AND PG.PA_STATUS IN ('10','20')
+		        AND TG.SALE_GB = '00'
+		     </if>
+		    AND TC2.CODE_LGROUP      = 'O505'
+            AND TC2.CODE_MGROUP      = PG.PA_CODE
+		    AND ROWNUM &lt; 50000
+    </select>   
+    
+    <select id="selectPaQeenGoodsOfferList" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaGoodsOfferVO">
+        SELECT /* paqeengoods.xml : paqeen.goods.selectPaQeenGoodsOfferList by PaQeenProductService */
+        	   PO.GOODS_CODE
+             , PO.PA_GROUP_CODE
+             , PO.PA_OFFER_TYPE
+             , PO.PA_OFFER_CODE 
+             , PO.PA_OFFER_EXT
+             , PO.REMARK1
+             , PO.REMARK2
+             , PC.PA_OFFER_TYPE_NAME
+             , PC.PA_OFFER_CODE_NAME
+          FROM TPAGOODSOFFER PO
+             , TPAOFFERCODE PC
+         WHERE PO.PA_GROUP_CODE = PC.PA_GROUP_CODE  
+           AND PO.PA_OFFER_TYPE = PC.PA_OFFER_TYPE 
+           AND PO.PA_OFFER_CODE = PC.PA_OFFER_CODE  
+           AND PO.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PO.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+           AND PO.USE_YN = '1'
+    </select>
+    
+    <select id="selectPaQeenGoodsdtInfoList" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaQeenGoodsdtMapping">
+       SELECT /* paqeengoods.xml : paqeen.goods.selectPaQeenGoodsdtInfoList by PaQeenProductService */
+               PD.GOODS_CODE 
+             , DM.PA_CODE
+             , DM.GOODSDT_SEQ
+             , DM.GOODSDT_CODE
+             , DM.GOODSDT_INFO
+             , DECODE(DT.SALE_GB, '00', NVL(CEIL(FUN_GET_ORDER_ABLE_QTY(PD.GOODS_CODE, PD.GOODSDT_CODE, GD.WH_CODE) * TC.CODE_GROUP), 0), 0) AS TRANS_ORDER_ABLE_QTY
+             , DM.PA_OPTION_CODE
+             , DM.PRODUCT_ITEM_PROPOSAL_ID
+             , DT.SALE_GB
+          FROM TPAPRODUCTOPTION PD
+             , TPAQEENGOODSDTMAPPING DM
+             , TGOODS GD
+             , TCODE TC
+             , TGOODSDT DT
+         WHERE PD.GOODS_CODE = DM.GOODS_CODE
+           AND PD.GOODSDT_CODE = DM.GOODSDT_CODE
+           AND PD.GOODS_CODE = GD.GOODS_CODE
+           AND TC.CODE_LGROUP = 'O505'
+           AND TC.CODE_MGROUP = DM.PA_CODE
+           AND DT.GOODS_CODE = PD.GOODS_CODE
+           AND DT.GOODSDT_CODE = PD.GOODSDT_CODE
+           AND DM.USE_YN = '1'
+           AND DM.PA_CODE =#{paCode, jdbcType=VARCHAR}
+           AND GD.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+         ORDER BY PD.GOODS_CODE
+                , PD.GOODSDT_CODE
+    </select>
+    
+</mapper>

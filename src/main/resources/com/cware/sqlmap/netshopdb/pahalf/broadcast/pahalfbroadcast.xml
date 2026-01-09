@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pahalf.broadcast">
+     <resultMap id="broadcastchedule-result" type="com.cware.netshopping.domain.MultiframescheVO">
+        <result property="seqFrameNo"   column="SEQ_FRAME_NO"/>
+        <result property="progName"     column="PROG_NAME"/>
+        <result property="bdDate"       column="BD_DATE"/>
+        <result property="bdBtime"      column="BD_BTIME"/>
+        <result property="bdEtime"      column="BD_ETIME"/>
+        <result property="hostSraff"    column="SHOWHOST1"/>
+        <result property="itemCode"     column="PRODUCT_NO"/>
+        <result property="makeItemCode" column="GOODS_CODE"/>
+        <result property="itemName"     column="GOODS_NAME"/>
+        <result property="bannerImgUrl" column="BANNER_IMG_URL"/>
+        <result property="itemImgUrl"   column="GOODS_IMG_URL"/>
+        <result property="itemPrice"    column="GOODS_PRICE"/>
+        <result property="publicItemYn" column="OMBUDSMAN_YN"/>
+        <result property="intngItemYn"  column="INVI_GOODS_TYPE"/>
+        <result property="repItemYn"    column="MAIN_YN"/>
+        <result property="priority"     column="PRIORITY"/>
+        <result property="bdImgUrl"     column="BD_IMG_URL"/>
+    </resultMap>
+    
+     <select id="selectCheckReplaceGoodsYn" parameterType="hashMap" resultType="int">
+		SELECT /* pahalfbroadcast.xml: pahalf.broadcast.selectCheckReplaceGoodsYn by PaHalfBroadcastScheController */
+		       COUNT(1)
+          FROM TPABROADREPLACE
+         WHERE PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+           AND INSERT_DATE &lt; TRUNC(SYSDATE) - 6
+	</select>
+	
+	<delete id="deletePaBroadReplace" parameterType="hashMap">
+		DELETE FROM /* pahalfbroadcast.xml: pahalf.broadcast.deletePaBroadReplace by PaHalfBroadcastScheController */
+			   TPABROADREPLACE
+         WHERE PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+	</delete>
+	
+	<insert id="insertPaBroadReplace"  parameterType="hashMap">
+     /* pahalfbroadcast.xml : pahalf.broadcast.insertPaBroadReplace by PaHalfBroadcastScheController */
+     INSERT INTO TPABROADREPLACE
+		SELECT AA.PA_GROUP_CODE 
+			 , AA.GOODS_CODE
+			 , AA.SUM_QTY
+			 , AA.SUM_QTY_RANK
+			 , rownum AS SYCLE_SEQ
+			 , G.GOODS_NAME
+			 , PA.PRODUCT_NO AS PA_GOODS_CODE
+			 , GV.GOODS_VOD_URL                                                                     AS VOD_URL
+			 , FUN_GETCONFIG('IMG_SERVER_1_URL') || GIM.INFO_IMAGE_PATH || GIM.INFO_IMAGE_FILE      AS VIDEO_IMAGE 
+			 , NVL((SELECT /*+INDEX_DESC (PG PK_TPGMTAPE)*/
+						   FUN_TCODE_NAME('C328', PG.SHOWHOST1) 
+					  FROM TPGMTAPEGOODS TP, TPGMTAPE PG
+					 WHERE PA.GOODS_CODE = TP.GOODS_CODE 
+					   AND TP.TAPE_CODE = PG.TAPE_CODE 
+					   AND PG.USE_CODE = '00' 
+					   AND ROWNUM = 1  ), '미등록') AS SH_MAN_NAME
+			 , '0' AS TARGET_YN
+			 , 'BATCH' AS INSERT_ID
+			 , SYSDATE AS INSERT_DATE
+			 , 'BATCH' AS MODIFY_ID
+			 , SYSDATE AS MODIFY_DATE
+		  FROM ( SELECT OD.GOODS_CODE
+					  , CD.CODE_MGROUP AS PA_GROUP_CODE
+					  , SUM(OD.ORDER_QTY) AS SUM_QTY
+					  , RANK() OVER (ORDER BY SUM(OD.ORDER_QTY) DESC) AS SUM_QTY_RANK
+				   FROM TORDERDT OD
+					  , TCODE CD
+					  , TGOODS GD
+				  WHERE OD.GOODS_GB = '10'
+					AND OD.MEDIA_CODE = CD.REMARK1
+					AND CD.CODE_LGROUP = 'O500'
+					AND CD.CODE_MGROUP = #{paGroupCode, jdbcType=VARCHAR}
+					AND OD.GOODS_CODE = GD.GOODS_CODE
+					AND (GD.SOURCING_MEDIA = '01' OR GD.MD_KIND = '0032')
+					AND GD.SALE_GB = '00'
+					AND OD.ORDER_DATE > TRUNC(SYSDATE) - 7
+					GROUP BY OD.GOODS_CODE, CD.CODE_MGROUP
+			   ) AA
+			 , TGOODS              G
+			 , TGOODSVOD           GV
+			 , TGOODSINFOIMAGE     GIM
+			 , TPAHALFGOODS        PA
+		 WHERE AA.GOODS_CODE    = G.GOODS_CODE
+		   AND AA.GOODS_CODE    = GV.GOODS_CODE
+		   AND GV.DISPLAY_MEDIA = '62' 
+		   AND GV.GOODS_VOD_SEQ = (SELECT MAX(GVS.GOODS_VOD_SEQ)
+									 FROM TGOODSVOD GVS
+									WHERE GVS.GOODS_CODE = GV.GOODS_CODE
+									  AND GVS.DISPLAY_MEDIA = '62' )
+		   AND AA.GOODS_CODE       = GIM.GOODS_CODE(+)   
+		   AND GIM.INFO_IMAGE_TYPE = '40'
+		   AND GIM.INFO_GOODS_SEQ  = (SELECT MAX(GIMS.INFO_GOODS_SEQ)
+										FROM TGOODSINFOIMAGE GIMS
+									   WHERE GIMS.GOODS_CODE      = GIM.GOODS_CODE
+										 AND GIMS.INFO_IMAGE_TYPE = '40')
+		   AND AA.GOODS_CODE       = PA.GOODS_CODE
+		   AND AA.PA_GROUP_CODE    = PA.PA_GROUP_CODE
+		   AND PA.PA_SALE_GB       = '20'
+		   AND PA.PA_STATUS		   = '30'
+		   AND rownum &lt; 21
+	</insert>
+	
+	<select id="selectBroadcastScheList" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.Pabroadsche">
+		/* pahalfbroadcast.xml : pahalf.broadcast.selectBroadcastScheList by PahalfBroadcastScheController */
+		WITH SKSTOALIVEBROAD AS (
+			SELECT MS.SEQ_FRAME_NO
+				 , MB.SEQ_NO
+				 , TO_CHAR(MS.BD_DATE, 'YYYY/MM/DD')                AS BD_DATE
+				 , TO_CHAR(MS.BD_DATE, 'YYYY-MM-DD')				AS BROADCAST_DATE
+				 , ( SELECT GG.PRODUCT_NO 
+					   FROM TPAHALFGOODS GG 
+					  WHERE GG.GOODS_CODE		= G.GOODS_CODE 
+						AND GG.PA_CODE			= 'C1'
+						AND GG.PA_SALE_GB		= '20' 
+						AND GG.PA_STATUS		= '30'
+						AND GG.PA_GROUP_CODE	= #{paGroupCode, jdbcType=VARCHAR}
+						AND ROWNUM				= 1 ) AS PA_GOODS_CODE
+				 , TO_CHAR(MS.BD_BTIME, 'HH24')                     AS BROADCAST_HOUR
+				 , TO_CHAR(MS.BD_BTIME, 'YYYY-MM-DD')||' '||TO_CHAR(MS.BD_BTIME,'HH24:MI:SS')                       AS REAL_BD_BTIME
+				 , TO_CHAR(MS.BD_BTIME, 'YYYYMMDDHH24MISS')															AS BROADCAST_START_DATE
+				 , TO_CHAR(MS.BD_ETIME, 'YYYYMMDDHH24MISS')															AS BROADCAST_END_DATE
+				 , PT.TAPE_NAME                                                                                     AS PROG_NAME
+				 , FUN_TCODE_NAME('C328', PT.SHOWHOST1)                                                             AS SH_MAN_NAME
+				 , G.GOODS_CODE
+				 , G.GOODS_NAME   
+				 , GV.GOODS_VOD_URL
+				 , FUN_GETCONFIG('IMG_SERVER_1_URL') || GIM.INFO_IMAGE_PATH || GIM.INFO_IMAGE_FILE                 AS VIDEO_IMAGE
+				 , #{paGroupCode, jdbcType=VARCHAR} AS PA_GROUP_CODE
+			  FROM TMULTIFRAMESCHE MS
+				 , TMULTIDTBROAD   MB
+				 , TPGMTAPE        PT
+				 , TPROGRAM        P
+				 , TGOODS          G
+				 , TGOODSVOD       GV
+				 , TGOODSINFOIMAGE GIM
+			 WHERE MS.SEQ_FRAME_NO		= MB.SEQ_FRAME_NO
+			   AND MB.MEDIA_CODE		= 'TV01'
+			   AND MS.TAPE_CODE			= PT.TAPE_CODE     
+			   AND MS.PROG_CODE			= P.PROG_CODE 
+			   AND MB.GOODS_CODE		= G.GOODS_CODE
+			   AND MB.GOODS_CODE		= GV.GOODS_CODE
+			   AND GV.DISPLAY_MEDIA		= '62' 
+			   AND GV.GOODS_VOD_SEQ		= (SELECT MAX(GVS.GOODS_VOD_SEQ)
+											 FROM TGOODSVOD GVS
+											WHERE GVS.GOODS_CODE = GV.GOODS_CODE
+											  AND GVS.DISPLAY_MEDIA = '62' )  
+			   AND MB.GOODS_CODE		= GIM.GOODS_CODE(+)   
+			   AND GIM.INFO_IMAGE_TYPE	= '40'
+			   AND GIM.INFO_GOODS_SEQ 	= (SELECT MAX(GIMS.INFO_GOODS_SEQ)
+											 FROM TGOODSINFOIMAGE GIMS
+											WHERE GIMS.GOODS_CODE      = GIM.GOODS_CODE
+											  AND GIMS.INFO_IMAGE_TYPE = '40' )
+			   AND MB.MAIN_YN			= '1'
+			   AND MS.BD_DATE			>=    TO_DATE(#{bdDate , jdbcType=VARCHAR},'YYYY/MM/DD')  
+			   AND MS.BD_DATE			&lt;  TO_DATE(#{bdDate   , jdbcType=VARCHAR},'YYYY/MM/DD')   + 1  
+		) 
+		SELECT 'I' AS MODIFY_FLAG
+			 , BR.SEQ_FRAME_NO
+			 , BR.SEQ_NO
+			 , BR.BD_DATE
+			 , BR.BROADCAST_DATE
+			 , BR.PA_GOODS_CODE
+			 , BR.BROADCAST_HOUR
+			 , BR.BROADCAST_START_DATE
+			 , BR.BROADCAST_END_DATE
+			 , BR.PROG_NAME
+			 , BR.SH_MAN_NAME
+			 , BR.GOODS_CODE
+			 , BR.GOODS_NAME   
+			 , BR.GOODS_VOD_URL
+			 , BR.VIDEO_IMAGE
+			 , BR.PA_GROUP_CODE
+		  FROM SKSTOALIVEBROAD BR
+		 WHERE NOT EXISTS ( SELECT 1
+							  FROM TPABROADSCHE PS
+							 WHERE PS.SEQ_FRAME_NO	= BR.SEQ_FRAME_NO
+							   AND PS.SEQ_NO		= BR.SEQ_NO
+							   AND PS.PA_GROUP_CODE	= BR.PA_GROUP_CODE
+						  )
+	 UNION ALL
+		SELECT 'U' AS MODIFY_FLAG
+			 , BR.SEQ_FRAME_NO
+			 , BR.SEQ_NO
+			 , BR.BD_DATE
+			 , BR.BROADCAST_DATE
+			 , BR.PA_GOODS_CODE
+			 , BR.BROADCAST_HOUR
+			 , BR.BROADCAST_START_DATE
+			 , BR.BROADCAST_END_DATE
+			 , BR.PROG_NAME
+			 , BR.SH_MAN_NAME
+			 , BR.GOODS_CODE
+			 , BR.GOODS_NAME   
+			 , BR.GOODS_VOD_URL
+			 , BR.VIDEO_IMAGE
+			 , BR.PA_GROUP_CODE
+		  FROM SKSTOALIVEBROAD BR
+			 , TPABROADSCHE    PS
+		 WHERE BR.SEQ_FRAME_NO  = PS.SEQ_FRAME_NO
+		   AND BR.SEQ_NO        = PS.SEQ_NO
+		   AND BR.PA_GROUP_CODE = PS.PA_GROUP_CODE       
+		   AND EXISTS ( SELECT 1
+						  FROM TMULTIDTBROAD MB
+						 WHERE MB.SEQ_FRAME_NO = PS.SEQ_FRAME_NO
+						   AND MB.MODIFY_DATE > PS.MODIFY_DATE
+					  )
+
+	 UNION ALL
+		SELECT 'D' AS MODIFY_FLAG
+			 , PS.SEQ_FRAME_NO
+			 , PS.SEQ_NO
+			 , TO_CHAR(PS.BD_DATE,'YYYY/MM/DD')
+			 , PS.BROADCAST_DATE
+			 , PS.PA_GOODS_CODE
+			 , PS.BROADCAST_HOUR
+			 , PS.BROADCAST_START_DATE
+			 , PS.BROADCAST_END_DATE
+			 , PS.PROG_NAME
+			 , PS.SH_MAN_NAME
+			 , null
+			 , null
+			 , PS.GOODS_VOD_URL
+			 , null
+			 , PS.PA_GROUP_CODE
+		  FROM TPABROADSCHE PS
+		 WHERE PS.BD_DATE       >= TO_DATE(#{bdDate , jdbcType=VARCHAR},'YYYY/MM/DD')  
+		   AND PS.BD_DATE       &lt;  TO_DATE(#{bdDate   , jdbcType=VARCHAR},'YYYY/MM/DD')   + 1
+		   AND PS.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+		   AND NOT EXISTS ( SELECT 1
+							  FROM SKSTOALIVEBROAD BR
+							 WHERE BR.SEQ_FRAME_NO = PS.SEQ_FRAME_NO
+							   AND BR.SEQ_NO       = PS.SEQ_NO
+							   AND BR.PA_GROUP_CODE = PS.PA_GROUP_CODE
+						  )
+	  ORDER BY MODIFY_FLAG, SEQ_FRAME_NO
+	</select>
+    
+    <select id="selectAlternativeBroadcastLink" parameterType="String" resultType="com.cware.netshopping.domain.model.Pabroadreplace"> 
+		SELECT /* pahalfbroadcast.xml : pahalf.broadcast.selectAlternativeBroadcastLink by PaHalfBroadcastScheController */
+			   A.GOODS_CODE
+			 , A.CYCLE_SEQ
+			 , A.GOODS_NAME
+			 , A.PA_GOODS_CODE
+			 , A.VOD_URL
+			 , A.VOD_IMAGE
+			 , A.SH_MAN_NAME
+			 , A.TARGET_YN 
+			 , A.PA_GROUP_CODE
+		  FROM TPABROADREPLACE A
+			 , TPAHALFGOODS B
+		 WHERE A.GOODS_CODE		= B.GOODS_CODE
+		   AND A.PA_GROUP_CODE	= B.PA_GROUP_CODE
+		   AND A.PA_GROUP_CODE	= #{paGroupCode, jdbcType=VARCHAR}		   
+		   AND B.PA_SALE_GB		= '20'
+		   AND B.PA_STATUS		= '30'
+	  ORDER BY A.CYCLE_SEQ
+	</select>
+	
+	<insert id="insertBroadSche"  parameterType="com.cware.netshopping.domain.model.Pabroadsche">
+	/* pahalfbroadcast.xml : pahalf.broadcast.insertBroadSche by PaHalfBroadcastScheController */
+     INSERT INTO TPABROADSCHE (
+              SEQ_FRAME_NO
+            , SEQ_NO
+            , BD_DATE
+            , BROADCAST_DATE
+            , PROGRAM_TYPE
+            , BROADCAST_PROGRAM_TYPE
+            , BROADCAST_PROGRAM_DETAIL_TYPE
+            , BROADCAST_HOUR
+            , BROADCAST_START_DATE
+            , BROADCAST_END_DATE
+            , SH_MAN_NAME
+            , PROG_NAME
+            , PA_GOODS_CODE
+            , GOODS_VOD_URL
+            , PROGRAM_USE_YN
+            , GOODS_USE_YN
+            , TRANS_YN
+            , TRANS_DATE
+            , INSERT_ID
+            , INSERT_DATE
+            , MODIFY_ID
+            , MODIFY_DATE
+            , PA_GROUP_CODE
+            , VIDEO_IMAGE
+           ) 
+     VALUES (
+              #{seqFrameNo                  , jdbcType=VARCHAR}
+            , #{seqNo                       , jdbcType=VARCHAR}
+            , TO_DATE(#{bdDate              , jdbcType=VARCHAR},'YYYY/MM/DD')
+            , #{broadCastDate               , jdbcType=VARCHAR}
+            , #{programType                 , jdbcType=VARCHAR}
+            , #{broadcastProgramType        , jdbcType=VARCHAR}
+            , #{broadcastProgramDetailType  , jdbcType=VARCHAR}
+            , #{broadcastHour               , jdbcType=VARCHAR}
+            , #{broadcastStartDate          , jdbcType=VARCHAR}
+            , #{broadcastEndDate            , jdbcType=VARCHAR}
+            , #{shManName                   , jdbcType=VARCHAR}
+            , #{progName                    , jdbcType=VARCHAR}
+            , #{paGoodsCode                 , jdbcType=VARCHAR}
+            , #{goodsVodUrl                 , jdbcType=VARCHAR}
+            , #{programUseYn                , jdbcType=VARCHAR}
+            , #{goodsUseYn                  , jdbcType=VARCHAR}
+            , #{transYn                     , jdbcType=VARCHAR}
+            ,TO_DATE(#{transDate            , jdbcType=VARCHAR},'YYYY/MM/DD HH24:MI:SS')
+            , #{insertId                    , jdbcType=VARCHAR}
+            ,TO_DATE(#{transDate            , jdbcType=VARCHAR},'YYYY/MM/DD HH24:MI:SS')
+            , #{insertId                    , jdbcType=VARCHAR}
+            ,TO_DATE(#{transDate            , jdbcType=VARCHAR},'YYYY/MM/DD HH24:MI:SS')
+            , #{paGroupCode                 , jdbcType=VARCHAR}
+            , #{videoImage                  , jdbcType=VARCHAR}
+        )            
+	</insert>
+    
+	<update id="updateBroadSche"  parameterType="com.cware.netshopping.domain.model.Pabroadsche">
+      UPDATE TPABROADSCHE /* pahalfbroadcast.xml : pahalf.broadcast.updateBroadSche by PaHalfBroadcastScheController */
+         SET BD_DATE                        = TO_DATE(#{bdDate              , jdbcType=VARCHAR},'YYYY/MM/DD')
+            ,BROADCAST_DATE                 = #{broadCastDate               , jdbcType=VARCHAR}
+            ,PROGRAM_TYPE                   = #{programType                 , jdbcType=VARCHAR}
+            ,BROADCAST_PROGRAM_TYPE         = #{broadcastProgramType        , jdbcType=VARCHAR}
+            ,BROADCAST_PROGRAM_DETAIL_TYPE  = #{broadcastProgramDetailType  , jdbcType=VARCHAR}
+            ,BROADCAST_HOUR                 = #{broadcastHour               , jdbcType=VARCHAR}
+            ,BROADCAST_START_DATE           = #{broadcastStartDate          , jdbcType=VARCHAR}
+            ,BROADCAST_END_DATE             = #{broadcastEndDate            , jdbcType=VARCHAR}
+            ,SH_MAN_NAME            		= #{shManName                   , jdbcType=VARCHAR}
+            ,PROG_NAME                      = #{progName                    , jdbcType=VARCHAR}
+            ,PA_GOODS_CODE             		= #{paGoodsCode                 , jdbcType=VARCHAR}
+            ,GOODS_VOD_URL                  = #{goodsVodUrl                 , jdbcType=VARCHAR}
+            ,PROGRAM_USE_YN                 = #{programUseYn                , jdbcType=VARCHAR}
+            ,GOODS_USE_YN                   = #{goodsUseYn                  , jdbcType=VARCHAR}
+            ,TRANS_YN                       = #{transYn                     , jdbcType=VARCHAR}
+            ,TRANS_DATE                     = TO_DATE(#{transDate           , jdbcType=VARCHAR},'YYYY/MM/DD HH24:MI:SS')
+            ,MODIFY_ID                      = #{insertId                    , jdbcType=VARCHAR}
+            ,MODIFY_DATE                    = TO_DATE(#{transDate           , jdbcType=VARCHAR},'YYYY/MM/DD HH24:MI:SS')
+            ,VIDEO_IMAGE					= #{videoImage                  , jdbcType=VARCHAR}
+       WHERE SEQ_FRAME_NO                   = #{seqFrameNo                  , jdbcType=VARCHAR}
+         AND SEQ_NO                         = #{seqNo                       , jdbcType=VARCHAR}
+         AND PA_GROUP_CODE					= #{paGroupCode                 , jdbcType=VARCHAR}
+    </update>
+    
+    <delete id="deleteBroadSche"  parameterType="com.cware.netshopping.domain.model.Pabroadsche">
+		DELETE FROM /* pahalfbroadcast.xml: pahalf.broadcast.deleteBroadSche by PaHalfBroadcastScheController */
+			   TPABROADSCHE
+         WHERE SEQ_FRAME_NO		= #{seqFrameNo,		jdbcType=VARCHAR}
+           AND SEQ_NO			= #{seqNo,			jdbcType=VARCHAR}
+           AND PA_GROUP_CODE	= #{paGroupCode,	jdbcType=VARCHAR}
+	</delete>
+	
+	<update id="updateCycleSeqUseEnd"  parameterType="com.cware.netshopping.domain.model.Pabroadreplace">
+        UPDATE TPABROADREPLACE /* TPABROADSCHE.xml : pahalf.broadcast.updateCycleSeqUseEnd by PaHalfBroadcastScheController */
+           SET TARGET_YN		= '0'
+             , MODIFY_ID		= 'BATCH'
+             , MODIFY_DATE		= SYSDATE
+         WHERE GOODS_CODE		&lt;> #{goodsCode, jdbcType=VARCHAR}
+           AND PA_GROUP_CODE	= #{paGroupCode, jdbcType=VARCHAR}
+           AND TARGET_YN		= '1'                             
+     </update>
+     
+     <update id="updateCycleSeqUseStart"  parameterType="com.cware.netshopping.domain.model.Pabroadreplace">
+        UPDATE TPABROADREPLACE /* TPABROADSCHE.xml : pahalf.broadcast.updateCycleSeqUseStart by PaHalfBroadcastScheController */
+           SET TARGET_YN		= '1'
+             , MODIFY_ID		= 'BATCH'
+             , MODIFY_DATE		= SYSDATE
+         WHERE GOODS_CODE		= #{goodsCode, jdbcType=VARCHAR}
+           AND PA_GROUP_CODE	= #{paGroupCode, jdbcType=VARCHAR}
+     </update>
+     
+     <resultMap id="broadcastchedule-result-new" type="com.cware.netshopping.domain.MultiframescheVO">
+        <result property="seqFrameNo"			column="SEQ_FRAME_NO"/>
+        <result property="progName"				column="PROG_NAME"/>
+        <result property="bdDate"				column="BD_DATE"/>
+        <result property="bdBtime"				column="BD_BTIME"/>
+        <result property="bdEtime"				column="BD_ETIME"/>
+        <result property="hostSraff"			column="SH_MAN_NAME"/>
+        <result property="itemCode"				column="PA_GOODS_CODE"/>
+        <result property="makeItemCode"			column="GOODS_CODE"/>
+        <result property="itemName"				column="GOODS_NAME"/>
+        <result property="bannerImgUrl"			column="VIDEO_IMAGE"/>
+        <result property="itemImgUrl"			column="GOODS_IMG_URL"/>
+        <result property="itemPrice"			column="GOODS_PRICE"/>
+        <result property="publicItemYn"			column="OMBUDSMAN_YN"/>
+        <result property="intngItemYn"			column="INVI_GOODS_TYPE"/>
+        <result property="repItemYn"			column="MAIN_YN"/>
+        <result property="broadcastProgramType"	column="BROADCAST_PROGRAM_TYPE"/>
+    </resultMap>
+    
+    <select id="selectHalfBroadcastScheList" parameterType="hashMap" resultMap="broadcastchedule-result-new">
+    	SELECT /* pahalfbroadcast.xml : pahalf.broadcast.selectHalfBroadcastScheList by PaHalfBroadcastScheController */
+               PS.SEQ_FRAME_NO
+			 , PS.PROG_NAME
+			 , TO_CHAR(PS.BD_DATE, 'YYYYMMDD')	AS BD_DATE
+			 , PS.BROADCAST_START_DATE			AS BD_BTIME         
+			 , PS.BROADCAST_END_DATE			AS BD_ETIME
+			 , PS.SH_MAN_NAME
+			 , PS.PA_GOODS_CODE
+			 , GD.GOODS_CODE
+			 , GD.GOODS_NAME
+			 <!-- , 'http:'||PS.VIDEO_IMAGE AS VIDEO_IMAGE -->
+			 , PS.GOODS_VOD_URL AS VIDEO_IMAGE
+			 , 'http:'||FUN_GETCONFIG('IMG_SERVER_1_URL') || GI.IMAGE_URL || GI.IMAGE_C AS GOODS_IMG_URL  
+			 , PP.BEST_PRICE AS GOODS_PRICE
+			 , DECODE(GD.OMBUDSMAN_YN,'1', 'Y', 'N') AS OMBUDSMAN_YN
+			 , 'N' AS INVI_GOODS_TYPE
+			 , 'Y' AS MAIN_YN
+			 , PS.BROADCAST_PROGRAM_TYPE
+    	  FROM TPABROADSCHE PS
+			 , TPAHALFGOODS PG
+			 , TGOODS GD
+			 , TGOODSIMAGE GI
+			 , TPAGOODSPRICEAPPLY PP
+		 WHERE PS.PA_GOODS_CODE = PG.PRODUCT_NO
+		   AND PG.GOODS_CODE    = GD.GOODS_CODE
+		   AND GD.GOODS_CODE    = GI.GOODS_CODE
+		   AND GD.GOODS_CODE    = PP.GOODS_CODE
+		   AND PS.PA_GROUP_CODE = PP.PA_GROUP_CODE
+		   AND (PP.APPLY_DATE, PP.PRICE_APPLY_SEQ) = (SELECT /*+ INDEX_DESC (PP2 PK_TPAGOODSPRICEAPPLY)*/
+																 PP2.APPLY_DATE, PP2.PRICE_APPLY_SEQ
+															FROM TPAGOODSPRICEAPPLY PP2
+														   WHERE PP2.GOODS_CODE 	= PP.GOODS_CODE
+															 AND PP2.PA_GROUP_CODE 	= PP.PA_GROUP_CODE
+															 AND PP2.PA_CODE 		= PP.PA_CODE
+															 AND PP2.APPLY_DATE &lt;= SYSDATE
+															 AND rownum = 1 )
+		   AND PS.BD_DATE >= TO_DATE(#{bdDate, jdbcType=VARCHAR}, 'YYYY/MM/DD')
+		   AND PS.BD_DATE &lt; TO_DATE(#{bdDate, jdbcType=VARCHAR}, 'YYYY/MM/DD') + 1
+		   AND PS.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+      ORDER BY PS.BROADCAST_START_DATE
+     </select>
+    
+</mapper>

@@ -1,0 +1,482 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pagmkt.cancel">
+
+    <select id="checkPaGmktCancelList" parameterType="com.cware.netshopping.domain.model.PaGmkCancel" resultType="int">
+         SELECT /* pagmktclaim.xml : pagmkt.claim.checkPaGmktClaimList by PaGmktV2CancelController */
+                COUNT(1) AS CNT 
+         FROM   TPAGMKTCANCELLIST PC
+         WHERE  PC.PAY_NO                    = #{payNo, jdbcType=VARCHAR}
+         AND    PC.CONTR_NO                  = #{contrNo, jdbcType=VARCHAR}
+        <!-- AND    PC.REQUEST_DATE              = #{requestDate, jdbcType=TIMESTAMP} --> 
+        <!--G마켓 부분취소없다. 부분취소가 생기면 requset_date까지 고려해야함.. -->
+         AND    PC.CANCEL_STATUS             in ('1', '2')
+         AND    PC.WITHDRAW_YN               = '0'
+         
+    </select> 
+    
+     <insert id="insertPaGmktCancelList" parameterType="com.cware.netshopping.domain.model.PaGmkClaim">
+        INSERT /* pagmktclaim.xml: pagmkt.claim.insertPaGmktCancelList by PaGmktV2CancelController */
+          INTO TPAGMKTCANCELLIST
+            (  PAY_NO
+             , CANCEL_STATUS
+             , CONTR_NO
+             , CONTR_NO_SEQ
+             , GROUP_NO
+             , WITHDRAW_YN
+             , PROC_FLAG
+             , GOODS_NO
+             , SITE_GOODS_NO
+             , REQUEST_USER
+             , APPROVE_USER
+             , ORDER_DATE
+             , PAY_DATE
+             , REQUEST_DATE
+             , APPROVE_DATE
+             , COMPLETE_DATE
+             , WITHDRAW_DATE
+             , REASON
+             , REASON_DETAIL
+             , ADD_SHIPPING_FEE
+             , MODIFY_DATE
+             , INSERT_DATE)
+            VALUES(
+               #{payNo         , jdbcType=VARCHAR}
+             , #{cancelStatus  , jdbcType=VARCHAR}
+             , #{contrNo       , jdbcType=VARCHAR}
+             , #{contrNoSeq    , jdbcType=VARCHAR}
+             , #{groupNo       , jdbcType=VARCHAR}
+             , #{withDrawYn    , jdbcType=VARCHAR} 
+             , #{procNo        , jdbcType=VARCHAR}   
+             , #{goodsNo       , jdbcType=VARCHAR} 
+             , #{siteGoodsNo   , jdbcType=VARCHAR} 
+             , #{requestUser   , jdbcType=VARCHAR} 
+             , #{approveUser   , jdbcType=VARCHAR} 
+             , #{orderDate     , jdbcType=TIMESTAMP} 
+             , #{payDate       , jdbcType=TIMESTAMP} 
+             , #{requestDate   , jdbcType=TIMESTAMP} 
+             , #{approvalDate  , jdbcType=TIMESTAMP} 
+             , #{completeDate  , jdbcType=TIMESTAMP} 
+             , #{withDrawDate  , jdbcType=TIMESTAMP} 
+             , #{reason        , jdbcType=VARCHAR}
+             , #{reasonDetail  , jdbcType=VARCHAR}
+             , #{addShippingFee, jdbcType=NUMERIC}
+             , #{modifyDate    , jdbcType=TIMESTAMP} 
+             , #{insertDate    , jdbcType=TIMESTAMP} 
+             )
+     </insert>
+     
+     <select id="selectPaGmktOrdCancelList"  parameterType ="hashMap"  resultType="hashMap">
+       SELECT /* pagmktclaim.xml : pagmkt.order.selectPaGmktOrdCancelList by PaGmktV2CancelController */
+               PM.PA_ORDER_NO
+             , PM.PA_ORDER_SEQ
+             , OD.DO_FLAG
+             , PM.MAPPING_SEQ
+             , PM.PA_CODE
+             , PM.PA_GROUP_CODE
+             , SM.SLIP_NO
+             , TO_CHAR(PT.REQUEST_DATE,'YYYYMMDDHH24MISS') AS CREATE_DT
+             , PG.PA_DELY_GB
+             , PM.ORDER_NO
+             , PM.ORDER_G_SEQ
+             , PM.ORDER_D_SEQ
+             , PM.ORDER_W_SEQ
+             , OD.GOODS_GB
+             , SM.SLIP_I_NO
+             , OD.GOODS_CODE
+             , OD.GOODSDT_CODE
+             , PT.CANCEL_STATUS
+             , PM.PA_PROC_QTY
+             , PT.CONTR_NO_SEQ
+             , TC.CODE_SNAME AS SITE_GB
+             , TG.ORDER_MAKE_YN
+             , TG.INSTALL_YN
+             , TG.RETURN_NO_YN
+             , TG.DELY_TYPE
+             , OD.SALE_PRICE
+          FROM TPAORDERM PM
+             , TPAGMKTCANCELLIST PT
+             , TORDERDT OD		
+             , TGOODS TG
+             , TSLIPM SM
+             , TSLIPDT SD
+             , TCODE TC
+             , TPADELYGB PG
+         WHERE PM.PA_ORDER_NO   = PT.PAY_NO
+           AND PM.PA_ORDER_SEQ  = PT.CONTR_NO
+           AND PM.ORDER_NO      = OD.ORDER_NO
+           AND PM.ORDER_G_SEQ   = OD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ   = OD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ   = OD.ORDER_W_SEQ
+           AND OD.GOODS_CODE    = TG.GOODS_CODE
+           AND PM.ORDER_NO      = SD.ORDER_NO(+)
+           AND PM.ORDER_G_SEQ   = SD.ORDER_G_SEQ(+)
+           AND PM.ORDER_D_SEQ   = SD.ORDER_D_SEQ(+)
+           AND PM.ORDER_W_SEQ   = SD.ORDER_W_SEQ(+)
+           AND SD.SLIP_I_NO     = SM.SLIP_I_NO(+)
+           AND SM.DELY_GB       = PG.DELY_GB(+)
+           AND TC.CODE_LGROUP   = 'O500'
+           AND TC.CODE_MGROUP   = PM.PA_GROUP_CODE
+           AND TC.USE_YN        = '1'
+           AND PM.PA_ORDER_GB   = '10'
+           AND PT.WITHDRAW_YN   = '0'
+           AND PM.PA_DO_FLAG   &lt; '40'
+           AND PT.CANCEL_STATUS = '1'
+           AND (PT.PROC_FLAG    &lt; '10' OR PT.PROC_FLAG = '90')
+           AND PG.PA_CODE(+)    = '02'
+           AND PM.PA_GROUP_CODE = #{paGroupCode, jdbcType=NUMERIC}
+           AND PM.INSERT_DATE > SYSDATE - 30
+     </select>  
+	
+    <update id="updatePaGmktCancelListProcFlag" parameterType="hashMap">
+        UPDATE TPAGMKTCANCELLIST /* pagmktclaim.xml : pagmkt.claim.updatePaGmktCancelListProcFlag by PaGmktV2CancelController */
+           SET PROC_FLAG     = #{PROC_FLAG, jdbcType=VARCHAR}
+             , MODIFY_DATE   = SYSDATE
+         WHERE PAY_NO        = #{PA_ORDER_NO, jdbcType=VARCHAR}
+           AND CONTR_NO      = #{PA_ORDER_SEQ, jdbcType=NUMERIC}
+           AND CONTR_NO_SEQ  = #{CONTR_NO_SEQ, jdbcType=VARCHAR}
+           AND CANCEL_STATUS &lt;> '4'
+    </update>
+    
+    
+    <select id="selectPaGmktOrdCancel" parameterType="hashMap" resultType="hashMap">
+        SELECT /* pagmktclaim.xml : pagmkt.cancel.selectPaGmktOrdCancel by PaGmktV2CancelController */
+               PM.PA_ORDER_NO
+             , PM.PA_ORDER_SEQ             
+             , '20' AS PA_ORDER_GB
+             , PM.PA_PROC_QTY
+             , PT.CONTR_NO
+             , PT.CONTR_NO_SEQ
+             , PM.PA_CODE
+             , PM.PA_GROUP_CODE
+             , PT.PAY_NO
+             , OD.DO_FLAG
+             , TC.CODE_SNAME AS SITE_GB
+             , CASE WHEN OD.DO_FLAG &gt;= 30 AND OD.DO_FLAG &lt; 40 THEN '1'
+                    WHEN OD.DO_FLAG &gt;= 40  THEN '2'                          <!-- 출고 되고 나서 들어온 취소는 OUT_CLAIM_GB = 2가 된다 -->
+                    ELSE '0'  END AS OUT_CLAIM_GB
+          FROM TPAORDERM PM 
+             , TPAGMKTCANCELLIST PT
+             , TORDERDT OD
+             , TCODE    TC
+         WHERE PM.PA_ORDER_NO   = PT.PAY_NO
+           AND PM.PA_ORDER_SEQ  = PT.CONTR_NO
+           AND OD.ORDER_NO      = PM.ORDER_NO
+           AND OD.ORDER_G_SEQ   = PM.ORDER_G_SEQ
+           AND OD.ORDER_D_SEQ   = PM.ORDER_D_SEQ
+           AND OD.ORDER_W_SEQ   = OD.ORDER_D_SEQ
+           AND PM.PA_ORDER_GB   = '10'
+           AND PT.PAY_NO        = #{paOrderNo, jdbcType=VARCHAR}
+           AND PT.CONTR_NO      = #{paOrderSeq, jdbcType=VARCHAR}
+           AND PT.CONTR_NO_SEQ  = #{paClaimSeq, jdbcType=VARCHAR}     
+           AND PM.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+           AND (PT.PROC_FLAG    &lt; '10' OR    PT.PROC_FLAG  = 90)
+           AND PT.WITHDRAW_YN   = '0'
+           AND TC.CODE_LGROUP   = 'O500'
+           AND TC.CODE_MGROUP   = PM.PA_GROUP_CODE
+           AND ROWNUM = 1
+    </select>
+    
+    <update id="updatePaGmktOrderListProcFlag" parameterType="hashMap">
+        UPDATE TPAGMKTCANCELLIST /* pagmktcancel.xml : pagmkt.cancel.updatePaGmktOrderListProcFlag by PaGmktV2CancelController */
+           SET PROC_FLAG     = #{PROC_FLAG, jdbcType=VARCHAR}
+             , MODIFY_DATE   = SYSDATE
+         WHERE PAY_NO        = #{PAY_NO     , jdbcType=VARCHAR}
+           AND CONTR_NO      = #{CONTR_NO   , jdbcType=VARCHAR}
+           AND CONTR_NO_SEQ  = #{CONTR_W_SEQ, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectBusinessDayAccount" parameterType="hashMap" resultType="int">
+         SELECT /* pagmktcancel.xml : paGmkt.cancel.selectBusinessDayAccount by PaGmktV2CancelController */
+               TRUNC(TO_NUMBER(SYSDATE - TO_DATE(#{CREATE_DT, jdbcType=VARCHAR},'YYYYMMDDHH24MISS'))*24) - 
+               (FUN_GET_DELYDAY_CNT(#{DELY_GB, jdbcType=VARCHAR},TO_DATE(SUBSTR(#{CREATE_DT, jdbcType=VARCHAR},1,8),'YYYYMMDD'), SYSDATE,'0') * 24)
+               AS BUSINESS_DAY
+          FROM DUAL
+    </select>
+    
+    <select id="checkPaGmktCancelWithdawList" parameterType="com.cware.netshopping.domain.model.PaGmkCancel" resultType="int">
+        SELECT COUNT(1) AS CNT /* pagmktcancel.xml : pagmkt.claim.checkPaGmktCancelWithdawList by PaGmktV2CancelController */
+           FROM TPAGMKTCANCELLIST PC
+          WHERE PC.PAY_NO             = #{payNo, jdbcType=VARCHAR}
+            AND PC.CONTR_NO           = #{contrNo, jdbcType=VARCHAR}      
+            AND PC.REQUEST_DATE       = #{requestDate, jdbcType=TIMESTAMP}      
+            <!--AND PC.CLAIM_STATUS       = '10' -->
+            AND PC.WITHDRAW_YN        = '0'
+    </select>
+
+   <update id="updatePaGmktCancelListWithdraw" parameterType="com.cware.netshopping.domain.model.PaGmkCancel">
+        UPDATE TPAGMKTCANCELLIST /* pagmktcancel.xml : pagmkt.claim.updatePaGmktCancelListWithdraw by PaGmktV2CancelController */
+           SET WITHDRAW_YN           = '1'
+             , CANCEL_STATUS         = '4' <!-- 취소 철회 -->
+             , MODIFY_DATE           = SYSDATE
+             , WITHDRAW_DATE         = NVL(#{withDrawDate   , jdbcType=TIMESTAMP}, SYSDATE)
+         WHERE PAY_NO                = #{payNo          , jdbcType=VARCHAR}
+           AND CONTR_NO              = #{contrNo        , jdbcType=VARCHAR}
+           AND REQUEST_DATE          = #{requestDate    , jdbcType=TIMESTAMP}
+           <!-- AND CLAIM_STATUS          = '10' -->
+    </update>
+        
+    
+    <select id="checkPaGmktCancelDoneList" parameterType="com.cware.netshopping.domain.model.PaGmkCancel" resultType="int">
+       SELECT COUNT(1) AS CNT /* pagmktcancel.xml : pagmkt.cancel.checkPaGmktCancelDoneList by PaGmktV2CancelController */
+           FROM TPAGMKTCANCELLIST PC
+          WHERE PC.PAY_NO             = #{payNo  , jdbcType=VARCHAR}
+            AND PC.CONTR_NO           = #{contrNo, jdbcType=VARCHAR}
+            AND (PC.REQUEST_DATE       = #{requestDate, jdbcType=TIMESTAMP} 
+                    OR PC.REQUEST_DATE       = TO_DATE('2999-12-31 23:59:59','YYYY-MM-DD HH24:MI:SS') )
+            AND PC.PROC_FLAG      &lt;= '10'
+            AND PC.WITHDRAW_YN        = '0'
+            AND EXISTS ( SELECT 1
+            			   FROM TPAORDERM P
+            			  WHERE PC.PAY_NO	  	= P.PA_ORDER_NO
+            			    AND PC.CONTR_NO   	= P.PA_ORDER_SEQ
+            			    AND P.PA_ORDER_GB 	= '20'
+            			    AND P.PRE_CANCEL_YN = '0'
+            			)
+    </select>
+    
+    <select id="checkExistOrgOrder" parameterType="com.cware.netshopping.domain.model.PaGmkCancel" resultType="int">
+       SELECT COUNT(1) AS CNT /* pagmktcancel.xml : pagmkt.cancel.checkExistOrgOrder by PaGmktV2CancelController */
+          FROM TPAORDERM PM 
+          WHERE PM.PA_ORDER_NO        = #{payNo  , jdbcType=VARCHAR}
+            AND PM.PA_ORDER_SEQ       = #{contrNo, jdbcType=VARCHAR}
+            AND PM.PA_ORDER_GB        = '10'
+            AND PM.PA_CODE IN ( '20','21','22')
+           <!--AND PM.PA_GROUP_CODE = -->
+            AND PM.CREATE_YN  = '1'
+    </select>
+    
+    <select id="selectPaGmktCancelReqQty" parameterType="com.cware.netshopping.domain.model.PaGmkCancel" resultType="String">
+        SELECT /* pagmktcancel.xml : pagmkt.cancel.selectPaGmktCancelReqQty by PaGmktV2CancelController */
+               PA_PROC_QTY
+          FROM TPAORDERM PA
+         WHERE PA.PA_ORDER_NO       = #{payNo, jdbcType=VARCHAR}
+           AND PA.PA_ORDER_SEQ      = #{contrNo, jdbcType=VARCHAR}
+           AND PA.PA_ORDER_GB       = '10'
+           AND PA.PA_CODE           = #{paCode, jdbcType=VARCHAR}
+           AND ROWNUM               = 1
+    </select>
+   
+    <select id="selectUnpaidPreOrderList" parameterType="hashMap" resultType="hashMap">
+    SELECT /* pagmktcancel.xml : pagmkt.cancel.selectUnpaidPreOrderList by PaGmktV2CancelController */
+           OL.PAY_NO          AS PAY_NO
+           ,OL.GROUP_NO       AS GROUP_NO
+           ,OL.CONTR_NO       AS ORDER_NO
+           ,OL.GOODS_NO       AS GOODS_NO
+           ,OL.SITE_GOODS_NO  AS SITE_GOODS_NO 
+           ,'4'               AS REQUEST_USER
+           ,'5'               AS APPROVE_USER
+           ,'3'               AS CANCEL_STATUS
+           ,'2'               AS REASON
+           ,'무통장미입금'      AS REASON_DETAIL
+           ,OL.ORDER_DATE     AS ORDER_DATE
+           ,0                 AS ADD_SHIPPING_FEE
+           ,SYSDATE           AS APPROVE_DATE
+           ,SYSDATE           AS COMPLETE_DATE
+          ,TO_DATE('2999-12-31 23:59:59','YYYY-MM-DD HH24:MI:SS')         
+                              AS REQUEST_DATE
+      FROM TPAORDERM PM, TPAGMKTORDERLIST OL
+     WHERE PM.PA_ORDER_NO  = OL.PAY_NO
+       AND PM.PA_ORDER_SEQ = OL.CONTR_NO
+       AND PM.CREATE_YN    = '1'
+       AND PM.PRE_CANCEL_YN = '0'
+       AND PM.PA_GROUP_CODE = #{paGroupCode  , jdbcType=VARCHAR}
+       AND TRUNC(PM.CREATE_DATE) &lt; (SYSDATE) - 4
+       AND PM.PA_DO_FLAG   &lt;= '10'  
+       AND OL.PAY_DATE IS NULL
+       AND NOT EXISTS (SELECT 'X' 
+                         FROM TPAGMKTCANCELLIST CL
+                        WHERE CL.PAY_NO   = OL.PAY_NO
+                          AND CL.CONTR_NO = OL.CONTR_NO
+                          AND CL.WITHDRAW_YN = 0)
+    </select>
+    
+	<select id="selectDelyType" parameterType="String" resultType="String">
+		SELECT /* pagmktcancel.xml : pagmkt.cancel.selectDelyType by PaGmktV2CancelController */
+			   TG.DELY_TYPE
+		  FROM TGOODS TG, TORDERDT OD
+		 WHERE TG.GOODS_CODE = OD.GOODS_CODE
+		   AND OD.ORDER_NO = (SELECT PM.ORDER_NO
+								FROM TPAORDERM PM
+							   WHERE PM.PA_ORDER_GB = '10'
+								 AND PM.CREATE_YN = '1'
+								 AND PM.PA_GROUP_CODE IN ('02', '03')
+								 AND PM.PA_ORDER_SEQ = #{contrNo, jdbcType = VARCHAR}
+								 AND ROWNUM = 1)
+           AND ROWNUM = 1
+    </select>  
+
+    <select id="selectOrderdtDoFlag" parameterType="com.cware.netshopping.domain.Pa11storderlistVO" resultType="String">
+    	SELECT /* pagmktcancel.xml : pagmkt.cancel.selectOrderdtDoFlag by PaGmktV2CancelController */
+    		   OD.DO_FLAG
+    	  FROM TPAORDERM PM
+    	     , TORDERDT OD
+    	 WHERE PM.ORDER_NO 		= OD.ORDER_NO
+    	   AND PM.ORDER_G_SEQ 	= OD.ORDER_G_SEQ
+    	   AND PM.ORDER_D_SEQ 	= OD.ORDER_D_SEQ
+    	   AND PM.ORDER_W_SEQ 	= OD.ORDER_W_SEQ
+    	   AND PM.PA_CODE IN ('22', '21')
+    	   AND PM.PA_ORDER_GB 	= '10'
+    	   AND PM.PA_ORDER_NO 	= #{payNo, 		jdbcType=VARCHAR}
+		   AND PM.PA_ORDER_SEQ 	= #{contrNo,	jdbcType=VARCHAR}
+    </select>
+    
+  	<select id="selectPaGmktCancelProcFlag" parameterType="com.cware.netshopping.domain.model.PaGmkCancel" resultType="String">
+    	SELECT PC.PROC_FLAG /* pagmktcancel.xml : pagmkt.cancel.selectPaGmktCancelProcFlag by PaGmktV2CancelController */
+           FROM TPAGMKTCANCELLIST PC
+          WHERE PC.PAY_NO             = #{payNo, jdbcType=VARCHAR}
+            AND PC.CONTR_NO           = #{contrNo, jdbcType=VARCHAR}      
+            AND PC.REQUEST_DATE       = #{requestDate, jdbcType=TIMESTAMP}      
+            AND PC.WITHDRAW_YN        = '0'
+    </select>
+  	<select id="selectPaGmktOrderList" parameterType="com.cware.netshopping.domain.model.PaGmkCancel" resultType="com.cware.netshopping.domain.model.PaGmkOrder">
+        SELECT  /* pagmktcancel.xml : pagmkt.claim.selectPaGmktOrderList by PaGmktV2CancelController */
+		        PO.RECEIVER_ADDRESS 
+			    , PO.RECEIVER_ADDRESS1
+				, PO.RECEIVER_ADDRESS2
+				, PO.RECEIVER_MOBILE
+				, PO.RECEIVER_NAME
+				, PO.RECEIVER_TEL
+				, PO.RECEIVER_ZIPCODE
+				, PM.PA_GROUP_CODE
+				, PM.PA_CODE
+           FROM TPAGMKTORDERLIST PO
+              , TPAORDERM PM
+          WHERE PO.PAY_NO        =  PM.PA_ORDER_NO
+          	AND PO.CONTR_NO      =  PM.PA_ORDER_SEQ
+          	AND PM.PA_ORDER_GB   = '10'
+          	AND PO.PAY_NO        = #{payNo, jdbcType=VARCHAR}
+            AND PO.CONTR_NO      = #{contrNo, jdbcType=VARCHAR}      
+    </select>
+    
+  	<select id="selectPaMobileOrderAutoCancelList" parameterType="hashMap" resultType="hashMap">
+	    SELECT /* pagmktcancel.xml : pagmkt.claim.selectPaMobileOrderAutoCancelList by PaGmktV2CancelController */
+               A.ORDER_NO
+             , A.ORDER_G_SEQ
+             , A.ORDER_DATE
+             , PM.PA_ORDER_NO
+             , PM.PA_ORDER_SEQ
+             , PM.PA_CODE
+             , PM.PA_GROUP_CODE
+          FROM TORDERDT A
+               LEFT OUTER JOIN TMOBILEGOODSDELYPLAN B
+                 ON A.ORDER_NO = B.ORDER_NO
+                AND A.ORDER_G_SEQ = B.ORDER_G_SEQ
+                AND A.ORDER_D_SEQ = B.ORDER_D_SEQ
+                AND A.ORDER_W_SEQ = B.ORDER_W_SEQ
+             , TORDERPROC C
+             , TGOODS D
+               LEFT OUTER JOIN TGOODSADDINFO E
+                 ON D.GOODS_CODE = E.GOODS_CODE
+               LEFT OUTER JOIN TLGS_ORDER_CANCEL_EXCEPT_FIX EF
+                 ON D.GOODS_CODE = EF.GOODS_CODE
+               LEFT OUTER JOIN TLGS_ORDER_CANCEL_EXCEPT_PLAN EP
+                 ON D.GOODS_CODE = EP.GOODS_CODE
+                AND TRUNC(SYSDATE) BETWEEN EP.EXCEPT_FROM_DATE AND EP.EXCEPT_TO_DATE
+                AND EP.STATUS = '10'
+             , TENTERPRISE F
+             LEFT OUTER JOIN TMOBILEENTPEXCEPT ME
+                 ON F.ENTP_CODE = ME.ENTP_CODE
+                LEFT OUTER JOIN TLGS_MOBILE_ENTP_EXCEPT_PLAN MP
+                     ON F.ENTP_CODE = MP.ENTP_CODE
+                    AND TRUNC(SYSDATE) BETWEEN MP.EXCEPT_FROM_DATE AND MP.EXCEPT_TO_DATE
+                    AND MP.STATUS = '10'
+             , TMD G
+             , TPAORDERM PM
+         WHERE A.DO_FLAG > '20'
+           AND A.DO_FLAG &lt; '40'
+           AND A.GOODS_CODE = D.GOODS_CODE
+           AND A.ORDER_NO = C.ORDER_NO
+           AND A.ORDER_G_SEQ = C.ORDER_G_SEQ
+           AND A.ORDER_D_SEQ = C.ORDER_D_SEQ
+           AND A.ORDER_W_SEQ = C.ORDER_W_SEQ
+           AND C.DO_FLAG = '25' 
+           AND D.ENTP_CODE = F.ENTP_CODE
+           AND D.MD_CODE = G.MD_CODE
+           AND A.ORDER_NO = PM.ORDER_NO
+           AND A.ORDER_G_SEQ = PM.ORDER_G_SEQ
+           AND A.ORDER_D_SEQ = PM.ORDER_D_SEQ
+           AND A.ORDER_W_SEQ = PM.ORDER_W_SEQ
+           AND PM.PA_CODE IN ('21','22')
+           AND PM.PA_ORDER_GB IN ('10', '40')
+           AND PM.REMARK3_N IS NULL
+           AND D.SOURCING_MEDIA = '61'
+           AND E.TV_LIVE_GB = '2'
+           AND NVL(EP.EXCEPT_GB, NVL(EF.EXCEPT_GB, NVL(MP.MOBILE_EXCEPT_GB, NVL(ME.MOBILE_EXCEPT_GB, '1')))) = '1' 
+           AND EXISTS (SELECT 'X'
+                         FROM TENTERPRISE W, TMD E
+                        WHERE D.ENTP_CODE = W.ENTP_CODE
+                          AND W.MD_CODE = E.MD_CODE
+                          AND E.SOURCING_MEDIA = '61')
+           AND D.GIFT_YN = '0'
+           AND D.INSTALL_YN = '0'
+           AND D.INVI_GOODS_TYPE = '00'
+           AND NVL(E.ORDER_CREATE_YN, '0') = '0'
+           <choose>
+            <when test = 'paGroupCode != null and paGroupCode != "" and paGroupCode == "02"'>
+             AND A.MEDIA_CODE = 'EX02'
+            </when>
+            <when test = 'paGroupCode != null and paGroupCode != "" and paGroupCode == "03"'>
+             AND A.MEDIA_CODE = 'EX03'
+            </when>
+           </choose>  
+           AND NVL(E.RESERVE_YN, '0') = '0' /*예약상품제외*/
+           AND E.DAWN_YN != '1' /*새벽배송 동원홈푸드 상품제외*/
+           AND NVL(A.APPN_DAY_OUT_YN, '0') != '1' /* 지정일 출고는 당사만 하기때문에 제외 */
+           AND NVL(A.RESERV_ORD_YN, '0')   != '1' /* 예약주문은 당사만 하기때문에 제외 */
+           AND A.ORDER_DATE &lt; TRUNC(SYSDATE) - INTERVAL '2' DAY
+           AND C.PROC_DATE >= TRUNC(ADD_MONTHS(SYSDATE - INTERVAL '2' DAY,-1))
+           AND C.PROC_DATE &lt; TRUNC(SYSDATE) - INTERVAL '2' DAY
+         AND E.GLOBAL_DELY_YN = '0'
+         AND E.EM_MULTI_GOODS_YN = '0'
+           /*현재일이 배송예정일 마감일 당일인 주문 처리
+           AND (CASE
+                 WHEN B.DELY_PLAN_DELAY_DATE IS NOT NULL THEN
+                  TRUNC(B.DELY_PLAN_DELAY_DATE)
+                 ELSE
+              (FUN_GET_DELYDAY_HOLI_DATE_MOB('10',
+                                  TRUNC(C.PROC_DATE),
+                                 '1',
+                                 NVL(ME.BASE_DELY_DAY,3))) END) = TRUNC(SYSDATE)*/
+           /*현재일이 배송예정일 마감일 당일인 주문 처리 or 배송예정일 마감일이 당일 이전인 지난 주문까지 처리 시 사용*/
+           AND (CASE
+                 WHEN B.DELY_PLAN_DELAY_DATE IS NOT NULL THEN
+                  TRUNC(B.DELY_PLAN_DELAY_DATE)
+                 ELSE
+              (FUN_GET_DELYDAY_HOLI_DATE_ENTP('10',
+                                  TRUNC(C.PROC_DATE),
+                                 '1',
+                                 NVL(EP.EXCEPT_DELY_DAY, NVL(EF.EXCEPT_DELY_DAY, NVL(MP.BASE_DELY_DAY, NVL(ME.BASE_DELY_DAY, 3)))),
+                                 D.ENTP_CODE))  END) &lt;= TRUNC(SYSDATE)
+           AND (EXISTS (SELECT 'X'
+                          FROM TMOBILEENTPEXCEPT W
+                         WHERE W.ENTP_CODE = D.ENTP_CODE
+                           AND W.MOBILE_EXCEPT_GB = '1') OR
+                EXISTS (SELECT 'X'
+                          FROM TLGS_MOBILE_ENTP_EXCEPT_PLAN MP
+                         WHERE D.ENTP_CODE = MP.ENTP_CODE
+                           AND TRUNC(SYSDATE) BETWEEN MP.EXCEPT_FROM_DATE AND MP.EXCEPT_TO_DATE
+                           AND MP.STATUS = '10' ) OR
+                EXISTS (SELECT 'X'
+                          FROM TLGS_ORDER_CANCEL_EXCEPT_FIX EF
+                         WHERE EF.GOODS_CODE = D.GOODS_CODE) OR
+                EXISTS (SELECT 'X'
+                          FROM TLGS_ORDER_CANCEL_EXCEPT_PLAN EP
+                         WHERE D.GOODS_CODE = EP.GOODS_CODE
+                           AND TRUNC(SYSDATE) BETWEEN EP.EXCEPT_FROM_DATE AND EP.EXCEPT_TO_DATE
+                           AND EP.STATUS = '10'  ) )
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TCLAIMDT W
+                            WHERE W.ORDER_NO = A.ORDER_NO
+                              AND W.CUST_NO = A.CUST_NO)
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TCANCELDT W
+                            WHERE W.ORDER_NO = A.ORDER_NO
+                              AND W.CUST_NO = A.CUST_NO)  
+         GROUP BY A.ORDER_NO, A.ORDER_G_SEQ, A.ORDER_DATE, PM.PA_ORDER_NO, PM.PA_ORDER_SEQ, PM.PA_CODE, PM.PA_GROUP_CODE
+    </select>
+    
+    
+</mapper>

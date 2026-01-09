@@ -1,0 +1,2070 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+	"http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="panaver.goods"> 
+    
+	<select id="selectPaGoodsImage" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaGoodsImage">
+       SELECT /* panavergoods.xml : paNaver.paNavergoods.selectPaGoodsImage by PaNaverGoodsController-goodsImageSelect */
+              PG.GOODS_CODE
+			, 'http:'||FUN_GETCONFIG('IMG_SERVER_1_URL') AS IMAGE_URL_1
+		    , GI.IMAGE_URL AS IMAGE_URL_2
+	        , GI.IMAGE_G AS IMAGE_P
+	        , GI.IMAGE_AG AS IMAGE_AP
+	        , GI.IMAGE_BG AS IMAGE_BP
+	        , GI.IMAGE_CG AS IMAGE_CP
+	        , GI.IMAGE_DG AS IMAGE_DP
+		    , PG.LAST_SYNC_DATE
+		    , NVL(( SELECT '1'
+		          FROM TPANAVERGOODSIMAGE PNG
+		          WHERE PNG.GOODS_CODE = PG.GOODS_CODE
+		      ),'0') AS NAVER_IMAGE_YN
+		FROM TPAGOODSIMAGE PG
+		    ,TGOODSIMAGE GI
+		WHERE PG.GOODS_CODE = #{paGoodsCode, jdbcType=VARCHAR}
+		AND PG.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+		AND GI.GOODS_CODE = PG.GOODS_CODE
+	</select>
+    
+	<insert id="insertPaNaverGoodsImage" parameterType="com.cware.netshopping.domain.model.PaNaverGoodsImage">
+        INSERT INTO TPANAVERGOODSIMAGE /* panavergoods.xml : paNaver.paNavergoods.insertPaNaverGoodsImage by PaNaverGoodsController-goodsImageInsert */
+        (
+        	GOODS_CODE,
+			IMAGE_NAVER_P,
+			IMAGE_NAVER_AP,
+			IMAGE_NAVER_BP,
+			IMAGE_NAVER_CP,
+			IMAGE_NAVER_DP,
+			LAST_SYNC_DATE,
+			INSERT_ID,
+			INSERT_DATE,
+			MODIFY_ID,
+			MODIFY_DATE
+		)
+        VALUES
+		(
+			#{goodsCode,jdbcType=VARCHAR},
+			#{imageNaverP,jdbcType=VARCHAR},
+			#{imageNaverAp,jdbcType=VARCHAR},
+			#{imageNaverBp,jdbcType=VARCHAR},
+			#{imageNaverCp,jdbcType=VARCHAR},
+			#{imageNaverDp,jdbcType=VARCHAR},
+			#{lastSyncDate,jdbcType=DATE},
+			#{insertId,jdbcType=VARCHAR},
+			#{insertDate,jdbcType=DATE},
+			#{modifyId,jdbcType=VARCHAR},
+			#{modifyDate,jdbcType=DATE}
+		)
+	</insert>
+    
+	<update id="updateUploadPaNaverGoodsImage" parameterType="com.cware.netshopping.domain.model.PaNaverGoodsImage">
+       UPDATE /* panavergoods.xml : paNaver.paNavergoods.updatePaNaverGoodsImageTx by PaNaverGoodsController-goodsImageInsert */
+              TPANAVERGOODSIMAGE
+          SET IMAGE_NAVER_P = #{imageNaverP, jdbcType=VARCHAR}
+            , IMAGE_NAVER_AP = #{imageNaverAp, jdbcType=VARCHAR}
+            , IMAGE_NAVER_BP = #{imageNaverBp, jdbcType=VARCHAR}
+            , IMAGE_NAVER_CP = #{imageNaverCp, jdbcType=VARCHAR}
+            , IMAGE_NAVER_DP = #{imageNaverDp, jdbcType=VARCHAR}
+            , LAST_SYNC_DATE = #{lastSyncDate, jdbcType=DATE}
+            , MODIFY_DATE = #{lastSyncDate, jdbcType=DATE}
+        WHERE GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+          AND MODIFY_ID = #{modifyId, jdbcType=VARCHAR} 
+	</update>
+
+	<select id="selectPaNaverGoodsImage" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaNaverGoodsImageVO">
+		SELECT /* panavergoods.xml : paNaver.paNavergoods.selectPaNaverGoodsImage by PaNaverGoodsController-goodsTrans */
+		       PNG.GOODS_CODE, 
+		       PNG.IMAGE_NAVER_P, 
+		       PNG.IMAGE_NAVER_AP, 
+		       PNG.IMAGE_NAVER_BP, 
+		       PNG.IMAGE_NAVER_CP, 
+		       PNG.IMAGE_NAVER_DP
+		  FROM TPANAVERGOODSIMAGE PNG
+		 WHERE PNG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+		   AND EXISTS ( SELECT '1'
+		                  FROM TPAGOODSIMAGE PG
+		                 WHERE PNG.GOODS_CODE = PG.GOODS_CODE
+		                   AND PG.PA_GROUP_CODE = #{groupCode, jdbcType=VARCHAR}	
+			               AND PG.TRANS_TARGET_YN = '0'
+			               AND PG.LAST_SYNC_DATE = PNG.LAST_SYNC_DATE
+		               )
+	</select>
+    
+	<resultMap id="result-paWearSummary" type="com.cware.api.panaver.product.type.WearSummaryType">
+		<result property="size"	column="WEAR_SIZE" />
+	</resultMap>
+	<select id="selectWearSummary" parameterType="hashMap" resultMap="result-paWearSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040106') AS MATERIAL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040107') AS COLOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040108') AS WEAR_SIZE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040109') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040110') AS CAUTION
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040111') AS PACK_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040112') AS PACK_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040113') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040114') AS AFTER_SERVICE_DIRECTOR
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paShoesSummary" type="com.cware.api.panaver.product.type.ShoesSummaryType">
+		<result property="size"	column="SHOES_SIZE" />
+	</resultMap>
+	<select id="selectShoesSummary" parameterType="hashMap" resultMap="result-paShoesSummary">
+		SELECT '상품상세 참조' AS NO_REFUND_REASON
+		     , '상품상세 참조' AS RETURN_COST_REASON
+		     , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+		     , '상품상세 참조' AS COMPENSATION_PROCEDURE
+		     , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS		     
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040206') AS MATERIAL
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040207') AS COLOR
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040208') AS SHOES_SIZE
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040209') AS HEIGHT
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040210') AS MANUFACTURER
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040211') AS CAUTION
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040212') AS WARRANTY_POLICY
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040213') AS AFTER_SERVICE_DIRECTOR
+		FROM DUAL
+	</select>
+    
+	<resultMap id="result-paBagSummary" type="com.cware.api.panaver.product.type.BagSummaryType">
+		<result property="type"	column="BAG_TYPE" />
+		<result property="size"	column="BAG_SIZE" />
+	</resultMap>
+	<select id="selectBagSummary" parameterType="hashMap" resultMap="result-paBagSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040306') AS BAG_TYPE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040307') AS MATERIAL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040308') AS COLOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040309') AS BAG_SIZE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040310') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040311') AS CAUTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040312') AS WARRANTY_POLICY 
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040313') AS AFTER_SERVICE_DIRECTOR 
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paFashionItemsSummary" type="com.cware.api.panaver.product.type.FashionItemsSummaryType">
+		<result property="type"	column="FASHION_ITEMS_TYPE" />
+		<result property="size"	column="FASHION_ITEMS_SIZE" />
+	</resultMap>
+	<select id="selectFashionItemsSummary" parameterType="hashMap" resultMap="result-paFashionItemsSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040406') AS FASHION_ITEMS_TYPE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040407') AS MATERIAL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040408') AS FASHION_ITEMS_SIZE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040409') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040410') AS CAUTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040411') AS WARRANTY_POLICY 
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040412') AS AFTER_SERVICE_DIRECTOR
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paSleepingGearSummary" type="com.cware.api.panaver.product.type.SleepingGearSummaryType">
+		<result property="color"	column="SLEEPING_GEAR_COLOR" />
+		<result property="size"		column="SLEEPING_GEAR_SIZE" />
+	</resultMap>
+	<select id="selectSleepingGearSummary" parameterType="hashMap" resultMap="result-paSleepingGearSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040506') AS MATERIAL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040507') AS SLEEPING_GEAR_COLOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040508') AS SLEEPING_GEAR_SIZE 
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040509') AS COMPONENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040510') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040511') AS CAUTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040512') AS WARRANTY_POLICY
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040513') AS AFTER_SERVICE_DIRECTOR
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paFurnitureSummary" type="com.cware.api.panaver.product.type.FurnitureSummaryType">
+		<result property="color"	column="FURNITURE_COLOR" />
+		<result property="size"		column="FURNITURE_SIZE" />
+	</resultMap>
+	<select id="selectFurnitureSummary" parameterType="hashMap" resultMap="result-paFurnitureSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040606') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040607') AS CERTIFIED
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040608') AS FURNITURE_COLOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040609') AS COMPONENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040610') AS MATERIAL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040611') AS MANUFACTURER 
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040612') AS IMPORTER 
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040613') AS PRODUCER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040614') AS FURNITURE_SIZE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040615') AS INSTALLED_CHARGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040616') AS WARRANTY_POLICY
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040617') AS AFTER_SERVICE_DIRECTOR
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040618') AS REFURB
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paImageAppliancesSummary" type="com.cware.api.panaver.product.type.ImageAppliancesSummaryType">
+		<result property="size"	column="IMAGE_APPLIANCES_SIZE" />
+	</resultMap>
+	<select id="selectImageAppliancesSummary" parameterType="hashMap" resultMap="result-paImageAppliancesSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040706') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040707') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040708') AS CERTIFIED
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040709') AS RATED_VOLTAGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040710') AS POWER_CONSUMPTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040711') AS ENERGY_EFFICIENCY_RATING
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040712') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040713') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040714') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040715') AS IMAGE_APPLIANCES_SIZE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040716') AS DISPLAY_SPECIFICATION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040717') AS WARRANTY_POLICY
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040718') AS AFTER_SERVICE_DIRECTOR
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040719') AS ADDITIONAL_COST
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paHomeAppliancesSummary" type="com.cware.api.panaver.product.type.HomeAppliancesSummaryType">
+		<result property="size"	column="HOME_APPLIANCES_SIZE" />
+	</resultMap>
+	<select id="selectHomeAppliancesSummary" parameterType="hashMap" resultMap="result-paHomeAppliancesSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040804') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040805') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040806') AS CERTIFIED
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040807') AS RATED_VOLTAGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040808') AS POWER_CONSUMPTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040809') AS ENERGY_EFFICIENCY_RATING
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040810') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040811') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040812') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040813') AS HOME_APPLIANCES_SIZE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040814') AS WARRANTY_POLICY
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040815') AS AFTER_SERVICE_DIRECTOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040816') AS ADDITIONAL_COST
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paSeasonAppliancesSummary" type="com.cware.api.panaver.product.type.SeasonAppliancesSummaryType">
+		<result property="size"	column="SEASON_APPLIANCES_SIZE" />
+	</resultMap>
+	<select id="selectSeasonAppliancesSummary" parameterType="hashMap" resultMap="result-paSeasonAppliancesSummary">
+    	
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040906') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040907') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040908') AS CERTIFIED
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040909') AS RATED_VOLTAGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040910') AS POWER_CONSUMPTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040911') AS ENERGY_EFFICIENCY_RATING
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040912') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040913') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040914') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040915') AS SEASON_APPLIANCES_SIZE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040916') AS AREA
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040917') AS INSTALLED_CHARGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040918') AS WARRANTY_POLICY
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'040919') AS AFTER_SERVICE_DIRECTOR
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paOfficeAppliancesSummary" type="com.cware.api.panaver.product.type.OfficeAppliancesSummaryType">
+		<result property="specification"	column="OFFICE_SPECIFICATION" />
+		<result property="size"				column="OFFICE_APPLIANCES_SIZE" />
+	</resultMap>
+	<select id="selectOfficeAppliancesSummary" parameterType="hashMap" resultMap="result-paOfficeAppliancesSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041006') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041007') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041008') AS CERTIFIED
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041009') AS RATED_VOLTAGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041010') AS POWER_CONSUMPTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041011') AS ENERGY_EFFICIENCY_RATING
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041012') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041013') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041014') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041015') AS OFFICE_APPLIANCES_SIZE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041016') AS WEIGHT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041017') AS OFFICE_SPECIFICATION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041018') AS WARRANTY_POLICY
+		     , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041019') AS AFTER_SERVICE_DIRECTOR
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paOpticsAppliancesSummary" type="com.cware.api.panaver.product.type.OpticsAppliancesSummaryType">
+		<result property="specification"	column="OPTICS_SPECIFICATION" />
+		<result property="size"				column="OPTICS_APPLIANCES_SIZE" />
+	</resultMap>
+	<select id="selectOpticsAppliancesSummary" parameterType="hashMap" resultMap="result-paOpticsAppliancesSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041106') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041107') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041108') AS CERTIFIED 
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041109') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041110') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041111') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041112') AS OPTICS_APPLIANCES_SIZE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041113') AS WEIGHT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041114') AS OPTICS_SPECIFICATION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041115') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041116') AS AFTER_SERVICE_DIRECTOR
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paMicroElectronicsSummary" type="com.cware.api.panaver.product.type.MicroElectronicsSummaryType">
+		<result property="specification"	column="MICRO_SPECIFICATION" />
+		<result property="size"				column="MICRO_ELECTRONICS_SIZE" />
+	</resultMap>
+	<select id="selectMicroElectronicsSummary" parameterType="hashMap" resultMap="result-paMicroElectronicsSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041206') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041207') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041208') AS CERTIFIED
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041209') AS RATED_VOLTAGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041210') AS POWER_CONSUMPTION
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041211') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041212') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041213') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041214') AS MICRO_ELECTRONICS_SIZE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041215') AS WEIGHT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041216') AS MICRO_SPECIFICATION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041217') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041218') AS AFTER_SERVICE_DIRECTOR
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paNavigationSummary" type="com.cware.api.panaver.product.type.NavigationSummaryType">
+		<result property="specification"	column="NAVIGATION_SPECIFICATION" />
+		<result property="size"				column="NAVIGATION_SIZE" />
+	</resultMap>
+	<select id="selectNavigationSummary" parameterType="hashMap" resultMap="result-paNavigationSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041406') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041407') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041408') AS CERTIFIED
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041409') AS RATED_VOLTAGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041410') AS POWER_CONSUMPTION
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041411') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041412') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041413') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041414') AS NAVIGATION_SIZE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041415') AS WEIGHT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041416') AS NAVIGATION_SPECIFICATION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041417') AS UPDATE_COST
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041418') AS FREE_COST_PERIOD
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041419') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041420') AS AFTER_SERVICE_DIRECTOR
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paCarArticlesSummary" type="com.cware.api.panaver.product.type.CarArticlesSummaryType">
+		<result property="size"	column="CAR_ARTICLES_SIZE" />
+	</resultMap>
+	<select id="selectCarArticlesSummary" parameterType="hashMap" resultMap="result-paCarArticlesSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041506') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041507') AS MODEL_NAME
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041508') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041509') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041510') AS CERTIFIED
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041511') AS CAUTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041512') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041513') AS CAR_ARTICLES_SIZE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041514') AS APPLY_MODEL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041515') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041516') AS AFTER_SERVICE_DIRECTOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041517') AS ROAD_WORTHY_CERTIFICATION
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paMedicalAppliancesSummary" type="com.cware.api.panaver.product.type.MedicalAppliancesSummaryType">
+		<result property="usage"	column="MEDICAL_USAGE" />
+	</resultMap>
+	<select id="selectMedicalAppliancesSummary" parameterType="hashMap" resultMap="result-paMedicalAppliancesSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041606') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041607') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041608') AS LICENCE_NO
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041609') AS ADVERTISING_CERTIFIED
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041610') AS RATED_VOLTAGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041611') AS POWER_CONSUMPTION
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041612') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041613') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041614') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041615') AS PURPOSE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041616') AS MEDICAL_USAGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041617') AS CAUTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041618') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041619') AS AFTER_SERVICE_DIRECTOR
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paKitchenUtensilsSummary" type="com.cware.api.panaver.product.type.KitchenUtensilsSummaryType">
+		<result property="size"	column="KITCHEN_UTENSILS_SIZE" />
+	</resultMap>
+	<select id="selectKitchenUtensilsSummary" parameterType="hashMap" resultMap="result-paKitchenUtensilsSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041706') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041707') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041708') AS MATERIAL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041709') AS COMPONENT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041710') AS KITCHEN_UTENSILS_SIZE
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041711') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041712') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041713') AS MANUFACTURER
+	         , 'N' AS IMPORT_DECLARATION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041715') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041716') AS AFTER_SERVICE_DIRECTOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041717') AS PRODUCER
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paCosmeticSummary" type="com.cware.api.panaver.product.type.CosmeticSummaryType">
+		<result property="specification"	column="COSMETIC_SPECIFICATION" />
+		<result property="usage"			column="COSMETIC_USAGE" />
+	</resultMap>
+	<select id="selectCosmeticSummary" parameterType="hashMap" resultMap="result-paCosmeticSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041806') AS CAPACITY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041807') AS COSMETIC_SPECIFICATION
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041808') AS EXPIRATION_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041809') AS EXPIRATION_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041810') AS COSMETIC_USAGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041811') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041812') AS DISTRIBUTOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041813') AS MAIN_INGREDIENT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041814') AS CERTIFIED
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041815') AS CAUTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041816') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041817') AS CUSTOMER_SERVICE_PHONE_NUMBER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041818') AS PRODUCER
+			 , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041819') AS CUSTOMIZED_DISTRIBUTOR
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paJewellerySummary" type="com.cware.api.panaver.product.type.JewellerySummaryType">
+		<result property="size" 			column="JEWELLERY_SIZE" />
+		<result property="specification" 	column="JEWELLERY_SPECIFICATION" />
+	</resultMap>
+	<select id="selectJewellerySummary" parameterType="hashMap" resultMap="result-paJewellerySummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041906') AS MATERIAL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041907') AS PURITY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041908') AS BAND_MATERIAL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041909') AS WEIGHT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041910') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041911') AS PRODUCER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041912') AS JEWELLERY_SIZE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041913') AS CAUTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041914') AS JEWELLERY_SPECIFICATION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041915') AS PROVIDE_WARRANTY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041916') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'041917') AS AFTER_SERVICE_DIRECTOR
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paFoodSummary" type="com.cware.api.panaver.product.type.FoodSummaryType">
+		<result property="keep" column="FOOD_KEEP" />
+		<result property="size" column="FOOD_SIZE" />
+	</resultMap>
+	<select id="selectFoodSummary" parameterType="hashMap" resultMap="result-paFoodSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042006') AS WEIGHT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042007') AS AMOUNT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042008') AS FOOD_SIZE
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042009') AS PACK_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042010') AS PACK_DATE_TEXT
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042011') AS EXPIRATION_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042012') AS EXPIRATION_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042013') AS PRODUCER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042014') AS RELEVANT_LAW_CONTENT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042015') AS PRODUCT_COMPOSITION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042016') AS FOOD_KEEP
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042017') AS CUSTOMER_SERVICE_PHONE_NUMBER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042018') AS FOOD_ITEM
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042019') AS AD_CAUTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042020') AS CONSUMPTION_DATE_TEXT
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paGeneralFoodSummary" type="com.cware.api.panaver.product.type.GeneralFoodSummaryType">
+<!-- 		<result property="babyFoodOrDietFoodAdDeliberation" column="BABY_OR_DIET_AD_DELIBERATION" /> -->
+		<result property="location" 						column="FOOD_LOCATION" />
+	</resultMap>
+	<select id="selectGeneralFoodSummary" parameterType="hashMap" resultMap="result-paGeneralFoodSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042106') AS FOOD_TYPE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042107') AS PRODUCER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042108') AS FOOD_LOCATION
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042109') AS PACK_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042110') AS PACK_DATE_TEXT
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042111') AS EXPIRATION_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042112') AS EXPIRATION_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042113') AS WEIGHT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042114') AS AMOUNT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042115') AS INGREDIENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042116') AS NUTRITION_FACTS
+	         , 'N' AS GENETICALLY_MODIFIED
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042118') AS BABY_OR_DIET_AD_DELIBERATION
+	         , 'N' AS IMPORT_DECLARATION_CHECK
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042120') AS CUSTOMER_SERVICE_PHONE_NUMBER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042121') AS PRODUCT_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042122') AS CONSUMER_SAFETY_CAUTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042123') AS CONSUMPTION_DATE_TEXT
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paDietFoodSummary" type="com.cware.api.panaver.product.type.DietFoodSummaryType">
+		<result property="specification" 	column="DIET_FOOD_SPECIFICATION" />
+		<result property="location" 		column="DIET_FOOD_LOCATION" />
+	</resultMap>
+	<select id="selectDietFoodSummary" parameterType="hashMap" resultMap="result-paDietFoodSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042207') AS PRODUCER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042208') AS DIET_FOOD_LOCATION
+	    <!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042210') AS PACK_DATE_TEXT -->
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042211') AS EXPIRATION_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042212') AS EXPIRATION_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042213') AS WEIGHT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042214') AS AMOUNT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042215') AS INGREDIENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042216') AS NUTRITION_FACTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042217') AS DIET_FOOD_SPECIFICATION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042218') AS CAUTION_AND_SIDE_EFFECT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042219') AS NON_MEDICINAL_USES_MESSAGE
+	         , 'N' AS GENETICALLY_MODIFIED
+	         <!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042221') AS ADVERTISING_CERTIFIED -->
+	         , 'N' AS IMPORT_DECLARATION_CHECK
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042223') AS CUSTOMER_SERVICE_PHONE_NUMBER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042224') AS PRODUCT_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042225') AS CONSUMER_SAFETY_CAUTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042226') AS STORAGE_METHOD
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042227') AS CONSUMPTION_DATE_TEXT
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paKidsSummary" type="com.cware.api.panaver.product.type.KidsSummaryType">
+		<result property="size" column="KIDS_SIZE" />
+	</resultMap>
+	<select id="selectKidsSummary" parameterType="hashMap" resultMap="result-paKidsSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042306') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042307') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042308') AS CERTIFIED
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042309') AS KIDS_SIZE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042310') AS WEIGHT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042311') AS COLOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042312') AS MATERIAL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042313') AS RECOMMENDED_AGE
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042314') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042315') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042316') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042317') AS CAUTION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042318') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042319') AS AFTER_SERVICE_DIRECTOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042320') AS NUMBER_LIMIT
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paMusicalInstrumentSummary" type="com.cware.api.panaver.product.type.MusicalInstrumentSummaryType">
+		<result property="size" column="MUSICAL_INSTRUMENT_SIZE" />
+	</resultMap>
+	<select id="selectMusicalInstrumentSummary" parameterType="hashMap" resultMap="result-paMusicalInstrumentSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042406') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042407') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042408') AS MUSICAL_INSTRUMENT_SIZE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042409') AS COLOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042410') AS MATERIAL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042411') AS COMPONENTS
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042412') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042413') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042414') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042415') AS DETAIL_CONTENT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042416') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042417') AS AFTER_SERVICE_DIRECTOR
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paSportsEquipmentSummary" type="com.cware.api.panaver.product.type.SportsEquipmentSummaryType">
+		<result property="size" column="SPORTS_EQUIPMENT_SIZE" />
+	</resultMap>
+	<select id="selectSportsEquipmentSummary" parameterType="hashMap" resultMap="result-paSportsEquipmentSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042506') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042507') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042508') AS SPORTS_EQUIPMENT_SIZE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042509') AS WEIGHT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042510') AS COLOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042511') AS MATERIAL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042512') AS COMPONENTS
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042513') AS RELEASE_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042514') AS RELEASE_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042515') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042516') AS DETAIL_CONTENT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042517') AS WARRANTY_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042518') AS AFTER_SERVICE_DIRECTOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042519') AS CERTIFIED
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paBooksSummary" type="com.cware.api.panaver.product.type.BooksSummaryType">
+		<result property="size" 		column="BOOKS_SIZE" />
+		<result property="description" 	column="BOOKS_DESCRIPTION" />
+	</resultMap>
+	<select id="selectBooksSummary" parameterType="hashMap" resultMap="result-paBooksSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042606') AS TITLE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042607') AS AUTHOR
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042608') AS PUBLISHER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042609') AS BOOKS_SIZE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042610') AS PAGES
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042611') AS COMPONENTS
+		<!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042612') AS PUBLISH_DATE-->
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042613') AS PUBLISH_DATE_TEXT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'042614') AS BOOKS_DESCRIPTION
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paRentalEtcSummary" type="com.cware.api.panaver.product.type.RentalEtcSummaryType">
+	</resultMap>
+	<select id="selectRentalEtcSummary" parameterType="hashMap" resultMap="result-paRentalEtcSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043106') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043107') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043108') AS OWNERSHIP_TRANSFER_CONDITION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043109') AS PAYING_FOR_LOSS_OR_DAMAGE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043110') AS REFUND_POLICY_FOR_CANCEL
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043111') AS CUSTOMER_SERVICE_PHONE_NUMBER
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paDigitalContentsSummary" type="com.cware.api.panaver.product.type.DigitalContentsSummaryType">
+		<result property="medium" 	column="DIGITAL_CONTENTS_MEDIUM" />
+	</resultMap>
+	<select id="selectDigitalContentsSummary" parameterType="hashMap" resultMap="result-paDigitalContentsSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043306') AS PRODUCER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043307') AS TERMS_OF_USE
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043308') AS USE_PERIOD
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043309') AS DIGITAL_CONTENTS_MEDIUM
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043310') AS REQUIREMENT
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043311') AS CANCELATION_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043312') AS CUSTOMER_SERVICE_PHONE_NUMBER
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paEtcServiceSummary" type="com.cware.api.panaver.product.type.EtcServiceSummaryType">
+	</resultMap>
+	<select id="selectEtcServiceSummary" parameterType="hashMap" resultMap="result-paEtcServiceSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043706') AS SERVICE_PROVIDER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043707') AS CERTIFICATE_DETAILS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043708') AS USABLE_CONDITION
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043709') AS CANCELATION_STANDARD
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043710') AS CANCELATION_POLICY
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043711') AS CUSTOMER_SERVICE_PHONE_NUMBER
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-paEtcSummary" type="com.cware.api.panaver.product.type.EtcSummaryType">
+	</resultMap>
+	<select id="selectEtcSummary" parameterType="hashMap" resultMap="result-paEtcSummary">
+	    SELECT '상품상세 참조' AS NO_REFUND_REASON
+	         , '상품상세 참조' AS RETURN_COST_REASON
+	         , '상품상세 참조' AS QUALITY_ASSURANCE_STANDARD
+	         , '상품상세 참조' AS COMPENSATION_PROCEDURE
+	         , '상품상세 참조' AS TROUBLE_SHOOTING_CONTENTS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043806') AS ITEM_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043807') AS MODEL_NAME
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043808') AS CERTIFICATE_DETAILS
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043809') AS MANUFACTURER
+	         , FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043810') AS AFTER_SERVICE_DIRECTOR
+	         <!--, FUN_GET_PA_NAVER_OFFER_EXT(#{goodsCode, jdbcType=VARCHAR} ,'043811') AS CUSTOMER_SERVICE_PHONE_NUMBER (AFTER_SERVICE_DIRECTOR 중 하나만 입력) -->
+	    FROM DUAL
+	</select>
+    
+	<resultMap id="result-PaNaverGoodsInfo" type="com.cware.api.panaver.product.type.PaNaverGoodsVO">
+		<result property="goodsCode"			column="GOODS_CODE" />
+		<result property="entpCode"				column="ENTP_CODE" />
+		<result property="termOrderQty"			column="TERM_ORDER_QTY" />
+		<result property="custOrdQtyCheckYN"	column="CUST_ORD_QTY_CHECK_YN" />
+		<result property="lmsdKey"				column="PA_LMSD_KEY" />
+		<result property="installYN"			column="INSTALL_YN" />
+		<result property="saleStartDate"		column="SALE_START_DATE" />
+		<result property="saleEndDate"			column="SALE_END_DATE" />
+		<result property="orderMakeYN"			column="ORDER_MAKE_YN" />
+		<result property="mixpackYN"			column="MIXPACK_YN" />
+        
+		<result property="brandName"			column="BRAND_NAME" />
+		<result property="taxYN"				column="TAX_YN" />
+		<result property="TaxSmallYN"			column="TAX_SMALL_YN" />
+		<result property="adultYN"				column="ADULT_YN" />
+		<result property="orderMinQty"			column="ORDER_MIN_QTY" />
+		<result property="orderMaxQty"			column="ORDER_MAX_QTY" />
+		<result property="custOrdQtyCheckTerm"	column="CUST_ORD_QTY_CHECK_TERM" />
+		<result property="doNotIslandDelyYN"	column="DO_NOT_ISLAND_DELY_YN" />
+		<result property="originName"			column="ORIGIN_NAME" />
+		<result property="saleGb"				column="SALE_GB" />
+        
+		<result property="paCode"				column="PA_CODE" />
+		<result property="paGroupCode"			column="PA_GROUP_CODE" />
+		<result property="productId"			column="PRODUCT_ID" />
+		<result property="paStatus"				column="PA_STATUS" />
+		<result property="paLmsdKey"			column="PA_LMSD_KEY" />
+		<result property="paSaleGb"				column="PA_SALE_GB" />
+		<result property="transOrderAbleQty"	column="TRANS_ORDER_ABLE_QTY" />
+		<result property="naverOriginCode"		column="NAVER_ORIGIN_CODE" />
+		<result property="paGoodsName"			column="PA_GOODS_NAME" />
+        
+		<result property="imageNaverP"			column="IMAGE_NAVER_P" />
+		<result property="imageNaverAp"			column="IMAGE_NAVER_AP" />
+		<result property="imageNaverBp"			column="IMAGE_NAVER_BP" />
+		<result property="imageNaverCp"			column="IMAGE_NAVER_CP" />
+		<result property="imageNaverDp"			column="IMAGE_NAVER_DP" />
+        
+		<result property="applyDate"			column="APPLY_DATE" />
+		<result property="salePrice"			column="SALE_PRICE" />
+		<result property="dcAmt"				column="DC_AMT" />
+        
+		<result property="shipEntpCode"			column="SHIP_ENTP_CODE" />
+		<result property="shipCostcode"			column="SHIP_COST_CODE" />
+		<result property="ordCost"				column="ORD_COST" />
+		<result property="returnCost"			column="RETURN_COST" />
+		<result property="changeCost"			column="CHANGE_COST" />
+		<result property="shipCostBaseAmt"		column="SHIP_COST_BASE_AMT" />
+		<result property="jejuCost"				column="JEJU_COST" />
+		<result property="islandCost"			column="ISLAND_COST" />
+        
+		<result property="orderCreateYN"		column="ORDER_CREATE_YN" />
+        
+		<result property="csTel"				column="CS_TEL" />
+		<result property="csDetail"				column="CS_DETAIL" />
+        
+		<result property="makecoCode"			column="MAKECO_CODE" />
+		<result property="makecoName"			column="MAKECO_NAME" />
+        
+		<result property="goodsdtCnt"			column="GOODSDT_CNT" />
+        
+		<result property="exceptCode"			column="EXCEPT_CODE" />
+		
+		<result property="lumpSumDcAmt"			column="LUMP_SUM_DC_AMT" />
+		<result property="lumpSumOwnDcAmt"		column="LUMP_SUM_OWN_DC_AMT" />
+		<result property="lumpSumEntpDcAmt"		column="LUMP_SUM_ENTP_DC_AMT" />
+		<result property="modelNo"				column="MODEL_NO" />
+		
+		<result property="topImage"			   column="TOP_IMAGE" />
+		<result property="bottomImage"		   column="BOTTOM_IMAGE" />
+		<result property="collectImage"		   column="COLLECT_IMAGE" />
+		<result property="describeExt"         column="DESCRIBE_EXT" />
+		<result property="goodsCom"        	   column="GOODS_COM" />
+		<result property="noticeExt"           column="NOTICE_EXT" />
+		
+		<result property="exceptYn"            column="EXCEPT_YN" />
+		
+	
+
+	</resultMap>
+	<select id="selectPaNaverGoodsInfoList" parameterType="hashMap" resultMap="result-PaNaverGoodsInfo">
+    SELECT /* panavergoods.xml : paNaver.paNavergoods.selectPaNaverGoodsInfoList by PaNaverGoodsController-goodsTrans */
+           *
+      FROM( SELECT TG.GOODS_CODE
+                , TG.SALE_GB
+                , TG.GOODS_NAME AS PA_GOODS_NAME
+                , PNG.PA_CODE 
+                , PNG.PA_GROUP_CODE
+                , TG.ENTP_CODE
+                , TG.TERM_ORDER_QTY
+                , TG.CUST_ORD_QTY_CHECK_YN
+                , PG.SALE_START_DATE
+                , PG.SALE_END_DATE
+                , GAI.ORDER_CREATE_YN AS ORDER_MAKE_YN
+                , TG.MIXPACK_YN 
+                , PNG.PRODUCT_ID             
+                , CASE 
+                      WHEN NVL(CEIL(FUN_GET_ORDER_ABLE_QTY(PNG.GOODS_CODE,'%', TG.WH_CODE) * TC2.CODE_GROUP), 0) > 9999999 THEN
+                          9999999
+                      ELSE
+                          NVL(CEIL(FUN_GET_ORDER_ABLE_QTY(PNG.GOODS_CODE,'%', TG.WH_CODE) * TC2.CODE_GROUP), 0)
+                  END AS TRANS_ORDER_ABLE_QTY
+                , PNG.PA_STATUS
+                , PNG.PA_LMSD_KEY
+                , PNG.PA_SALE_GB
+                , '03' AS NAVER_ORIGIN_CODE
+                , PG.ORIGIN_NAME
+                , PG.BRAND_NAME 
+                , PG.TAX_YN 
+                , PG.TAX_SMALL_YN 
+                , PG.ADULT_YN 
+                , PG.ORDER_MIN_QTY 
+                , PG.ORDER_MAX_QTY 
+                , PG.CUST_ORD_QTY_CHECK_TERM 
+                , PG.DO_NOT_ISLAND_DELY_YN 
+                , PNGI.IMAGE_NAVER_P 
+                , PNGI.IMAGE_NAVER_AP 
+                , PNGI.IMAGE_NAVER_BP 
+                , PNGI.IMAGE_NAVER_CP 
+                , PNGI.IMAGE_NAVER_DP 
+                , PP.APPLY_DATE
+                , PP.SALE_PRICE 
+                , PP.DC_AMT
+                , PC.ENTP_CODE AS SHIP_ENTP_CODE
+                , PC.SHIP_COST_CODE
+                , PC.ORD_COST
+                , PC.RETURN_COST
+                , PC.CHANGE_COST
+                , PC.SHIP_COST_BASE_AMT
+                , PC.JEJU_COST
+                , PC.ISLAND_COST
+                , TG.LMSD_CODE
+                , TG.INSTALL_YN
+                , GAI.ORDER_CREATE_YN
+                , TM.MAKECO_CODE
+                , TM.MAKECO_NAME
+                , TC1.CODE_NAME AS CS_TEL
+                , TC1.REMARK AS CS_DETAIL
+                , ( SELECT COUNT(1)
+                      FROM TPAGOODSDTMAPPING PGT
+                     WHERE PG.GOODS_CODE = PGT.GOODS_CODE
+                       AND PGT.PA_CODE   = '41'
+                   ) GOODSDT_CNT
+                , ( SELECT PKI.EXCEPT_CODE
+                      FROM TPANAVERGOODSKINDSINFO PKI
+                     WHERE PNG.PA_LMSD_KEY = PKI.CATEGORY_ID
+                       AND ROWNUM = 1) AS EXCEPT_CODE
+                , PNG.MODIFY_DATE
+                , DECODE(PNG.PRODUCT_ID,'','1','2') AS SORT_SEQ
+                , PP.LUMP_SUM_DC_AMT
+                , PP.LUMP_SUM_OWN_DC_AMT
+                , PP.LUMP_SUM_ENTP_DC_AMT
+                , (SELECT CODE_NAME
+                     FROM TCODE C1
+                    WHERE C1.CODE_LGROUP = 'O507'
+                      AND C1.CODE_MGROUP = '05') AS TOP_IMAGE
+                , (SELECT CODE_NAME
+                     FROM TCODE C1
+                    WHERE C1.CODE_LGROUP = 'O507'
+                      AND C1.CODE_MGROUP = PNG.PA_CODE) AS BOTTOM_IMAGE                     
+                , NVL( (SELECT REPLACE (DS.DESCRIBE_EXT, chr(10), '')
+                          FROM TDESCRIBE DS
+                         WHERE DS.DESCRIBE_CODE ='998'
+                           AND DS.GOODS_CODE = TG.GOODS_CODE),
+                       (SELECT DECODE(DS.WEB_FLAG, '1',  REPLACE(DS.DESCRIBE_EXT, chr(10), ''), DS.DESCRIBE_NOTE)
+                          FROM TDESCRIBE DS
+                         WHERE DS.DESCRIBE_CODE ='999'
+                           AND DS.GOODS_CODE = TG.GOODS_CODE) ) AS DESCRIBE_EXT
+                , DECODE(TG.COLLECT_YN,'0','',(SELECT CODE_NAME
+                                                 FROM TCODE C1
+                                                WHERE C1.CODE_LGROUP = 'O507'
+                                                  AND C1.CODE_MGROUP = '99')) AS COLLECT_IMAGE
+                , TG.COLLECT_YN
+                , NVL((SELECT TSB.DESCRIBE_NOTE
+				 		 FROM TDESCRIBE TSB
+				 		WHERE TSB.DESCRIBE_CODE = '200'
+				 		  AND TSB.GOODS_CODE 	 = PNG.GOODS_CODE), '') AS GOODS_COM
+                , NVL((SELECT /*+ INDEX_DESC (TNM IDX_TPANOTICEM_03)*/
+	             			   TNM.NOTICE_EXT
+						  FROM TPANOTICEM TNM
+						     , TPANOTICETARGET TNT
+						     , TPANOTICEAPPLY TNA
+						 WHERE TNM.NOTICE_NO  = TNT.NOTICE_NO
+						   AND TNT.GOODS_CODE = TG.GOODS_CODE
+						   AND TNM.USE_CODE   = '00'
+						   AND INSTR(TNM.PA_GROUP_CODE, PNG.PA_GROUP_CODE) > 0
+						   AND TNT.NOTICE_NO  = TNA.NOTICE_NO
+						   AND TNT.GOODS_CODE = TNA.GOODS_CODE
+						   AND TNA.PA_GROUP_CODE = PNG.PA_GROUP_CODE
+						   AND ROWNUM = 1), '') AS NOTICE_EXT
+				 , (SELECT COUNT(TEC.GOODS_CODE)
+                      FROM TPANAVEREXCEPTCERT TEC
+                     WHERE TEC.GOODS_CODE = TG.GOODS_CODE
+                       AND TEC.CERT_YN = '1') AS EXCEPT_YN
+                 , PNG.MODEL_ID AS MODEL_NO
+              FROM TPANAVERGOODS PNG
+                 , TGOODSADDINFO GAI
+                 , TPAPRODUCT PG
+                 , TPAGOODSPRICE PP
+                 , TMAKECOMP TM
+                 , TPANAVERGOODSIMAGE PNGI
+                 , TGOODS TG
+                 , TPACUSTSHIPCOST PC
+                 , TCODE TC1
+                 , TCODE TC2
+             WHERE PNG.PA_CODE 		 = '41'
+               AND PNG.GOODS_CODE 	 = GAI.GOODS_CODE
+               AND PNG.GOODS_CODE    = PG.GOODS_CODE
+               AND PNG.GOODS_CODE    = PP.GOODS_CODE
+               AND PG.MAKECO_CODE    = TM.MAKECO_CODE
+               AND PNG.GOODS_CODE    = PNGI.GOODS_CODE(+)
+               AND PNG.GOODS_CODE    = TG.GOODS_CODE
+               AND PNG.PA_CODE 		 = PC.PA_CODE
+               AND PC.ENTP_CODE      = DECODE(TG.DELY_TYPE,'10','100001',PG.ENTP_CODE)
+               AND PC.SHIP_COST_CODE = PG.SHIP_COST_CODE
+               AND TC1.CODE_LGROUP   = 'O509'
+               AND TC1.CODE_MGROUP   = PNG.PA_CODE
+               AND TC2.CODE_LGROUP   = 'O505'
+               AND TC2.CODE_MGROUP   = PNG.PA_CODE
+		<if test='goodsCode != null and goodsCode != ""'>
+               AND PNG.GOODS_CODE  	 = #{goodsCode, jdbcType=VARCHAR}
+		</if>
+		<if test='paCode != null and paCode != ""'>
+               AND PNG.PA_CODE       = #{paCode, jdbcType=VARCHAR}
+		</if>
+		<choose>
+			<when test='modCase == "INSERT"'>
+				AND PNG.PA_STATUS		IN ('10','20')
+			</when>
+			<when test='modCase == "MODIFY"'>
+				AND PNG.PA_SALE_GB  	 = '20'
+				AND PNG.PA_STATUS   	 = '30'
+				AND PNG.TRANS_TARGET_YN = '1'
+			</when>
+			<when test='modCase == "ALL"'>
+				AND ((PNG.PA_STATUS = '10') OR (PNG.PA_SALE_GB = '20' AND PNG.PA_STATUS = '30' AND PNG.TRANS_TARGET_YN = '1'))
+			</when>
+			<otherwise>
+        		AND 1=2
+        	</otherwise>
+		</choose>
+               AND PG.SALE_GB    	   != '19'
+               AND TG.INVI_GOODS_TYPE  = '00'
+               AND PP.ROWID = (SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE)*/  
+                                      GP.ROWID
+                                 FROM TPAGOODSPRICE GP
+                                WHERE GP.GOODS_CODE = PNG.GOODS_CODE
+                                  AND GP.PA_CODE = PNG.PA_CODE
+                                  AND GP.APPLY_DATE &lt; SYSDATE
+                                  AND ROWNUM =1  
+                               )
+               AND TG.ENTP_CODE NOT IN (SELECT TC.CODE_MGROUP FROM TCODE TC WHERE TC.CODE_LGROUP = 'T001' AND INSTR(TC.CODE_GROUP, PNG.PA_GROUP_CODE) > 0  )
+             ORDER BY SORT_SEQ , MODIFY_DATE         
+         ) X
+         WHERE ROWNUM &lt;= 500
+	</select>
+    
+	<select id="selectGoodsSellModifyAllObjectList" parameterType="hashMap" resultMap="result-PaNaverGoodsInfo">
+	    SELECT /* panavergoods.xml : paNaver.paNavergoods.selectGoodsSellModifyAllObjectList by PaNaverGoodsController-changeProductSaleStatusAllObject */ 
+	           TG.GOODS_CODE
+	         , PNG.PA_CODE 
+	         , PNG.PRODUCT_ID    
+	         , CASE 
+                    WHEN NVL(CEIL(FUN_GET_ORDER_ABLE_QTY(PNG.GOODS_CODE,'%', TG.WH_CODE) * TC.CODE_GROUP), 0) > 9999999 THEN
+                         9999999
+                    ELSE
+                         NVL(CEIL(FUN_GET_ORDER_ABLE_QTY(PNG.GOODS_CODE,'%', TG.WH_CODE) * TC.CODE_GROUP), 0)
+                END AS TRANS_ORDER_ABLE_QTY
+	         , PNG.PA_STATUS
+	         , PNG.PA_SALE_GB
+	         , TG.SALE_GB
+	         , PNG.TRANS_SALE_YN
+	      FROM TPANAVERGOODS PNG
+	         , TPAPRODUCT PG
+	         , TGOODS TG
+	         , TCODE TC
+	     WHERE PNG.GOODS_CODE	 = PG.GOODS_CODE
+	       AND PNG.GOODS_CODE	 = TG.GOODS_CODE
+	       AND TC.CODE_LGROUP	 = 'O505'
+	       AND TC.CODE_MGROUP	 = PNG.PA_CODE
+	       AND PNG.PA_STATUS 	 = '30'
+	       AND PNG.PA_CODE    	 = #{paCode, jdbcType=VARCHAR}
+	       AND PNG.TRANS_SALE_YN = 1
+		<!--AND PNG.PA_SALE_GB = '30'-->
+	</select>
+    
+	<select id="selectPaNaverGoodsdtInfoList" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaGoodsdtMapping">
+        SELECT /* panavergoods.xml : paNaver.paNavergoods.selectPaNaverGoodsdtInfoList by PaNaverGoodsController-goodsTrans */
+               PD.GOODS_CODE 
+             , DM.PA_CODE
+             , PD.GOODSDT_CODE
+             , PD.GOODSDT_INFO 
+             , PD.GOODSDT_INFO_KIND
+             , CASE 
+                    WHEN NVL(DECODE(DT.SALE_GB, '00', CEIL(FUN_GET_ORDER_ABLE_QTY(PD.GOODS_CODE, PD.GOODSDT_CODE, GD.WH_CODE) * TC.CODE_GROUP), 0), 0) > 9999999 THEN
+                         9999999
+                    ELSE
+                         NVL(DECODE(DT.SALE_GB, '00', CEIL(FUN_GET_ORDER_ABLE_QTY(PD.GOODS_CODE, PD.GOODSDT_CODE, GD.WH_CODE) * TC.CODE_GROUP), 0), 0)
+                END AS TRANS_ORDER_ABLE_QTY
+             , PD.SORT_TYPE 
+             , NVL(DM.PA_OPTION_CODE, PD.GOODS_CODE||PD.GOODSDT_CODE||DM.PA_CODE) AS PA_OPTION_CODE
+          FROM TPAPRODUCTOPTION PD
+             , TPAGOODSDTMAPPING DM
+             , TGOODS GD
+             , TCODE TC
+             , TGOODSDT DT
+         WHERE PD.GOODS_CODE 		= DM.GOODS_CODE
+           AND PD.GOODSDT_CODE 		= DM.GOODSDT_CODE
+           AND PD.GOODS_CODE 		= GD.GOODS_CODE
+           AND TC.CODE_LGROUP 		= 'O505'
+           AND TC.CODE_MGROUP 		= DM.PA_CODE
+           AND DM.TRANS_TARGET_YN 	= '1'
+           AND DT.GOODS_CODE 		= PD.GOODS_CODE
+           AND DT.GOODSDT_CODE 		= PD.GOODSDT_CODE
+           AND DM.PA_CODE 			= #{paCode, jdbcType=VARCHAR}
+           AND GD.GOODS_CODE 		= #{goodsCode, jdbcType=VARCHAR}
+         ORDER BY PD.GOODS_CODE
+                , PD.GOODSDT_CODE
+	</select>
+    
+	<update id="updatePaNaverGoods"  parameterType="com.cware.api.panaver.product.type.PaNaverGoodsVO">
+        UPDATE /* panavergoods.xml : paNaver.paNavergoods.updatePaNaverGoods by PaNaverGoodsController-goodsTrans */
+               TPANAVERGOODS PG
+           SET PG.PRODUCT_ID = #{productId, jdbcType=VARCHAR}
+             , PG.PA_STATUS  = #{paStatus, jdbcType=VARCHAR}
+		<choose>
+			<when test="transOrderAbleQty == 0" >
+                    , PG.TRANS_ORDER_ABLE_QTY = 0
+			</when>
+			<when test="transOrderAbleQty>99999999" >
+                    , PG.TRANS_ORDER_ABLE_QTY = 99999999
+			</when>
+			<otherwise>
+                    , PG.TRANS_ORDER_ABLE_QTY = #{transOrderAbleQty, jdbcType=NUMERIC}
+			</otherwise>
+		</choose>
+		<if test='transSaleYn == null or transSaleYn == ""'>
+             , PG.RETURN_NOTE = ''
+             , PG.TRANS_TARGET_YN = '0'
+		</if>
+             , PG.PA_SALE_GB = #{paSaleGb, jdbcType=VARCHAR}
+             , PG.MODIFY_ID 	  = #{modifyId, jdbcType=VARCHAR}
+             , PG.MODIFY_DATE 	  = #{modifyDate, jdbcType=TIMESTAMP}
+		<if test='transSaleYn != null and transSaleYn != ""'>
+             , PG.TRANS_SALE_YN   = #{transSaleYn, jdbcType=VARCHAR}
+		</if>
+         WHERE PG.GOODS_CODE	  = #{goodsCode, jdbcType=VARCHAR}  
+           AND PG.PA_CODE	 	  = #{paCode, jdbcType=VARCHAR}  
+	</update>
+    
+	<update id="updatePaNaverGoodsImage"  parameterType="com.cware.api.panaver.product.type.PaNaverGoodsVO">
+        UPDATE /* panavergoods.xml : paNaver.paNavergoods.updatePaNaverGoodsImage by PaNaverGoodsController-goodsTrans */
+               TPAGOODSIMAGE PI
+           SET PI.TRANS_TARGET_YN = '0'
+             , PI.MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+             , PI.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE PI.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}  
+           AND PI.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}  
+	</update>
+     
+	<update id="updatePaNaverCustShipCost"  parameterType="com.cware.api.panaver.product.type.PaNaverGoodsVO">
+        UPDATE /* panavergoods.xml : paNaver.paNavergoods.updatePaNaverCustShipCost by PaNaverGoodsController-goodsTrans */
+               TPACUSTSHIPCOST PS
+           SET PS.TRANS_TARGET_YN = '0'
+             , PS.MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+             , PS.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE PS.ENTP_CODE = #{shipEntpCode, jdbcType=VARCHAR}  
+           AND PS.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PS.SHIP_COST_CODE = #{shipCostCode, jdbcType=VARCHAR}
+	</update>
+    
+	<update id="updatePaNaverGoodsOffer"  parameterType="com.cware.api.panaver.product.type.PaNaverGoodsVO">
+        UPDATE /* panavergoods.xml : paNaver.paNavergoods.updatePaNaverGoodsOffer by PaNaverGoodsController-goodsTrans */
+               TPAGOODSOFFER PO
+           SET PO.TRANS_TARGET_YN = '0'
+             , PO.MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+             , PO.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE PO.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}  
+           AND PO.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+	</update>
+    
+	<update id="updatePaGoodsTarget" parameterType="com.cware.api.panaver.product.type.PaNaverGoodsVO">
+        UPDATE TPAGOODSTARGET PGT /* panavergoods.xml : paNaver.paNavergoods.updatePaGoodsTarget by PaNaverGoodsController-goodsTrans */
+           SET PGT.PA_GOODS_CODE = #{productId, jdbcType=VARCHAR},
+               PGT.PA_SALE_GB = #{paSaleGb, jdbcType=VARCHAR},
+               PGT.MODIFY_ID = #{modifyId, jdbcType=VARCHAR},
+               PGT.MODIFY_DATE = SYSDATE
+         WHERE PGT.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PGT.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PGT.PA_GOODS_CODE IS NULL
+	</update>
+    
+	<update id="updatePaNaverGoodsFail"  parameterType="com.cware.api.panaver.product.type.PaNaverGoodsVO">
+        UPDATE /* panavergoods.xml : paNaver.paNavergoods.updatePaNaverGoodsFail by PaNaverGoodsController-goodsTrans */
+               TPANAVERGOODS PG
+           SET PG.PA_STATUS = #{paStatus, jdbcType=VARCHAR}
+             , PG.RETURN_NOTE = #{returnNote, jdbcType=VARCHAR}
+             , PG.MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+             , PG.MODIFY_DATE = SYSDATE
+             , PG.TRANS_TARGET_YN = '0'
+         WHERE PG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}  
+           AND PG.PA_CODE = #{paCode, jdbcType=VARCHAR}  
+	</update>
+    
+	<select id="selectPaGoodsdt" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaGoodsdtMapping">
+    	SELECT /* panavergoods.xml : paNaver.paNavergoods.selectPaNaverGoodsdtMappingList by PaNaverGoodsController-goodsdtModify */
+    		   PGT.GOODS_CODE
+		      ,PGT.GOODSDT_CODE
+		      ,PGT.GOODSDT_INFO
+		      ,PGT.GOODSDT_INFO_KIND
+		      ,PGT.SORT_TYPE
+		      ,PGT.INSERT_ID
+		      ,PGT.INSERT_DATE
+		      ,PGT.MODIFY_ID
+		      ,PGT.MODIFY_DATE
+		      ,PGT.SALE_GB 
+		      ,NVL(DECODE(DT.SALE_GB, '00', CEIL(FUN_GET_ORDER_ABLE_QTY(PGT.GOODS_CODE, PGT.GOODSDT_CODE, GD.WH_CODE) * TC.CODE_GROUP), 0), 0) AS TRANS_ORDER_ABLE_QTY
+		      ,PG.PRODUCT_ID AS PA_GOODS_CODE
+		      ,PGT.SALE_GB
+		      ,PM.PA_CODE
+		FROM TPAPRODUCTOPTION PGT
+		   , TPAGOODSDTMAPPING PM
+   		   , TPANAVERGOODS PG
+		   , TGOODS GD
+		   , TCODE TC
+		   , TGOODSDT DT
+		WHERE PGT.GOODS_CODE    = PM.GOODS_CODE
+		  AND PGT.GOODSDT_CODE  = PM.GOODSDT_CODE
+		  AND PM.GOODS_CODE		= PG.GOODS_CODE
+		  AND PM.PA_CODE		= PG.PA_CODE
+		  AND GD.GOODS_CODE		= PG.GOODS_CODE
+		  AND TC.CODE_LGROUP	= 'O505'
+		  AND TC.CODE_MGROUP	= PG.PA_CODE
+		  AND PGT.GOODS_CODE    = DT.GOODS_CODE
+		  AND PGT.GOODSDT_CODE  = DT.GOODSDT_CODE
+		  AND DT.SALE_GB = '00'
+		  AND PM.PA_CODE = #{paCode, jdbcType=VARCHAR}
+		  AND PM.GOODS_CODE = #{paGoodsCode, jdbcType=VARCHAR}
+        ORDER BY PM.GOODS_CODE, PM.GOODSDT_CODE
+	</select>
+        
+	<update id="updatePaNaverOption" parameterType="com.cware.netshopping.domain.model.PaGoodsdtMapping">
+    	UPDATE /* panavergoods.xml : paNaver.paNavergoods.updatePaNaverOption by PaNaverGoodsController-optionUpdate */
+    		   TPAGOODSDTMAPPING T
+		   SET T.PA_OPTION_CODE = #{paOptionCode, jdbcType=VARCHAR}
+		      ,T.TRANS_ORDER_ABLE_QTY = #{transOrderAbleQty, jdbcType=NUMERIC} 
+		      ,T.TRANS_TARGET_YN = '0'
+		      ,T.MODIFY_DATE = SYSDATE 
+		 WHERE T.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+		   AND T.GOODSDT_CODE = #{goodsdtCode, jdbcType=VARCHAR}
+		   AND T.PA_CODE = #{paCode, jdbcType=VARCHAR}
+	</update>
+    
+	<insert id="insertStopMonitering" parameterType="com.cware.api.panaver.product.type.PaNaverGoodsVO">
+    INSERT INTO TPAMONITERING /* panavergoods.xml : paNaver.paNavergoods.insertStopMonitering by paNaverGoods-stop */
+           ( MONITERING_SEQ
+            ,CHECK_GB  
+            ,CHECK_NO  
+            ,CHECK_TXT  
+            ,GOODS_CODE  
+            ,PA_GOODS_CODE    
+            ,INSERT_DATE
+            ,INSERT_ID
+            ,MODIFY_DATE
+            ,MODIFY_ID
+           ) 
+            VALUES 
+          (TO_CHAR(SYSDATE, 'YYYYMMDD') || LTRIM(TO_CHAR(SEQ_PA_MONITERING_SEQ.NEXTVAL, '000000')) 
+          ,'40'
+          ,#{goodsCode, jdbcType=VARCHAR}
+          ,'중복중단 처리프로세스'
+          ,#{goodsCode, jdbcType=VARCHAR}
+          ,#{productNo, jdbcType=VARCHAR}
+          ,SYSDATE
+          ,'999999'
+          ,SYSDATE
+          ,'999999'
+          )
+	</insert>
+    
+	<select id="selectPaGoodsdtMapping" parameterType="hashMap" resultType="Integer">
+		SELECT /* panavergoods.xml : paNaver.paNavergoods.selectPaGoodsdtMapping by paNaverGoods-goodsTrans */
+		       COUNT(*)
+		FROM TPAGOODSDTMAPPING T
+		WHERE T.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+		AND T.PA_CODE = #{paCode, jdbcType=VARCHAR}  
+	</select>
+    
+	<update id="updateSinglePaGoodsdtMapping" parameterType="hashMap">
+       UPDATE /* panavergoods.xml : paNaver.paNavergoods.updateSinglePaGoodsdtMapping by PaNaverGoodsController-goodsTrans */
+              TPAGOODSDTMAPPING T
+          SET T.PA_OPTION_CODE = #{productId, jdbcType=VARCHAR}
+             ,T.TRANS_TARGET_YN = '0'
+             ,T.TRANS_ORDER_ABLE_QTY = #{transOrderAbleQty, jdbcType=NUMERIC}
+        WHERE T.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}  
+          AND T.PA_CODE = #{paCode, jdbcType=VARCHAR} 
+	</update>
+    
+	<select id="selectGoodsPriceInfoByGoodsCode" parameterType="string" resultType="com.cware.netshopping.domain.PaGoodsPriceVO">
+    	SELECT /* panaver.xml : panaver.panavergoods.selectGoodsPriceInfoByGoodsCode */
+               P.GOODS_CODE
+             , P.PA_CODE
+             , P.APPLY_DATE
+             , P.TRANS_ID
+             , P.TRANS_DATE
+             , P.SALE_PRICE
+             , P.SUPPLY_PRICE
+             , P.COMMISION
+             , P.DC_AMT
+             , P.INSERT_ID
+             , P.INSERT_DATE
+             , P.MODIFY_ID
+             , P.MODIFY_DATE
+             , P.PRICE_SEQ
+             , P.SUPPLY_SEQ
+          FROM TPAGOODSPRICE P
+         WHERE (P.PA_CODE 	= '41' OR P.PA_CODE = '42') 
+           AND P.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND P.APPLY_DATE &gt;= ( SELECT MAX(GP.APPLY_DATE)
+                              		  FROM TPAGOODSPRICE GP
+                             		 WHERE GP.GOODS_CODE = P.GOODS_CODE
+                               		   AND GP.PA_CODE = P.PA_CODE
+                               		   AND GP.TRANS_DATE IS NOT NULL )
+	</select>
+    
+	<update id="updatePaNaverOptionFail" parameterType="hashMap">
+       UPDATE /* panavergoods.xml : paNaver.paNavergoods.updatePaNaverOptionFail by PaNaverGoodsController-optionInsert */
+              TPANAVERGOODS 
+          SET RETURN_NOTE 	  = #{message, jdbcType=VARCHAR}
+             ,TRANS_TARGET_YN = '0'
+             ,MODIFY_ID 	  = #{modifyId, jdbcType=VARCHAR}
+             ,MODIFY_DATE 	  = SYSDATE
+		WHERE GOODS_CODE 	  = #{paGoodsCode, jdbcType=VARCHAR}
+		  AND PA_CODE 		  = #{paCode, jdbcType=VARCHAR} 
+	</update>
+    
+	<select id="selectPaOfferType" parameterType="hashMap" resultType="String">
+    	SELECT /* panavergoods.xml : paNaver.paNavergoods.selectPaOfferType by PaNaverGoodsController-goodsTrans */
+    		   DISTINCT(PA_OFFER_TYPE) 
+    	  FROM TPAGOODSOFFER
+		 WHERE GOODS_CODE 	 = #{goodsCode, jdbcType=VARCHAR}
+		   AND PA_GROUP_CODE = #{groupCode, jdbcType=VARCHAR}
+		   AND USE_YN 		 = '1'
+	</select>
+    
+	<update id="updateTransTargetYN" parameterType="com.cware.netshopping.domain.model.PaNaverGoodsImage">
+       UPDATE /* panavergoods.xml : paNaver.paNavergoods.updatePaNaverGoodsImageTx by PaNaverGoodsController-goodsImageInsert */
+              TPAGOODSIMAGE
+          SET TRANS_TARGET_YN = '0'
+             ,MODIFY_ID 	  = #{modifyId, jdbcType=VARCHAR}
+             ,MODIFY_DATE 	  = #{modifyDate, jdbcType=DATE}
+        WHERE GOODS_CODE 	  = #{goodsCode, jdbcType=VARCHAR}
+	</update>
+    
+	<update id="updateTransSaleYN"  parameterType="com.cware.api.panaver.product.type.PaNaverGoodsVO">
+       UPDATE /* panavergoods.xml : paNaver.paNavergoods.saveTransSaleYNTx by PaNaverGoodsController-goodsSellModify */
+              TPANAVERGOODS
+          SET TRANS_SALE_YN	  = '0'
+             ,MODIFY_ID 	  = #{modifyId, jdbcType=VARCHAR}
+             ,MODIFY_DATE 	  = SYSDATE
+        WHERE GOODS_CODE 	  = #{goodsCode, jdbcType=VARCHAR}    	
+	</update>
+    
+    
+	<select id="selectPaNaverGoodsDescCnt998" resultType="int" parameterType="HashMap">
+        SELECT /* paNavergoods.xml : paNaver.paNavergoods.selectPaNaverGoodsDescCnt998 by PaNaverGoodsController-goodsModify */ 
+               COUNT(1)
+          FROM TDESCRIBE DS
+         WHERE DS.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           <!--AND DBMS_LOB.getlength(DS.DESCRIBE_EXT) &lt;= 6000-->
+           AND DS.DESCRIBE_CODE = '998'
+           AND DS.DESCRIBE_EXT IS NOT NULL
+	</select>
+	<select id="selectPaNaverGoodsDescCnt999" resultType="int" parameterType="HashMap">
+        SELECT /* paNavergoods.xml : paNaver.paNavergoods.selectPaNaverGoodsDescCnt999 by PaNaverGoodsController-goodsModify */ 
+               COUNT(1)
+          FROM TDESCRIBE DS
+         WHERE DS.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           <!--AND DBMS_LOB.getlength(DS.DESCRIBE_EXT) &lt;= 6000-->
+           AND DS.DESCRIBE_CODE = '999'
+           AND DS.DESCRIBE_EXT IS NOT NULL
+	</select>
+	<select id="selectPaNaverGoodsDesc998FR" resultType="String" parameterType="HashMap">
+	<![CDATA[
+		SELECT /* paNavergoods.xml : paNaver.paNavergoods.selectPaNaverGoodsDesc998FR by PaNaverGoodsController-goodsModify */ 
+         '<div style="text-align:center">'||
+			   REPLACE( 
+				   REPLACE( 
+					   REPLACE( 
+						  REPLACE(
+							 (SELECT '<img alt="" src="' || TO_CHAR(C1.CODE_NAME) ||'" /><br /><br /><br />' ||
+							 (SELECT DS.DESCRIBE_EXT
+								FROM TDESCRIBE DS
+							   WHERE DS.DESCRIBE_CODE = '998'
+								 AND DS.GOODS_CODE = PG.GOODS_CODE)
+								FROM TCODE C1
+							   WHERE C1.CODE_LGROUP = 'O507'
+								 AND C1.CODE_MGROUP = '05')
+						   ,'//','http://')
+					   ,'http:http://','http://')
+				   ,'https:http://','https://')
+         		,'<table border="0" cellpadding="0" cellspacing="0" style="', '<table border="0" cellpadding="0" cellspacing="0" style="margin-left:auto; margin-right:auto; ') || '</div>' AS DETAIL_CONTENT
+		  FROM TDESCRIBE DS, TPANAVERGOODS PG
+		 WHERE DS.GOODS_CODE = PG.GOODS_CODE
+		   AND DS.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+		   AND PG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+		   AND DS.DESCRIBE_CODE = '998'
+		   AND DS.DESCRIBE_EXT IS NOT NULL
+	]]>
+	</select>
+	<select id="selectPaNaverGoodsDesc998TO" resultType="String" parameterType="HashMap">
+	<![CDATA[
+	    SELECT /* paNavergoods.xml : paNaver.paNavergoods.selectPaNaverGoodsDesc998TO by PaNaverGoodsController-goodsModify */ 
+         '<div style="text-align:center">'||
+	         REPLACE( 
+		         REPLACE( 
+		          REPLACE(
+		           (SELECT (SELECT DBMS_LOB.SUBSTR(DS.DESCRIBE_EXT, 3000, 3001)
+		                FROM TDESCRIBE DS
+		               WHERE DS.DESCRIBE_CODE = '998'
+		                 AND DS.GOODS_CODE = PG.GOODS_CODE) ||
+		             '<br /><br /><br /><img alt="" src="' ||  TO_CHAR(C2.CODE_NAME) || '" />'
+		            FROM TCODE C2
+		           WHERE C2.CODE_LGROUP = 'O507'
+		             AND C2.CODE_MGROUP = PG.PA_CODE)
+		           ,'//','http://')
+		         ,'http:http://','http://')
+	         ,'https:http://','https://') || '</div>' AS DESCRIBE_EXT
+	        FROM TDESCRIBE DS, TPANAVERGOODS PG
+	       WHERE DS.GOODS_CODE = PG.GOODS_CODE
+			 AND DS.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+			 AND PG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+	         AND DS.DESCRIBE_CODE = '998'
+	         AND DS.DESCRIBE_EXT IS NOT NULL 
+	]]>	
+	</select>
+	<select id="selectPaNaverGoodsDesc999FR" resultType="String" parameterType="HashMap">
+	<![CDATA[
+		SELECT /* paNavergoods.xml : paNaver.paNavergoods.selectpaNaverGoodsDesc999FR by PaNaverGoodsController-goodsModify */
+         '<div style="text-align:center">'||
+			   REPLACE( 
+			   		REPLACE( 
+					   REPLACE( 
+						  REPLACE(
+							 (SELECT '<img alt="" src="' || TO_CHAR(C1.CODE_NAME) ||'" /><br /><br /><br />' ||
+							 (SELECT DS.DESCRIBE_EXT
+								FROM TDESCRIBE DS
+							   WHERE DS.DESCRIBE_CODE = '999'
+								 AND DS.GOODS_CODE = PG.GOODS_CODE)
+								FROM TCODE C1
+							   WHERE C1.CODE_LGROUP = 'O507'
+								 AND C1.CODE_MGROUP = '05')
+						   ,'//','http://')
+					   ,'http:http://','http://') 
+				   ,'https:http://','https://')
+         		,'<table border="0" cellpadding="0" cellspacing="0" style="', '<table border="0" cellpadding="0" cellspacing="0" style="margin-left:auto; margin-right:auto; ') || '</div>' AS DETAIL_CONTENT
+		  FROM TDESCRIBE DS, TPANAVERGOODS PG
+		 WHERE DS.GOODS_CODE = PG.GOODS_CODE
+		   AND DS.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+		   AND PG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+		   AND DS.DESCRIBE_CODE = '999'
+		   AND DS.DESCRIBE_EXT IS NOT NULL
+	]]>
+	</select>
+	<select id="selectPaNaverGoodsDesc999TO" resultType="String" parameterType="HashMap">
+	<![CDATA[
+	    SELECT /* paNavergoods.xml : paNaver.paNavergoods.selectPaNaverGoodsDesc999TO by PaNaverGoodsController-goodsModify */ 
+         '<div style="text-align:center">'||
+	         REPLACE( 
+		         REPLACE( 
+		          REPLACE(
+		           (SELECT (SELECT DBMS_LOB.SUBSTR(DS.DESCRIBE_EXT, 3000, 3001)
+		                FROM TDESCRIBE DS
+		               WHERE DS.DESCRIBE_CODE = '999'
+		                 AND DS.GOODS_CODE = PG.GOODS_CODE) ||
+		             '<br /><br /><br /><img alt="" src="' ||  TO_CHAR(C2.CODE_NAME) || '" />'
+		            FROM TCODE C2
+		           WHERE C2.CODE_LGROUP = 'O507'
+		             AND C2.CODE_MGROUP = PG.PA_CODE)
+		           ,'//','http://')
+		         ,'http:http://','http://')
+	         ,'https:http://','https://') || '</div>' AS DESCRIBE_EXT
+	        FROM TDESCRIBE DS, TPANAVERGOODS PG
+	       WHERE DS.GOODS_CODE = PG.GOODS_CODE
+			 AND DS.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+			 AND PG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+	         AND DS.DESCRIBE_CODE = '999'
+	         AND DS.DESCRIBE_EXT IS NOT NULL 
+	]]>
+	</select>
+    
+	<update id="updatePaGoodsPrice" parameterType="HashMap">
+       UPDATE /* panavergoods.xml : paNaver.paNavergoods.savePaGoodsPriceTx by PaNaverGoodsController-goodsTrans */
+              TPAGOODSPRICE T
+          SET T.TRANS_ID	= #{siteGb, jdbcType=VARCHAR},
+              T.TRANS_DATE 	= SYSDATE
+        WHERE T.GOODS_CODE 	= #{goodsCode, jdbcType=VARCHAR}  
+          AND T.PA_CODE 	= #{paCode, jdbcType=VARCHAR}  
+          AND T.TRANS_DATE 	IS NULL
+	</update>
+	
+	<select id="selectModelInputYN" resultType="String" parameterType="HashMap">
+		SELECT (SELECT COUNT(1) /* paNavergoods.xml : paNaver.paNavergoods.selectModelInputYN by PaNaverGoodsController-goodsTrans */ 
+		          FROM TPANAVERGOODSKINDSEXCEPT PGE
+		         WHERE PGE.CATEGORY_ID = T.PA_LMSD_KEY
+		           AND PGE.EXCEPT_CODE IN ('KC' ,'SAFC','CHI', 'KC_CERTIFICATION', 'SAFE_CRITERION', 'CHILD_CERTIFICATION')
+		       ) AS MODEL_INPUT_YN
+		  FROM TPANAVERGOODS T
+		 WHERE T.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR} 
+           AND T.PA_CODE 	= #{paCode, jdbcType=VARCHAR}  
+	</select>
+        
+	<resultMap id="result-paCertificationVO" type="com.cware.api.panaver.product.type.PaCertificationVO">
+		<result property="categoryId" 		column="CATEGORY_ID" />
+		<result property="exceptCode" 		column="EXCEPT_CODE" />
+		<result property="certiCode" 		column="CERTI_CODE" />
+		<result property="certiCompanyYn" 	column="CERTI_COMPANY_YN" />
+		<result property="certiCompany" 	column="CERTI_COMPANY" />
+		<result property="certiAgencyYn" 	column="CERTI_AGENCY_YN" />
+		<result property="certiAgency" 		column="CERTI_AGENCY" />
+		<result property="certiNoYn" 		column="CERTI_NO_YN" />
+		<result property="certiNo" 			column="CERTI_NO" />
+	</resultMap>
+	<select id="selectPaCertificationList" parameterType="hashMap" resultMap="result-paCertificationVO">
+		SELECT /* paNavergoods.xml : paNaver.paNavergoods.selectPaCertificationList by PaNaverGoodsController-goodsTrans */
+		       PNC.CATEGORY_ID
+		     , PNC.EXCEPT_CODE
+		     , PNC.CERTI_CODE
+		     , PNCI.CERTI_COMPANY_YN
+		     , PNC.CERTI_COMPANY
+		     , PNCI.CERTI_NO_YN
+		     , TRIM(REPLACE(REPLACE(REPLACE(GK.KC_NO, chr(9), '') , chr(10), ''), chr(13), '')) AS CERTI_NO
+		     , PNCI.CERTI_AGENCY_YN
+		     , PNC.CERTI_AGENCY
+		  FROM TPANAVERGOODSKINDSINFO PNC 
+		     , TPANAVERGOODSKINDSCERTIINFO PNCI
+		     , TGOODSKCINFO GK
+		     , TPANAVERGOODS PG
+		  WHERE PNC.CERTI_CODE 	= PNCI.CERTI_CODE
+		    AND PG.GOODS_CODE 	= GK.GOODS_CODE
+		    AND PG.PA_LMSD_KEY 	= PNC.CATEGORY_ID
+            AND PG.PA_CODE 		= #{paCode, jdbcType=VARCHAR}  
+		    AND PG.GOODS_CODE 	= #{goodsCode, jdbcType=VARCHAR} 
+	</select>
+	        
+	<resultMap id="result-PaDeliveryVO" type="com.cware.api.panaver.product.type.PaDeliveryVO">
+		<result property="shippingAddressId" 	column="SHIPPING_ADDRESS_ID" />
+		<result property="returnAddressId" 		column="RETURN_ADDRESS_ID" />
+		<result property="deliveryCompany" 		column="PA_DELY_GB" />
+	</resultMap>
+	<select id="selectPaDelivery" parameterType="hashMap" resultMap="result-PaDeliveryVO">
+		SELECT  /* paNavergoods.xml : paNaver.paNavergoods.selectPaDelivery by PaNaverGoodsController-goodsTrans */
+		       NVL(( SELECT PE.PA_ADDR_SEQ 
+                       FROM TPAENTPSLIP PE 
+                      WHERE PE.ENTP_CODE = DECODE(GD.DELY_TYPE,'10','100001',PG.ENTP_CODE)
+                        AND PE.ENTP_MAN_SEQ = DECODE(GD.DELY_TYPE,'10','003',PG.SHIP_MAN_SEQ)
+                        AND PE.PA_CODE = PNG.PA_CODE ),'0') AS SHIPPING_ADDRESS_ID
+             , NVL(( SELECT PE.PA_ADDR_SEQ 
+                       FROM TPAENTPSLIP PE 
+                      WHERE PE.ENTP_CODE = DECODE(GD.DELY_TYPE,'10','100001',PG.ENTP_CODE)
+                        AND PE.ENTP_MAN_SEQ = DECODE(GD.DELY_TYPE,'10','002',PG.RETURN_MAN_SEQ)
+                        AND PE.PA_CODE = PNG.PA_CODE ),'0') AS RETURN_ADDRESS_ID
+             , NVL(( SELECT PD.PA_DELY_GB
+                       FROM TPADELYGB PD
+                          , TENTERPRISE TE
+                      WHERE PD.PA_CODE = '04'
+                        AND PD.DELY_GB = TE.DELY_GB
+                        AND TE.ENTP_CODE = GD.ENTP_CODE), 'CH1') AS PA_DELY_GB
+		  FROM TPAPRODUCT PG
+		     , TPANAVERGOODS PNG
+		     , TGOODS GD
+		 WHERE PG.GOODS_CODE 	= PNG.GOODS_CODE
+		   AND PG.GOODS_CODE    = GD.GOODS_CODE
+		   AND PNG.PA_CODE 		= #{paCode, jdbcType=VARCHAR}  
+		   AND PG.GOODS_CODE 	= #{goodsCode, jdbcType=VARCHAR} 
+	</select>
+    
+    
+    <update id="updatePaGoodsModifyFail" parameterType="com.cware.api.panaver.product.type.PaNaverGoodsVO">
+    	UPDATE TPANAVERGOODS TPG /* paNavergoods.xml : paNaver.paNavergoods.updatePaGoodsModifyFail by PaNaverGoodsController */
+           SET TPG.RETURN_NOTE 	 = #{returnNote, jdbcType=VARCHAR},
+               TPG.PA_SALE_GB 	 = #{paSaleGb, jdbcType=VARCHAR},
+           	   TPG.TRANS_SALE_YN = '1',
+               TPG.MODIFY_DATE 	 = SYSDATE,
+               TPG.MODIFY_ID 	 = 'PANAVER'
+	 	 WHERE TPG.GOODS_CODE 	 = #{goodsCode, jdbcType=VARCHAR}  
+           AND TPG.PA_CODE 		 = #{paCode, jdbcType=VARCHAR}
+    </update>
+    
+    <insert id="insertPaSaleNoGoods" parameterType="com.cware.netshopping.domain.model.PaSaleNoGoods">
+        INSERT INTO TPASALENOGOODS /* paNavergoods.xml : paNaver.paNavergoods.insertPaSaleNoGoods by PaNaverGoodsController */
+          (PA_GROUP_CODE,
+           PA_CODE,
+           GOODS_CODE,
+           SEQ_NO,
+           PA_GOODS_CODE,
+           PA_SALE_GB,
+           INSERT_ID,
+           INSERT_DATE,
+           NOTE)
+        VALUES
+          (#{paGroupCode,jdbcType=VARCHAR},
+           #{paCode,jdbcType=VARCHAR},
+           #{goodsCode,jdbcType=VARCHAR},
+           #{seqNo,jdbcType=VARCHAR},
+           #{productNo,jdbcType=VARCHAR},
+           #{paSaleGb,jdbcType=VARCHAR},
+           #{insertId,jdbcType=VARCHAR},
+           SYSDATE,
+           #{note,jdbcType=VARCHAR})
+    </insert>
+    
+    <update id="updatePaGoodsTargetForAuthYn" parameterType="com.cware.api.panaver.product.type.PaNaverGoodsVO">
+        UPDATE TPAGOODSTARGET PGT /* paNavergoods.xml : paNaver.paNavergoods.updatePaGoodsTargetForAuthYn by PaNaverGoodsController */
+           SET PGT.AUTO_YN 		 = '0',
+               PGT.MODIFY_ID 	 = #{modifyId, jdbcType=VARCHAR},
+               PGT.MODIFY_DATE 	 = SYSDATE
+         WHERE PGT.PA_CODE 		 = #{paCode, jdbcType=VARCHAR}
+           AND PGT.GOODS_CODE 	 = #{goodsCode, jdbcType=VARCHAR}
+           AND PGT.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+    </update>
+    
+    <insert id="insertPaGoodsAuthYnLog" parameterType="com.cware.netshopping.domain.model.PaGoodsAuthYnLog">
+        INSERT INTO TPAGOODSAUTHYNLOG /* paNavergoods.xml : paNaver.paNavergoods.insertPaGoodsAuthYnLog by PaNaverGoodsController */
+		  (PA_GROUP_CODE,
+		   PA_CODE,
+		   GOODS_CODE,
+		   SEQ_NO,
+		   AUTO_YN,
+		   INSERT_ID,
+		   INSERT_DATE,
+		   NOTE)
+		VALUES
+		  (#{paGroupCode,jdbcType=VARCHAR},
+		   #{paCode,jdbcType=VARCHAR},
+		   #{goodsCode,jdbcType=VARCHAR},
+		   #{seqNo,jdbcType=VARCHAR},
+		   #{autoYn,jdbcType=VARCHAR},
+		   #{insertId,jdbcType=VARCHAR},
+		   SYSDATE,
+		   #{note,jdbcType=VARCHAR}
+		   )
+    </insert>
+    
+    <!-- 
+    <select id="selectPaPromoTarget" parameterType="hashMap" resultType="hashMap">
+        SELECT /* panavergoods.xml : panaver.panavergoods.selectPaPromoTarget by PaNaverGoodsController */   
+    		   /*+INDEX_DESC (PPMT IDX_TPAPROMOTARGET_02)*/
+               PPMT.PROC_GB
+             , PPMT.PROMO_NO
+             , PPMT.SEQ
+             , PPMT.GOODS_CODE
+             , PPMT.DO_AMT AS DO_COST
+             , PPMT.AMT_RATE_FLAG
+             , PPMT.DO_RATE
+             , PPMT.DO_AMT
+             , PPMT.STANDARD_APP_AMT
+             , PPMT.LIMIT_AMT
+             , PPMT.OWN_COST AS DO_OWN_COST
+             , PPMT.ENTP_COST AS DO_ENTP_COST
+             , TO_CHAR(PPMT.TRANS_DATE, 'yyyy/MM/dd HH:mm:ss') AS TRANS_DATE
+          FROM TPAPROMOTARGET PPMT
+              ,TPROMOM PM
+         WHERE PPMT.USE_CODE = '00'
+           AND (SYSDATE BETWEEN PPMT.PROMO_BDATE AND PPMT.PROMO_EDATE
+            OR (SYSDATE > PPMT.PROMO_EDATE AND PPMT.PROC_GB = 'D'))
+           AND PPMT.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PPMT.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PPMT.PROMO_NO = PM.PROMO_NO
+           AND PM.COUPON_YN = '1'
+           AND PM.IMMEDIATELY_YN = '1'
+           AND NVL(PM.ALCOUT_PROMO_YN, '0') = '0'    
+           AND PPMT.PROC_GB != 'D'
+           AND NOT EXISTS (
+        		SELECT 1
+        		FROM TPAPROMOTARGET PPMT3
+        		WHERE PPMT3.PROMO_NO = PPMT.PROMO_NO
+        		AND PPMT3.PA_CODE = PPMT.PA_CODE
+	            AND PPMT3.GOODS_CODE = PPMT.GOODS_CODE
+        		AND PPMT3.INSERT_DATE >= PPMT.INSERT_DATE
+        		AND PPMT3.PROC_GB = 'D'
+        		)
+           AND ROWNUM = 1
+        UNION ALL
+        SELECT /*+INDEX_DESC (PPMT IDX_TPAPROMOTARGET_02)*/
+               PPMT.PROC_GB
+             , PPMT.PROMO_NO
+             , PPMT.SEQ
+             , PPMT.GOODS_CODE
+             , PPMT.DO_AMT AS DO_COST
+             , PPMT.AMT_RATE_FLAG
+             , PPMT.DO_RATE
+             , PPMT.DO_AMT
+             , PPMT.STANDARD_APP_AMT
+             , PPMT.LIMIT_AMT
+             , PPMT.OWN_COST AS DO_OWN_COST
+             , PPMT.ENTP_COST AS DO_ENTP_COST
+             , TO_CHAR(PPMT.TRANS_DATE, 'yyyy/MM/dd HH:mm:ss') AS TRANS_DATE
+          FROM TPAPROMOTARGET PPMT
+              ,TPROMOM PM
+         WHERE PPMT.USE_CODE = '00'
+           AND (SYSDATE BETWEEN PPMT.PROMO_BDATE AND PPMT.PROMO_EDATE
+            OR (SYSDATE > PPMT.PROMO_EDATE AND PPMT.PROC_GB = 'D'))
+           AND PPMT.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           AND PPMT.PA_CODE = #{paCode, jdbcType=VARCHAR}    
+           AND PPMT.PROMO_NO = PM.PROMO_NO
+           AND PM.COUPON_YN = '1'
+           AND PM.IMMEDIATELY_YN = '1'
+           AND NVL(PM.ALCOUT_PROMO_YN, '0') = '1'    
+           AND PPMT.PROC_GB != 'D'
+           AND NOT EXISTS (
+        		SELECT 1
+        		FROM TPAPROMOTARGET PPMT3
+        		WHERE PPMT3.PROMO_NO = PPMT.PROMO_NO
+        		AND PPMT3.PA_CODE = PPMT.PA_CODE
+	            AND PPMT3.GOODS_CODE = PPMT.GOODS_CODE
+        		AND PPMT3.INSERT_DATE >= PPMT.INSERT_DATE
+        		AND PPMT3.PROC_GB = 'D'
+        		)
+           AND ROWNUM = 1
+    </select>
+     -->
+    <update id="updatePaPromoTargetCalc" parameterType="com.cware.netshopping.domain.model.PaPromoTarget">
+        UPDATE TPAPROMOTARGET PPMT /* panavergoods.xml : panaver.panavergoods.updatePaPromoTargetCalc by PaNaverGoodsController */
+           SET PPMT.DO_COST      = #{doCost, jdbcType=NUMERIC},
+               PPMT.MODIFY_DATE  = SYSDATE
+         WHERE PPMT.GOODS_CODE 	 = #{goodsCode, jdbcType=VARCHAR}
+           AND PPMT.PA_CODE 	 = #{paCode, jdbcType=VARCHAR}
+           AND PPMT.PROMO_NO 	 = #{promoNo, jdbcType=VARCHAR}
+           AND PPMT.SEQ 	 	 = #{seq, jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updatePaPromoTarget" parameterType="com.cware.netshopping.domain.model.PaPromoTarget">
+        UPDATE TPAPROMOTARGET PPMT /* panavergoods.xml : panaver.panavergoods.updatePaPromoTarget by PaNaverGoodsController */
+           SET PPMT.MODIFY_DATE   = SYSDATE,
+			   <choose>
+			   <when test='doCost != null and doCost == 0 '>
+			   PPMT.EXCEPT_REASON =  '마진률 초과  , 연동 예외 시간 : ' || TO_CHAR(SYSDATE , 'YYYY/MM/DD HH24:MI:SS')
+			   </when>
+			   <otherwise>
+			   PPMT.TRANS_DATE    = SYSDATE,
+			   PPMT.EXCEPT_REASON = NULL,
+               PPMT.DO_COST       = #{doCost, jdbcType=NUMERIC},
+               PPMT.DO_OWN_COST   = #{doOwnCost, jdbcType=NUMERIC},
+               PPMT.DO_ENTP_COST  = #{doEntpCost, jdbcType=NUMERIC}
+			   </otherwise>
+			   </choose>  
+         WHERE PPMT.GOODS_CODE 	  = #{goodsCode, jdbcType=VARCHAR}
+           AND PPMT.PA_CODE 	  = #{paCode, jdbcType=VARCHAR}
+           AND PPMT.PROMO_NO 	  = #{promoNo, jdbcType=VARCHAR}
+           AND PPMT.SEQ 		  = #{seq, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectPaPromoTarget" parameterType="hashMap" resultType="hashMap">
+	   SELECT /* panavergoods.xml : panaver.panavergoods.selectPaPromoTarget by PaNaverGoodsController */
+	           PROC_GB 
+		     , PROMO_NO
+		     , PA_CODE
+		     , GOODS_CODE
+		     , SEQ
+		     , TRANS_DATE
+		     , DO_COST
+		     , OWN_COST  AS DO_OWN_COST
+		     , ENTP_COST AS DO_ENTP_COST
+		     , AMT_RATE_FLAG
+		     , DO_RATE
+		     , DO_AMT
+		     , STANDARD_APP_AMT
+		     , LIMIT_AMT
+		     , INSERT_DATE
+			 , ALCOUT_PROMO_YN
+			 , PA_GROUP_CODE
+         FROM (
+		       SELECT PPMT.PROC_GB
+		            , PPMT.PROMO_NO
+		            , PPMT.PA_CODE
+		            , PPMT.GOODS_CODE
+		            , PPMT.SEQ
+		            , TO_CHAR(PPMT.TRANS_DATE, 'yyyy/MM/dd HH:mm:ss') AS TRANS_DATE
+		            , PPMT.DO_AMT AS DO_COST
+		            , PPMT.OWN_COST
+		            , PPMT.DO_RATE
+		            , PPMT.AMT_RATE_FLAG
+		            , PPMT.ENTP_COST
+		            , PPMT.INSERT_DATE
+		            , PPMT.STANDARD_APP_AMT
+		            , PPMT.DO_AMT
+		            , PPMT.LIMIT_AMT
+					, PM.ALCOUT_PROMO_YN
+					, PPMT.PA_GROUP_CODE
+		         FROM TPAPROMOTARGET PPMT
+		            , TPROMOM PM
+		            , TPPROMOTARGET	 PT
+		        WHERE PPMT.USE_CODE = '00'
+		          AND PT.PROMO_NO 	= PM.PROMO_NO
+		          AND PT.GOODS_CODE = PPMT.GOODS_CODE 
+		          AND PT.GIFT_AMT	= DECODE(PPMT.AMT_RATE_FLAG ,1, PPMT.DO_AMT , PPMT.DO_RATE) 
+		          AND SYSDATE BETWEEN PPMT.PROMO_BDATE AND PPMT.PROMO_EDATE
+		          AND SYSDATE BETWEEN PM.PROMO_BDATE   AND PM.PROMO_EDATE
+		          AND PPMT.GOODS_CODE 				= #{goodsCode		, jdbcType=VARCHAR}
+		          AND PPMT.PA_CODE 					= #{paCode			, jdbcType=VARCHAR}
+		          <if test='promoNo != null and promoNo != ""'>
+				  AND PPMT.PROMO_NO					= #{promoNo			, jdbcType=VARCHAR}
+				  </if>
+		          AND PPMT.PROMO_NO 				= PM.PROMO_NO
+		          AND PM.COUPON_YN 					= '1'
+		          AND PM.IMMEDIATELY_YN 			= '1'
+		          AND NVL(PM.ALCOUT_PROMO_YN, '0') 	= #{alcoutPromoYn	, jdbcType=VARCHAR}
+		          AND PROC_GB 					   != 'D'         
+				  AND PPMT.ROWID    				= (SELECT /*+INDEX_DESC (PTT IDX_TPAPROMOTARGET_02)*/
+						          					   		  ROWID 
+						          					     FROM TPAPROMOTARGET PTT
+						          					    WHERE PTT.PROMO_NO    = PPMT.PROMO_NO
+						          					      AND PTT.PA_CODE  	  = PPMT.PA_CODE
+						          					      AND PTT.GOODS_CODE  = PPMT.GOODS_CODE
+						          					      AND PTT.PROC_GB    != 'D'
+						          					      AND PTT.USE_CODE    = '00'
+						          					      AND PTT.DO_AMT  	  > 0
+						          					      AND ROWNUM = 1 )
+		          AND NOT EXISTS (
+					        	   SELECT 'X'
+					        		 FROM TPAPROMOTARGET PPMT3
+					        	    WHERE PPMT3.PROMO_NO  		= PPMT.PROMO_NO
+					        		  AND PPMT3.PA_CODE	 	 	= PPMT.PA_CODE
+						              AND PPMT3.GOODS_CODE  	= PPMT.GOODS_CODE
+					        	  	  AND PPMT3.INSERT_DATE 	> PPMT.INSERT_DATE
+					        		  AND PPMT3.PROC_GB 	  	= 'D')
+				 AND NOT EXISTS ( SELECT 'X'
+				                    FROM TPAPROMOEXCEPTENTP PEE
+				                   INNER JOIN TGOODS GD ON GD.ENTP_CODE = PEE.ENTP_CODE AND GD.GOODS_CODE = PPMT.GOODS_CODE
+				                   LEFT OUTER JOIN TPAPROMOEXCEPTBRAND PEB ON PEE.ENTP_CODE = PEB.ENTP_CODE AND PEB.USE_YN = '1' AND PEB.BRAND_CODE = GD.BRAND_CODE
+				                  WHERE (INSTR(PEE.PA_GROUP_CODE, '04') > 0  OR PEE.PA_GROUP_CODE_ALL_YN = 1)
+				                    AND PEE.USE_YN = '1'
+				                    AND ((PEE.ALL_BRAND_YN = '1' AND SYSDATE BETWEEN PEE.PA_EXCEPT_BDATE AND PEE.PA_EXCEPT_EDATE) 
+				                    	OR (PEE.ALL_BRAND_YN = '0' AND SYSDATE BETWEEN PEB.PA_EXCEPT_BDATE AND PEB.PA_EXCEPT_EDATE)) )
+				 AND NOT EXISTS ( SELECT 'X' 
+				    				FROM TPAPROMOTARGETEXCEPT TPE
+				    			       , TPAGOODSPRICE PGP
+				    			   WHERE TPE.TARGET_CODE = PPMT.GOODS_CODE 		
+				    			     AND TPE.USE_YN = '1'
+				    			     AND (INSTR(TPE.PA_GROUP_CODE, '04' ) > 0  OR TPE.PA_GROUP_CODE_ALL_YN = 1)
+				    				 AND SYSDATE BETWEEN TPE.PA_EXCEPT_BDATE AND TPE.PA_EXCEPT_EDATE 
+				    				 AND TPE.TARGET_GB = '00'	
+				    				 AND PGP.ROWID  = ( SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE)*/ 
+				    				                           GP.ROWID
+				    				 					  FROM TPAGOODSPRICE GP
+				    				 					 WHERE GP.GOODS_CODE = PPMT.GOODS_CODE
+				    				 					   AND GP.APPLY_DATE &lt; SYSDATE
+				    				 					   AND GP.PA_CODE    = PPMT.PA_CODE
+				    				 					   AND ROWNUM = 1)
+				    				 AND (PGP.SALE_PRICE - PGP.DC_AMT - PGP.LUMP_SUM_DC_AMT - PPMT.DO_AMT) >= TPE.PA_EXCEPT_MARGIN )
+   	            ORDER BY PPMT.DO_AMT DESC )
+	    WHERE ROWNUM = 1
+    </select>
+    
+    <select id="selectPaPromoDeleteTarget" parameterType="hashMap" resultType="hashMap">
+        SELECT  /* panavergoods.xml : panaver.panavergoods.selectPaPromoDeleteTarget by PaNaverGoodsController */
+               /*+INDEX_DESC (PPMT IDX_TPAPROMOTARGET_02)*/
+               PPMT.PROC_GB
+             , PPMT.PROMO_NO
+             , PPMT.PA_CODE
+             , PPMT.GOODS_CODE
+             , PPMT.SEQ
+             , TO_CHAR(PPMT.TRANS_DATE, 'yyyy/MM/dd HH:mm:ss') AS TRANS_DATE
+             , PPMT.DO_AMT AS DO_COST
+             , PPMT.AMT_RATE_FLAG
+             , PPMT.OWN_COST AS DO_OWN_COST
+             , PPMT.ENTP_COST AS DO_ENTP_COST
+             , PPMT.DO_RATE
+             , PPMT.DO_AMT
+             , PPMT.STANDARD_APP_AMT
+             , PPMT.LIMIT_AMT
+             , PPMT.ENTP_COST
+             , PPMT.INSERT_DATE
+             , PM.ALCOUT_PROMO_YN
+          FROM TPAPROMOTARGET PPMT
+             , TPROMOM PM
+         WHERE  PPMT.PROC_GB 				= 'D' 
+           AND PPMT.TRANS_DATE 				IS NULL
+           AND PPMT.PROMO_NO 				= PM.PROMO_NO
+           AND PM.COUPON_YN 				= '1'
+           AND PM.IMMEDIATELY_YN 			= '1'
+           AND NVL(PM.ALCOUT_PROMO_YN, '0') = #{alcoutPromoYn	, jdbcType=VARCHAR}
+           AND PPMT.GOODS_CODE 				= #{goodsCode		, jdbcType=VARCHAR}
+           AND PPMT.PA_CODE 				= #{paCode			, jdbcType=VARCHAR}
+           AND EXISTS 	  ( SELECT /*+INDEX_DESC (PPMT3 IDX_TPAPROMOTARGET_04)*/
+          						   'X'
+					          FROM TPAPROMOTARGET PPMT3
+					         WHERE PPMT3.PROMO_NO  		= PPMT.PROMO_NO
+					           AND PPMT3.PA_CODE	 	= PPMT.PA_CODE
+						       AND PPMT3.GOODS_CODE     = PPMT.GOODS_CODE
+					           AND PPMT3.INSERT_DATE &lt; PPMT.INSERT_DATE
+					           AND PPMT3.TRANS_DATE    IS NOT NULL
+					           AND PPMT3.PROC_GB 	   != 'D'
+					           AND PPMT3.DO_AMT  	    > 0
+					           AND ROWNUM 				= 1)
+           AND ROWNUM = 1
+    </select>
+    
+    <insert id="insertNewPaPromoTarget"  parameterType="com.cware.netshopping.domain.model.PaPromoTarget">
+		INSERT INTO /* panavergoods.xml: panaver.panavergoods.insertPaPromoTarget by PaNaverGoodsController */
+			   TPAPROMOTARGET PPMT
+                             (PPMT.PROMO_NO
+                            , PPMT.PA_CODE
+                            , PPMT.GOODS_CODE
+                            , PPMT.SEQ
+                            , PPMT.DO_TYPE
+                            , PPMT.COUPON_YN
+                            , PPMT.IMMEDIATELY_YN
+                            , PPMT.PROMO_BDATE
+                            , PPMT.PROMO_EDATE
+                            , PPMT.AMT_RATE_FLAG
+                            , PPMT.DO_RATE
+                            , PPMT.DO_AMT
+                            , PPMT.STANDARD_APP_AMT
+                            , PPMT.LIMIT_AMT
+                            , PPMT.USE_CODE
+                            , PPMT.OWN_COST
+                            , PPMT.ENTP_COST
+                            , PPMT.INSERT_ID
+                            , PPMT.MODIFY_ID
+                            , PPMT.PROC_GB
+                            , PPMT.PA_GROUP_CODE
+                            , PPMT.TRANS_DATE
+                            , PPMT.INSERT_DATE
+                            , PPMT.MODIFY_DATE
+                            , PPMT.DO_COST
+                            , PPMT.DO_OWN_COST
+                            , PPMT.DO_ENTP_COST
+                            , PPMT.EXCEPT_REASON
+                            )
+                         SELECT PM.PROMO_NO
+                              , PM.PA_CODE
+                              , PM.GOODS_CODE
+                              , LPAD((SELECT MAX(PM1.SEQ) + 1 
+                              	   FROM TPAPROMOTARGET PM1 
+                              	  WHERE PM1.GOODS_CODE 	= #{goodsCode	, jdbcType=VARCHAR}
+                              	  	AND PM1.PA_CODE 	= #{paCode		, jdbcType=VARCHAR}
+                              	  	AND PM1.PROMO_NO 	= #{promoNo		, jdbcType=VARCHAR}
+                              	  	), 4 ,'0')   
+                              , PM.DO_TYPE
+                              , PM.COUPON_YN
+                              , PM.IMMEDIATELY_YN
+                              , PM.PROMO_BDATE
+                              , PM.PROMO_EDATE
+                              , PM.AMT_RATE_FLAG
+                              , PM.DO_RATE
+                              , DECODE(#{doCost, jdbcType=NUMERIC}, 0 , 0 , PM.DO_AMT)
+                              , PM.STANDARD_APP_AMT
+                              , PM.LIMIT_AMT
+                              , PM.USE_CODE
+                              , DECODE(#{doCost, jdbcType=NUMERIC}, 0 , 0 , PM.OWN_COST)
+                              , DECODE(#{doCost, jdbcType=NUMERIC}, 0 , 0 , PM.ENTP_COST)
+                              , PM.INSERT_ID
+                              , 'BATCH'
+                              , DECODE(PM.PROC_GB, 'I', 'U', PM.PROC_GB)
+                              , PM.PA_GROUP_CODE 
+                              , SYSDATE
+                              , SYSDATE
+                              , SYSDATE
+                           	  , DECODE(#{doCost, jdbcType=NUMERIC}, 0 , 0 , PM.DO_COST)
+                              , DECODE(#{doCost, jdbcType=NUMERIC}, 0 , 0 , PM.DO_OWN_COST)
+                              , DECODE(#{doCost, jdbcType=NUMERIC}, 0 , 0 , PM.DO_ENTP_COST)
+                              , DECODE(#{doCost, jdbcType=NUMERIC}, 0 , '마진률 초과  , 연동 예외 시간 : ' || TO_CHAR(SYSDATE , 'YYYY/MM/DD HH24:MI:SS') , '')                          
+                           FROM TPAPROMOTARGET PM
+                          WHERE PM.GOODS_CODE 	= #{goodsCode	, jdbcType=VARCHAR}
+						    AND PM.PA_CODE 		= #{paCode		, jdbcType=VARCHAR}
+							AND PM.PROMO_NO 	= #{promoNo		, jdbcType=VARCHAR}
+					        AND PM.SEQ 			= #{seq			, jdbcType=VARCHAR}
+     </insert>
+          
+     <update id="updateTPapromoTarget4ExceptMemo"  parameterType="hashMap">
+		UPDATE /* panavergoods.xml: panaver.panavergoods.updateTPapromoTarget4ExceptMemo by PaNaverGoodsController */
+			   TPAPROMOTARGET T
+		   SET T.EXCEPT_REASON = #{EXCEPT_REASON	, jdbcType=VARCHAR}
+		 WHERE T.PROMO_NO      = #{PROMO_NO			, jdbcType=VARCHAR} 
+		   AND T.PA_CODE       = #{PA_CODE			, jdbcType=VARCHAR} 
+		   AND T.SEQ		   = #{SEQ				, jdbcType=VARCHAR} 
+		   AND T.GOODS_CODE	   = #{GOODS_CODE		, jdbcType=VARCHAR} 
+		   AND T.TRANS_DATE IS NULL
+    </update>
+    
+    <insert id="insertNewPaPromoTargetAmt0"  parameterType="com.cware.netshopping.domain.model.PaPromoTarget">
+		INSERT INTO /* panavergoods.xml: panaver.panavergoods.insertPaPromoTarget by PaNaverGoodsController */
+			   TPAPROMOTARGET PPMT
+                             (PPMT.PROMO_NO
+                            , PPMT.PA_CODE
+                            , PPMT.GOODS_CODE
+                            , PPMT.SEQ
+                            , PPMT.DO_TYPE
+                            , PPMT.COUPON_YN
+                            , PPMT.IMMEDIATELY_YN
+                            , PPMT.PROMO_BDATE
+                            , PPMT.PROMO_EDATE
+                            , PPMT.AMT_RATE_FLAG
+                            , PPMT.DO_RATE
+                            , PPMT.DO_AMT
+                            , PPMT.STANDARD_APP_AMT
+                            , PPMT.LIMIT_AMT
+                            , PPMT.USE_CODE
+                            , PPMT.OWN_COST
+                            , PPMT.ENTP_COST
+                            , PPMT.INSERT_ID
+                            , PPMT.MODIFY_ID
+                            , PPMT.PROC_GB
+                            , PPMT.PA_GROUP_CODE
+                            , PPMT.TRANS_DATE
+                            , PPMT.INSERT_DATE
+                            , PPMT.MODIFY_DATE
+                            , PPMT.DO_COST
+                            , PPMT.DO_OWN_COST
+                            , PPMT.DO_ENTP_COST
+                            )
+                         SELECT PM.PROMO_NO
+                              , PM.PA_CODE
+                              , PM.GOODS_CODE
+                              , LPAD((SELECT MAX(PM1.SEQ) + 1 
+                              	   FROM TPAPROMOTARGET PM1 
+                              	  WHERE PM1.GOODS_CODE 	= #{goodsCode	, jdbcType=VARCHAR}
+                              	  	AND PM1.PA_CODE 	= #{paCode		, jdbcType=VARCHAR}
+                              	  	AND PM1.PROMO_NO 	= #{promoNo		, jdbcType=VARCHAR}
+                              	  	), 4 ,'0')   
+                              , PM.DO_TYPE
+                              , PM.COUPON_YN
+                              , PM.IMMEDIATELY_YN
+                              , PM.PROMO_BDATE
+                              , PM.PROMO_EDATE
+                              , PM.AMT_RATE_FLAG
+                              , 0
+                              , 0
+                              , 0
+                              , 0
+                              , PM.USE_CODE
+                              , 0
+                              , 0
+                              , PM.INSERT_ID
+                              , 'BATCH'
+                              , 'D'
+                              , PM.PA_GROUP_CODE 
+                              , SYSDATE
+                              , SYSDATE
+                              , SYSDATE
+                           	  , 0
+                              , 0
+                              , 0                              
+                           FROM TPAPROMOTARGET PM
+                          WHERE PM.GOODS_CODE 	= #{goodsCode	, jdbcType=VARCHAR}
+						    AND PM.PA_CODE 		= #{paCode		, jdbcType=VARCHAR}
+							AND PM.PROMO_NO 	= #{promoNo		, jdbcType=VARCHAR}
+					        AND PM.SEQ 			= #{seq			, jdbcType=VARCHAR}
+     </insert>
+     
+     <select id="selectPaNaverGoodsModifyCheck" resultType="int" parameterType="com.cware.api.panaver.product.type.PaNaverGoodsVO">
+        SELECT /* panavergoods.xml : panaver.panavergoods.selectPaNaverGoodsModifyCheck by PaNaverGoodsController-goodsTrans */ 
+               COUNT(1)
+          FROM TPANAVERGOODS T
+         WHERE T.GOODS_CODE  = #{goodsCode		, jdbcType=VARCHAR}
+           AND T.PA_CODE     = #{paCode			, jdbcType=VARCHAR}
+           AND T.MODIFY_DATE > #{lastModifyDate	, jdbcType=TIMESTAMP}
+    </select>           
+    
+    <select id="selectChannelSearchTarget" parameterType="com.cware.api.panaver.product.type.PaNaverGoodsVO" resultMap="result-PaNaverGoodsInfo">
+    	SELECT PNG.GOODS_CODE
+    	     , PNG.PRODUCT_ID
+		  FROM TPANAVERGOODS PNG
+		 WHERE PNG.ORG_PRODUCT_NO IS NULL
+		   AND PNG.PRODUCT_ID IS NOT NULL
+		   AND PNG.PA_SALE_GB = '20'
+		   AND PNG.PA_STATUS = '30'
+		   <if test='goodsCode != null and goodsCode != ""'>
+               AND PNG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+		   </if>
+		   <if test='paCode != null and paCode != ""'>
+               AND PNG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+		   </if>
+		   AND ROWNUM &lt; 1000
+	</select>
+</mapper>

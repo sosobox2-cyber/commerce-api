@@ -1,0 +1,689 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pahalf.order">
+
+	<insert id="insertPaHalfOrderList" parameterType="com.cware.netshopping.domain.PaHalfOrderListVO">
+        INSERT /* pahalforder.xml: pahalf.order.insertPaHalfOrderList by PaHalfOrderController*/
+          INTO TPAHALFORDERLIST ( 
+          	   ORD_NO				, ORD_NO_NM					, BASKET_NO				
+          	 , PRD_NO				, STOCK_NO					, MEM_NO			
+          	 , GUEST_NO				, SITE_CD					, DEVICE_CD
+	         , CHK_BC				, CBK_NM					, TO_ADDR			
+	         , TO_ZI_CD				, TO_NM						, TO_TEL			
+	         , TO_EM_TEL			, PRD_SAL_YMD				, PRD_Q_PRI		
+	         , DELI_PRI				, PAY_PRI					, OKCASH_PRI
+	         , SUM_QTY				, MEMO						, MAND_M				
+	         , PRINT_YN				, DELAY_MAIL				, EVENT_YN				
+	         , LOCATION				, CONFIRM_CD				, TRADE_NUMBER				
+	         , APP_STATE			, APP_STATE02				, GUEST_EMAIL
+	         , GUEST_TEL			, FROM_NM					, CC_INSTALLMENT				
+	         , CARD_METHOD			, INTEREST					, SMS_GUBUN 		
+	         , PG_MID				, USE_RESERVE_PRI			, GLOBAL_DELI_PRI			
+	         , GLB_NATION_CD		, PG						, CREATE_DT
+	         , UPDATE_DT			, MEMO_CD					, PRD_PRI				
+	         , QTY					, SAL_PRI					, DEAL_TYPE			
+	         , DELI_STATE			, OUT_YMD					, APP_GUBUN			
+	         , MARGIN				, BRD_CD					, CP_SEQ
+	         , CP_TYPE				, CART_GROUP				, DELI_LIMIT			
+	         , SAVE_RESERVE_PST		, OPT_CD					, PRD_WEIGHT
+	         , SD_YMD				, THEME_CD					, DEAL_PCODE
+	         , TRACKINGNUM			, DLV_TMPLT_SEQ				, ORI_ORD_NO
+	         , ORI_ORD_NO_NM		, CJ_NO						, SEL_ACNT_NO
+	         , OUT_NO				, CONFIRM_YN				, REFUND_COMPLETE_YN
+	         , RTRN_MONEY_YN		, STD_CTGR_NO				, OPT_VALUE_NM
+	         , PRD_NM				, PRD_CD					, GUBUN
+	         , GUBUN2				, DELI_FREE					, HGUBUN
+	         , CDELI_STATE			, PGUBUN					, PA_ORDER_GB
+	         , EXCHANGE_STATE		, REFUND_STATE				, REFUND_BS_MEMO
+	         , REFUND_NO			, REFUND_DATE				, REFUND_DELI_PRI
+	         , REFUND_FROM_ADDR		, REFUND_FROM_EM_TEL		, REFUND_FROM_NM
+	         , REFUND_FROM_TEL		, REFUND_FROM_ZI_CD			, REFUND_MEMO
+	         , EXCHANGE_DELI_PRI	, EXCHANGE_ORD_NO			, EXCHANGE_FROM_NM
+	         , EXCHANGE_FROM_ZI_CD	, EXCHANGE_FROM_ADDR		, EXCHANGE_FROM_TEL
+	         , EXCHANGE_FROM_EM_TEL	, EXCHANGE_MEMO				, EXCHANGE_BS_MEMO
+	         , EXCHANGE_CREATE_DT	, BP_PICKUP_TYPE_NM			, DELIRTN_NO
+	         , EX_PRD_NO			, EX_STOCK_NO				, EX_OPT_VALUE_NM
+	         , EX_CANCEL_FLAG		, RE_CANCEL_FLAG			, P_MAIL_YN
+	         , P_ORD_NO				, IS_SET					, CLAIM_NO
+	         , CLAIM_REQUEST_DATE	, COUPON_AMT				, INSERT_ID
+	         , INSERT_DATE			, MODIFY_ID					, MODIFY_DATE    
+	         , DELIRTN_OFF_NO   
+        	) 
+        VALUES(
+              #{ordNo	 			, jdbcType=VARCHAR} 	, #{ordNoNm				, jdbcType=VARCHAR} 	, #{basketNo			, jdbcType=VARCHAR} 	
+			, #{prdNo		 		, jdbcType=VARCHAR} 	, #{stockNo				, jdbcType=VARCHAR} 	, #{memNo				, jdbcType=VARCHAR} 	
+			, #{guestNo	 			, jdbcType=VARCHAR} 	, #{siteCd				, jdbcType=VARCHAR} 	, #{deviceCd			, jdbcType=VARCHAR} 
+			, #{chkBc		 		, jdbcType=VARCHAR} 	, #{cbkNm				, jdbcType=VARCHAR} 	, #{toAddr				, jdbcType=VARCHAR} 
+			, #{toZiCd 				, jdbcType=VARCHAR} 	, #{toNm				, jdbcType=VARCHAR} 	, #{toTel				, jdbcType=VARCHAR} 
+			, #{toEmTel	 			, jdbcType=VARCHAR} 	, #{prdSalYmd			, jdbcType=TIMESTAMP} 	, #{prdQPri				, jdbcType=NUMERIC} 
+			, #{deliPri			 	, jdbcType=NUMERIC} 	, #{payPri				, jdbcType=NUMERIC} 	, #{okcashPri			, jdbcType=NUMERIC} 
+			, #{sumQty 				, jdbcType=NUMERIC} 	, #{memo				, jdbcType=VARCHAR} 	, #{mandM				, jdbcType=VARCHAR}
+			, #{printYn 			, jdbcType=VARCHAR} 	, #{delayMail			, jdbcType=VARCHAR} 	, #{eventYn				, jdbcType=VARCHAR}			
+			, #{location 		 	, jdbcType=VARCHAR} 	, #{confirmCd			, jdbcType=VARCHAR} 	, #{tradeNumber			, jdbcType=VARCHAR}				
+			, #{appState 			, jdbcType=VARCHAR} 	, #{appState02			, jdbcType=VARCHAR} 	, #{guestEmail			, jdbcType=VARCHAR}		
+			, #{guestTel 	 	 	, jdbcType=VARCHAR} 	, #{fromNm				, jdbcType=VARCHAR} 	, #{ccInstallment		, jdbcType=VARCHAR}					
+			, #{cardMethod 	 	 	, jdbcType=VARCHAR} 	, #{interest			, jdbcType=VARCHAR} 	, #{smsGubun			, jdbcType=VARCHAR}					
+			, #{pgMid 	 	 		, jdbcType=VARCHAR} 	, #{useReservePri		, jdbcType=VARCHAR} 	, #{globalDeliPri		, jdbcType=VARCHAR}					
+			, #{glbNationCd	 		, jdbcType=VARCHAR} 	, #{pg					, jdbcType=VARCHAR} 	, #{createDt			, jdbcType=TIMESTAMP}						
+			, #{updateDt			, jdbcType=TIMESTAMP} 	, #{memoCd				, jdbcType=VARCHAR} 	, #{prdPri				, jdbcType=NUMERIC}		
+			, #{qty					, jdbcType=NUMERIC} 	, #{salPri				, jdbcType=NUMERIC} 	, #{dealType			, jdbcType=VARCHAR}		
+			, #{deliState			, jdbcType=VARCHAR} 	, #{outYmd				, jdbcType=VARCHAR} 	, #{appGubun			, jdbcType=VARCHAR}					
+			, #{margin				, jdbcType=NUMERIC} 	, #{brdCd				, jdbcType=VARCHAR} 	, #{cpSeq				, jdbcType=VARCHAR}				
+			, #{cpType				, jdbcType=VARCHAR} 	, #{cartGroup			, jdbcType=VARCHAR} 	, #{deliLimit			, jdbcType=NUMERIC}				
+			, #{saveReservePst		, jdbcType=NUMERIC} 	, #{optCd				, jdbcType=VARCHAR} 	, #{prdWeight			, jdbcType=VARCHAR}				
+			, #{sdYmd				, jdbcType=TIMESTAMP}	, #{themeCd				, jdbcType=VARCHAR}		, #{dealPcode			, jdbcType=VARCHAR}				
+			, #{trackingnum			, jdbcType=VARCHAR}		, #{dlvTmpltSeq			, jdbcType=VARCHAR} 	, #{oriOrdNo			, jdbcType=VARCHAR} 				
+			, #{oriOrdNoNm			, jdbcType=VARCHAR}		, #{cjNo				, jdbcType=VARCHAR}		, #{selAcntNo			, jdbcType=VARCHAR} 				
+			, #{outNo				, jdbcType=VARCHAR}		, #{confirmYn			, jdbcType=VARCHAR} 	, #{refundCompleteYn	, jdbcType=VARCHAR} 				
+			, #{rtrnMoneyYn			, jdbcType=VARCHAR}		, #{stdCtgrNo			, jdbcType=VARCHAR} 	, #{optValueNm			, jdbcType=VARCHAR} 				
+			, #{prdNm				, jdbcType=VARCHAR}		, #{prdCd				, jdbcType=VARCHAR} 	, #{gubun				, jdbcType=VARCHAR} 				
+			, #{gubun2				, jdbcType=VARCHAR}		, #{deliFree			, jdbcType=VARCHAR} 	, #{hgubun				, jdbcType=VARCHAR} 				
+			, #{cdeliState			, jdbcType=VARCHAR}		, #{pgubun				, jdbcType=VARCHAR} 	, #{paOrderGb			, jdbcType=VARCHAR}  				
+			, #{exchangeState		, jdbcType=VARCHAR}		, #{refundState			, jdbcType=VARCHAR} 	, #{refundBsMemo		, jdbcType=VARCHAR}  				
+			, #{refundNo			, jdbcType=VARCHAR}		, #{refundDate			, jdbcType=TIMESTAMP} 	, #{refundDeliPri		, jdbcType=NUMERIC}				
+			, #{refundFromAddr		, jdbcType=VARCHAR}		, #{refundFromEmTel		, jdbcType=VARCHAR} 	, #{refundFromNm		, jdbcType=VARCHAR}				
+			, #{refundFromTel		, jdbcType=VARCHAR}		, #{refundFromZiCd		, jdbcType=VARCHAR} 	, #{refundMemo			, jdbcType=VARCHAR}				
+			, #{exchangeDeliPri		, jdbcType=NUMERIC}		, #{exchangeOrdNo		, jdbcType=VARCHAR} 	, #{exchangeFromNm		, jdbcType=VARCHAR}			
+			, #{exchangeFromZiCd	, jdbcType=VARCHAR}		, #{exchangeFromAddr	, jdbcType=VARCHAR} 	, #{exchangeFromTel		, jdbcType=VARCHAR}  			
+			, #{exchangeFromEmTel	, jdbcType=VARCHAR}		, #{exchangeMemo		, jdbcType=VARCHAR} 	, #{exchangeBsMemo		, jdbcType=VARCHAR}  			
+			, #{exchangeCreateDt	, jdbcType=TIMESTAMP}	, #{bpPickupTypeNm		, jdbcType=VARCHAR} 	, #{delirtnNo			, jdbcType=VARCHAR}  			
+			, #{exPrdNo				, jdbcType=VARCHAR}		, #{exStockNo			, jdbcType=VARCHAR} 	, #{exOptValueNm		, jdbcType=VARCHAR}  			
+			, #{exCancelFlag		, jdbcType=VARCHAR}		, #{reCancelFlag		, jdbcType=VARCHAR} 	, #{pMailYn				, jdbcType=VARCHAR}  			
+			, #{pOrdNo				, jdbcType=VARCHAR}		, #{isSet				, jdbcType=VARCHAR} 	, NVL(#{claimNo, jdbcType=VARCHAR} , '0')  			
+			, TO_CHAR(#{claimRequestDate	, jdbcType=TIMESTAMP} ,'YYYYMMDDHH24MISS'), #{couponAmt			, jdbcType=NUMERIC} 	, #{modifyId			, jdbcType=VARCHAR}	
+			, #{insertDate			, jdbcType=TIMESTAMP}	, #{modifyId			, jdbcType=VARCHAR}		, #{modifyDate			, jdbcType=TIMESTAMP}
+			, #{delirtnOffNo		, jdbcType=VARCHAR}
+        )  
+     </insert>
+     
+     <insert id="insertPaHalfExchangeCancel" parameterType="com.cware.netshopping.domain.PaHalfOrderListVO">
+        INSERT /* pahalforder.xml: pahalf.order.insertPaHalfExchangeCancel by PaHalfOrderController*/
+          INTO TPAHALFEXCHANGECANCEL ( 
+          	   ORD_NO				, ORD_NO_NM					, BASKET_NO				
+          	 , PRD_NO				, STOCK_NO					, MEM_NO			
+          	 , GUEST_NO				, SITE_CD					, DEVICE_CD
+	         , CHK_BC				, CBK_NM					, TO_ADDR			
+	         , TO_ZI_CD				, TO_NM						, TO_TEL			
+	         , TO_EM_TEL			, PRD_SAL_YMD				, PRD_Q_PRI		
+	         , DELI_PRI				, PAY_PRI					, OKCASH_PRI
+	         , SUM_QTY				, MEMO						, MAND_M				
+	         , PRINT_YN				, DELAY_MAIL				, EVENT_YN				
+	         , LOCATION				, CONFIRM_CD				, TRADE_NUMBER				
+	         , APP_STATE			, APP_STATE02				, GUEST_EMAIL
+	         , GUEST_TEL			, FROM_NM					, CC_INSTALLMENT				
+	         , CARD_METHOD			, INTEREST					, SMS_GUBUN 		
+	         , PG_MID				, USE_RESERVE_PRI			, GLOBAL_DELI_PRI			
+	         , GLB_NATION_CD		, PG						, CREATE_DT
+	         , UPDATE_DT			, MEMO_CD					, PRD_PRI				
+	         , QTY					, SAL_PRI					, DEAL_TYPE			
+	         , DELI_STATE			, OUT_YMD					, APP_GUBUN			
+	         , MARGIN				, BRD_CD					, CP_SEQ
+	         , CP_TYPE				, CART_GROUP				, DELI_LIMIT			
+	         , SAVE_RESERVE_PST		, OPT_CD					, PRD_WEIGHT
+	         , SD_YMD				, THEME_CD					, DEAL_PCODE
+	         , TRACKINGNUM			, DLV_TMPLT_SEQ				, ORI_ORD_NO
+	         , ORI_ORD_NO_NM		, CJ_NO						, SEL_ACNT_NO
+	         , OUT_NO				, CONFIRM_YN				, REFUND_COMPLETE_YN
+	         , RTRN_MONEY_YN		, STD_CTGR_NO				, OPT_VALUE_NM
+	         , PRD_NM				, PRD_CD					, GUBUN
+	         , GUBUN2				, DELI_FREE					, HGUBUN
+	         , CDELI_STATE			, PGUBUN					, PA_ORDER_GB
+	         , EXCHANGE_STATE		, REFUND_STATE				, REFUND_BS_MEMO
+	         , REFUND_NO			, REFUND_DATE				, REFUND_DELI_PRI
+	         , REFUND_FROM_ADDR		, REFUND_FROM_EM_TEL		, REFUND_FROM_NM
+	         , REFUND_FROM_TEL		, REFUND_FROM_ZI_CD			, REFUND_MEMO
+	         , EXCHANGE_DELI_PRI	, EXCHANGE_ORD_NO			, EXCHANGE_FROM_NM
+	         , EXCHANGE_FROM_ZI_CD	, EXCHANGE_FROM_ADDR		, EXCHANGE_FROM_TEL
+	         , EXCHANGE_FROM_EM_TEL	, EXCHANGE_MEMO				, EXCHANGE_BS_MEMO
+	         , EXCHANGE_CREATE_DT	, BP_PICKUP_TYPE_NM			, DELIRTN_NO
+	         , EX_PRD_NO			, EX_STOCK_NO				, EX_OPT_VALUE_NM
+	         , EX_CANCEL_FLAG		, RE_CANCEL_FLAG			, P_MAIL_YN
+	         , P_ORD_NO				, IS_SET					, CLAIM_NO
+	         , CLAIM_REQUEST_DATE	, COUPON_AMT				, INSERT_ID
+	         , INSERT_DATE			, MODIFY_ID					, MODIFY_DATE    
+	         , DELIRTN_OFF_NO   
+        	) 
+        VALUES(
+              #{ordNo	 			, jdbcType=VARCHAR} 	, #{ordNoNm				, jdbcType=VARCHAR} 	, #{basketNo			, jdbcType=VARCHAR} 	
+			, #{prdNo		 		, jdbcType=VARCHAR} 	, #{stockNo				, jdbcType=VARCHAR} 	, #{memNo				, jdbcType=VARCHAR} 	
+			, #{guestNo	 			, jdbcType=VARCHAR} 	, #{siteCd				, jdbcType=VARCHAR} 	, #{deviceCd			, jdbcType=VARCHAR} 
+			, #{chkBc		 		, jdbcType=VARCHAR} 	, #{cbkNm				, jdbcType=VARCHAR} 	, #{toAddr				, jdbcType=VARCHAR} 
+			, #{toZiCd 				, jdbcType=VARCHAR} 	, #{toNm				, jdbcType=VARCHAR} 	, #{toTel				, jdbcType=VARCHAR} 
+			, #{toEmTel	 			, jdbcType=VARCHAR} 	, #{prdSalYmd			, jdbcType=TIMESTAMP} 	, #{prdQPri				, jdbcType=NUMERIC} 
+			, #{deliPri			 	, jdbcType=NUMERIC} 	, #{payPri				, jdbcType=NUMERIC} 	, #{okcashPri			, jdbcType=NUMERIC} 
+			, #{sumQty 				, jdbcType=NUMERIC} 	, #{memo				, jdbcType=VARCHAR} 	, #{mandM				, jdbcType=VARCHAR}
+			, #{printYn 			, jdbcType=VARCHAR} 	, #{delayMail			, jdbcType=VARCHAR} 	, #{eventYn				, jdbcType=VARCHAR}			
+			, #{location 		 	, jdbcType=VARCHAR} 	, #{confirmCd			, jdbcType=VARCHAR} 	, #{tradeNumber			, jdbcType=VARCHAR}				
+			, #{appState 			, jdbcType=VARCHAR} 	, #{appState02			, jdbcType=VARCHAR} 	, #{guestEmail			, jdbcType=VARCHAR}		
+			, #{guestTel 	 	 	, jdbcType=VARCHAR} 	, #{fromNm				, jdbcType=VARCHAR} 	, #{ccInstallment		, jdbcType=VARCHAR}					
+			, #{cardMethod 	 	 	, jdbcType=VARCHAR} 	, #{interest			, jdbcType=VARCHAR} 	, #{smsGubun			, jdbcType=VARCHAR}					
+			, #{pgMid 	 	 		, jdbcType=VARCHAR} 	, #{useReservePri		, jdbcType=VARCHAR} 	, #{globalDeliPri		, jdbcType=VARCHAR}					
+			, #{glbNationCd	 		, jdbcType=VARCHAR} 	, #{pg					, jdbcType=VARCHAR} 	, #{createDt			, jdbcType=TIMESTAMP}						
+			, #{updateDt			, jdbcType=TIMESTAMP} 	, #{memoCd				, jdbcType=VARCHAR} 	, #{prdPri				, jdbcType=NUMERIC}		
+			, #{qty					, jdbcType=NUMERIC} 	, #{salPri				, jdbcType=NUMERIC} 	, #{dealType			, jdbcType=VARCHAR}		
+			, #{deliState			, jdbcType=VARCHAR} 	, #{outYmd				, jdbcType=VARCHAR} 	, #{appGubun			, jdbcType=VARCHAR}					
+			, #{margin				, jdbcType=NUMERIC} 	, #{brdCd				, jdbcType=VARCHAR} 	, #{cpSeq				, jdbcType=VARCHAR}				
+			, #{cpType				, jdbcType=VARCHAR} 	, #{cartGroup			, jdbcType=VARCHAR} 	, #{deliLimit			, jdbcType=NUMERIC}				
+			, #{saveReservePst		, jdbcType=NUMERIC} 	, #{optCd				, jdbcType=VARCHAR} 	, #{prdWeight			, jdbcType=VARCHAR}				
+			, #{sdYmd				, jdbcType=TIMESTAMP}	, #{themeCd				, jdbcType=VARCHAR}		, #{dealPcode			, jdbcType=VARCHAR}				
+			, #{trackingnum			, jdbcType=VARCHAR}		, #{dlvTmpltSeq			, jdbcType=VARCHAR} 	, #{oriOrdNo			, jdbcType=VARCHAR} 				
+			, #{oriOrdNoNm			, jdbcType=VARCHAR}		, #{cjNo				, jdbcType=VARCHAR}		, #{selAcntNo			, jdbcType=VARCHAR} 				
+			, #{outNo				, jdbcType=VARCHAR}		, #{confirmYn			, jdbcType=VARCHAR} 	, #{refundCompleteYn	, jdbcType=VARCHAR} 				
+			, #{rtrnMoneyYn			, jdbcType=VARCHAR}		, #{stdCtgrNo			, jdbcType=VARCHAR} 	, #{optValueNm			, jdbcType=VARCHAR} 				
+			, #{prdNm				, jdbcType=VARCHAR}		, #{prdCd				, jdbcType=VARCHAR} 	, #{gubun				, jdbcType=VARCHAR} 				
+			, #{gubun2				, jdbcType=VARCHAR}		, #{deliFree			, jdbcType=VARCHAR} 	, #{hgubun				, jdbcType=VARCHAR} 				
+			, #{cdeliState			, jdbcType=VARCHAR}		, #{pgubun				, jdbcType=VARCHAR} 	, #{paOrderGb			, jdbcType=VARCHAR}  				
+			, #{exchangeState		, jdbcType=VARCHAR}		, #{refundState			, jdbcType=VARCHAR} 	, #{refundBsMemo		, jdbcType=VARCHAR}  				
+			, #{refundNo			, jdbcType=VARCHAR}		, #{refundDate			, jdbcType=TIMESTAMP} 	, #{refundDeliPri		, jdbcType=NUMERIC}				
+			, #{refundFromAddr		, jdbcType=VARCHAR}		, #{refundFromEmTel		, jdbcType=VARCHAR} 	, #{refundFromNm		, jdbcType=VARCHAR}				
+			, #{refundFromTel		, jdbcType=VARCHAR}		, #{refundFromZiCd		, jdbcType=VARCHAR} 	, #{refundMemo			, jdbcType=VARCHAR}				
+			, #{exchangeDeliPri		, jdbcType=NUMERIC}		, #{exchangeOrdNo		, jdbcType=VARCHAR} 	, #{exchangeFromNm		, jdbcType=VARCHAR}			
+			, #{exchangeFromZiCd	, jdbcType=VARCHAR}		, #{exchangeFromAddr	, jdbcType=VARCHAR} 	, #{exchangeFromTel		, jdbcType=VARCHAR}  			
+			, #{exchangeFromEmTel	, jdbcType=VARCHAR}		, #{exchangeMemo		, jdbcType=VARCHAR} 	, #{exchangeBsMemo		, jdbcType=VARCHAR}  			
+			, #{exchangeCreateDt	, jdbcType=TIMESTAMP}	, #{bpPickupTypeNm		, jdbcType=VARCHAR} 	, #{delirtnNo			, jdbcType=VARCHAR}  			
+			, #{exPrdNo				, jdbcType=VARCHAR}		, #{exStockNo			, jdbcType=VARCHAR} 	, #{exOptValueNm		, jdbcType=VARCHAR}  			
+			, #{exCancelFlag		, jdbcType=VARCHAR}		, #{reCancelFlag		, jdbcType=VARCHAR} 	, #{pMailYn				, jdbcType=VARCHAR}  			
+			, #{pOrdNo				, jdbcType=VARCHAR}		, #{isSet				, jdbcType=VARCHAR} 	, NVL(#{claimNo, jdbcType=VARCHAR} , '0')  			
+			, TO_CHAR(#{claimRequestDate	, jdbcType=TIMESTAMP} ,'YYYYMMDDHH24MISS'), #{couponAmt			, jdbcType=NUMERIC} 	, #{modifyId			, jdbcType=VARCHAR}	
+			, #{insertDate			, jdbcType=TIMESTAMP}	, #{modifyId			, jdbcType=VARCHAR}		, #{modifyDate			, jdbcType=TIMESTAMP}
+			, #{delirtnOffNo		, jdbcType=VARCHAR}
+        )  
+     </insert>    
+
+	<select id="checkPaHalfExchageCancel" parameterType="com.cware.netshopping.domain.PaHalfOrderListVO" resultType="int">
+		SELECT /* pahalforder.xml: pahalf.order.checkPaHalfExchageCancel by PaHalfOrderController*/
+	    	   COUNT(1) AS CNT
+	  	  FROM TPAHALFEXCHANGECANCEL HE
+	 	 WHERE HE.ORD_NO		= #{ordNo  	 ,  jdbcType=VARCHAR}
+           AND HE.ORD_NO_NM		= #{ordNoNm  ,  jdbcType=VARCHAR}
+           AND HE.BASKET_NO		= #{basketNo ,  jdbcType=VARCHAR}
+           AND HE.PA_ORDER_GB	= '30'
+           <if test='refundNo != null'>
+           AND HE.REFUND_NO    = #{refundNo  ,  jdbcType=VARCHAR} 
+           </if>
+	</select>
+	
+	<select id="selectCountOrderList" parameterType="com.cware.netshopping.domain.PaHalfOrderListVO" resultType="int">
+		SELECT /* pahalforder.xml: pahalf.order.selectCountOrderList by PaHalfOrderController*/
+	    	   COUNT(1) AS CNT
+	  	  FROM TPAHALFORDERLIST HL
+	 	 WHERE HL.ORD_NO		= #{ordNo  	 ,  jdbcType=VARCHAR}
+           AND HL.ORD_NO_NM		= #{ordNoNm  ,  jdbcType=VARCHAR}
+           AND HL.BASKET_NO		= #{basketNo ,  jdbcType=VARCHAR}
+           AND HL.PA_ORDER_GB	= '10'
+	</select>
+	
+    <select id="selectCountClaimList" parameterType="com.cware.netshopping.domain.PaHalfOrderListVO" resultType="int">
+        SELECT /* pahalforder.xml: pahalf.order.claim.selectPaHalfClaimListExists*/
+               COUNT(1) AS CNT
+          FROM TPAHALFORDERLIST HL
+         WHERE HL.ORD_NO     			= #{ordNo 			 ,  jdbcType=VARCHAR}
+           AND HL.ORD_NO_NM				= #{ordNoNm 		 ,  jdbcType=VARCHAR}
+           AND HL.BASKET_NO    			= #{basketNo 		 ,  jdbcType=VARCHAR} 
+           AND HL.PA_ORDER_GB  			= #{paOrderGb 		 ,  jdbcType=VARCHAR}
+           <if test='claimRequestDate != null'>
+           AND HL.CLAIM_REQUEST_DATE    = TO_CHAR(#{claimRequestDate ,  jdbcType=TIMESTAMP} ,'YYYYMMDDHH24MISS')
+           </if>
+           
+    </select>
+	
+	<select id="selectOrderConfirmList" parameterType="String" resultType="hashMap">
+		SELECT /* pahalforder.xml: pahalf.order.selectOrderConfirmList by PaHalfOrderController*/
+			   PM.PA_ORDER_NO  AS  ORD_NO
+			 , PM.PA_ORDER_SEQ AS  ORD_NO_NM
+			 , PM.MAPPING_SEQ
+		  FROM TPAORDERM PM
+		 WHERE PA_CODE         = #{paCode ,  jdbcType=VARCHAR}
+		   AND PM.PA_DO_FLAG   = '10'
+		   AND PM.PA_ORDER_GB  = '10'
+	</select>
+	
+	<select id="selectOrderInputTargetList" parameterType="int" resultType="hashMap">
+        SELECT  /* pahalforder.xml: pahalf.order.selectOrderInputTargetList by PaHalfOrderController*/
+               AA.PA_ORDER_NO
+             , AA.TARGET_CNT
+          FROM (SELECT POM.PA_ORDER_NO
+                     , COUNT(1) TARGET_CNT
+                  FROM TPAORDERM POM
+                 WHERE POM.PA_CODE        IN ('C1','C2')
+                   AND POM.PA_ORDER_GB    = '10'
+                   AND POM.CREATE_YN      = '0'
+                   AND POM.PRE_CANCEL_YN  = '0'
+                   AND POM.INSERT_DATE    > TRUNC(SYSDATE)-5
+                   AND POM.PA_DO_FLAG	  = '30'
+                 GROUP BY POM.PA_ORDER_NO
+                 ORDER BY POM.PA_ORDER_NO) AA
+          WHERE ROWNUM &lt;= #{limitCount, jdbcType=NUMERIC}
+	</select>    
+	
+	<update id="updateTPaorderm" parameterType="hashMap">
+        UPDATE /* pahalforder.xml: pahalf.order.updateTPaorderm by PaHalfOrderController*/
+        	   TPAORDERM
+           SET MODIFY_DATE		  = SYSDATE
+             <if test='paDoFlag != null and paDoFlag != ""'>
+             , PA_DO_FLAG 		  = #{paDoFlag			,	jdbcType=VARCHAR}
+             </if>
+             <if test='preCancelYn != null and preCancelYn != ""'>
+             , PRE_CANCEL_YN 	  = #{preCancelYn		,	jdbcType=VARCHAR}
+             </if>
+             <if test='changeFlag != null and changeFlag != ""'>
+             , CHANGE_FLAG 		  = #{changeFlag		, 	jdbcType=VARCHAR}
+             </if>
+             , API_RESULT_MESSAGE = #{resultMessage		,	jdbcType=VARCHAR}
+             , API_RESULT_CODE	  = #{resultCode		,	jdbcType=VARCHAR}
+         WHERE MAPPING_SEQ        = #{mappingSeq		,   jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectOrderInputTargetDtList" parameterType="hashMap" resultType="hashMap">
+		SELECT /* pahalforder.xml: pahalf.order.selectOrderInputTargetDtList by PaHalfAsyncController*/
+			   PM.PA_ORDER_NO
+			 , PM.PA_CODE
+			 , PGM.PRODUCT_NO AS PA_GOODS_CODE
+			 , PM.MAPPING_SEQ
+			 , TC.REMARK1 AS MEDIA_CODE  
+			 , TO_CHAR(PL.PRD_SAL_YMD, 'YYYYMMDDHH24MISS') AS ORDER_DATE
+			 , PGD.GOODS_CODE
+			 , PGD.GOODSDT_CODE
+			 , PL.QTY AS ORDER_QTY
+			 , TO_CHAR(PP.APPLY_DATE, 'YYYYMMDDHH24MISS') APPLY_DATE
+			 , PP.SUPPLY_PRICE
+			 , NVL(PL.FROM_NM	, PL.TO_NM)		 AS CUST_NAME
+			 , NVL(PL.TO_TEL	, PL.TO_EM_TEL)	 AS CUST_TEL1
+			 , PL.TO_NM AS RECEIVER_NAME
+			 , NVL(PL.TO_TEL 	,  PL.TO_EM_TEL ) AS RECEIVER_TEL
+			 , NVL(PL.TO_EM_TEL ,  PL.TO_TEL  	) AS RECEIVER_HP
+			 , REPLACE(PL.TO_ZI_CD,'-' , '' )  AS POST_NO
+			 , '001'						   AS POST_NO_SEQ
+			 , CASE WHEN LENGTH(REPLACE(PL.TO_ZI_CD,'-' , '' )) = 6 THEN '01'
+			        ELSE '02' 
+			   END AS ADDR_GBN 
+			 , PL.TO_ADDR AS RECEIVER_ADDR
+			 , NVL(PP.ARS_DC_AMT + PP.LUMP_SUM_DC_AMT + NVL(PP.COUPON_DC_AMT,0) , 0) AS SELLER_DC_AMT
+			 , NVL((PP.LUMP_SUM_DC_AMT * PL.QTY),0) AS LUMP_SUM_DC_AMT
+			 , NVL((PP.LUMP_SUM_ENTP_DC_AMT),0) AS LUMP_SUM_ENTP_DC_AMT
+			 , NVL((PP.LUMP_SUM_OWN_DC_AMT),0) AS LUMP_SUM_OWN_DC_AMT
+			 , PL.MEMO AS MSG
+			 , NVL(PL.DELI_PRI, 0) AS SHP_FEE_COST 
+			 , PP.PRICE_SEQ
+			 , PP.SALE_PRICE  
+			 , '99' AS CUST_CHAR
+			 , '69' AS RECEIVE_METHOD
+			 , 0 AS INSTANT_COUPON_DISCOUNT
+			 , PP.COUPON_PROMO_NO AS PROMO_NO
+			 , NVL(PP.COUPON_DC_AMT, 0) AS DO_AMT
+			 , PP.COUPON_OWN_COST AS OWN_COST
+			 , PP.COUPON_ENTP_COST AS ENTP_COST
+			 , PROMO.PROMO_BDATE AS COUPON_PROMO_BDATE
+			 , PROMO.PROMO_EDATE AS COUPON_PROMO_EDATE
+			 , PL.PAY_PRI - NVL(PL.DELI_PRI		, 0)   AS RSALE_AMT_SUM
+			 , PL.SAL_PRI - NVL(PL.COUPON_AMT	, 0)   AS RSALE_AMT
+			 , PL.SAL_PRI
+			 , TO_CHAR(GP.APPLY_DATE, 'YYYYMMDDHH24MISS') AS STOA_APPLY_DATE
+		  FROM TPAORDERM PM
+			 , TPAHALFORDERLIST PL 
+			 , TCODE TC
+			 , TPAHALFGOODS PGM
+			 , TPAHALFGOODSDTMAPPING PGD
+			 , TPAGOODSPRICEAPPLY PP
+			 , TPROMOM PROMO
+			 , TGOODSPRICE GP
+		 WHERE PM.PA_ORDER_NO      			= PL.ORD_NO
+		   AND PM.PA_ORDER_SEQ     			= PL.ORD_NO_NM
+		   AND PM.PA_ORDER_GB 				= PL.PA_ORDER_GB
+		   AND PM.PA_GROUP_CODE    			= TC.CODE_MGROUP
+		   AND PGM.GOODS_CODE      			= PGD.GOODS_CODE
+		   AND PL.PRD_NO 					= PGM.PRODUCT_NO
+		   AND PL.STOCK_NO 					= PGD.PA_OPTION_CODE
+		   AND PM.PA_CODE          			= PGD.PA_CODE
+		   AND PGM.PA_GROUP_CODE   			= PM.PA_GROUP_CODE
+		   AND PGM.GOODS_CODE    			= PP.GOODS_CODE
+		   AND PGM.PA_GROUP_CODE 			= PP.PA_GROUP_CODE
+		   AND PGM.PA_CODE       			= PP.PA_CODE
+		   AND (PP.APPLY_DATE, PP.PRICE_APPLY_SEQ) = (SELECT /*+ INDEX_DESC (PP2 PK_TPAGOODSPRICEAPPLY)*/
+															 PP2.APPLY_DATE, PP2.PRICE_APPLY_SEQ
+														FROM TPAGOODSPRICEAPPLY PP2
+													   WHERE PP2.GOODS_CODE 	= PP.GOODS_CODE
+														 AND PP2.PA_GROUP_CODE 	= PP.PA_GROUP_CODE
+														 AND PP2.PA_CODE 		= PP.PA_CODE
+														 AND PP2.APPLY_DATE &lt;= NVL(PL.PRD_SAL_YMD , PL.CREATE_DT)
+														 AND PP2.TRANS_DATE &lt;= NVL(PL.PRD_SAL_YMD , PL.CREATE_DT)
+														 AND rownum = 1 )
+		   AND PP.COUPON_PROMO_NO = PROMO.PROMO_NO(+)
+		   AND GP.GOODS_CODE      = PP.GOODS_CODE
+           AND GP.ROWID 		  = (SELECT /*+ INDEX_DESC (GP2 PK_TGOODSPRICE)*/
+		                                     GP2.ROWID
+		                               FROM TGOODSPRICE GP2
+		                              WHERE GP2.GOODS_CODE  = GP.GOODS_CODE
+		                                AND GP2.APPLY_DATE &lt; NVL(PL.PRD_SAL_YMD , PL.CREATE_DT)
+		                                AND ROWNUM = 1)
+		   AND TC.CODE_LGROUP			 	= 'O500'
+		   AND TC.CODE_MGROUP			 	=  PM.PA_GROUP_CODE 
+		   AND PM.PA_ORDER_GB			 	= '10'
+		   AND PM.CREATE_YN				 	= '0'
+		   AND PM.PRE_CANCEL_YN			 	= '0'
+		   AND PM.PA_CODE				   IN ('C1','C2')
+		   AND PM.PA_ORDER_NO			 	= #{paOrderNo, jdbcType=VARCHAR}
+	</select>
+    
+    <select id="selectDoflag" parameterType="com.cware.netshopping.domain.PaHalfOrderListVO" resultType="String">
+        SELECT /* pahalforder.xml: pahalf.order.selectDoflag by PaHalfOrderController*/
+               DT.DO_FLAG
+          FROM TPAORDERM OM
+             , TORDERDT DT
+         WHERE OM.PA_ORDER_GB  = '10'
+           AND OM.ORDER_NO     = DT.ORDER_NO
+           AND OM.ORDER_G_SEQ  = DT.ORDER_G_SEQ
+           AND OM.ORDER_D_SEQ  = DT.ORDER_D_SEQ
+           AND OM.ORDER_W_SEQ  = DT.ORDER_W_SEQ
+           AND OM.PA_ORDER_NO  = #{ordNo	, jdbcType=VARCHAR}
+           AND OM.PA_ORDER_SEQ = #{ordNoNm	, jdbcType=VARCHAR}
+           AND OM.PA_CODE      = #{paCode   , jdbcType=VARCHAR} 
+    </select>
+    
+    <select id="selectRefusalInfo" parameterType="String" resultType="hashMap">
+        SELECT  /* pahalforder.xml: pahalf.order.selectRefusalInfo by PaHalfOrderController*/
+               POM.PA_ORDER_NO       AS  ORD_NO
+             , POM.PA_ORDER_SEQ      AS  ORD_NO_NM
+             , HG.PA_SHIP_COST_CODE  AS DLV_TMPLT_SEQ
+             , HO.STOCK_NO
+             , POM.PA_CODE
+          FROM TPAORDERM          POM
+             , TPAHALFORDERLIST   HO
+             , TPAHALFGOODS		  HG
+         WHERE POM.PA_ORDER_NO  = HO.ORD_NO
+           AND POM.PA_ORDER_SEQ = HO.ORD_NO_NM
+           AND POM.PA_ORDER_GB = HO.PA_ORDER_GB
+           AND HO.PRD_NO        = HG.PRODUCT_NO
+           AND POM.MAPPING_SEQ  = #{mappingSeq, jdbcType=VARCHAR}
+    </select>
+	
+    <select id="selectClaimTargetList" parameterType="hashMap" resultType="hashMap">
+		SELECT /* pahalforder.xml: pahalf.order.selectTargetList by PaHalfOrderController*/
+               PM.PA_ORDER_NO
+             , PM.PA_ORDER_SEQ
+             , PM.PA_CLAIM_NO
+             , PM.PA_SHIP_NO
+             , PM.PA_ORDER_GB            
+             , PM.ORDER_NO
+             , PM.PA_CODE
+             , PM.PA_GROUP_CODE
+             , TC.CODE_SNAME AS SITE_GB
+		  FROM TPAORDERM PM
+		     , TCODE TC
+	  	 WHERE TC.CODE_MGROUP   	=  PM.PA_GROUP_CODE
+		   AND PM.PA_CODE 	   IN ('C1', 'C2')
+		   AND PM.CREATE_YN 		= '0'
+		   AND PM.PRE_CANCEL_YN 	= '0'
+		   AND TC.CODE_LGROUP   	= 'O500'
+		   AND PM.INSERT_DATE 	> TRUNC(SYSDATE) - 30
+		  <choose>
+		  	 <when test='paOrderGb =="41"'>
+		  	 AND PM.PA_ORDER_GB  	 = '41'
+		  	 </when>
+		  	 <when test='paOrderGb =="40"'>
+		  	 AND PM.PA_ORDER_GB  	 = '40'
+		  	 AND PM.CHANGE_FLAG IN ('01', '02') 
+		  	 </when>
+		  	 <when test='paOrderGb =="31"'>
+		  	 AND PM.PA_ORDER_GB   	 = '31'
+		  	 </when>
+		  	 <when test='paOrderGb =="30"'>
+		  	 AND ( PM.PA_ORDER_GB = '30' OR (PM.PA_ORDER_GB = '20' AND PM.OUT_BEF_CLAIM_GB = '1' AND PM.PA_DO_FLAG = '60'))
+		  	 </when>
+		  	 <when test='paOrderGb =="20"'>
+		  	 AND PM.PA_ORDER_GB  	 = '20'
+		  	 AND PM.OUT_BEF_CLAIM_GB = '0'
+		  	 </when> 
+		  </choose>
+    </select>
+     
+    <select id="selectCancelInputTargetDtList" resultType="hashMap" parameterType="hashMap">	
+	    SELECT /* pahalforder.xml: pahalf.order.selectCancelInputTargetDtList by PaHalfAsyncController*/
+               PM.MAPPING_SEQ
+             , OPM.ORDER_NO
+             , OPM.ORDER_G_SEQ
+             , PM.PA_PROC_QTY AS CANCEL_QTY
+             , NVL((SELECT CS_LGROUP || CS_MGROUP || CS_SGROUP FROM TPACLAIMCODE PC WHERE PC.PA_CLAIM_CODE = PO.REFUND_STATE AND PC.PA_CODE = '12' AND CLAIM_GB = '20' AND ROWNUM = 1), '621299') AS CANCEL_CODE
+             , OPM.PRE_CANCEL_YN
+             , 'PAHALF' AS PROC_ID
+          FROM TPAORDERM         PM   /*취소건*/
+             , TPAORDERM         OPM  /*원주문건*/
+             , TPAHALFORDERLIST	 PO
+             , TORDERDT          OD
+         WHERE PM.PA_ORDER_NO      = OPM.PA_ORDER_NO
+           AND PM.PA_ORDER_SEQ     = OPM.PA_ORDER_SEQ
+           AND PM.PA_SHIP_NO       = OPM.PA_SHIP_NO
+           AND PM.PA_CODE          = OPM.PA_CODE
+           AND PM.PA_ORDER_NO      = PO.ORD_NO
+           AND PM.PA_ORDER_SEQ     = PO.ORD_NO_NM
+           AND PM.PA_SHIP_NO       = PO.BASKET_NO
+           AND PM.PA_ORDER_GB      = PO.PA_ORDER_GB
+           AND PM.PA_ORDER_GB      = '20'
+           AND OPM.ORDER_NO        = OD.ORDER_NO
+           AND OPM.ORDER_G_SEQ     = OD.ORDER_G_SEQ
+           AND OPM.ORDER_D_SEQ     = OD.ORDER_D_SEQ
+           AND OPM.ORDER_W_SEQ     = OD.ORDER_W_SEQ
+           AND PM.PA_ORDER_GB      = '20'
+           AND PM.CREATE_YN        = '0'
+           AND PM.PRE_CANCEL_YN    = '0'
+           AND PM.OUT_BEF_CLAIM_GB = '0'
+           AND PM.PA_DO_FLAG       = '20'
+           AND OPM.PA_ORDER_GB     = '10'
+           AND OPM.CREATE_YN       = '1'
+           AND OD.DO_FLAG          &lt; '30'
+           AND PM.PA_CODE          = #{paCode		,	jdbcType=VARCHAR}
+           AND PM.PA_ORDER_NO      = #{paOrderNo 	,	jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ     = #{paOrderSeq 	,	jdbcType=VARCHAR}
+           AND PM.PA_SHIP_NO       = #{paShipNo 	,	jdbcType=VARCHAR}
+           
+           UNION
+           
+        SELECT PM.MAPPING_SEQ
+             , ''
+             , ''
+             , PM.PA_PROC_QTY AS CANCEL_QTY
+             , ''
+             , OPM.PRE_CANCEL_YN
+             , 'PAHALF' AS PROC_ID
+          FROM TPAORDERM PM
+             , TPAORDERM         OPM  /*원주문건*/
+         WHERE PM.PA_ORDER_NO      = OPM.PA_ORDER_NO
+           AND PM.PA_ORDER_SEQ     = OPM.PA_ORDER_SEQ
+           AND PM.PA_SHIP_NO       = OPM.PA_SHIP_NO
+           AND PM.PA_CODE          = OPM.PA_CODE
+           AND OPM.PA_ORDER_GB     = '10'
+		   AND PM.PA_ORDER_GB      = '20'
+		   AND PM.CREATE_YN        = '0'
+		   AND PM.PRE_CANCEL_YN    = '0'
+		   AND PM.OUT_BEF_CLAIM_GB = '0'
+		   AND PM.PA_DO_FLAG       = '20'
+		   AND OPM.PRE_CANCEL_YN   = '1'
+           AND PM.PA_CODE          = #{paCode		,	jdbcType=VARCHAR}
+           AND PM.PA_ORDER_NO      = #{paOrderNo 	,	jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ     = #{paOrderSeq 	,	jdbcType=VARCHAR}
+           AND PM.PA_SHIP_NO       = #{paShipNo 	,	jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectExistsReturn"  parameterType="com.cware.netshopping.domain.PaHalfOrderListVO" resultType="int">
+    	SELECT COUNT(1) /* pahalforder.xml: pahalf.order.selectExistsReturn by PaHalfClaimController*/
+    	  FROM TPAORDERM OM
+    	  	 , TCLAIMDT  CD
+    	 WHERE CD.ORDER_NO    = OM.ORDER_NO
+    	   AND CD.ORDER_G_SEQ = OM.ORDER_G_SEQ
+    	   AND CD.ORDER_D_SEQ = OM.ORDER_D_SEQ
+    	   AND CD.ORDER_W_SEQ = OM.ORDER_W_SEQ
+    	   AND CD.DO_FLAG      != '60'
+    	   AND CD.CLAIM_GB      = '30'
+    	   AND CD.SYSLAST 		>  0
+    	   AND OM.PA_CODE 	    = #{paCode	,	jdbcType=VARCHAR}
+    	   AND OM.PA_ORDER_NO   = #{ordNo	,	jdbcType=VARCHAR}
+    	   AND OM.PA_ORDER_SEQ  = #{ordNoNm ,   jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectExistsExchange" parameterType="com.cware.netshopping.domain.PaHalfOrderListVO" resultType="int">
+	    SELECT /* pahalforder.xml : selectExistsExchange by PaHalfClaimController */
+	    	   COUNT(1)
+		  FROM TPAORDERM PM
+		     , TCLAIMDT CL
+	     WHERE PM.ORDER_NO 	   = CL.ORDER_NO
+	       AND PM.ORDER_G_SEQ  = CL.ORDER_G_SEQ
+	       AND PM.ORDER_D_SEQ  = CL.ORDER_D_SEQ
+	       AND PM.ORDER_W_SEQ  = CL.ORDER_W_SEQ
+	       AND CL.CLAIM_GB 	   = '45'
+	       AND CL.SYSLAST 	   > 0
+	       AND CL.DO_FLAG     != '60'
+		   AND PM.PA_ORDER_NO  = #{ordNo, jdbcType = VARCHAR}
+		   AND PM.PA_ORDER_SEQ = #{ordNoNm, jdbcType = VARCHAR}
+		   AND PM.PA_CODE      = #{paCode, jdbcType = VARCHAR}	      
+    </select>
+        
+    <update id="updateExchangeOrdNo" parameterType="com.cware.netshopping.domain.PaHalfOrderListVO">
+     	   UPDATE /* pahalforder.xml : pahalf.order.updateExchangeOrdNo by PaHalfOrderController*/
+     	   		  TPAHALFORDERLIST
+		      SET EXCHANGE_ORD_NO = #{ordNo ,	jdbcType=VARCHAR}
+		     	, MODIFY_DATE 	  = SYSDATE
+		     	, MODIFY_ID 	  = 'PAHALF'
+		    WHERE ORD_NO 				= #{oriOrdNo		 ,	jdbcType=VARCHAR}
+			  AND ORD_NO_NM 			= #{ordNoNm			 ,	jdbcType=VARCHAR}
+        	  AND BASKET_NO 			= #{basketNo		 ,	jdbcType=VARCHAR}
+			  AND CLAIM_REQUEST_DATE 	= TO_CHAR(#{createDt ,  jdbcType=TIMESTAMP} , 'YYYYMMDDHH24MISS')
+			  AND PA_ORDER_GB			= '40'
+			  AND EXCHANGE_ORD_NO IS NULL
+     </update>
+     
+     <select id="selectDelyType" parameterType="String" resultType="String">
+        SELECT /* pahalforder.xml: pahalf.order.selectDelyType by PaHalfOrderController*/
+               TG.DELY_TYPE
+		  FROM TPAHALFGOODS HG
+			 , TGOODS       TG
+		 WHERE HG.GOODS_CODE = TG.GOODS_CODE
+		   AND HG.PRODUCT_NO = #{prdNo, jdbcType = VARCHAR}
+    </select>  
+    
+    <select id="selectPaMobileOrderAutoCancelList" resultType="hashMap">	
+	    SELECT /* pahalforder.xml : pahalf.order.selectPaMobileOrderAutoCancelList by PaHalfOrderController */
+               A.ORDER_NO
+             , A.ORDER_G_SEQ
+             , A.ORDER_DATE
+             , PM.PA_ORDER_NO
+             , PM.PA_ORDER_SEQ
+             , PM.PA_CODE
+			 , PM.MAPPING_SEQ
+          FROM TORDERDT A
+               LEFT OUTER JOIN TMOBILEGOODSDELYPLAN B
+                 ON A.ORDER_NO = B.ORDER_NO
+                AND A.ORDER_G_SEQ = B.ORDER_G_SEQ
+                AND A.ORDER_D_SEQ = B.ORDER_D_SEQ                                                             
+                AND A.ORDER_W_SEQ = B.ORDER_W_SEQ
+             , TORDERPROC C
+             , TGOODS D
+               LEFT OUTER JOIN TGOODSADDINFO E
+                 ON D.GOODS_CODE = E.GOODS_CODE
+               LEFT OUTER JOIN TLGS_ORDER_CANCEL_EXCEPT_FIX EF
+                 ON D.GOODS_CODE = EF.GOODS_CODE
+               LEFT OUTER JOIN TLGS_ORDER_CANCEL_EXCEPT_PLAN EP
+                 ON D.GOODS_CODE = EP.GOODS_CODE
+                AND TRUNC(SYSDATE) BETWEEN EP.EXCEPT_FROM_DATE AND EP.EXCEPT_TO_DATE
+                AND EP.STATUS = '10'
+             , TENTERPRISE F
+	         	LEFT OUTER JOIN TMOBILEENTPEXCEPT ME
+		             ON F.ENTP_CODE = ME.ENTP_CODE
+                LEFT OUTER JOIN TLGS_MOBILE_ENTP_EXCEPT_PLAN MP
+                     ON F.ENTP_CODE = MP.ENTP_CODE
+                    AND TRUNC(SYSDATE) BETWEEN MP.EXCEPT_FROM_DATE AND MP.EXCEPT_TO_DATE
+                    AND MP.STATUS = '10'
+             , TMD G
+             , TPAORDERM PM
+			 , TPAHALFORDERLIST HOL
+         WHERE A.DO_FLAG > '20'
+           AND A.DO_FLAG &lt; '40'
+           AND A.GOODS_CODE = D.GOODS_CODE
+           AND A.ORDER_NO = C.ORDER_NO
+           AND A.ORDER_G_SEQ = C.ORDER_G_SEQ
+           AND A.ORDER_D_SEQ = C.ORDER_D_SEQ
+           AND A.ORDER_W_SEQ = C.ORDER_W_SEQ
+           AND C.DO_FLAG = '25' 
+           AND D.ENTP_CODE = F.ENTP_CODE
+           AND D.MD_CODE = G.MD_CODE
+           AND A.ORDER_NO = PM.ORDER_NO
+           AND A.ORDER_G_SEQ = PM.ORDER_G_SEQ
+           AND A.ORDER_D_SEQ = PM.ORDER_D_SEQ
+           AND A.ORDER_W_SEQ = PM.ORDER_W_SEQ
+		   AND PM.PA_ORDER_NO  = HOL.ORD_NO
+		   AND PM.PA_ORDER_SEQ = HOL.ORD_NO_NM
+		   AND PM.PA_ORDER_GB  = HOL.PA_ORDER_GB
+           AND PM.PA_CODE IN ('C1','C2')
+           AND PM.PA_ORDER_GB IN ('10', '40')
+           AND PM.REMARK3_N IS NULL
+           AND D.SOURCING_MEDIA = '61'
+           AND E.TV_LIVE_GB = '2'
+           AND NVL(EP.EXCEPT_GB, NVL(EF.EXCEPT_GB, NVL(MP.MOBILE_EXCEPT_GB, NVL(ME.MOBILE_EXCEPT_GB, '1')))) = '1' 
+           AND EXISTS (SELECT 'X'
+                         FROM TENTERPRISE W, TMD E
+                        WHERE D.ENTP_CODE = W.ENTP_CODE
+                          AND W.MD_CODE = E.MD_CODE
+                          AND E.SOURCING_MEDIA = '61')
+           AND D.GIFT_YN = '0'
+           AND D.INSTALL_YN = '0'
+           AND D.INVI_GOODS_TYPE = '00'
+           AND NVL(E.ORDER_CREATE_YN, '0') = '0'
+           AND A.MEDIA_CODE = 'EX13'
+           AND NVL(E.RESERVE_YN, '0') = '0' /*예약상품제외*/
+           AND E.DAWN_YN != '1' /*새벽배송 동원홈푸드 상품제외*/
+           AND NVL(A.APPN_DAY_OUT_YN, '0') != '1' /* 지정일 출고는 당사만 하기때문에 제외 */
+           AND NVL(A.RESERV_ORD_YN, '0')   != '1' /* 예약주문은 당사만 하기때문에 제외 */
+           AND A.ORDER_DATE &lt; TRUNC(SYSDATE) - INTERVAL '2' DAY
+           AND C.PROC_DATE >= TRUNC(ADD_MONTHS(SYSDATE - INTERVAL '2' DAY,-1))
+           AND C.PROC_DATE &lt; TRUNC(SYSDATE) - INTERVAL '2' DAY
+	       AND E.GLOBAL_DELY_YN = '0'
+	       AND E.EM_MULTI_GOODS_YN = '0'
+           /*현재일이 배송예정일 마감일 당일인 주문 처리
+           AND (CASE
+                 WHEN B.DELY_PLAN_DELAY_DATE IS NOT NULL THEN
+                  TRUNC(B.DELY_PLAN_DELAY_DATE)
+                 ELSE
+		          (FUN_GET_DELYDAY_HOLI_DATE_MOB('10',
+                                  TRUNC(C.PROC_DATE),
+                                 '1',
+                                 NVL(ME.BASE_DELY_DAY,3))) END) = TRUNC(SYSDATE)*/
+           /*현재일이 배송예정일 마감일 당일인 주문 처리 or 배송예정일 마감일이 당일 이전인 지난 주문까지 처리 시 사용*/
+           AND (CASE
+                 WHEN B.DELY_PLAN_DELAY_DATE IS NOT NULL THEN
+                  TRUNC(B.DELY_PLAN_DELAY_DATE)
+                 ELSE
+		          (FUN_GET_DELYDAY_HOLI_DATE_ENTP('10',
+                                  TRUNC(C.PROC_DATE),
+                                 '1',
+                                 NVL(EP.EXCEPT_DELY_DAY, NVL(EF.EXCEPT_DELY_DAY, NVL(MP.BASE_DELY_DAY, NVL(ME.BASE_DELY_DAY, 3)))),
+                                 D.ENTP_CODE))  END) &lt;= TRUNC(SYSDATE)
+           AND (EXISTS (SELECT 'X'
+                          FROM TMOBILEENTPEXCEPT W
+                         WHERE W.ENTP_CODE = D.ENTP_CODE
+                           AND W.MOBILE_EXCEPT_GB = '1') OR
+                EXISTS (SELECT 'X'
+                          FROM TLGS_MOBILE_ENTP_EXCEPT_PLAN MP
+                         WHERE D.ENTP_CODE = MP.ENTP_CODE
+                           AND TRUNC(SYSDATE) BETWEEN MP.EXCEPT_FROM_DATE AND MP.EXCEPT_TO_DATE
+                           AND MP.STATUS = '10' ) OR
+                EXISTS (SELECT 'X'
+                          FROM TLGS_ORDER_CANCEL_EXCEPT_FIX EF
+                         WHERE EF.GOODS_CODE = D.GOODS_CODE) OR
+                EXISTS (SELECT 'X'
+                          FROM TLGS_ORDER_CANCEL_EXCEPT_PLAN EP
+                         WHERE D.GOODS_CODE = EP.GOODS_CODE
+                           AND TRUNC(SYSDATE) BETWEEN EP.EXCEPT_FROM_DATE AND EP.EXCEPT_TO_DATE
+                           AND EP.STATUS = '10'  ) )
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TCLAIMDT W
+                            WHERE W.ORDER_NO = A.ORDER_NO
+                              AND W.CUST_NO = A.CUST_NO)
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TCANCELDT W
+                            WHERE W.ORDER_NO = A.ORDER_NO
+                              AND W.CUST_NO = A.CUST_NO)  
+         GROUP BY A.ORDER_NO, A.ORDER_G_SEQ, A.ORDER_DATE, PM.PA_ORDER_NO, PM.PA_ORDER_SEQ, PM.PA_CODE, PM.MAPPING_SEQ
+         ORDER BY A.ORDER_DATE ASC
+    </select>
+</mapper>

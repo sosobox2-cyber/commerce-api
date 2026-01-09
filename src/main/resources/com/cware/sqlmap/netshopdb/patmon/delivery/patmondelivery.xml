@@ -1,0 +1,833 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="patmon.delivery">
+   
+    <insert id="insertPaTmonOrderList" parameterType="com.cware.netshopping.domain.PaTmonOrderListVO">
+        INSERT /* patmondelivery.xml : patmon.delivery.insertPaTmonOrderList by PaTmonDeliveryController */  
+          INTO TPATMONORDERLIST ( 
+              								  TMON_ORDER_NO				, DELIVERY_NO										, USER_ID                       
+            , USER_NAME						, USER_PHONE				, RECEIVER_NAME				, RECEIVER_PHONE		, ZIP_CODE                      
+            , ADDRESS						, STREET_ADDRESS			, ADDRESS_DETAIL			, ADDITIONAL_MESSAGE	, DELIVERY_MEMO                 
+            , SAFETY_PHONE_EXPIRATION_DATE	, ORDER_DATE				, DEPOSIT_DATE				, TMON_DEAL_NO			, DEAL_TITLE                    
+            , CUSTOMS_ID					, DELIVERY_STATUS			, DELIVERY_SCHEDULED_DATE	, DELAYED_REASON_CODE	, DELAYED_REASON_DETAIL
+            , UPDATED_DATE					, TMON_DEAL_OPTION_NO		, DEAL_OPTION_TITLE			, SALES_PRICE			, QTY
+            , PURCHASE_PRICE				, DESCRIPTIONS				, OPT_ADDITIONAL_MESSAGE	, INSERT_DATE			, MODIFY_DATE   
+          ) 
+        VALUES(
+           								   #{tmonOrderNo, jdbcType=VARCHAR}, #{deliveryNo, jdbcType=VARCHAR}, 									  #{userId, jdbcType=VARCHAR}
+          , #{userName, jdbcType=VARCHAR}, #{userPhone, jdbcType=VARCHAR}, #{receiverName, jdbcType=VARCHAR}, #{receiverPhone, jdbcType=VARCHAR}, #{zipCode, jdbcType=VARCHAR}
+          , #{address, jdbcType=VARCHAR}, #{streetAddress, jdbcType=VARCHAR}, #{addressDetail, jdbcType=VARCHAR}, #{additionalMessage, jdbcType=VARCHAR}, #{deliveryMemo, jdbcType=VARCHAR}
+          , TO_DATE(#{safetyPhoneExpirationDate, jdbcType=VARCHAR},'YYYY-MM-DD"T"HH24:MI:SS'), TO_DATE(#{orderDate, jdbcType=VARCHAR},'YYYY-MM-DD"T"HH24:MI:SS'), TO_DATE(#{depositDate, jdbcType=VARCHAR},'YYYY-MM-DD"T"HH24:MI:SS'), #{tmonDealNo, jdbcType=VARCHAR}, #{dealTitle, jdbcType=VARCHAR}
+          , #{customsId, jdbcType=VARCHAR}, #{deliveryStatus, jdbcType=VARCHAR}, TO_DATE(#{deliveryScheduledDate, jdbcType=VARCHAR},'YYYY-MM-DD'), #{delayedReasonCode, jdbcType=VARCHAR}, #{delayedReasonDetail, jdbcType=VARCHAR}
+          ,	TO_DATE(#{updatedDate, jdbcType=VARCHAR},'YYYY-MM-DD"T"HH24:MI:SS'), #{tmonDealOptionNo, jdbcType=VARCHAR}, #{dealOptionTitle, jdbcType=VARCHAR}, #{salesPrice, jdbcType=NUMERIC}, #{qty, jdbcType=NUMERIC}
+          , #{purchasePrice, jdbcType=NUMERIC}, #{descriptions, jdbcType=VARCHAR}, #{optAdditionalMessage, jdbcType=VARCHAR}, #{insertDate, jdbcType=TIMESTAMP}, #{modifyDate, jdbcType=TIMESTAMP} 
+        ) 
+     </insert>
+     
+     <select id="countOrderList" parameterType="hashMap" resultType="int">
+        SELECT /* patmondelivery.xml : patmon.delivery.countOrderList by PaTmonDeliveryController */
+           	   COUNT(1) AS CNT
+          FROM TPATMONORDERLIST OT
+             , TPAORDERM PM
+         WHERE OT.TMON_ORDER_NO = PM.PA_ORDER_NO
+           AND PM.PA_ORDER_GB = '10'
+           AND PM.CREATE_YN   = '1'
+           AND OT.TMON_ORDER_NO = #{tmonOrderNo	   , jdbcType=VARCHAR}
+           AND OT.TMON_DEAL_NO = #{tmonDealNo	   , jdbcType=VARCHAR}           
+	</select>
+	
+	<select id="selectDeliveryReadyList" parameterType="String" resultType="hashMap">
+	    SELECT /* patmondelivery.xml : patmon.delivery.selectDeliveryReadyList by PaTmonDeliveryController */
+	           distinct PM.PA_CODE
+			 , PM.PA_ORDER_NO
+			 , PM.PA_SHIP_NO
+			 , OL.TMON_DEAL_NO
+		  FROM TPAORDERM PM
+			 , TPATMONORDERLIST OL
+		 WHERE PM.PA_CODE		IN ('91','92')
+		   AND PM.PA_ORDER_GB	= '10'
+		   AND PM.PA_ORDER_NO	= OL.TMON_ORDER_NO
+		   AND PM.PA_SHIP_NO	= OL.DELIVERY_NO
+		   AND PM.PA_ORDER_SEQ	= OL.TMON_DEAL_OPTION_NO
+		   AND PM.PA_DO_FLAG	= '10'
+		   AND PM.PRE_CANCEL_YN	= '0'
+	</select>
+	
+	<select id="selectDeliveryReadyDetailList" parameterType="hashMap" resultType="hashMap">
+	    SELECT /* patmondelivery.xml : patmon.delivery.selectDeliveryReadyDetailList by PaTmonDeliveryController */
+	           PM.PA_CODE
+			 , PM.PA_ORDER_NO
+			 , PM.PA_SHIP_NO
+			 , PL.TMON_DEAL_NO
+			 , PL.TMON_DEAL_OPTION_NO
+			 , PL.QTY
+		  FROM TPAORDERM PM
+			 , TPATMONORDERLIST PL
+		 WHERE PM.PA_CODE		IN ('91','92')
+		   AND PM.PA_ORDER_GB	= '10'
+		   AND PM.PA_ORDER_NO	= PL.TMON_ORDER_NO
+		   AND PM.PA_SHIP_NO	= PL.DELIVERY_NO
+		   AND PM.PA_ORDER_SEQ	= PL.TMON_DEAL_OPTION_NO
+		   AND PM.PA_DO_FLAG	= '10'
+		   AND PM.PRE_CANCEL_YN	= '0'
+		   AND PM.PA_CODE		= #{paCode, jdbcType=VARCHAR}
+		   AND PM.PA_ORDER_NO	= #{paOrderNo, jdbcType=VARCHAR}
+		   AND PM.PA_SHIP_NO	= #{paShipNo, jdbcType=VARCHAR}
+		   AND PL.TMON_DEAL_NO	= #{tmonDealNo, jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectSlipOutProcList" parameterType="hashMap" resultType="hashMap">
+	    SELECT /* patmondelivery.xml : patmon.delivery.selectSlipOutProcList by PaTmonDeliveryController */
+			   PO.TMON_ORDER_NO
+			 , PO.DELIVERY_NO
+			 , PO.TMON_DEAL_NO
+			 , PM.PA_CODE
+			 , MIN(DG.PA_DELY_GB) AS PA_DELY_GB
+			 , MIN(SM.SLIP_NO) AS SLIP_NO
+			 , MIN(TO_CHAR(NVL(SM.DELY_HOPE_DATE, SYSDATE+5), 'YYYY-MM-DD')) AS DELIVERY_SCHEDULE_DATE
+			 , SM.SLIP_PROC
+			 , 'SLIP_OUT' AS SLIP_FLAG
+          FROM TPAORDERM PM
+			 , TPATMONORDERLIST PO
+			 , TSLIPM SM
+			 , TSLIPDT SD
+			 , TORDERGOODS OG
+			 , TPADELYGB DG
+         WHERE PM.PA_ORDER_NO = PO.TMON_ORDER_NO
+           AND PM.PA_SHIP_NO  = PO.DELIVERY_NO
+           AND PM.PA_ORDER_SEQ = PO.TMON_DEAL_OPTION_NO
+           AND SM.SLIP_I_NO   = SD.SLIP_I_NO
+           AND PM.ORDER_NO    = SD.ORDER_NO
+           AND PM.ORDER_G_SEQ = SD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ = SD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ = SD.ORDER_W_SEQ
+           AND PM.ORDER_NO    = OG.ORDER_NO
+           AND PM.ORDER_G_SEQ = OG.ORDER_G_SEQ
+           AND PM.PA_DO_FLAG  = '30'
+           AND PM.PA_ORDER_GB = '10'
+           AND PM.PA_CODE     IN ('91', '92')
+           AND SM.SLIP_PROC   >= '40'
+           AND SM.SLIP_NO IS NOT NULL
+           AND DG.PA_CODE = '09'
+           AND SM.DELY_GB = DG.DELY_GB
+           AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+      GROUP BY PO.TMON_ORDER_NO, PO.DELIVERY_NO, PO.TMON_DEAL_NO, PM.PA_CODE , SM.SLIP_PROC
+      
+     UNION ALL
+      
+      	<!-- 송장 없는 배송완료건 -->
+	    SELECT PO.TMON_ORDER_NO
+			 , PO.DELIVERY_NO
+			 , PO.TMON_DEAL_NO
+			 , PM.PA_CODE
+			 , (SELECT PA_DELY_GB FROM TPADELYGB PG WHERE PG.PA_CODE = '09' AND DELY_GB = '99' AND ROWNUM = 1) AS PA_DELY_GB
+			 , '' 								AS SLIP_NO
+			 , TO_CHAR(SYSDATE+5, 'YYYY-MM-DD')	AS DELIVERY_SCHEDULE_DATE
+			 , SM.SLIP_PROC
+			 , 'SLIP_COMPLETE' AS SLIP_FLAG
+          FROM TPAORDERM PM
+			 , TPATMONORDERLIST PO
+			 , TSLIPM SM
+			 , TSLIPDT SD
+			 , TORDERGOODS OG
+         WHERE PM.PA_ORDER_NO = PO.TMON_ORDER_NO
+           AND PM.PA_SHIP_NO  = PO.DELIVERY_NO
+           AND PM.PA_ORDER_SEQ = PO.TMON_DEAL_OPTION_NO
+           AND SM.SLIP_I_NO   = SD.SLIP_I_NO
+           AND PM.ORDER_NO    = SD.ORDER_NO
+           AND PM.ORDER_G_SEQ = SD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ = SD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ = SD.ORDER_W_SEQ
+           AND PM.ORDER_NO    = OG.ORDER_NO
+           AND PM.ORDER_G_SEQ = OG.ORDER_G_SEQ
+           AND PM.PA_DO_FLAG  = '30'
+           AND PM.PA_ORDER_GB = '10'
+           AND PM.PA_CODE     IN ('91', '92')
+           AND SM.SLIP_PROC   = '80'
+           AND SM.SLIP_NO IS NULL
+           AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+           AND SM.SLIP_PROC_DATE > SYSDATE - 120
+      GROUP BY PO.TMON_ORDER_NO, PO.DELIVERY_NO, PO.TMON_DEAL_NO, PM.PA_CODE , SM.SLIP_PROC
+      
+     UNION ALL
+     
+       <!-- 운송장 변경 -->
+	    SELECT PO.TMON_ORDER_NO
+			 , PO.DELIVERY_NO
+			 , PO.TMON_DEAL_NO
+			 , PM.PA_CODE
+			 , MIN(DG.PA_DELY_GB) AS PA_DELY_GB
+			 , MIN(SM.SLIP_NO) AS SLIP_NO
+			 , MIN(TO_CHAR(NVL(SM.DELY_HOPE_DATE, SYSDATE+5), 'YYYY-MM-DD')) AS DELIVERY_SCHEDULE_DATE
+			 , SM.SLIP_PROC
+			 , 'SLIP_UPDATE' AS SLIP_FLAG
+          FROM TPAORDERM PM
+			 , TPATMONORDERLIST PO
+			 , TSLIPM SM
+			 , TSLIPDT SD
+			 , TORDERGOODS OG
+			 , TPADELYGB DG
+			 , TPASLIPINFO SP
+         WHERE PM.PA_ORDER_NO 	= PO.TMON_ORDER_NO
+           AND PM.PA_SHIP_NO  	= PO.DELIVERY_NO
+           AND PM.PA_ORDER_SEQ 	= PO.TMON_DEAL_OPTION_NO
+           AND SM.SLIP_I_NO   	= SD.SLIP_I_NO
+           AND PM.ORDER_NO    	= SD.ORDER_NO
+           AND PM.ORDER_G_SEQ 	= SD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ 	= SD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ 	= SD.ORDER_W_SEQ
+           AND PM.ORDER_NO    	= OG.ORDER_NO
+           AND PM.ORDER_G_SEQ 	= OG.ORDER_G_SEQ
+           AND PM.PA_DO_FLAG  	= '40'
+           AND PM.PA_ORDER_GB 	= '10'
+           AND PM.PA_CODE      IN ('91', '92')
+           AND SM.SLIP_PROC   	= '40'
+           AND SM.SLIP_NO IS NOT NULL
+           AND DG.PA_CODE 	  	= '09'
+           AND SM.DELY_GB 	  	= DG.DELY_GB
+           AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+           AND SP.MAPPING_SEQ 	= PM.MAPPING_SEQ
+           AND SP.PA_GROUP_CODE = PM.PA_GROUP_CODE
+           AND SP.LAST_YN	  	= '1'
+           AND SP.SLIP_NO      != SM.SLIP_NO
+      GROUP BY PO.TMON_ORDER_NO, PO.DELIVERY_NO, PO.TMON_DEAL_NO, PM.PA_CODE , SM.SLIP_PROC
+	</select>
+	
+	<select id="selectUpdateSlipOutProcList" parameterType="hashMap" resultType="hashMap">
+	    SELECT PO.TMON_ORDER_NO
+	         , PO.DELIVERY_NO
+	         , PO.TMON_DEAL_NO
+	         , PM.PA_CODE 
+	         , MIN(DG.PA_DELY_GB) AS PA_DELY_GB
+	         , MIN(SM.SLIP_NO) AS SLIP_NO
+	         , MIN(TO_CHAR(NVL(SM.DELY_HOPE_DATE, SYSDATE+5), 'YYYY-MM-DD')) AS DELIVERY_SCHEDULE_DATE
+	      FROM TPAORDERM PM
+	         , TPATMONORDERLIST PO
+	         , TSLIPM SM
+	         , TSLIPDT SD
+	         , TORDERGOODS OG
+	         , TPADELYGB DG
+	     WHERE PM.PA_ORDER_NO = PO.TMON_ORDER_NO
+	       AND PM.PA_SHIP_NO  = PO.DELIVERY_NO
+	       AND PM.PA_ORDER_SEQ = PO.TMON_DEAL_OPTION_NO
+	       AND SM.SLIP_I_NO   = SD.SLIP_I_NO
+	       AND PM.ORDER_NO    = SD.ORDER_NO
+	       AND PM.ORDER_G_SEQ = SD.ORDER_G_SEQ
+	       AND PM.ORDER_D_SEQ = SD.ORDER_D_SEQ
+	       AND PM.ORDER_W_SEQ = SD.ORDER_W_SEQ
+	       AND PM.ORDER_NO    = OG.ORDER_NO
+	       AND PM.ORDER_G_SEQ = OG.ORDER_G_SEQ
+	       AND PM.PA_DO_FLAG  = '40'
+	       AND PM.CREATE_YN   = '1'
+	       AND PM.PA_ORDER_GB = '10'
+	       AND PM.PA_CODE     IN ('91','92')
+	       AND SM.DELY_GB     = DG.DELY_GB
+	       AND SM.SLIP_PROC   = '40'
+	       AND SM.SLIP_GB     ='101' --주문배송
+	       AND SM.SLIP_NO IS NOT NULL
+	       AND SM.SLIP_PROC_DATE &gt; TRUNC(SYSDATE)-1
+	       AND SM.SLIP_PROC_DATE &gt; PM.PROC_DATE
+	       AND DG.PA_CODE     = '09'
+	       AND EXISTS( SELECT 1
+	                     FROM TPATMONCANCELLIST PC
+	                    WHERE PC.TMON_ORDER_NO = PM.PA_ORDER_NO
+	                      AND PC.DELIVERY_NO   = PM.PA_SHIP_NO
+	                      AND PC.TMON_DEAL_OPTION_NO  = PM.PA_ORDER_SEQ
+	                      AND PC.PROC_FLAG        = '20' --취소거부완료
+	                  )
+	     GROUP BY PO.TMON_ORDER_NO, PO.DELIVERY_NO, PO.TMON_DEAL_NO, PM.PA_CODE
+	</select>
+	<!-- 
+	<select id="selectSlipOutProcOptionList" parameterType="hashMap" resultType="hashMap">
+	    SELECT /* patmondelivery.xml : patmon.delivery.selectSlipOutProcOptionList by PaTmonDeliveryController */
+			   PO.TMON_ORDER_NO
+			 , PO.DELIVERY_NO
+			 , PO.TMON_DEAL_NO
+			 , PO.TMON_DEAL_OPTION_NO
+			 , PO.QTY
+          FROM TPAORDERM PM
+	         , TPATMONORDERLIST PO
+	       	 , TORDERGOODS OG
+	     WHERE PM.PA_ORDER_NO 	= PO.TMON_ORDER_NO
+	       AND PM.PA_SHIP_NO  	= PO.DELIVERY_NO
+	       AND PM.PA_ORDER_SEQ  = PO.TMON_DEAL_OPTION_NO
+	       AND PM.ORDER_NO      = OG.ORDER_NO
+           AND PM.ORDER_G_SEQ   = OG.ORDER_G_SEQ
+           AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+	       AND PM.PA_DO_FLAG  	= '30'
+	       AND PM.PA_ORDER_GB 	= '10'
+	       AND PM.PRE_CANCEL_YN = '0'
+	       AND PM.PA_CODE   	= #{paCode, jdbcType=VARCHAR}
+	       AND PO.TMON_ORDER_NO = #{paOrderNo, jdbcType=VARCHAR}
+	       AND PO.DELIVERY_NO   = #{paShipNo, jdbcType=VARCHAR}
+	       AND PO.TMON_DEAL_NO  = #{tmonDealNo, jdbcType=VARCHAR}
+	</select>
+	 -->
+	<select id="selectSlipOutProcOptionList" parameterType="hashMap" resultType="hashMap">
+	    SELECT /* patmondelivery.xml : patmon.delivery.selectSlipOutProcOptionList by PaTmonDeliveryController */
+			   PO.TMON_ORDER_NO
+			 , PO.DELIVERY_NO
+			 , PO.TMON_DEAL_NO
+			 , PO.TMON_DEAL_OPTION_NO
+			 , PO.QTY
+			 , NVL((SELECT PDG.PA_DELY_GB FROM TPADELYGB PDG WHERE PDG.PA_CODE = '09' AND SM.DELY_GB = PDG.DELY_GB), '10099') AS PA_DELY_GB
+			 , SM.SLIP_NO AS INVOICE_NO
+			 , SM.SLIP_PROC
+			 , PM.MAPPING_SEQ
+          FROM TPAORDERM PM
+	         , TPATMONORDERLIST PO
+	       	 , TORDERGOODS OG
+	       	 , TSLIPM SM
+	       	 , TSLIPDT SD
+	     WHERE PM.PA_ORDER_NO 	= PO.TMON_ORDER_NO
+	       AND PM.PA_SHIP_NO  	= PO.DELIVERY_NO
+	       AND PM.PA_ORDER_SEQ  = PO.TMON_DEAL_OPTION_NO
+	       AND PM.ORDER_NO      = OG.ORDER_NO
+           AND PM.ORDER_G_SEQ   = OG.ORDER_G_SEQ
+           AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+	       <choose>
+			   <when test='slipProc == "SLIP_UPDATE"'>
+			   AND PM.PA_DO_FLAG  = '40'
+		   	   AND SM.SLIP_PROC   >= 40
+			   </when>
+			   <otherwise>
+			   AND PM.PA_DO_FLAG  	= '30'
+			   </otherwise>
+			</choose>
+	       AND PM.PA_ORDER_GB 	= '10'
+	       AND PM.PRE_CANCEL_YN = '0'
+		   AND PM.ORDER_NO      = SD.ORDER_NO
+		   AND PM.ORDER_G_SEQ   = SD.ORDER_G_SEQ
+		   AND PM.ORDER_D_SEQ   = SD.ORDER_D_SEQ
+		   AND PM.ORDER_W_SEQ   = SD.ORDER_W_SEQ
+		   AND SM.SLIP_I_NO     = SD.SLIP_I_NO
+		   AND SM.SLIP_GB       = '101'	       
+	       AND PM.PA_CODE   	= #{paCode, jdbcType=VARCHAR}
+	       AND PO.TMON_ORDER_NO = #{paOrderNo, jdbcType=VARCHAR}
+	       AND PO.DELIVERY_NO   = #{paShipNo, jdbcType=VARCHAR}
+	       AND PO.TMON_DEAL_NO  = #{tmonDealNo, jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectUpdateSlipOutProcOptionList" parameterType="hashMap" resultType="hashMap">
+	    SELECT /* patmondelivery.xml : patmon.delivery.selectUpdateSlipOutProcOptionList by PaTmonDeliveryController */
+			   PO.TMON_ORDER_NO
+			 , PO.DELIVERY_NO
+			 , PO.TMON_DEAL_NO
+			 , PO.TMON_DEAL_OPTION_NO
+			 , PO.QTY
+          FROM TPAORDERM PM
+			 , TPATMONORDERLIST PO
+         WHERE PM.PA_ORDER_NO	= PO.TMON_ORDER_NO
+           AND PM.PA_SHIP_NO	= PO.DELIVERY_NO
+           AND PM.PA_ORDER_SEQ	= PO.TMON_DEAL_OPTION_NO
+           AND PM.PA_DO_FLAG	IN ('30','40')
+           AND PM.PA_ORDER_GB	= '10'
+           AND PM.PRE_CANCEL_YN	= '0'
+           AND PM.PA_CODE		= #{paCode, jdbcType=VARCHAR}
+           AND PO.TMON_ORDER_NO	= #{paOrderNo, jdbcType=VARCHAR}
+           AND PO.DELIVERY_NO	= #{paShipNo, jdbcType=VARCHAR}
+           AND PO.TMON_DEAL_NO	= #{tmonDealNo, jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectOrderInputTargetList" parameterType="hashMap" resultType="hashMap">
+        SELECT /* patmondelivery.xml : patmon.delivery.selectOrderInputTargetList by PaTmonDeliveryController */
+               AA.PA_ORDER_NO
+             , AA.TARGET_CNT
+          FROM (SELECT POM.PA_ORDER_NO
+                     , COUNT(1) TARGET_CNT
+                  FROM TPAORDERM POM
+                 WHERE POM.PA_CODE        IN ('91','92')
+                   AND POM.PA_ORDER_GB    = '10'
+                   AND POM.CREATE_YN      = '0'
+                   AND POM.PRE_CANCEL_YN  = '0'
+                   AND POM.INSERT_DATE    > TRUNC(SYSDATE)-5
+                   AND POM.PA_DO_FLAG	  = '30'
+                 GROUP BY POM.PA_ORDER_NO
+                 ORDER BY POM.PA_ORDER_NO) AA
+          WHERE 1 = 1 <!-- AA.PA_ORDER_NO = ''  여기다 넣어라-->
+            AND ROWNUM &lt;= #{limitCount, jdbcType=NUMERIC}
+	</select>
+	
+	
+	
+	<select id="selectOrderInputTargetDtList" parameterType="hashMap" resultType="hashMap">
+		SELECT /* patmondelivery.xml : selectOrderInputTargetDtList by PaTmonDeliveryController */
+			    *
+		  FROM (		    
+		        SELECT PM.PA_ORDER_NO
+		             , PM.PA_CODE
+		             , PL.TMON_ORDER_NO AS PA_ORDER_CODE
+		             , PL.TMON_DEAL_NO AS PA_GOODS_CODE
+		             , PM.MAPPING_SEQ
+		             , TC.REMARK1 AS MEDIA_CODE  
+		             , TO_CHAR(PL.ORDER_DATE, 'YYYYMMDDHH24MISS') AS ORDER_DATE
+		             , PGD.GOODS_CODE
+		             , PGD.GOODSDT_CODE
+		             , PL.QTY AS ORDER_QTY
+		             , TO_CHAR(PGP.APPLY_DATE, 'YYYYMMDDHH24MISS') APPLY_DATE
+		             , PL.PURCHASE_PRICE AS RSALE_AMT
+		             , PGP.SUPPLY_PRICE
+		             , NVL(PL.USER_NAME, PL.RECEIVER_NAME) AS CUST_NAME
+		             , PL.USER_PHONE AS CUST_TEL1
+		             , PL.USER_PHONE AS CUST_TEL2
+		             , PL.RECEIVER_NAME AS RECEIVER_NAME
+		             , NVL(PL.RECEIVER_PHONE ,  PL.USER_PHONE    ) AS RECEIVER_TEL
+		             , NVL(PL.RECEIVER_PHONE   ,  PL.USER_PHONE ) AS RECEIVER_HP
+		             , PL.ZIP_CODE  AS ZIPCODE 
+		             , PL.STREET_ADDRESS || ' ' || PL.ADDRESS_DETAIL AS RECEIVER_ADDR
+		             , PL.STREET_ADDRESS || ' ' || PL.ADDRESS_DETAIL AS FULL_RECEIVER_ADDR    
+		             , NVL((PGP.SALE_PRICE * PL.QTY),0)  - PL.PURCHASE_PRICE AS SELLER_DC_AMT
+		             , NVL((PGP.LUMP_SUM_DC_AMT * PL.QTY),0) AS LUMP_SUM_DC_AMT
+		             , NVL((PGP.LUMP_SUM_ENTP_DC_AMT),0) AS LUMP_SUM_ENTP_DC_AMT
+		             , NVL((PGP.LUMP_SUM_OWN_DC_AMT),0) AS LUMP_SUM_OWN_DC_AMT
+		             , PL.DELIVERY_MEMO AS MSG
+		             , PL.AMOUNT + PL.LONG_DISTANCE_AMOUNT AS SHP_FEE_COST 
+		             , NVL(PL.STREET_ADDRESS,PL.ADDRESS) AS RECEIVER_ADDR1
+		             , PL.ADDRESS_DETAIL AS RECEIVER_ADDR2
+		             , PGP.PRICE_SEQ
+		             , DECODE(PA_DO_FLAG, '10' , '10' ,'20' ) DO_FLAG 
+		             , TC.CODE_SNAME AS SITE_GB  
+		             , PGP.SALE_PRICE  
+		             , '99' AS CUST_CHAR
+		             , '66' AS RECEIVE_METHOD
+					 , 0 AS SD_PROMO_PRICE
+					 , NVL(NVL(PP.COUPON_DC_AMT,
+                        (SELECT /*+INDEX_DESC (PPT IDX_TPAPROMOTARGET_04)*/
+                                     CASE WHEN  PPT.PROC_GB   = 'D'   THEN 0
+		                                  WHEN  PPT.PROC_GB = 'U' AND PPT.USE_CODE != '00'  THEN 0
+                                     ELSE  PPT.DO_AMT
+                                     END
+                                FROM TPAPROMOTARGET PPT
+                                   , TPROMOM PM
+                               WHERE PPT.GOODS_CODE         = PGP.GOODS_CODE
+                                 AND PPT.PA_CODE            = PGP.PA_CODE    
+                                 AND PPT.PROMO_NO           = PM.PROMO_NO
+                                 AND PM.COUPON_YN           = '1'
+                                 AND PM.IMMEDIATELY_YN        = '1'
+                                 AND PPT.TRANS_DATE IS NOT NULL
+                                 AND NVL(PM.ALCOUT_PROMO_YN, '0') = '1'
+                                 AND PPT.TRANS_DATE &lt; PL.ORDER_DATE
+                                 AND ((PL.ORDER_DATE BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE + #{ papromoAllowTerm, jdbcType=VARCHAR} ) 
+                                     OR (PL.ORDER_DATE > PPT.PROMO_EDATE AND  PPT.PROC_GB = 'D')
+                                     OR (PM.REMARK4_N IS NOT NULL AND PM.REMARK4_N = 1)
+                                     )
+                                  AND ROWNUM = 1)
+                                  ), 0) AS OUT_PROMO_PRICE 
+					 , PM.REMARK4_N
+					 , PP.COUPON_PROMO_NO AS PROMO_NO
+                     , PP.COUPON_OWN_COST AS OWN_COST
+                     , PP.COUPON_ENTP_COST AS ENTP_COST
+                     , TO_CHAR(PROMO.PROMO_BDATE, 'YYYY-MM-DD HH24:MI:SS') AS COUPON_PROMO_BDATE
+                     , TO_CHAR(PROMO.PROMO_EDATE, 'YYYY-MM-DD HH24:MI:SS') AS COUPON_PROMO_EDATE
+					 , PGP.DC_AMT
+					 , PGP.LUMP_SUM_DC_AMT AS LUMP_SUM_DC_AMT_ORG
+					 , PL.SALES_PRICE AS PA_SALES_PRICE
+					 , 0 AS INSTANT_COUPON_DISCOUNT
+		 			 , TO_CHAR(GP.APPLY_DATE, 'YYYYMMDDHH24MISS') AS STOA_APPLY_DATE
+		          FROM TPAORDERM PM
+		             , TPATMONORDERLIST PL 
+		             , TCODE TC
+		             , TPATMONGOODS PGM
+		             , TPAGOODSDTMAPPING PGD
+		             , TPAGOODSPRICE PGP
+		             , TPAGOODSPRICEAPPLY PP
+		             , TPROMOM PROMO
+		             , TGOODSPRICE GP
+		         WHERE PM.PA_ORDER_NO      = PL.TMON_ORDER_NO
+		           AND PM.PA_SHIP_NO       = PL.DELIVERY_NO
+		           AND PM.PA_ORDER_SEQ     = PL.TMON_DEAL_OPTION_NO
+		           AND PM.PA_GROUP_CODE    = TC.CODE_MGROUP
+		           AND PGM.GOODS_CODE      = PGD.GOODS_CODE
+		           AND PL.TMON_DEAL_NO     = PGM.DEAL_NO
+		           AND PM.PA_CODE          = PGD.PA_CODE
+		           AND PL.TMON_DEAL_OPTION_NO = PGD.PA_OPTION_CODE
+		           AND PGD.GOODS_CODE      = PGP.GOODS_CODE
+		           AND PM.PA_CODE          = PGP.PA_CODE
+		           AND PGM.PA_GROUP_CODE   = PM.PA_GROUP_CODE
+		           AND PGP.ROWID           = (SELECT /*+ INDEX_DESC (PP PK_TPAGOODSPRICE)*/
+		                                             PP.ROWID
+		                                        FROM TPAGOODSPRICE PP
+		                                       WHERE PP.GOODS_CODE = PGM.GOODS_CODE
+		                                         AND PP.PA_CODE = PM.PA_CODE
+		                                         AND PP.APPLY_DATE &lt; PL.ORDER_DATE
+		                                         AND PP.TRANS_DATE &lt; PL.ORDER_DATE
+		                                         AND PP.TRANS_DATE IS NOT NULL
+		                                         AND ROWNUM = 1) 
+		           AND PGM.GOODS_CODE    = PP.GOODS_CODE                                 
+                   AND PGM.PA_GROUP_CODE = PP.PA_GROUP_CODE
+                   AND PGM.PA_CODE       = PP.PA_CODE
+                   AND (PP.APPLY_DATE, PP.PRICE_APPLY_SEQ) = (SELECT /*+ INDEX_DESC (PP2 PK_TPAGOODSPRICEAPPLY)*/
+                                                                                      PP2.APPLY_DATE, PP2.PRICE_APPLY_SEQ
+                                                                             FROM TPAGOODSPRICEAPPLY PP2
+                                                                            WHERE PP2.GOODS_CODE     = PP.GOODS_CODE
+                                                                              AND PP2.PA_GROUP_CODE  = PP.PA_GROUP_CODE
+                                                                              AND PP2.PA_CODE        = PP.PA_CODE
+                                                                              AND PP2.APPLY_DATE &lt;= PL.ORDER_DATE
+                                                                              AND PP2.TRANS_DATE &lt;= PL.ORDER_DATE
+                                                                              AND ROWNUM = 1 )
+                   AND PP.COUPON_PROMO_NO = PROMO.PROMO_NO(+)          
+				   AND GP.GOODS_CODE = PGP.GOODS_CODE
+          		   AND GP.ROWID = (SELECT /*+ INDEX_DESC (GP2 PK_TGOODSPRICE)*/
+		                                     GP2.ROWID
+		                             FROM TGOODSPRICE GP2
+		                            WHERE GP2.GOODS_CODE  = GP.GOODS_CODE
+		                              AND GP2.APPLY_DATE &lt;  PL.ORDER_DATE
+		                              AND ROWNUM = 1)        
+		           AND TC.CODE_LGROUP      = 'O500'
+		           AND TC.CODE_MGROUP      =  PM.PA_GROUP_CODE 
+		           AND PM.PA_ORDER_GB      = '10'
+		           AND PM.CREATE_YN        = '0'
+		           AND PM.PRE_CANCEL_YN    = '0'
+		           AND PM.PA_CODE          IN ('91','92')
+		           AND PM.PA_ORDER_NO      = #{paOrderNo    , jdbcType=VARCHAR} )
+			WHERE SALE_PRICE - DC_AMT - LUMP_SUM_DC_AMT_ORG = PA_SALES_PRICE + SD_PROMO_PRICE + OUT_PROMO_PRICE
+    </select>
+	
+	
+	
+	
+	
+	
+	<!-- 
+	<select id="selectOrderInputTargetDtList" parameterType="hashMap" resultType="hashMap">
+        SELECT /* patmondelivery.xml : selectOrderInputTargetDtList by PaTmonDeliveryController */
+               PM.PA_ORDER_NO
+             , PM.PA_CODE
+             , PL.TMON_ORDER_NO AS PA_ORDER_CODE
+             , PL.TMON_DEAL_NO AS PA_GOODS_CODE
+             , PM.MAPPING_SEQ
+             , TC.REMARK1 AS MEDIA_CODE  
+             , TO_CHAR(PL.ORDER_DATE, 'YYYYMMDDHH24MISS') AS ORDER_DATE
+             , PGD.GOODS_CODE
+             , PGD.GOODSDT_CODE
+             , PL.QTY AS ORDER_QTY
+             , TO_CHAR(PGP.APPLY_DATE, 'YYYYMMDDHH24MISS') APPLY_DATE
+             , PL.PURCHASE_PRICE - PL.DISCOUNT_AMOUNT AS RSALE_AMT
+             , PGP.SUPPLY_PRICE
+             , NVL(PL.USER_NAME, PL.RECEIVER_NAME) AS CUST_NAME
+             , PL.USER_PHONE AS CUST_TEL1
+             , PL.USER_PHONE AS CUST_TEL2
+             , PL.RECEIVER_NAME AS RECEIVER_NAME
+             , NVL(PL.RECEIVER_PHONE ,  PL.USER_PHONE    ) AS RECEIVER_TEL
+             , NVL(PL.RECEIVER_PHONE   ,  PL.USER_PHONE ) AS RECEIVER_HP
+             , PL.ZIP_CODE  AS ZIPCODE 
+             , PL.STREET_ADDRESS || ' ' || PL.ADDRESS_DETAIL AS RECEIVER_ADDR
+             , PL.STREET_ADDRESS || ' ' || PL.ADDRESS_DETAIL AS FULL_RECEIVER_ADDR    
+             , NVL((PGP.SALE_PRICE * PL.QTY),0)  - PL.PURCHASE_PRICE  AS SELLER_DC_AMT
+             , NVL((PGP.LUMP_SUM_DC_AMT * PL.QTY),0) AS LUMP_SUM_DC_AMT
+             , NVL((PGP.LUMP_SUM_ENTP_DC_AMT),0) AS LUMP_SUM_ENTP_DC_AMT
+             , NVL((PGP.LUMP_SUM_OWN_DC_AMT),0) AS LUMP_SUM_OWN_DC_AMT
+             , PL.DELIVERY_MEMO AS MSG
+             , PL.AMOUNT + PL.LONG_DISTANCE_AMOUNT AS SHP_FEE_COST 
+             , NVL(PL.STREET_ADDRESS,PL.ADDRESS) AS RECEIVER_ADDR1
+             , PL.ADDRESS_DETAIL AS RECEIVER_ADDR2
+             , PGP.PRICE_SEQ
+             , DECODE(PA_DO_FLAG, '10' , '10' ,'20' ) DO_FLAG 
+             , TC.CODE_SNAME AS SITE_GB  
+             , PGP.SALE_PRICE  
+             , '99' AS CUST_CHAR
+             , '66' AS RECEIVE_METHOD
+          FROM TPAORDERM PM
+             , TPATMONORDERLIST PL 
+             , TCODE TC
+             , TPATMONGOODS PGM
+             , TPAGOODSDTMAPPING PGD
+             , TPAGOODSPRICE PGP
+         WHERE PM.PA_ORDER_NO      = PL.TMON_ORDER_NO
+           AND PM.PA_SHIP_NO       = PL.DELIVERY_NO
+           AND PM.PA_ORDER_SEQ     = PL.TMON_DEAL_OPTION_NO
+           AND PM.PA_GROUP_CODE    = TC.CODE_MGROUP
+           AND PGM.GOODS_CODE      = PGD.GOODS_CODE
+           AND PL.TMON_DEAL_NO     = PGM.DEAL_NO
+           AND PM.PA_CODE          = PGD.PA_CODE
+           AND PL.TMON_DEAL_OPTION_NO = PGD.PA_OPTION_CODE
+           AND PGD.GOODS_CODE      = PGP.GOODS_CODE
+           AND PM.PA_CODE          = PGP.PA_CODE
+           AND PGM.PA_GROUP_CODE   = PM.PA_GROUP_CODE
+           AND PGP.ROWID           = (SELECT /*+ INDEX_DESC (PP PK_TPAGOODSPRICE)*/
+                                             PP.ROWID
+                                        FROM TPAGOODSPRICE PP
+                                       WHERE PP.GOODS_CODE = PGM.GOODS_CODE
+                                         AND PP.PA_CODE = PM.PA_CODE
+                                         AND PP.APPLY_DATE &lt; PL.ORDER_DATE
+                                         AND PP.TRANS_DATE &lt; PL.ORDER_DATE
+                                         AND PP.TRANS_DATE IS NOT NULL
+                                         AND ROWNUM = 1) 
+           AND PGP.SALE_PRICE - PGP.DC_AMT - PGP.LUMP_SUM_DC_AMT
+               = PL.SALES_PRICE + NVL(( SELECT /*+INDEX_DESC (PPT IDX_TPAPROMOTARGET_04)*/
+                                          CASE WHEN  PPT.PROC_GB = 'D' THEN 0
+                                               WHEN  PPT.PROC_GB = 'U' AND PPT.USE_CODE != '00'  THEN 0
+                                               ELSE  PPT.DO_AMT
+                                          END
+                                     FROM TPAPROMOTARGET PPT
+                                        , TPROMOM TB_A
+                                    WHERE PPT.GOODS_CODE = PGM.GOODS_CODE
+                                      AND PPT.PA_CODE    = PGM.PA_CODE
+                                      AND PPT.PROMO_NO    = TB_A.PROMO_NO
+                                      AND TB_A.COUPON_YN = '1'
+                                      AND TB_A.IMMEDIATELY_YN = '1'
+                                      AND NVL(TB_A.ALCOUT_PROMO_YN, '0') = '0'
+                                      AND PPT.TRANS_DATE IS NOT NULL
+                                      AND PPT.TRANS_DATE &lt; PL.ORDER_DATE
+                                      AND ((PL.ORDER_DATE BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE)  OR (PL.ORDER_DATE &gt; PPT.PROMO_EDATE AND  PPT.PROC_GB = 'D' ))
+                                      AND ROWNUM         = 1 ),0)
+                           + NVL(( SELECT /*+INDEX_DESC (PPT IDX_TPAPROMOTARGET_04)*/
+                                          CASE WHEN  PPT.PROC_GB = 'D' THEN 0
+                                               WHEN  PPT.PROC_GB = 'U' AND PPT.USE_CODE != '00'  THEN 0
+                                               ELSE  PPT.DO_AMT
+                                          END
+                                     FROM TPAPROMOTARGET PPT, TPROMOM TB_A
+                                    WHERE PPT.GOODS_CODE = PGM.GOODS_CODE
+                                      AND PPT.PA_CODE    = PGM.PA_CODE
+                                      AND PPT.PROMO_NO = TB_A.PROMO_NO
+                                      AND TB_A.COUPON_YN = '1'
+                                      AND TB_A.IMMEDIATELY_YN = '1'
+                                      AND NVL(TB_A.ALCOUT_PROMO_YN, '0') = '1'
+                                      AND PPT.TRANS_DATE IS NOT NULL
+                                      AND PPT.TRANS_DATE &lt; PL.ORDER_DATE
+                                      AND ((PL.ORDER_DATE BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE)  OR (PL.ORDER_DATE &gt; PPT.PROMO_EDATE AND  PPT.PROC_GB = 'D' ))
+                                      AND ROWNUM         = 1 ),0)
+           AND TC.CODE_LGROUP      = 'O500'
+           AND TC.CODE_MGROUP      =  PM.PA_GROUP_CODE 
+           AND PM.PA_ORDER_GB      = '10'
+           AND PM.CREATE_YN        = '0'
+           AND PM.PRE_CANCEL_YN    = '0'
+           AND PM.PA_CODE          IN ('91','92')
+           AND PM.PA_ORDER_NO      = #{PA_ORDER_NO    , jdbcType=VARCHAR}
+    </select>
+     -->
+     
+     
+     
+    <select id="selectOrderPromo" parameterType="hashMap" resultType="com.cware.netshopping.domain.OrderpromoVO">
+        SELECT /* patmondelivery.xml : selectOrderPromo by PaTmonDeliveryController */
+        		*
+          FROM ( SELECT PPT.SEQ
+		              , PPT.PROC_GB 
+		              , PM.PROMO_NO AS PROMO_NO
+		              , PPT.PA_CODE
+		              , TG.GOODS_CODE
+		              , PM.DO_TYPE
+		              , PM.COUPON_YN
+		              , PM.MEDIA_CODE
+		              , PM.PROMO_BDATE AS COUPON_PROMO_BDATE
+		              , PM.PROMO_EDATE AS COUPON_PROMO_EDATE
+		              , PPT.DO_AMT AS PROC_COST
+		              , PPT.OWN_COST AS OWN_PROC_COST
+		              , PPT.ENTP_COST AS ENTP_PROC_COST   
+		              , PPT.INSERT_DATE              
+		           FROM TPROMOM          PM
+		              , TPAPROMOTARGET   PPT
+		              , TGOODS           TG
+		              , TPATMONGOODS     IG
+		           WHERE PM.PROMO_NO       = PPT.PROMO_NO
+		             AND PPT.GOODS_CODE    = TG.GOODS_CODE
+		             AND TG.GOODS_CODE     = IG.GOODS_CODE
+		             AND PPT.GOODS_CODE    = #{goodsCode,jdbcType=VARCHAR}
+		             AND PM.COUPON_YN      = '1'
+		             AND PM.APP_TYPE       = '10'
+		             AND PPT.PA_CODE       = IG.PA_CODE
+		             AND PM.IMMEDIATELY_YN = '1'
+		             AND NVL(PM.ALCOUT_PROMO_YN, '0') = #{alcoutPromoYn,	jdbcType=VARCHAR}
+		             AND PM.GOODS_ALL_YN   = '0'
+		             AND ((PPT.USE_CODE       = '00' AND PPT.PROC_GB IN ('I', 'U') )  OR (PPT.PROC_GB = 'D') ) 
+		             AND PPT.TRANS_DATE    IS NOT NULL
+		             AND PPT.TRANS_DATE    &lt; TO_DATE(#{orderDate,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS')
+		             AND (( TO_DATE(#{orderDate,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE )
+		             	   OR ( TO_DATE(#{orderDate,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') &gt;  PPT.PROMO_EDATE AND PPT.PROC_GB = 'D' ) )  
+		             AND TG.GIFT_YN        = '0' 
+		        ORDER BY PPT.TRANS_DATE DESC )
+         WHERE ROWNUM = 1
+    </select>
+    
+    <select id="countOrder" parameterType="hashMap" resultType="int">
+        SELECT /* patmondelivery.xml : patmon.delivery.countOrder by PaTmonDeliveryController */
+           	   COUNT(1) AS CNT
+          FROM TPATMONORDERLIST OT
+         WHERE OT.TMON_ORDER_NO = #{tmonOrderNo	   , jdbcType=VARCHAR}    
+           AND OT.DELIVERY_NO = #{deliveryNo	   , jdbcType=VARCHAR}
+	</select>
+    
+    <select id="selectTmonOrderSeq" parameterType="hashMap" resultType="int">
+        SELECT /* patmondelivery.xml : patmon.delivery.selectTmonOrderSeq by PaTmonDeliveryController */
+           	   MAX(OT.TMON_ORDER_SEQ) AS TMON_ORDER_SEQ
+          FROM TPATMONORDERLIST OT
+         WHERE OT.TMON_ORDER_NO = #{tmonOrderNo	 , jdbcType=VARCHAR}
+           AND OT.DELIVERY_NO = #{deliveryNo	 , jdbcType=VARCHAR} 
+         GROUP BY OT.TMON_ORDER_NO, OT.DELIVERY_NO
+	</select>
+	
+	<select id="countPaOrderList" parameterType="hashMap" resultType="int">
+        SELECT /* patmondelivery.xml : patmon.delivery.countPaOrderList by PaTmonDeliveryController */
+                COUNT(DISTINCT OT.TMON_ORDER_NO) AS CNT
+          FROM TPATMONORDERLIST OT,
+               TPAORDERM PO
+         WHERE OT.TMON_ORDER_NO = #{tmonOrderNo     , jdbcType=VARCHAR}
+           AND OT.TMON_ORDER_NO = PO.PA_ORDER_NO
+           AND PO.PA_CODE	    = #{paCode	   , jdbcType=VARCHAR}
+	</select>
+    
+	<update id="updatePaOrderMPreCancelYn" parameterType="String">
+        UPDATE /* patmondelivery.xml : patmon.delivery.updatePaOrderMPreCancelYn by PaTmonDeliveryController */
+        	   TPAORDERM
+           SET PRE_CANCEL_YN 	= '1'
+             , MODIFY_DATE		= SYSDATE
+         WHERE PA_ORDER_NO = #{tmonOrderNo	   , jdbcType=VARCHAR}
+           AND PA_DO_FLAG = '10'
+           AND PA_ORDER_GB = '10'
+    </update>
+    
+    <update id="updatePreCanYn">
+        UPDATE /* patmondelivery.xml : patmon.delivery.updatePreCanYn by PaTmonDeliveryController*/
+        	   TPAORDERM
+           SET PRE_CANCEL_YN	 	= #{preCanYn			,	jdbcType=VARCHAR}
+             , API_RESULT_MESSAGE	= #{apiResultMessage	,	jdbcType=VARCHAR}
+             <if test="apiResultCode != null and apiResultCode != ''">
+             , API_RESULT_CODE		= #{apiResultCode    	,	jdbcType=VARCHAR}
+             </if>
+             , MODIFY_DATE		 	= SYSDATE
+         WHERE MAPPING_SEQ       	= #{MAPPING_SEQ			,   jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectRefusalInfo" parameterType="String" resultType="hashMap">   
+		SELECT /* patmondelivery.xml : patmon.delivery.selectRefusalInfo by PaTmonDeliveryController */
+		       PL.TMON_ORDER_NO
+			 , PL.DELIVERY_NO
+			 , PL.TMON_DEAL_NO
+			 , 'RCD4' AS REASON
+			 , '판매자 취소(재고부족)' AS REASON_DETAIL
+			 , PL.TMON_DEAL_OPTION_NO
+			 , PL.QTY
+			 , PM.MAPPING_SEQ
+			 , PM.PA_CODE
+		  FROM TPAORDERM PM
+			 , TPATMONORDERLIST PL
+		 WHERE PM.PA_ORDER_GB	= '10'
+		   AND PM.PA_CODE IN ('91','92')
+		   AND PM.PA_ORDER_NO	= PL.TMON_ORDER_NO
+		   AND PM.PA_ORDER_SEQ	= PL.TMON_DEAL_OPTION_NO
+		   AND PM.PA_SHIP_NO	= PL.DELIVERY_NO
+		   AND PM.MAPPING_SEQ	= #{mappingSeq, jdbcType=VARCHAR}
+   	</select>
+   	
+   	<select id="selectDeliveryConfirmList" parameterType="String" resultType="hashMap">
+	    SELECT /* patmondelivery.xml : patmon.delivery.selectDeliveryConfirmList by PaTmonDeliveryController */
+	           distinct PM.PA_CODE
+			 , PM.PA_ORDER_NO
+		  FROM TPAORDERM PM
+			 , TPATMONORDERLIST PL
+		 WHERE PM.PA_CODE		IN ('91','92')
+		   AND PM.PA_ORDER_GB	= '10'
+		   AND PM.PA_ORDER_NO	= PL.TMON_ORDER_NO
+		   AND PM.PA_SHIP_NO	= PL.DELIVERY_NO
+		   AND PM.PA_ORDER_SEQ	= PL.TMON_DEAL_OPTION_NO
+		   AND PM.PA_DO_FLAG	= '20'
+		   AND PM.PRE_CANCEL_YN	= '0'
+	</select>
+	
+	<select id="selectDeliveryCompleteList" parameterType="int" resultType="hashMap">
+	    SELECT /* patmondelivery.xml : patmon.delivery.selectDeliveryCompleteList by PaTmonDeliveryController */
+	           distinct PM.PA_CODE
+			 , PM.PA_ORDER_NO
+		  FROM TPAORDERM PM
+			 , TPATMONORDERLIST PO
+			 , TORDERDT OD
+		 WHERE PM.PA_ORDER_GB	= '10'
+		   AND PM.PA_CODE		IN ('91','92')
+		   AND PM.PA_DO_FLAG	= '40'
+		   AND PM.PA_ORDER_NO	= PO.TMON_ORDER_NO
+		   AND PM.PA_SHIP_NO	= PO.DELIVERY_NO
+		   AND PM.PA_ORDER_SEQ	= PO.TMON_DEAL_OPTION_NO
+		   AND PM.ORDER_NO    = OD.ORDER_NO
+		   AND PM.ORDER_G_SEQ = OD.ORDER_G_SEQ
+		   AND PM.ORDER_D_SEQ = OD.ORDER_D_SEQ
+		   AND PM.ORDER_W_SEQ = OD.ORDER_W_SEQ
+		   AND OD.DO_FLAG     = '80'
+		   AND OD.LAST_PROC_DATE >= TRUNC(SYSDATE) - #{searchProcDate, jdbcType=NUMERIC}
+	</select>
+	
+	<update id="updateOrderInitial" parameterType="com.cware.netshopping.domain.PaTmonOrderListVO">
+		UPDATE /* patmondelivery.xml : patmon.delivery.updateOrderInitial by PaTmonDeliveryController */
+             TPATMONORDERLIST PO
+           SET PO.AMOUNT         				= #{amount, jdbcType=NUMERIC}
+             , PO.TMON_AMOUNT    				= #{tmonAmount, jdbcType=NUMERIC}
+             , PO.PARTNER_AMOUNT 				= #{partnerAmount, jdbcType=NUMERIC}
+             , PO.USER_AMOUNT    				= #{userAmount, jdbcType=NUMERIC}
+             , PO.LONG_DISTANCE_AMOUNT         	= #{longDistanceAmount, jdbcType=NUMERIC}
+             , PO.LONG_DISTANCE_TMON_AMOUNT    	= #{longDistanceTmonAmount, jdbcType=NUMERIC}
+             , PO.LONG_DISTANCE_PARTNER_AMOUNT 	= #{longDistancePartnerAmount, jdbcType=NUMERIC}
+             , PO.LONG_DISTANCE_USER_AMOUNT    	= #{longDistanceUserAmount, jdbcType=NUMERIC}
+             , PO.DISCOUNT_AMOUNT       	   	= #{discountAmount, jdbcType=NUMERIC}
+             , PO.PARTNER_DISCOUNT_AMOUNT      	= #{partnerDiscountAmount, jdbcType=NUMERIC}
+             , PO.COUPON_NO 				   	= #{couponNo, jdbcType=VARCHAR}
+             , PO.DISCOUNT_POLICY_NO 		   	= #{discountPolicyNo, jdbcType=VARCHAR}
+             , PO.MODIFY_DATE = SYSDATE
+         WHERE PO.TMON_ORDER_NO 		= #{tmonOrderNo, jdbcType=VARCHAR}
+           AND PO.DELIVERY_NO 			= #{deliveryNo, jdbcType=VARCHAR}
+           AND PO.TMON_DEAL_OPTION_NO 	= #{tmonDealOptionNo, jdbcType=VARCHAR}
+	</update>
+	
+	<update id="updatePaOrderMDoFlag30" parameterType="com.cware.netshopping.domain.PaTmonOrderListVO">
+		UPDATE /* patmondelivery.xml : patmon.delivery.updatePaOrderMDoFlag30 by PaTmonDeliveryController */
+			   TPAORDERM PM
+           SET PM.PA_DO_FLAG			= '30'
+           	 , PM.PROC_DATE				= SYSDATE
+           	 , PM.API_RESULT_CODE		= '000000'
+           	 , PM.API_RESULT_MESSAGE	= '최초정보 조회 완료'
+             , PM.MODIFY_DATE			= SYSDATE
+         WHERE PM.PA_CODE				= #{paCode, jdbcType=VARCHAR}
+           AND PM.PA_ORDER_GB			= #{paOrderGb, jdbcType=VARCHAR}
+           AND PM.PA_ORDER_NO			= #{tmonOrderNo, jdbcType=VARCHAR}
+           AND PM.PA_DO_FLAG			= '20'
+	</update>
+    
+    <update id="updatePaOrderMDoFlag" parameterType="hashMap">
+        UPDATE /* patmondelivery.xml : patmon.delivery.updatePaOrderMDoFlag by PaTmonDeliveryController */
+        	   TPAORDERM PM
+           SET PM.PROC_DATE           = SYSDATE
+           <if test="PA_DO_FLAG != null">
+             , PM.PA_DO_FLAG		  = #{PA_DO_FLAG		 , jdbcType=VARCHAR}
+           </if>
+           	 , PM.API_RESULT_CODE	  = #{API_RESULT_CODE	 , jdbcType=VARCHAR}
+           	 , PM.API_RESULT_MESSAGE  = #{API_RESULT_MESSAGE , jdbcType=VARCHAR}
+             , PM.MODIFY_DATE		  = SYSDATE
+             
+         WHERE PM.PRE_CANCEL_YN   = '0'
+           AND PM.PA_ORDER_GB     = '10'
+           AND PM.PA_CODE         = #{paCode, jdbcType=VARCHAR}
+           AND PM.PA_DO_FLAG      = #{paDoFlagOrg, jdbcType=VARCHAR}
+           AND EXISTS (SELECT 1 
+                   FROM TPATMONORDERLIST PO
+                  WHERE PO.TMON_ORDER_NO  = PM.PA_ORDER_NO 
+                    AND PO.DELIVERY_NO  = PM.PA_SHIP_NO
+                    AND PO.TMON_DEAL_OPTION_NO = PM.PA_ORDER_SEQ
+                    AND PO.TMON_ORDER_NO  = #{paOrderNo, jdbcType=VARCHAR}
+                    AND PO.DELIVERY_NO  = #{paShipNo, jdbcType=VARCHAR}
+                    AND PO.TMON_DEAL_NO = #{tmonDealNo, jdbcType=VARCHAR}
+                  )
+    </update>
+    
+    <select id="selectOrderTmonDealOptionList"  parameterType="com.cware.netshopping.domain.PaTmonOrderListVO" resultType="hashMap"> 
+		SELECT /* patmondelivery.xml : patmon.delivery.selectOrderTmonDealOptionList by PaTmonDeliveryController */
+			   DISTINCT
+			   PO.TMON_ORDER_NO,
+			   PO.DELIVERY_NO,
+		       PO.TMON_DEAL_OPTION_NO
+		  FROM TPATMONORDERLIST PO
+		 WHERE TMON_ORDER_NO =  #{tmonOrderNo  , jdbcType=VARCHAR}
+		   AND DELIVERY_NO	 =  #{deliveryNo  , jdbcType=VARCHAR}
+    </select>
+     
+    <select id="countChkOrderComplete" parameterType="hashMap" resultType="int">
+        SELECT /* patmondelivery.xml : patmon.delivery.countChkOrderComplete by PaTmonDeliveryController */
+           	   COUNT(1) AS CNT
+          FROM TPAORDERM PM
+		 WHERE PM.PA_CODE 	  = #{paCode	, jdbcType=VARCHAR}
+		   AND PM.PA_ORDER_NO = #{paOrderNo , jdbcType=VARCHAR}
+		   AND PM.PA_SHIP_NO  = #{paShipNo  , jdbcType=VARCHAR}
+		   AND PM.PA_ORDER_GB = '10'          
+		   AND PM.PA_DO_FLAG  = '80'
+	</select>
+</mapper>

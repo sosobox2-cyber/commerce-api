@@ -1,0 +1,2470 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pacommon.paclaim">
+    <select id="selectOrderDtInfo" parameterType="com.cware.netshopping.domain.OrderClaimVO" resultType="com.cware.netshopping.domain.OrderdtVO">
+		SELECT /* paclaim.xml : pacommon.paclaim.selectOrderDtInfo by PaClaimController-orderClaim */
+			   OD.ORDER_NO 
+             , OD.ORDER_G_SEQ
+             , OD.ORDER_D_SEQ
+             , OD.ORDER_W_SEQ
+             , OD.ORDER_QTY
+             , OD.GOODS_GB
+             , OD.MEDIA_GB
+     		 , OD.MEDIA_CODE
+     		 , OD.MD_CODE
+     		 , OD.SALE_YN
+     		 , OD.DELY_TYPE
+     		 , OD.DELY_GB
+     		 , OD.DELY_HOPE_DATE
+     		 , OD.DELY_HOPE_YN
+     		 , OD.DELY_HOPE_TIME
+     		 , OD.PREOUT_GB
+     		 , OD.SINGLE_DUE_GB
+             , OD.GOODS_CODE
+             , OD.GOODSDT_CODE
+             , GD.GOODSDT_INFO
+             , OD.SYSLAST
+             , OD.RECEIVER_SEQ
+             , GS.WH_CODE
+             , OD.CUST_NO
+             , OD.SALE_PRICE
+             , OD.BUY_PRICE
+             , OD.VAT_RATE
+             , OD.DC_RATE_GOODS
+             , OD.DC_RATE
+             , OD.DC_AMT_GOODS
+             , OD.DC_AMT_MEMB
+             , OD.DC_AMT_DIV
+             , OD.DC_AMT_CARD
+             , OD.DC_AMT
+             , OD.RSALE_NET
+             , OD.RSALE_VAT
+             , OD.RSALE_AMT
+             , OD.SYSCANCEL
+             , OD.SYSLAST_DC_GOODS
+             , OD.SYSLAST_DC_MEMB
+             , OD.SYSLAST_DC_DIV
+             , OD.SYSLAST_DC_CARD
+             , OD.SYSLAST_DC
+             , OD.SYSLAST_AMT
+             , OD.SAVEAMT_GB
+             , OD.SAVEAMT
+             , OD.ORDER_AMT
+             , DECODE(OD.DELY_TYPE,'10','100001', DECODE(SUBSTR(GS.BUY_MED,2,1),'1','100001','3','100001',GS.ENTP_CODE)) AS ENTP_CODE
+             , OD.DO_FLAG
+             , OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY AS PROC_POSS_QTY
+             , OD.ORDER_DATE
+             , GS.SOURCING_MEDIA
+             , (SELECT COUNT(1)
+             	  FROM TCLAIMDT TC
+             	 WHERE TC.ORDER_NO = #{orderNo, jdbcType=VARCHAR}
+             	   AND TC.ORDER_G_SEQ = #{orderGSeq, jdbcType=VARCHAR}
+             	   AND TC.CLAIM_GB = '40'
+             	   AND TC.DO_FLAG >= '40'
+             	   AND TC.SYSLAST > 0) AS EXCHANGE_YN
+          FROM TORDERDT		OD
+             , TGOODS		GS
+             , TGOODSDT		GD
+             , TORDERGOODS 	OG
+         WHERE OD.GOODS_CODE   	= GS.GOODS_CODE
+           AND GS.GOODS_CODE    = GD.GOODS_CODE
+           AND OD.GOODSDT_CODE 	= GD.GOODSDT_CODE
+           AND OD.ORDER_NO      = OG.ORDER_NO
+           AND OD.ORDER_G_SEQ   = OG.ORDER_G_SEQ
+           AND OD.ORDER_NO     	= #{orderNo, jdbcType=VARCHAR}   
+           AND OD.ORDER_G_SEQ 	= #{orderGSeq, jdbcType=VARCHAR}
+           AND SYSLAST > 0
+         ORDER BY ORDER_NO, ORDER_G_SEQ, ORDER_D_SEQ
+    </select>
+    
+    <select id="selectOrderDtInfoEx" parameterType="com.cware.netshopping.domain.OrderClaimVO" resultType="com.cware.netshopping.domain.OrderdtVO">
+        SELECT /* paclaim.xml : pacommon.paclaim.selectOrderDtInfoEx by PaClaimController-orderClaim */  
+               OD.ORDER_NO 
+             , OD.ORDER_G_SEQ
+             , OD.ORDER_D_SEQ
+             , OD.ORDER_W_SEQ
+             , OD.ORDER_QTY
+             , OD.GOODS_CODE
+             , OD.GOODSDT_CODE 
+             , GD.GOODSDT_INFO
+             , OD.SYSLAST
+             , OD.RECEIVER_SEQ
+             , GS.WH_CODE
+             , OD.CUST_NO
+             , OD.SALE_PRICE
+             , OD.BUY_PRICE
+             , OD.DC_RATE_GOODS
+             , OD.DC_RATE
+             , OD.DC_AMT_GOODS
+             , OD.DC_AMT_MEMB
+             , OD.DC_AMT_DIV
+             , OD.DC_AMT_CARD
+             , OD.DC_AMT
+             , OD.RSALE_NET
+             , OD.RSALE_VAT
+             , OD.RSALE_AMT
+             , OD.SYSCANCEL
+             , OD.SYSLAST_DC_GOODS
+             , OD.SYSLAST_DC_MEMB
+             , OD.SYSLAST_DC_DIV
+             , OD.SYSLAST_DC_CARD
+             , OD.SYSLAST_DC
+             , OD.SYSLAST_AMT
+             , OD.SAVEAMT_GB
+             , OD.SAVEAMT
+             , OD.ORDER_AMT
+             , DECODE(OD.DELY_TYPE,'10','100001', DECODE(SUBSTR(GS.BUY_MED,2,1),'1','100001','3','100001',GS.ENTP_CODE)) AS ENTP_CODE
+             , OD.DO_FLAG
+             , CM.CUST_NAME
+             , (SELECT COUNT(1)
+             	  FROM TCLAIMDT TC
+             	 WHERE TC.ORDER_NO = #{orderNo, jdbcType=VARCHAR}
+             	   AND TC.ORDER_G_SEQ = #{orderGSeq, jdbcType=VARCHAR}
+             	   AND TC.CLAIM_GB = '40'
+             	   AND TC.DO_FLAG >= '40'
+             	   AND TC.SYSLAST > 0) AS EXCHANGE_YN
+         FROM TORDERDT OD, TGOODS GS, TGOODSDT GD, TCUSTOMER CM
+        WHERE OD.GOODS_CODE = GS.GOODS_CODE
+          AND GS.GOODS_CODE = GD.GOODS_CODE
+          AND OD.GOODSDT_CODE = GD.GOODSDT_CODE
+          AND OD.CUST_NO = CM.CUST_NO
+          AND OD.ORDER_NO = #{orderNo, jdbcType=VARCHAR}   
+          AND OD.ORDER_G_SEQ = #{orderGSeq, jdbcType=VARCHAR}
+          AND OD.ORDER_D_SEQ = '001'
+          AND OD.SYSLAST > 0
+    </select>
+    
+    <select id="selectOrderGoods" parameterType="hashMap" resultType="int">
+        SELECT /* paclaim.xml : pacommon.paclaim.selectOrderGoods by PaClaimController */
+        	   ORDER_QTY -CANCEL_QTY - CLAIM_QTY+ CLAIM_CAN_QTY
+          FROM TORDERGOODS
+         WHERE ORDER_NO         = #{orderNo, jdbcType=VARCHAR}
+           AND ORDER_G_SEQ      = #{orderGSeq, jdbcType=VARCHAR}
+    
+    </select>
+
+    <select id="selectReceiverAddr" parameterType="hashMap" resultType="com.cware.netshopping.domain.ReceiverVO">
+         SELECT  /* paclaim.xml : pacommon.paclaim.selectReceiverAddr by PaClaimController-orderClaim */
+               DECODE(B.SELECT_ADDR, '1', DECODE( B.ROAD_ADDR_YN, '0', B.RECEIVER_POST_ADDR
+                                                                , '1', B.ROAD_POST_ADDR)
+                                   , '2', RTRIM(B.STD_ROAD_POST_ADDR1)
+                                   , '3', RTRIM(B.STD_POST_ADDR1  ))                                AS RECEIVER_ADDR
+             , DECODE(B.SELECT_ADDR, '1', DECODE( B.ROAD_ADDR_YN, '0', B.RECEIVER_ADDR
+                                                                , '1', B.ROAD_ADDR)
+                                   , '2', B.STD_ROAD_POST_ADDR2
+                                   , '3', B.STD_POST_ADDR2)                                         AS RECEIVER_ETC_ADDR
+             , DECODE(B.SELECT_ADDR, '1', B.RECEIVER_POST
+                                   , '2', B.STD_ROAD_POST
+                                   , '3', B.STD_POST) AS RECEIVER_POST
+             , DECODE(B.SELECT_ADDR, '1', DECODE( B.ROAD_ADDR_YN, '0', B.RECEIVER_POST_ADDR ||''|| B.RECEIVER_ADDR
+                                                                , '1', B.ROAD_POST_ADDR)    ||''|| B.ROAD_ADDR
+                                    , '2', RTRIM(B.STD_ROAD_POST_ADDR1||''||B.STD_ROAD_POST_ADDR2)
+                                    , '3', RTRIM(B.STD_POST_ADDR1 ||''||B.STD_POST_ADDR2 ))         AS FULL_ADDR
+             , RECEIVER_SEQ
+             , RECEIVER
+             , RECEIVER_HP
+             , RECEIVER_HP1
+             , RECEIVER_HP2
+             , RECEIVER_HP3
+             , TEL
+             , RECEIVER_DDD
+             , RECEIVER_TEL1
+             , RECEIVER_TEL2
+             , SELECT_ADDR
+          FROM TRECEIVER B    
+         WHERE B.CUST_NO = #{custNo, jdbcType=VARCHAR}
+           AND B.RECEIVER_SEQ = #{receiverSeq, jdbcType=VARCHAR}
+    </select>
+    
+    
+    
+   <insert id="insertReceiver" parameterType="com.cware.netshopping.domain.ReceiverVO" >
+        INSERT INTO TRECEIVER (/* paorder.xml : pacommon.paorder.insertReceiver by PaOrderController  */
+                    CUST_NO,            RECEIVER_SEQ,           RECEIVER_GB,
+                    DEFAULT_YN,         RECEIVER,               RECEIVER_DDD,
+                    RECEIVER_TEL1,      RECEIVER_TEL2,          RECEIVER_TEL3,
+                    TEL,                RECEIVER_POST,          RECEIVER_POST_SEQ,
+                    RECEIVER_POST_ADDR, RECEIVER_ADDR,          RECEIVER_HP,            RECEIVER_HP1,
+                    RECEIVER_HP2,       RECEIVER_HP3,
+                    RECEIVER1,          RECEIVER2,              RECEIVER3,
+                    USE_YN,             BEFORE_SEQ,
+                    ROAD_ADDR_YN,       ROAD_POST_ADDR,         ROAD_ADDR,                ROAD_ADDR_NO,
+                    INSERT_ID,          INSERT_DATE,            MODIFY_ID,                MODIFY_DATE,
+                    SELECT_ADDR,
+                    STD_ROAD_POST,      STD_ROAD_POST_SEQ,      STD_ROAD_POST_ADDR1,      STD_ROAD_POST_ADDR2,    STD_ROAD_POST_LNGX,    STD_ROAD_POST_LATY, 
+                    STD_POST,           STD_POST_SEQ,           STD_POST_ADDR1,           STD_POST_ADDR2,         STD_POST_LNGX,         STD_POST_LATY,
+                    REFINE_RESULT_CODE
+                    )
+            VALUES (#{custNo,jdbcType=VARCHAR},                 #{receiverSeq,jdbcType=VARCHAR},            #{receiverGb,jdbcType=VARCHAR},
+                    #{defaultYn,jdbcType=VARCHAR},              #{receiver,jdbcType=VARCHAR},               #{receiverDdd,jdbcType=VARCHAR},
+                    #{receiverTel1,jdbcType=VARCHAR},           #{receiverTel2,jdbcType=VARCHAR},           #{receiverTel3,jdbcType=VARCHAR},
+                    #{tel,jdbcType=VARCHAR},                    #{receiverPost,jdbcType=VARCHAR},           #{receiverPostSeq,jdbcType=VARCHAR},
+                    RTRIM(#{receiverPostAddr,jdbcType=VARCHAR}),RTRIM(#{receiverAddr,jdbcType=VARCHAR}),    #{receiverHp,jdbcType=VARCHAR},                     #{receiverHp1,jdbcType=VARCHAR},
+                    #{receiverHp2,jdbcType=VARCHAR},            #{receiverHp3,jdbcType=VARCHAR},
+                    #{receiver1,jdbcType=VARCHAR},              #{receiver2,jdbcType=VARCHAR},              #{receiver3,jdbcType=VARCHAR},
+                    #{useYn,jdbcType=VARCHAR},                  #{beforeSeq,jdbcType=VARCHAR},
+                    #{roadAddrYn,jdbcType=VARCHAR},             #{roadPostAddr,jdbcType=VARCHAR},           #{roadAddr,jdbcType=VARCHAR},                       #{roadAddrNo,jdbcType=VARCHAR},
+                    #{insertId,jdbcType=VARCHAR},               #{insertDate,jdbcType=DATE},                #{modifyId,jdbcType=VARCHAR},                       #{modifyDate,jdbcType=DATE},
+                    NVL(#{selectAddr,jdbcType=VARCHAR}, '1'),   
+                    #{receiverRoadPost, jdbcType=VARCHAR },     #{receiverRoadPostSeq, jdbcType=VARCHAR},   RTRIM(#{receiverRoadPostAddr, jdbcType=VARCHAR}),   RTRIM(#{receiverRoadPostAddr2, jdbcType=VARCHAR}),     #{stdRoadPostLngx,jdbcType=VARCHAR},  #{stdRoadPostLaty,jdbcType=VARCHAR},                                  
+                    #{receiverStdPost, jdbcType=VARCHAR},       #{receiverStdPostSeq, jdbcType=VARCHAR},    RTRIM(#{receiverStdPostAddr, jdbcType=VARCHAR}),    RTRIM(#{receiverStdPostAddr2, jdbcType=VARCHAR}),      #{stdPostLngx,jdbcType=VARCHAR},  #{stdPostLaty,jdbcType=VARCHAR},    
+                    #{refineResultCode, jdbcType=VARCHAR} 
+                    )
+    </insert>
+   
+   
+   <!--
+    <insert id="insertReceiver" parameterType="com.cware.netshopping.domain.ReceiverVO" >
+        INSERT INTO TRECEIVER ( /* paclaim.xml : pacommon.paclaim.insertReceiver by PaClaimController-orderClaim */
+                    CUST_NO,            RECEIVER_SEQ,           RECEIVER_GB,
+                    DEFAULT_YN,         RECEIVER,               RECEIVER_DDD,
+                    RECEIVER_TEL1,      RECEIVER_TEL2,          RECEIVER_TEL3,
+                    TEL,                RECEIVER_POST,          RECEIVER_POST_SEQ,
+                    RECEIVER_ADDR,      RECEIVER_HP,            RECEIVER_HP1,
+                    RECEIVER_HP2,       RECEIVER_HP3,
+                    RECEIVER1,          RECEIVER2,              RECEIVER3,
+                    USE_YN,             BEFORE_SEQ,
+                    ROAD_ADDR_YN,       SEQ_ROAD_NO,            ROAD_POST_NO,             ROAD_POST_SEQ,            ROAD_ADDR,
+                    INSERT_ID,          INSERT_DATE,            MODIFY_ID,                MODIFY_DATE,
+                    RECEIVER_ROAD_POST, RECEIVER_ROAD_POST_SEQ, RECEIVER_ROAD_POST_ADDR,  RECEIVER_ROAD_POST_ADDR2,
+                    RECEIVER_STD_POST,  RECEIVER_STD_POST_SEQ,  RECEIVER_STD_POST_ADDR,   RECEIVER_STD_POST_ADDR2,
+                    SELECT_ADDR,        FULL_ADDR,
+                    DELIVERY_DEFAULT_YN)
+            VALUES (#{custNo,jdbcType=VARCHAR},                 #{receiverSeq,jdbcType=VARCHAR},            #{receiverGb,jdbcType=VARCHAR},
+                    #{defaultYn,jdbcType=VARCHAR},              #{receiver,jdbcType=VARCHAR},               #{receiverDdd,jdbcType=VARCHAR},
+                    #{receiverTel1,jdbcType=VARCHAR},           #{receiverTel2,jdbcType=VARCHAR},           #{receiverTel3,jdbcType=VARCHAR},
+                    #{tel,jdbcType=VARCHAR},                    #{receiverPost,jdbcType=VARCHAR},           #{receiverPostSeq,jdbcType=VARCHAR},
+                    RTRIM(#{receiverAddr,jdbcType=VARCHAR}),    #{receiverHp,jdbcType=VARCHAR},             #{receiverHp1,jdbcType=VARCHAR},
+                    #{receiverHp2,jdbcType=VARCHAR},            #{receiverHp3,jdbcType=VARCHAR},
+                    #{receiver1,jdbcType=VARCHAR},              '',                                         '',
+                    #{useYn,jdbcType=VARCHAR},                  #{beforeSeq,jdbcType=VARCHAR},
+                    #{roadAddrYn,jdbcType=VARCHAR},             #{seqRoadNo,jdbcType=VARCHAR},              #{roadPostNo,jdbcType=VARCHAR},           #{roadPostSeq,jdbcType=VARCHAR},           #{roadAddr,jdbcType=VARCHAR},
+                    #{insertId,jdbcType=VARCHAR},               #{insertDate,jdbcType=DATE},                #{modifyId,jdbcType=VARCHAR},             #{modifyDate,jdbcType=DATE},
+                    #{receiverRoadPost,jdbcType=VARCHAR},       #{receiverRoadPostSeq,jdbcType=VARCHAR},    #{receiverRoadPostAddr,jdbcType=VARCHAR}, RTRIM(#{receiverRoadPostAddr2,jdbcType=VARCHAR}), 
+                    #{receiverStdPost,jdbcType=VARCHAR},        #{receiverStdPostSeq,jdbcType=VARCHAR},     #{receiverStdPostAddr,jdbcType=VARCHAR},  RTRIM(#{receiverStdPostAddr2,jdbcType=VARCHAR}),
+                    NVL(#{selectAddr,jdbcType=VARCHAR}, '1'),   #{fullAddr,jdbcType=VARCHAR},
+                    NVL(#{deliveryDefaultYn,jdbcType=VARCHAR},'0'))
+    </insert>
+    -->
+    
+    
+    <update id="updateOrdergoods" parameterType="com.cware.netshopping.domain.model.Ordergoods" >
+        UPDATE TORDERGOODS /* paclaim.xml : pacommon.paclaim.updateOrdergoods by PaClaimController-orderClaim */
+           SET CANCEL_QTY  = NVL(CANCEL_QTY,0) + #{cancelQty,jdbcType=VARCHAR}
+             , CLAIM_QTY   = NVL(CLAIM_QTY,0)  + #{claimQty,jdbcType=VARCHAR}
+             , EXCH_CNT    = NVL(EXCH_CNT,0)   + #{exchCnt,jdbcType=VARCHAR}
+             , AS_CNT      = NVL(AS_CNT,0)     + #{asCnt,jdbcType=VARCHAR}
+         WHERE ORDER_NO    = #{orderNo,jdbcType=VARCHAR}
+           AND ORDER_G_SEQ = #{orderGSeq,jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectRsalePaAmt" parameterType="hashMap" resultType="double">
+        SELECT /* paclaim.xml : pacommon.paclaim.selectRsalePaAmt by PaClaimController-orderClaim */
+        	   FUN_GET_RSALE_PA_AMT(#{arg_order_gb, 	jdbcType=VARCHAR}
+        						  , #{arg_order_no, 	jdbcType=VARCHAR}
+        						  , #{arg_order_g_seq, 	jdbcType=VARCHAR}
+        						  , #{arg_order_d_seq, 	jdbcType=VARCHAR}
+        						  , #{arg_proc_qty, 	jdbcType=DOUBLE})
+  		  FROM DUAL
+    </select>
+    
+    <select id="checkUniqueClaimdt" parameterType="hashMap" resultType="int">
+        SELECT /* paclaim.xml : pacommon.paclaim.checkUniqueClaimdt by PaClaimController-orderClaim */
+               COUNT(1)
+          FROM TCLAIMDT
+         WHERE ORDER_NO    = #{orderNo,jdbcType=VARCHAR}
+           AND ORDER_G_SEQ = #{orderGSeq,jdbcType=VARCHAR}
+           AND ORDER_D_SEQ = #{orderDSeq,jdbcType=VARCHAR}
+           AND ORDER_W_SEQ = #{orderWSeq,jdbcType=VARCHAR}
+    </select>
+    
+    
+    <select id="selectGoodsWhCode" parameterType="String" resultType="String">
+        SELECT /* paclaim.xml : pacommon.paclaim.selectGoodsWhCode by PaClaimProcesslmpl-newClaimdt */
+            WH_CODE
+          FROM TGOODS
+         WHERE GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+    </select>
+    
+    
+     <select id="getGoodsCheckDelyGb" databaseId="Oracle" parameterType="hashMap" resultType="hashMap">
+        SELECT /* order.xml : pacommon.paclaim.getGoodsCheckDelyGb by PaClaimController-orderClaim */
+                 SUBSTR(FUN_ORDER_DELY_GB_WH_CODE(#{delyGb,jdbcType=VARCHAR}, #{whCode,jdbcType=VARCHAR}, #{goodsCode,jdbcType=VARCHAR}, #{custNo,jdbcType=VARCHAR}, #{receiverSeq,jdbcType=VARCHAR}),1,2) AS DELY_GB
+               , SUBSTR(FUN_ORDER_DELY_GB_WH_CODE(#{delyGb,jdbcType=VARCHAR}, #{whCode,jdbcType=VARCHAR}, #{goodsCode,jdbcType=VARCHAR}, #{custNo,jdbcType=VARCHAR}, #{receiverSeq,jdbcType=VARCHAR}),3,3) AS WH_CODE
+          FROM DUAL
+         WHERE ROWNUM = 1
+    </select>
+    
+    
+    <select id="selectPlanDateInfo" parameterType="com.cware.netshopping.domain.PaClaimdtVO"  resultType="hashMap">
+    	SELECT /* paclaim.xml : pacommon.paclaim.selectPlanDateInfo by PaClaimController-orderClaim */
+    		   OD.GOODS_CODE
+    		 , OD.DELY_GB
+		     , GD.BUY_MED
+		     , GD.WH_CODE
+		     , GD.STOCK_CHK_PLACE
+		     , TO_CHAR(OD.FIRST_PLAN_DATE, 'YYYY/MM/DD') AS FIRST_PLAN_DATE
+		     , TO_CHAR(OD.OUT_PLAN_DATE, 'YYYY/MM/DD') AS OUT_PLAN_DATE
+		     , TO_CHAR(OD.DELY_HOPE_DATE, 'YYYY/MM/DD') AS DELY_HOPE_DATE
+		  FROM TORDERDT OD, TGOODS GD
+		 WHERE OD.GOODS_CODE = GD.GOODS_CODE
+		   AND OD.ORDER_NO = #{orderNo,jdbcType=VARCHAR}
+           AND OD.ORDER_G_SEQ = #{orderGSeq,jdbcType=VARCHAR}
+           AND OD.ORDER_D_SEQ = #{orderDSeq,jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertClaimdt" parameterType="com.cware.netshopping.domain.PaClaimdtVO" >
+        INSERT INTO TCLAIMDT ( /* paclaim.xml : pacommon.paclaim.insertClaimdt by PaClaimController-orderClaim */
+                 ORDER_NO,         ORDER_G_SEQ,      ORDER_D_SEQ,
+                 ORDER_W_SEQ,      CUST_NO,          RECEIVER_SEQ,
+                 CLAIM_DATE,       CLAIM_GB,         DO_FLAG,
+                 CLAIM_CODE,       EXCH_PAIR,        GOODS_GB,
+                 MEDIA_GB,         MEDIA_CODE,       GOODS_CODE,
+                 GOODSDT_CODE,     GOODSDT_INFO,     SALE_PRICE,
+                 CLAIM_QTY,        SYSCANCEL,        SYSLAST,
+                 CLAIM_AMT,        DC_RATE_GOODS,    DC_RATE,
+                 DC_AMT,           DC_AMT_GOODS,     DC_AMT_MEMB,
+                 DC_AMT_DIV,       DC_AMT_CARD,      RSALE_AMT,        SYSLAST_DC,
+                 SYSLAST_DC_GOODS, SYSLAST_DC_MEMB,  SYSLAST_DC_DIV,   SYSLAST_DC_CARD,
+                 SYSLAST_AMT,      VAT_RATE,         MD_CODE,
+                 SALE_YN,          WH_CODE,          DELY_TYPE,         DELY_GB,         
+                 DELY_HOPE_YN,     PREOUT_GB,
+                 SINGLE_DUE_GB,    PACK_YN,
+                 ANONY_YN,         MSG,              MSG_NOTE,
+                 HAPPY_CARD_YN,    SAVEAMT,          SAVEAMT_GB,
+                 REPAY_GB,         CUST_DELY_FLAG,   LAST_PROC_DATE,
+                 PROMO_NO1,        PROMO_NO2,        SET_GOODS_CODE,
+                 SET_MD_CODE,      REMARK1_V,       
+                 ORDER_MEDIA,      LAST_PROC_ID,
+                 RSALE_NET,        RSALE_VAT,        SYSLAST_NET,
+                 SYSLAST_VAT,      DIRECT_YN,        DIRECT_RETURN_YN,
+                 BUY_PRICE,        
+                 FIRST_PLAN_DATE,  OUT_PLAN_DATE,    DELY_HOPE_DATE,
+                 SLIP_NO,		   REMARK3_N,          
+                 STANDARD_TYPE,    SHPFEE_YN,
+                 CS_LGROUP,        CS_MGROUP,        CS_SGROUP,           CS_LMS_CODE
+                  )
+        SELECT   OD.ORDER_NO,      OD.ORDER_G_SEQ,   OD.ORDER_D_SEQ,
+                 #{orderWSeq,jdbcType=VARCHAR}, #{custNo,jdbcType=VARCHAR}, #{receiverSeq,jdbcType=VARCHAR},
+                 #{claimDate,jdbcType=TIMESTAMP}, #{claimGb,jdbcType=VARCHAR}, #{doFlag,jdbcType=VARCHAR},
+                 #{claimCode,jdbcType=VARCHAR}, #{exchPair,jdbcType=VARCHAR}, OD.GOODS_GB,
+                 OD.MEDIA_GB,            OD.MEDIA_CODE,      #{goodsCode,jdbcType=VARCHAR},
+                 #{goodsdtCode,jdbcType=VARCHAR},        #{goodsdtInfo,jdbcType=VARCHAR},    OD.SALE_PRICE,
+                 #{claimQty,jdbcType=VARCHAR}, #{syscancel,jdbcType=VARCHAR}, #{claimQty,jdbcType=VARCHAR},
+                 #{claimAmt,jdbcType=DOUBLE}, OD.DC_RATE_GOODS,    OD.DC_RATE,
+                 #{dcAmt,jdbcType=DOUBLE}, #{dcAmtGoods,jdbcType=DOUBLE}, #{dcAmtMemb,jdbcType=DOUBLE},
+                 #{dcAmtDiv,jdbcType=DOUBLE}, #{dcAmtCard,jdbcType=DOUBLE}, #{rsaleAmt,jdbcType=DOUBLE}, #{syslastDc,jdbcType=DOUBLE},
+                 #{syslastDcGoods,jdbcType=DOUBLE}, #{syslastDcMemb,jdbcType=DOUBLE}, #{syslastDcDiv,jdbcType=DOUBLE}, #{syslastDcCard,jdbcType=DOUBLE},
+                 #{rsaleAmt,jdbcType=DOUBLE}, OD.VAT_RATE, OD.MD_CODE,
+                 OD.SALE_YN,            GS.WH_CODE,    GS.DELY_TYPE ,     <!-- NVL(#{delyType, jdbcType=VARCHAR} ,GS.DELY_TYPE) AS DELY_TYPE  -->
+                 NVL(#{delyGb, jdbcType=VARCHAR}, OD.DELY_GB) AS DELY_GB ,  
+                 OD.DELY_HOPE_YN,       OD.PREOUT_GB,
+                 OD.SINGLE_DUE_GB,      OD.PACK_YN,
+                 OD.ANONY_YN,           NVL(#{msg,jdbcType=VARCHAR} , OD.MSG),             OD.MSG_NOTE,
+                 #{happyCardYn,jdbcType=VARCHAR}, OD.SAVEAMT, #{saveamtGb, jdbcType=VARCHAR},
+                 #{repayGb,jdbcType=VARCHAR},  OD.CUST_DELY_FLAG,        #{claimDate,jdbcType=TIMESTAMP},
+                 OD.PROMO_NO1,          OD.PROMO_NO2,       OD.SET_GOODS_CODE,
+                 OD.SET_MD_CODE,        OD.DO_FLAG, 
+                 OM.ORDER_MEDIA,        #{lastProcId,jdbcType=VARCHAR},
+                 FUN_REVISE_AMT(#{rsaleAmt,jdbcType=DOUBLE}/(1+OD.VAT_RATE/100),'V'), 
+                 #{rsaleAmt,jdbcType=DOUBLE} - FUN_REVISE_AMT(#{rsaleAmt,jdbcType=DOUBLE}/(1+OD.VAT_RATE/100),'V'),
+                 FUN_REVISE_AMT(#{syslastAmt,jdbcType=DOUBLE}/(1+OD.VAT_RATE/100),'V'),
+                 #{syslastAmt,jdbcType=DOUBLE} - FUN_REVISE_AMT(#{syslastAmt,jdbcType=DOUBLE}/(1+OD.VAT_RATE/100),'V'),
+                 <!--
+                  FUN_REVISE_AMT(#{rsaleAmt,jdbcType=DOUBLE}/#{claimQty,jdbcType=VARCHAR}/(1+OD.VAT_RATE/100),'V')*#{claimQty,jdbcType=VARCHAR}, 
+                 #{rsaleAmt,jdbcType=DOUBLE} - FUN_REVISE_AMT(#{rsaleAmt,jdbcType=DOUBLE}/#{claimQty,jdbcType=VARCHAR}/(1+OD.VAT_RATE/100),'V')*#{claimQty,jdbcType=VARCHAR},
+                 FUN_REVISE_AMT(#{syslastAmt,jdbcType=DOUBLE}/#{claimQty,jdbcType=VARCHAR}/(1+OD.VAT_RATE/100),'V')*#{claimQty,jdbcType=VARCHAR},
+                 #{syslastAmt,jdbcType=DOUBLE} - FUN_REVISE_AMT(#{syslastAmt,jdbcType=DOUBLE}/#{claimQty,jdbcType=VARCHAR}/(1+OD.VAT_RATE/100),'V')*#{claimQty,jdbcType=VARCHAR}, -->
+                 NVL((SELECT A.DIRECT_SHIP_YN FROM TGOODS A WHERE A.GOODS_CODE = OD.GOODS_CODE),'0'),
+                 NVL((SELECT A.DIRECT_RETURN_YN FROM TGOODS A WHERE A.GOODS_CODE = OD.GOODS_CODE),'0'),
+                 OD.BUY_PRICE,
+                 #{firstPlanDate,jdbcType=TIMESTAMP}, #{outPlanDate,jdbcType=TIMESTAMP},  #{delyHopeDate,jdbcType=TIMESTAMP},
+                  #{slipNo, jdbcType=VARCHAR}, ((OD.REMARK3_N / OD.ORDER_QTY) *  #{claimQty,jdbcType=VARCHAR}), 
+                 #{standardType, jdbcType=VARCHAR},        #{shpfeeYn, jdbcType=VARCHAR}, 
+                 #{csLgroup, jdbcType=VARCHAR}, #{csMgroup, jdbcType=VARCHAR}, #{csSgroup, jdbcType=VARCHAR}, #{csLmsCode, jdbcType=VARCHAR} 
+           FROM TORDERM OM
+              , TORDERDT OD
+              , TGOODS GS 
+          WHERE OM.ORDER_NO = OD.ORDER_NO
+            AND OD.GOODS_CODE = GS.GOODS_CODE
+            AND OD.ORDER_NO = #{orderNo,jdbcType=VARCHAR}
+            AND OD.ORDER_G_SEQ = #{orderGSeq,jdbcType=VARCHAR}
+            AND OD.ORDER_D_SEQ = #{orderDSeq,jdbcType=VARCHAR}
+            AND OD.SYSLAST > 0
+    </insert>
+    
+    <insert id="insertOrderproc" parameterType="com.cware.netshopping.domain.PaClaimdtVO" >
+    	INSERT INTO TORDERPROC (/* paclaim.xml : pacommon.paclaim.insertOrderproc by PaClaimController */
+                      ORDER_NO
+                    , ORDER_G_SEQ
+                    , ORDER_D_SEQ
+                    , ORDER_W_SEQ
+                    , ORDER_P_SEQ
+                    , DO_FLAG
+                    , PROC_DATE
+                    , PROC_ID )
+              SELECT #{orderNo,jdbcType=VARCHAR}
+              	   , #{orderGSeq,jdbcType=VARCHAR}
+              	   , #{orderDSeq,jdbcType=VARCHAR}
+              	   , #{orderWSeq,jdbcType=VARCHAR}
+              	   , LPAD(NVL(MAX(A.ORDER_P_SEQ)+1,'001'),3,'0')
+                   , #{doFlagOrg, jdbcType=VARCHAR}
+                   , #{claimDate,jdbcType=TIMESTAMP}
+                   , #{insertId,jdbcType=VARCHAR}
+                FROM TORDERPROC A
+               WHERE A.ORDER_NO    = #{orderNo,jdbcType=VARCHAR}
+                 AND A.ORDER_G_SEQ = #{orderGSeq,jdbcType=VARCHAR}
+                 AND A.ORDER_D_SEQ = #{orderDSeq,jdbcType=VARCHAR}
+                 AND A.ORDER_W_SEQ = #{orderWSeq,jdbcType=VARCHAR}
+    </insert>
+    
+    <update id="updateOrdergoodsClaimCanQty" parameterType="com.cware.netshopping.domain.PaClaimdtVO" >
+    <![CDATA[
+        UPDATE TORDERGOODS /* paclaim.xml : pacommon.paclaim.updateOrdergoodsClaimCanQty by PaClaimController-orderClaim */
+           SET CLAIM_CAN_QTY = CLAIM_CAN_QTY + #{claimQty,jdbcType=VARCHAR}
+         WHERE ORDER_NO      = #{orderNo,jdbcType=VARCHAR}
+           AND ORDER_G_SEQ   = #{orderGSeq,jdbcType=VARCHAR}
+    ]]>
+    </update>
+    
+    <update id="updateClaimdt" parameterType="com.cware.netshopping.domain.PaClaimdtVO" >
+        UPDATE TCLAIMDT /* paclaim.xml : pacommon.paclaim.updateClaimdt by PaClaimController-orderClaim */
+           SET  SYSCANCEL        = #{syscancel,jdbcType=VARCHAR}
+              , SYSLAST          = #{syslast,jdbcType=VARCHAR}
+              , SYSLAST_DC       = #{syslastDc,jdbcType=DOUBLE}
+              , SYSLAST_DC_GOODS = #{syslastDcGoods,jdbcType=DOUBLE}
+              , SYSLAST_DC_MEMB  = #{syslastDcMemb,jdbcType=DOUBLE}
+              , SYSLAST_DC_DIV   = #{syslastDcDiv,jdbcType=DOUBLE}
+              , SYSLAST_AMT      = #{syslastAmt,jdbcType=DOUBLE}
+              , MSG              = #{msg,jdbcType=VARCHAR}
+              , LAST_PROC_ID     = #{lastProcId,jdbcType=VARCHAR}
+              , SYSLAST_NET      = ROUND(#{syslastAmt,jdbcType=DOUBLE} / (1+VAT_RATE / 100), 0)
+              , SYSLAST_VAT      = #{syslastAmt,jdbcType=DOUBLE} - ROUND(#{syslastAmt,jdbcType=DOUBLE} / (1+VAT_RATE / 100), 0)
+         WHERE ORDER_NO     = #{orderNo,jdbcType=VARCHAR}
+           AND ORDER_G_SEQ  = #{orderGSeq,jdbcType=VARCHAR}
+           AND ORDER_D_SEQ  = #{orderDSeq,jdbcType=VARCHAR}
+           AND ORDER_W_SEQ  = #{orderWSeq,jdbcType=VARCHAR}
+           AND RECEIVER_SEQ = #{receiverSeqOrg,jdbcType=VARCHAR}
+           AND DO_FLAG      = #{doFlagOrg,jdbcType=VARCHAR}
+           AND SYSLAST      = #{syslastOrg,jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectOrderPromo" parameterType="hashMap" resultType="com.cware.netshopping.domain.OrderpromoVO">
+        SELECT  /* paclaim.xml : pacommon.paclaim.selectOrderPromo by PaClaimController-orderClaim */
+               A.PROMO_NO
+             , B.APP_TYPE
+             , B.DO_TYPE
+             , A.SEQ
+             , B.LIMIT_YN
+             , A.ORDER_G_SEQ
+             , A.ORDER_NO
+             , A.CANCEL_YN
+         FROM TORDERPROMO A
+            , TPROMOM B
+        WHERE A.PROMO_NO = B.PROMO_NO
+          AND A.ORDER_NO = #{orderNo, jdbcType=VARCHAR}
+          AND A.ORDER_G_SEQ = #{orderGSeq, jdbcType=VARCHAR}
+    </select>
+    
+    <update id="updateOrderpromo" parameterType="com.cware.netshopping.domain.OrderpromoVO" >
+        UPDATE TORDERPROMO /* paclaim.xml : pacommon.paclaim.updateOrderpromo by PaClaimController-orderClaim */
+           SET CANCEL_YN   = '1'
+             , CANCEL_DATE = #{cancelDate,jdbcType=TIMESTAMP}
+             , CANCEL_ID   = #{cancelId,jdbcType=VARCHAR}
+             , REMARK      = #{remark,jdbcType=VARCHAR}
+         WHERE ORDER_NO    = #{orderNo, jdbcType=VARCHAR}
+           AND ORDER_G_SEQ = #{orderGSeq, jdbcType=VARCHAR}
+           AND PROMO_NO	   = #{promoNo, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectCustRefId" parameterType="hashMap" resultType="string">
+        SELECT /* paclaim.xml : pacommon.paclaim.selectCustRefId by PaClaimController-orderClaim */
+               A.PROC_ID
+          FROM TCOUNSELUSER A
+         WHERE (#{out_lgroup_code,jdbcType=VARCHAR}||#{out_mgroup_code,jdbcType=VARCHAR} BETWEEN PROC_LGROUP_FR||PROC_MGROUP_FR 
+                                                                                             AND PROC_LGROUP_TO || PROC_MGROUP_TO)
+           <if test='dely_type != "" and dely_type != null '>
+           AND DELY_TYPE = #{dely_type,jdbcType=VARCHAR}
+           </if>
+           AND ROWNUM    = 1
+    </select>
+    
+    <insert id="insertCounselCustcounselm" parameterType="com.cware.netshopping.domain.model.Custcounselm">
+        INSERT INTO TCUSTCOUNSELM /* paclaim.xml : pacommon.paclaim.insertCounselCustcounselm by PaClaimController-orderClaim */
+            (COUNSEL_SEQ
+            , CUST_NO
+            , DO_FLAG
+            , REF_NO1
+            , REF_NO2
+            , REF_NO3
+            , REF_NO4
+            , OUT_LGROUP_CODE
+            , OUT_MGROUP_CODE
+            , GOODS_CODE
+            , GOODSDT_CODE
+            , CLAIM_NO
+            , DDD
+            , TEL1
+            , TEL2
+            , TEL3
+            , TEL
+            , WILD_YN
+            , HC_REQ_DATE
+            , INSERT_ID
+            , INSERT_DATE
+            , REMARK
+            , PROC_ID
+            , PROC_DATE
+            , REF_ID1
+            , CS_SEND_YN
+            , QUICK_YN
+            , QUICK_END_YN
+            , COUNSEL_MEDIA
+            , CS_LGROUP
+            , CS_MGROUP
+            , CS_SGROUP
+            , CS_LMS_CODE
+            , QUICK_TRANS_YN
+            , SEND_ENTP_CODE)
+     VALUES (
+              #{counselSeq ,jdbcType=VARCHAR}
+            , #{custNo ,jdbcType=VARCHAR}
+            , #{doFlag ,jdbcType=VARCHAR}
+            , #{refNo1 ,jdbcType=VARCHAR}
+            , #{refNo2 ,jdbcType=VARCHAR}
+            , #{refNo3 ,jdbcType=VARCHAR}
+            , #{refNo4 ,jdbcType=VARCHAR}
+            , #{outLgroupCode ,jdbcType=VARCHAR}
+            , #{outMgroupCode ,jdbcType=VARCHAR}
+            , #{goodsCode ,jdbcType=VARCHAR}
+            , #{goodsdtCode ,jdbcType=VARCHAR}
+            , #{claimNo ,jdbcType=VARCHAR}
+            , #{ddd  ,jdbcType=VARCHAR}
+            , #{tel1 ,jdbcType=VARCHAR}
+            , #{tel2 ,jdbcType=VARCHAR}
+            , #{tel3 ,jdbcType=VARCHAR}
+            , #{tel ,jdbcType=VARCHAR}
+            , #{wildYn ,jdbcType=VARCHAR}
+            , #{hcReqDate ,jdbcType=TIMESTAMP}
+            , #{insertId ,jdbcType=VARCHAR}
+            , SYSDATE
+            , #{remark ,jdbcType=VARCHAR}
+            , #{procId ,jdbcType=VARCHAR}
+            , #{procDate,jdbcType=TIMESTAMP}
+            , #{refId1 ,jdbcType=VARCHAR}
+            , #{csSendYn ,jdbcType=VARCHAR}
+            , #{quickYn ,jdbcType=VARCHAR}
+            , #{quickEndYn ,jdbcType=VARCHAR}
+            , '62'
+            , #{csLgroup ,jdbcType=VARCHAR}
+            , #{csMgroup ,jdbcType=VARCHAR}
+            , #{csSgroup ,jdbcType=VARCHAR}
+            , #{csLmsCode ,jdbcType=VARCHAR}
+            , #{quickTransYn ,jdbcType=VARCHAR}         
+            , #{sendEntpCode ,jdbcType=VARCHAR}         
+             )
+    </insert>
+    
+    <insert id="insertPlanshipcost" parameterType="com.cware.netshopping.domain.model.Planshipcost">
+        INSERT INTO TPLANSHIPCOST ( /* paclaim.xml : pacommon.paclaim.insertPlanshipcost by PaClaimController-orderClaim */
+               ORDER_NO
+             , ORDER_G_SEQ
+             , ORDER_D_SEQ
+             , ORDER_W_SEQ
+             , RECEIVER_SEQ
+             , TYPE
+             , ENTP_CODE
+             , DELY_TYPE
+             , SHPFEE_COST
+             , CONFIRM_YN
+             , CANCEL_YN
+             , REFUND_YN
+             , INSERT_ID
+             , INSERT_DATE
+             , MODIFY_ID
+             , MODIFY_DATE )
+        VALUES(
+               #{orderNo, jdbcType=VARCHAR}
+             , #{orderGSeq, jdbcType=VARCHAR}
+             , #{orderDSeq, jdbcType=VARCHAR}
+             , #{orderWSeq, jdbcType=VARCHAR}
+             , #{receiverSeq, jdbcType=VARCHAR}
+             , #{type, jdbcType=VARCHAR}
+             , #{entpCode, jdbcType=VARCHAR}
+             , #{delyType, jdbcType=VARCHAR}
+             , #{shipfeeCost, jdbcType=NUMERIC}
+             , #{confirmYn, jdbcType=VARCHAR}
+             , #{cancelYn, jdbcType=VARCHAR}
+             , #{refundYn, jdbcType=VARCHAR}
+             , #{insertId, jdbcType=VARCHAR}
+             , #{insertDate,jdbcType=DATE}
+             , #{insertId, jdbcType=VARCHAR}
+             , #{modifyDate,jdbcType=DATE}
+             )  
+    </insert>
+    <update id="updatePlanshipcost" parameterType="com.cware.netshopping.domain.model.Planshipcost">
+        UPDATE TPLANSHIPCOST  /* paclaim.xml : pacommon.paclaim.updatePlanshipcost by PaClaimController-orderClaim */
+               SET CONFIRM_YN = #{confirmYn, jdbcType=VARCHAR}
+                 , CANCEL_YN = #{cancelYn, jdbcType=VARCHAR}
+                 , MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+                 , MODIFY_DATE = #{modifyDate, jdbcType=DATE}
+             WHERE ORDER_NO = #{orderNo, jdbcType=VARCHAR}
+               AND ORDER_G_SEQ = #{orderGSeq, jdbcType=VARCHAR}
+               AND ORDER_D_SEQ = #{orderDSeq, jdbcType=VARCHAR}
+               AND ORDER_W_SEQ = #{orderWSeq, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectCustCounselDtProcNote" parameterType="hashMap" resultType="string">
+        SELECT /* paclaim.xml : pacommon.paclaim.selectCustCounselDtProcNote by PaClaimController-orderClaim */
+               NVL2(CQ.QUESTION_1,CQ.QUESTION_1||'-N'||CHR(13),'')
+               ||NVL2(CQ.QUESTION_2,CQ.QUESTION_2||'-N'||CHR(13),'')
+               ||NVL2(CQ.QUESTION_3,CQ.QUESTION_3||'-N'||CHR(13),'')
+               ||NVL2(CQ.QUESTION_4,CQ.QUESTION_4||'-N'||CHR(13),'')
+               ||NVL2(CQ.QUESTION_5,CQ.QUESTION_5||'-N'||CHR(13),'')
+               ||NVL2(CQ.QUESTION_6,CQ.QUESTION_6||'-N'||CHR(13),'')
+          FROM TCSQUESTIONTEMPLATE CQ, TGOODS G
+         WHERE CQ.LGROUP = G.LGROUP
+           AND G.GOODS_CODE = #{goodsCode,jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertCounselCustcounseldt" parameterType="com.cware.netshopping.domain.model.Custcounseldt">
+        INSERT INTO TCUSTCOUNSELDT /* paclaim.xml : pacommon.paclaim.insertCounselCustcounseldt by PaClaimController-orderClaim */
+              (COUNSEL_SEQ
+             , COUNSEL_DT_SEQ
+             , DO_FLAG
+             , PROC_NOTE
+             , PROC_DATE
+             , PROC_ID
+             , DISPLAY_YN
+             , HC_REQ_DATE)
+        VALUES(
+               #{counselSeq ,jdbcType=VARCHAR}
+             , #{counselDtSeq,jdbcType=VARCHAR}
+             , #{doFlag,jdbcType=VARCHAR}
+             , #{procNote,jdbcType=VARCHAR}
+             , SYSDATE
+             , #{procId,jdbcType=VARCHAR}
+             , #{displayYn,jdbcType=VARCHAR}
+             , #{hcReqDate ,jdbcType=TIMESTAMP})
+    </insert>  
+    <insert id="insertCounselCustcounseldt80" parameterType="com.cware.netshopping.domain.model.Custcounseldt">
+        INSERT INTO TCUSTCOUNSELDT /* paclaim.xml : pacommon.paclaim.insertCounselCustcounseldt80 by PaClaimController-orderClaim */
+             ( COUNSEL_SEQ
+             , COUNSEL_DT_SEQ
+             , DO_FLAG
+             , DISPLAY_YN
+             , PROC_NOTE
+             , PROC_DATE
+             , PROC_ID
+             , END_DATE)             
+        VALUES( 
+               #{counselSeq ,jdbcType=VARCHAR}
+             , #{counselDtSeq,jdbcType=VARCHAR}
+             , #{doFlag,jdbcType=VARCHAR}
+             , #{displayYn,jdbcType=VARCHAR}
+             , #{procNote,jdbcType=VARCHAR}
+             , #{procDate,jdbcType=TIMESTAMP}
+             , #{procId,jdbcType=VARCHAR}
+             , #{endDate,jdbcType=TIMESTAMP})
+    </insert>
+    
+    <select id="selectCalShpfeeAmt" parameterType="hashMap" resultType="double">
+        SELECT /* paclaim.xml : pacommon.paclaim.selectCalShpfeeAmt by PaClaimController-orderClaim */ 
+              NVL(SUBSTR(FUN_GET_CUST_SHIPCOST(#{shipGb,jdbcType=VARCHAR}
+                                   , SYSDATE
+                                   , #{custNo, jdbcType=VARCHAR}
+                                   , #{receiverSeq, jdbcType=VARCHAR}
+                                   , #{goodsCode, jdbcType=VARCHAR}
+                                   , #{rsaleAmt, jdbcType=DOUBLE} 
+                                   , #{claimQty, jdbcType=VARCHAR}),8),0)
+        FROM DUAL
+    
+    </select>
+    
+    <insert id="insertOrdershipcost" parameterType="com.cware.netshopping.domain.model.Ordershipcost" >
+        INSERT INTO TORDERSHIPCOST ( /* paclaim.xml : pacommon.paclaim.insertOrdershipcost by PaClaimController-orderClaim */
+                      ORDER_NO
+                    , SEQ
+                    , RECEIVER_SEQ
+                    , TYPE
+                    , SHPFEE_CODE
+                    , SHPFEE_COST
+                    , DELY_TYPE
+                    , ENTP_CODE
+                    , INSERT_DATE
+                    , INSERT_ID
+                    , ORDER_G_SEQ
+                    , ORDER_D_SEQ
+                    , ORDER_W_SEQ
+                     )
+             VALUES(  #{orderNo,jdbcType=VARCHAR}
+                    , TRIM(TO_CHAR(#{seq,jdbcType=VARCHAR}, '000'))
+                    , #{receiverSeq,jdbcType=VARCHAR}
+                    , #{type,jdbcType=VARCHAR}
+                    , #{shpfeeCode,jdbcType=VARCHAR}
+                    , #{shpfeeCost,jdbcType=VARCHAR}
+                    , #{delyType,jdbcType=VARCHAR}
+                    , #{entpCode,jdbcType=VARCHAR}
+                    , #{insertDate,jdbcType=VARCHAR}
+                    , #{insertId,jdbcType=VARCHAR}
+                    , #{orderGSeq,jdbcType=VARCHAR}
+                    , #{orderDSeq,jdbcType=VARCHAR}
+                    , #{orderWSeq,jdbcType=VARCHAR}
+                    )
+    </insert>
+    <select id="selectChangeGoodsInfo" parameterType="com.cware.netshopping.domain.OrderClaimVO" resultType="hashMap">
+		SELECT /* paclaim.xml : pacommon.paclaim.selectChangeGoodsInfo by PaClaimController */
+			   GS.GOODS_CODE
+		     , GD.GOODSDT_CODE
+		     , GD.GOODSDT_INFO
+		     , FUN_GET_ORDER_ABLE_QTY(GS.GOODS_CODE, GD.GOODSDT_CODE, GS.WH_CODE) AS ABLE_QTY
+		     , CASE WHEN GS.SALE_GB >= GD.SALE_GB THEN GS.SALE_GB ELSE GD.SALE_GB END AS SALE_GB
+		  FROM TORDERDT OD
+		     , TGOODS GS
+		     , TGOODSDT GD
+		 WHERE OD.GOODS_CODE = GS.GOODS_CODE
+		   AND GS.GOODS_CODE = GD.GOODS_CODE
+		   AND OD.ORDER_NO = #{orderNo, jdbcType=VARCHAR}
+		   AND OD.ORDER_G_SEQ = #{orderGSeq, jdbcType=VARCHAR}
+		   AND OD.ORDER_D_SEQ = '001'
+		   AND OD.ORDER_W_SEQ = '001'
+		   AND GD.GOODSDT_CODE = #{exchGoodsdtCode, jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertOrderreceipts" parameterType="com.cware.netshopping.domain.model.Orderreceipts" >
+        INSERT INTO TORDERRECEIPTS ( /* paclaim.xml : pacommon.paclaim.insertOrderreceipts by PaClaimController */
+                 RECEIPT_NO,        ORDER_NO,        CUST_NO,
+                 DO_FLAG,           SETTLE_GB,       CARD_BANK_CODE,
+                 CARD_NAME,         BANK_SEQ,        CARD_NO,
+                 DEPOSITOR,         VALID_DATE,      QUEST_AMT,
+                 RECEIPT_PLAN_DATE, OK_NO,           OK_DATE,
+                 OK_MED,            OK_ERROR_CODE,   VAN_COMP,
+                 PAY_MONTH,         NOREST_YN,       NOREST_RATE,
+                 NOREST_AMT,        RECEIPT_AMT,     RECEIPT_DATE,
+                 END_YN,            REPAY_PB_AMT,    CANCEL_YN,
+                 SAVEAMT_USE_FLAG,  INSERT_DATE,
+                 INSERT_ID,         REMARK,          REMARK2_V,
+                 CVV,               REMARK1_V,       REMARK4_N,
+                 REMARK3_N,         PROC_ID,         PROC_DATE,
+                 PROTX_TXAUTHNO,    PARTIAL_CANCEL_YN, PAYBOX_IDENTIFIANT, 
+                 PROTX_STATUS)
+         VALUES (#{receiptNo,jdbcType=VARCHAR},     #{orderNo,jdbcType=VARCHAR},        #{custNo,jdbcType=VARCHAR},
+                 #{doFlag,jdbcType=VARCHAR},        #{settleGb,jdbcType=VARCHAR},       #{cardBankCode,jdbcType=VARCHAR},
+                 #{cardName,jdbcType=VARCHAR},      #{bankSeq,jdbcType=VARCHAR},        CWARE_ENC_DEC(#{cardNo,jdbcType=VARCHAR}, 'e'),
+                 #{depositor,jdbcType=VARCHAR},     #{validDate,jdbcType=VARCHAR},      #{questAmt,jdbcType=DOUBLE},
+                 TRUNC(#{receiptPlanDate,jdbcType=TIMESTAMP}), #{okNo,jdbcType=VARCHAR}, #{okDate,jdbcType=TIMESTAMP},
+                 #{okMed,jdbcType=VARCHAR},         #{okErrorCode,jdbcType=VARCHAR},    #{vanComp,jdbcType=VARCHAR},
+                 #{payMonth,jdbcType=VARCHAR},      #{norestYn,jdbcType=VARCHAR},       #{norestRate,jdbcType=VARCHAR},
+                 #{norestAmt,jdbcType=VARCHAR},     #{receiptAmt,jdbcType=VARCHAR},     #{receiptDate,jdbcType=TIMESTAMP},
+                 #{endYn,jdbcType=VARCHAR},         #{repayPbAmt,jdbcType=NUMERIC},     #{cancelYn,jdbcType=VARCHAR},
+                 #{saveamtUseFlag,jdbcType=VARCHAR},#{insertDate,jdbcType=TIMESTAMP},
+                 #{insertId,jdbcType=VARCHAR},      #{remark,jdbcType=VARCHAR},         #{remark2V,jdbcType=VARCHAR},
+                 #{cvv,jdbcType=VARCHAR},           #{remark1V,jdbcType=VARCHAR},       #{remark4N,jdbcType=VARCHAR},
+                 #{remark3N,jdbcType=VARCHAR},      #{procId,jdbcType=VARCHAR},         NVL(#{procDate,jdbcType=TIMESTAMP}, #{insertDate,jdbcType=TIMESTAMP}),
+                 #{protxTxauthno,jdbcType=VARCHAR}, #{partialCancelYn,jdbcType=VARCHAR}, substrb(#{payboxIdentifiant,jdbcType=VARCHAR}, 1, 10),
+                 #{protxStatus,jdbcType=VARCHAR} )
+    </insert>
+    
+    <update id="updateOrderStockExchange" parameterType="com.cware.netshopping.domain.StockVO" >
+        UPDATE TORDERSTOCK /* paclaim.xml : pacommon.paclaim.updateOrderStockExchange by PaClaimController */
+           SET OUT_PLAN_QTY = OUT_PLAN_QTY + #{claimQty,jdbcType=VARCHAR}
+             , TOT_SALE_QTY = TOT_SALE_QTY + #{claimQty,jdbcType=VARCHAR}
+         WHERE GOODS_CODE   = #{goodsCode,jdbcType=VARCHAR}
+           AND GOODSDT_CODE = #{goodsdtCode,jdbcType=VARCHAR}
+           AND WH_CODE      = #{whCode,jdbcType=VARCHAR}
+    </update>    
+    <update id="updateOrderStockExchangeCancel" parameterType="com.cware.netshopping.domain.StockVO" >
+        UPDATE TORDERSTOCK /* paclaim.xml : pacommon.paclaim.updateOrderStockExchangeCancel by PaClaimController */
+           SET OUT_PLAN_QTY = OUT_PLAN_QTY - #{claimQty,jdbcType=VARCHAR},
+               TOT_SALE_QTY = TOT_SALE_QTY - #{claimQty,jdbcType=VARCHAR}
+         WHERE GOODS_CODE   = #{goodsCode,jdbcType=VARCHAR}
+           AND GOODSDT_CODE = #{goodsdtCode,jdbcType=VARCHAR}
+           AND WH_CODE      = #{whCode,jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectClaimdt" parameterType="com.cware.netshopping.domain.OrderClaimVO" resultType="com.cware.netshopping.domain.PaClaimdtVO">
+        SELECT  /* paclaim.xml : pacommon.paclaim.selectClaimdt by PaClaimController */
+               CD.ORDER_NO
+             , CD.ORDER_G_SEQ
+             , CD.ORDER_D_SEQ
+             , CD.ORDER_W_SEQ
+             , CD.GOODS_CODE
+             , CD.GOODSDT_CODE
+             , CD.GOODSDT_INFO
+             , CD.SYSLAST
+             , CD.RECEIVER_SEQ
+             , CD.CUST_NO
+             , CD.SALE_PRICE
+             , CD.BUY_PRICE
+             , CD.DC_RATE_GOODS
+             , CD.DC_RATE
+             , CD.DC_AMT_GOODS
+             , CD.DC_AMT_MEMB
+             , CD.DC_AMT_DIV
+             , CD.DC_AMT_CARD
+             , CD.DC_AMT
+             , CD.RSALE_NET
+             , CD.RSALE_VAT
+             , CD.RSALE_AMT
+             , CD.SYSCANCEL
+             , CD.SYSLAST_DC_GOODS
+             , CD.SYSLAST_DC_MEMB
+             , CD.SYSLAST_DC_DIV
+             , CD.SYSLAST_DC_CARD
+             , CD.SYSLAST_DC
+             , CD.SYSLAST_AMT
+             , CD.SAVEAMT_GB
+             , CD.SAVEAMT
+             , CD.CLAIM_GB
+             , CD.CLAIM_QTY
+             , CD.WH_CODE
+             , CD.DELY_TYPE
+             , CD.DELY_GB
+             , CD.SYSLAST AS SYSLAST_ORG
+             , CD.DO_FLAG
+             , CD.DO_FLAG AS DO_FLAG_ORG
+             , CD.RECEIVER_SEQ AS RECEIVER_SEQ_ORG
+             , CD.RSALE_AMT
+             , CD.CLAIM_AMT
+             , R.RECEIVER_POST
+             , CD.REMARK4_N    <!--, CD.RSALE_PA_AMT --> 
+             , CD.GOODS_GB
+         FROM TCLAIMDT CD, TRECEIVER R
+        WHERE CD.CUST_NO = R.CUST_NO
+          AND CD.RECEIVER_SEQ = R.RECEIVER_SEQ
+          AND CD.ORDER_NO = #{orderNo, jdbcType=VARCHAR}
+          AND CD.ORDER_G_SEQ = #{orderGSeq, jdbcType=VARCHAR}
+          AND CD.ORDER_W_SEQ = #{orderWSeq, jdbcType=VARCHAR}
+          AND CD.SYSLAST > 0
+          AND CD.CLAIM_GB = '30'
+    </select>
+    
+    <select id="selectChangeCancelOrg" parameterType="com.cware.netshopping.domain.OrderClaimVO" resultType="com.cware.netshopping.domain.PaClaimdtVO">
+        SELECT  /* paclaim.xml : pacommon.paclaim.selectChangeCancelOrg by PaClaimController */
+               CD.ORDER_NO
+             , CD.ORDER_G_SEQ
+             , CD.ORDER_D_SEQ
+             , CD.ORDER_W_SEQ
+             , CD.GOODS_CODE
+             , CD.GOODSDT_CODE
+             , CD.GOODSDT_INFO
+             , CD.SYSLAST
+             , CD.RECEIVER_SEQ
+             , CD.CUST_NO
+             , CD.SALE_PRICE
+             , CD.BUY_PRICE
+             , CD.DC_RATE_GOODS
+             , CD.DC_RATE
+             , CD.DC_AMT_GOODS
+             , CD.DC_AMT_MEMB
+             , CD.DC_AMT_DIV
+             , CD.DC_AMT_CARD
+             , CD.DC_AMT
+             , CD.RSALE_NET
+             , CD.RSALE_VAT
+             , CD.RSALE_AMT
+             , CD.SYSCANCEL
+             , CD.SYSLAST_DC_GOODS
+             , CD.SYSLAST_DC_MEMB
+             , CD.SYSLAST_DC_DIV
+             , CD.SYSLAST_DC_CARD
+             , CD.SYSLAST_DC
+             , CD.SYSLAST_AMT
+             , CD.SAVEAMT_GB
+             , CD.SAVEAMT
+             , CD.CLAIM_GB
+             , CD.CLAIM_QTY
+             , CD.WH_CODE
+             , CD.DELY_TYPE
+             , CD.DELY_GB
+             , CD.SYSLAST AS SYSLAST_ORG
+             , CD.DO_FLAG
+             , CD.DO_FLAG AS DO_FLAG_ORG
+             , CD.RECEIVER_SEQ AS RECEIVER_SEQ_ORG
+             , CD.RSALE_AMT
+             , CD.EXCH_PAIR
+             , CD.CLAIM_AMT
+             , CD.FIRST_PLAN_DATE
+             , CD.OUT_PLAN_DATE
+             , CD.DELY_HOPE_DATE
+             , R.RECEIVER_POST
+             , DECODE(CD.DELY_TYPE,'10','100001', DECODE(SUBSTR(GS.BUY_MED,2,1),'1','100001','3','100001',GS.ENTP_CODE)) AS ENTP_CODE
+             , NVL(CD.SHPFEE_YN, '2' ) AS SHPFEE_YN
+         FROM TCLAIMDT CD
+            , TRECEIVER R
+            , TGOODS GS
+        WHERE CD.CUST_NO = R.CUST_NO
+          AND CD.RECEIVER_SEQ = R.RECEIVER_SEQ
+          AND CD.GOODS_CODE = GS.GOODS_CODE
+          AND CD.ORDER_NO = #{orderNo, jdbcType=VARCHAR}
+          AND CD.ORDER_G_SEQ = #{orderGSeq, jdbcType=VARCHAR}
+          AND CD.ORDER_D_SEQ = #{orderDSeq, jdbcType=VARCHAR}
+          AND CD.ORDER_W_SEQ = #{orderWSeq, jdbcType=VARCHAR}
+          AND CD.SYSLAST > 0
+    </select>
+    
+    <select id="selectSequenceNoCondition" parameterType="hashMap" resultType="string">
+        select /* paclaim.xml : pacommon.paclaim.selectSequenceNoCondition by PaClaimController */
+        <if test="sequence_type == 'CUST_NO'">
+            mod(to_char(sysdate, 'MM'),2)
+        </if>
+        <if test="sequence_type == 'ORDER_NO' or sequence_type == 'GOODS_SELECT_NO' or sequence_type == 'RECEIPT_NO'">
+            decode(to_number(to_char(sysdate, 'D')), 1,'SUN', 2,'MON', 3,'TUE', 4,'WED', 5,'THU', 6,'FRI', 7,'SAT')
+        </if>
+            from dual
+    </select>
+    
+    <select id="selectOrderRepayPbAmt" parameterType="com.cware.netshopping.domain.model.Orderreceipts" resultType="com.cware.netshopping.domain.model.Orderreceipts">
+        SELECT /* paorder.xml : pacommon.paorder.selectOrderRepayPbAmt by PaCancelController */
+               RECEIPT_NO
+             , REPAY_PB_AMT 
+          FROM TORDERRECEIPTS
+         WHERE ORDER_NO = #{orderNo,jdbcType=VARCHAR}
+           AND SETTLE_GB = #{settleGb,jdbcType=VARCHAR}
+           AND REPAY_PB_AMT > 0
+         ORDER BY RECEIPT_NO DESC
+    </select>
+    
+    
+    <select id="selectSequenceNo" parameterType="hashMap" resultType="string">
+        select /* paclaim.xml : pacommon.paclaim.selectSequenceNo by PaClaimController */
+        <if test="sequence_type == 'RECEIPT_NO'">
+            to_char(sysdate, 'yyyymmdd') || ltrim(to_char(
+            <if test="condition_flag == 'SUN'">
+               SEQ_RECEIPT_NO_SUN.NEXTVAL
+            </if>
+            <if test="condition_flag == 'MON'">
+               SEQ_RECEIPT_NO_MON.NEXTVAL
+            </if>
+            <if test="condition_flag == 'TUE'">
+               SEQ_RECEIPT_NO_TUE.NEXTVAL
+            </if>
+            <if test="condition_flag == 'WED'">
+               SEQ_RECEIPT_NO_WED.NEXTVAL
+            </if>
+            <if test="condition_flag == 'THU'">
+               SEQ_RECEIPT_NO_THU.NEXTVAL
+            </if>
+            <if test="condition_flag == 'FRI'">
+               SEQ_RECEIPT_NO_FRI.NEXTVAL
+            </if>
+            <if test="condition_flag == 'SAT'">
+               SEQ_RECEIPT_NO_SAT.NEXTVAL
+            </if>
+            ,'00000000'))
+        </if>
+        <if test="sequence_type == 'GOODS_SELECT_NO'">
+            to_char(sysdate, 'yyyymmdd') || ltrim(to_char(
+            <if test="condition_flag == 'SUN'">
+                SEQ_GOODS_SELECT_NO_SUN.NEXTVAL
+            </if>
+            <if test="condition_flag == 'MON'">
+                SEQ_GOODS_SELECT_NO_MON.NEXTVAL
+            </if>
+            <if test="condition_flag == 'TUE'">
+                SEQ_GOODS_SELECT_NO_TUE.NEXTVAL
+            </if>
+            <if test="condition_flag == 'WED'">
+                SEQ_GOODS_SELECT_NO_WED.NEXTVAL
+            </if>
+            <if test="condition_flag == 'THU'">
+                SEQ_GOODS_SELECT_NO_THU.NEXTVAL
+            </if>
+            <if test="condition_flag == 'FRI'">
+                SEQ_GOODS_SELECT_NO_FRI.NEXTVAL
+            </if>
+            <if test="condition_flag == 'SAT'">
+                SEQ_GOODS_SELECT_NO_SAT.NEXTVAL
+            </if>
+            ,'00000000'))
+        </if>        
+            from dual
+    </select>
+    
+    <insert id="insertPromoCounsel" parameterType="com.cware.netshopping.domain.model.Promocounsel">
+        INSERT INTO TPROMOCOUNSEL ( /* paclaim.xml : pacommon.paclaim.insertPromoCounsel by PaClaimController */
+                  PROMO_NO
+                , ORDER_NO
+                , ORDER_G_SEQ
+                , GOODS_SELECT_NO
+                , COUNSEL_QTY
+                , INSERT_ID
+                , INSERT_DATE)
+        VALUES (  #{promoNo,jdbcType=VARCHAR}
+                , #{orderNo,jdbcType=VARCHAR}
+                , #{orderGSeq,jdbcType=VARCHAR}
+                , #{goodsSelectNo,jdbcType=VARCHAR}
+                , #{counselQty,jdbcType=VARCHAR}
+                , #{insertId,jdbcType=VARCHAR}
+                , #{insertDate,jdbcType=TIMESTAMP})
+    </insert>
+    
+    <insert id="insertCanceldt" parameterType="com.cware.netshopping.domain.model.Canceldt" >
+        INSERT INTO TCANCELDT ( /* paclaim.xml : pacommon.paclaim.insertCanceldt by PaClaimController */
+                 ORDER_NO,        					ORDER_G_SEQ,     					ORDER_D_SEQ,
+                 ORDER_W_SEQ,     					CUST_NO,         					RECEIVER_SEQ,
+                 CANCEL_DATE,     					CANCEL_GB,       					DO_FLAG,
+                 CANCEL_CODE,     					GOODS_GB,        					MEDIA_GB,
+                 MEDIA_CODE,      					GOODS_CODE,      					GOODSDT_CODE,
+                 GOODSDT_INFO,    					SALE_PRICE,      					CANCEL_QTY,
+                 CANCEL_AMT,      					DC_RATE_GOODS,   					DC_RATE,
+                 DC_AMT,          					DC_AMT_GOODS,    					DC_AMT_MEMB,
+                 DC_AMT_DIV,      					DC_AMT_CARD,     					RSALE_AMT,       					
+                 VAT_RATE,							MD_CODE,         					SALE_YN,         					
+                 WH_CODE,							DELY_TYPE,       					DELY_GB,         					
+                 DELY_HOPE_DATE,					DELY_HOPE_YN,    					DELY_HOPE_TIME,  					
+                 PREOUT_GB,							SINGLE_DUE_GB,   					SAVEAMT,         					
+                 SAVEAMT_GB,						LAST_PROC_DATE,  					PROMO_NO1,       					
+                 PROMO_NO2,							SET_GOODS_CODE,  					SET_MD_CODE,     					
+                 REMARK6_V,							LAST_PROC_ID,    					RSALE_VAT,       					
+                 RSALE_NET,							BUY_PRICE,							
+                 REMARK3_N,
+                 CS_LGROUP,                         CS_MGROUP,                          CS_SGROUP,              CS_LMS_CODE)
+        VALUES ( #{orderNo,jdbcType=VARCHAR}, 		#{orderGSeq,jdbcType=VARCHAR}, 		#{orderDSeq,jdbcType=VARCHAR},
+                 #{orderWSeq,jdbcType=VARCHAR}, 	#{custNo,jdbcType=VARCHAR}, 		#{receiverSeq,jdbcType=VARCHAR},
+                 #{cancelDate,jdbcType=TIMESTAMP},	#{cancelGb,jdbcType=VARCHAR}, 		#{doFlag,jdbcType=VARCHAR},
+                 #{cancelCode,jdbcType=VARCHAR}, 	#{goodsGb,jdbcType=VARCHAR}, 		#{mediaGb,jdbcType=VARCHAR},
+                 #{mediaCode,jdbcType=VARCHAR}, 	#{goodsCode,jdbcType=VARCHAR}, 		#{goodsdtCode,jdbcType=VARCHAR},
+                 #{goodsdtInfo,jdbcType=VARCHAR}, 	#{salePrice,jdbcType=DOUBLE}, 		#{cancelQty,jdbcType=VARCHAR},
+                 #{cancelAmt,jdbcType=DOUBLE}, 		#{dcRateGoods,jdbcType=DOUBLE}, 	#{dcRate,jdbcType=DOUBLE},
+                 #{dcAmt,jdbcType=DOUBLE}, 			#{dcAmtGoods,jdbcType=DOUBLE}, 		#{dcAmtMemb,jdbcType=DOUBLE},
+                 #{dcAmtDiv,jdbcType=DOUBLE}, 		#{dcAmtCard,jdbcType=DOUBLE}, 		#{rsaleAmt,jdbcType=DOUBLE}, 		
+                 #{vatRate,jdbcType=DOUBLE},		#{mdCode,jdbcType=VARCHAR}, 		#{saleYn,jdbcType=VARCHAR}, 		
+                 #{whCode,jdbcType=VARCHAR},		#{delyType,jdbcType=VARCHAR}, 		#{delyGb,jdbcType=VARCHAR}, 		
+                 #{delyHopeDate,jdbcType=TIMESTAMP},#{delyHopeYn,jdbcType=VARCHAR}, 	#{delyHopeTime,jdbcType=VARCHAR}, 	
+                 #{preoutGb,jdbcType=VARCHAR},		#{singleDueGb,jdbcType=VARCHAR}, 	#{saveamt,jdbcType=DOUBLE}, 		
+                 #{saveamtGb,jdbcType=VARCHAR},		#{cancelDate,jdbcType=TIMESTAMP}, 	#{promoNo1,jdbcType=VARCHAR}, 		
+                 #{promoNo2,jdbcType=VARCHAR},		#{setGoodsCode,jdbcType=VARCHAR}, 	#{setMdCode,jdbcType=VARCHAR}, 		
+                 #{remark6V,jdbcType=VARCHAR},		#{lastProcId,jdbcType=VARCHAR}, 	#{rsaleVat,jdbcType=VARCHAR},		
+                 #{rsaleNet,jdbcType=VARCHAR},		#{buyPrice,jdbcType=DOUBLE}, 		
+                 #{remark3N,jdbcType=VARCHAR},
+                 #{csLgroup,jdbcType=VARCHAR},      #{csMgroup,jdbcType=VARCHAR},       #{csSgroup,jdbcType=VARCHAR},    #{csLmsCode,jdbcType=VARCHAR})
+    </insert>
+    
+    <update id="updateOrderStockCancel20" parameterType="com.cware.netshopping.domain.OrderstockVO" >
+        UPDATE TORDERSTOCK /* paclaim.xml : pacommon.paclaim.updateOrderStockCancel20 by PaClaimController */
+           SET OUT_PLAN_QTY = OUT_PLAN_QTY - #{outPlanQty, jdbcType=NUMERIC}
+             , TOT_SALE_QTY = TOT_SALE_QTY - #{totSaleQty, jdbcType=NUMERIC}
+             , MODIFY_ID    = #{modifyId, jdbcType=TIMESTAMP}
+             , MODIFY_DATE  = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE GOODS_CODE   = #{goodsCode, jdbcType=VARCHAR}
+           AND GOODSDT_CODE = #{goodsdtCode, jdbcType=VARCHAR}
+           AND WH_CODE      = #{whCode, jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updateOrderdtSyslast" parameterType="com.cware.netshopping.domain.model.Canceldt" >
+    <![CDATA[
+        UPDATE TORDERDT /* paclaim.xml : pacommon.paclaim.updateOrderdtSyslast by PaClaimController */
+           SET SYSCANCEL        = SYSCANCEL        + #{cancelQty,jdbcType=VARCHAR}
+             , SYSLAST          = SYSLAST          - #{cancelQty,jdbcType=VARCHAR}
+             , SYSLAST_DC       = SYSLAST_DC       - #{dcAmt,jdbcType=DOUBLE}
+             , SYSLAST_DC_GOODS = SYSLAST_DC_GOODS - #{dcAmtGoods,jdbcType=DOUBLE}
+             , SYSLAST_DC_MEMB  = SYSLAST_DC_MEMB  - #{dcAmtMemb,jdbcType=DOUBLE}
+             , SYSLAST_DC_DIV   = SYSLAST_DC_DIV   - #{dcAmtDiv,jdbcType=DOUBLE}
+             , SYSLAST_DC_CARD  = SYSLAST_DC_CARD  - #{dcAmtCard,jdbcType=DOUBLE}
+             , SYSLAST_AMT      = SYSLAST_AMT      - #{rsaleAmt,jdbcType=DOUBLE}
+             , LAST_PROC_ID     = #{lastProcId,jdbcType=VARCHAR}
+             , SYSLAST_NET      = ROUND((SYSLAST_AMT-#{rsaleAmt,jdbcType=DOUBLE}) / (1+VAT_RATE/100), 0)
+             , SYSLAST_VAT      = (SYSLAST_AMT-#{rsaleAmt,jdbcType=DOUBLE}) - ROUND((SYSLAST_AMT-#{rsaleAmt,jdbcType=DOUBLE}) / (1+VAT_RATE/100), 0)
+         WHERE ORDER_NO    = #{orderNo,jdbcType=VARCHAR}
+           AND ORDER_G_SEQ = #{orderGSeq,jdbcType=VARCHAR}
+           AND ORDER_D_SEQ = #{orderDSeq,jdbcType=VARCHAR}
+           AND ORDER_W_SEQ = '001'
+           AND DO_FLAG     < '30'
+    ]]>
+    </update>
+    
+    <update id="updateInplanqty" parameterType="com.cware.netshopping.domain.model.Canceldt" >
+    <![CDATA[
+         UPDATE TINPLANQTY T  /* paclaim.xml : pacommon.paclaim.updateInplanqty by PaClaimController */
+            SET T.MAX_SALE_QTY = T.MAX_SALE_QTY - #{cancelQty,jdbcType=VARCHAR}
+              , T.MODIFY_ID    = #{lastProcId,jdbcType=VARCHAR}
+              , T.MODIFY_DATE  = #{modifyDate,jdbcType=TIMESTAMP}            
+          WHERE T.START_DATE > TRUNC((SELECT ORDER_DATE
+                                       FROM TORDERM
+                                      WHERE ORDER_NO = #{orderNo,jdbcType=VARCHAR}))
+            AND T.GOODS_CODE   = #{goodsCode,jdbcType=VARCHAR}   
+            AND T.GOODSDT_CODE = #{goodsdtCode,jdbcType=VARCHAR}
+            AND T.INSERT_DATE  > (SELECT ORDER_DATE
+                                    FROM TORDERM
+                                   WHERE ORDER_NO = #{orderNo,jdbcType=VARCHAR})
+    ]]>
+    </update>
+    
+    <select id="selectDeliveryReqOutCancelTarget" parameterType="hashMap" resultType="hashMap">
+        SELECT /* paclaim.xml : pacommon.paclaim.selectDeliveryReqOutCancelTarget by PaClaimController */
+               SD.SLIP_NO
+             , CD.GOODS_CODE
+             , CD.GOODSDT_CODE
+             , SD.DELY_QTY AS DELY_QTY
+             , CD.CLAIM_QTY AS CLAIM_QTY
+             , CD.ORDER_NO
+             , CD.ORDER_G_SEQ
+             , CD.ORDER_D_SEQ
+             , CD.ORDER_W_SEQ
+             , SD.SLIP_I_NO
+             , CD.GOODS_GB
+             , SD.WH_CODE
+             , WH.STOCK_CHECK_YN
+             , GD.BUY_MED
+             , GD.ENTP_CODE
+             , CASE WHEN SD.DIRECT_YN = '0' AND SD.SLIP_PROC = '00'
+                    THEN 'GoodsFlow'
+                    WHEN SD.DIRECT_YN = '1'
+                    THEN 'Direct'
+                    ELSE 'Nomal'
+                END AS DELY_TYPE
+             , GD.SOURCING_MEDIA
+             , GD.ENTP_CODE
+             , GD.ENTP_MAN_SEQ
+			 , GD.INSTALL_YN
+			 , SD.WH_CODE || FUN_GETCONFIG('DEF_OUT_ARACK') AS RACK_CODE
+          FROM (SELECT C.ORDER_NO
+                     , C.ORDER_G_SEQ
+                     , C.ORDER_D_SEQ
+                     , MAX(C.ORDER_W_SEQ) AS ORDER_W_SEQ
+                     , C.GOODS_CODE
+                     , C.GOODSDT_CODE
+                     , SUM(C.SYSLAST) AS CLAIM_QTY
+                     , C.GOODS_GB
+                  FROM TCLAIMDT C
+                     , TORDERDT TD
+                 WHERE C.CLAIM_GB = '30'
+                   AND C.DO_FLAG &lt; '60' /*IN('10', '50')*/
+                   AND C.SYSLAST > 0
+                   AND C.ORDER_NO = TD.ORDER_NO
+                   AND C.ORDER_G_SEQ = TD.ORDER_G_SEQ
+                   AND C.ORDER_D_SEQ = TD.ORDER_D_SEQ
+                   AND C.ORDER_NO    = #{ORDER_NO , jdbcType=VARCHAR}
+                   AND C.ORDER_G_SEQ = #{ORDER_G_SEQ , jdbcType=VARCHAR}
+                   AND C.ORDER_D_SEQ = #{ORDER_D_SEQ , jdbcType=VARCHAR}
+                   AND C.SLIP_NO IS NULL
+                   AND NOT EXISTS ( SELECT '1'
+                                      FROM TORDERPROC OP
+                                     WHERE OP.ORDER_NO    = C.ORDER_NO
+                                       AND OP.ORDER_G_SEQ = C.ORDER_G_SEQ
+                                       AND OP.ORDER_D_SEQ = C.ORDER_D_SEQ
+                                       AND OP.ORDER_W_SEQ = C.ORDER_W_SEQ
+                                       AND OP.DO_FLAG >= '52'
+                                   )
+                 GROUP BY C.ORDER_NO
+                        , C.ORDER_G_SEQ
+                        , C.ORDER_D_SEQ
+                        , C.GOODS_CODE
+                        , C.GOODSDT_CODE
+                        , C.GOODS_GB) CD
+             <![CDATA[
+             , (SELECT MIN(D.SLIP_I_NO) AS SLIP_I_NO
+                     , MAX(SLIP_NO) AS SLIP_NO
+                     , MAX(SLIP_SEQ) AS SLIP_SEQ
+                     , D.ORDER_NO
+                     , D.ORDER_G_SEQ
+                     , D.ORDER_D_SEQ
+                     , SUM(D.DELY_QTY) AS DELY_QTY
+                     , M.WH_CODE AS WH_CODE
+                     , M.DIRECT_YN
+                     , M.SLIP_PROC
+                  FROM TSLIPDT D
+                     , TSLIPM M
+                 WHERE D.SLIP_I_NO   = M.SLIP_I_NO
+                   AND D.ORDER_NO    = #{ORDER_NO, jdbcType=VARCHAR}
+                   AND D.ORDER_G_SEQ = #{ORDER_G_SEQ, jdbcType=VARCHAR}
+                   AND D.ORDER_D_SEQ = #{ORDER_D_SEQ, jdbcType=VARCHAR}
+                   AND M.SLIP_PROC < '40'
+                   AND M.REDELY_YN = '0'
+                   AND M.SLIP_FLAG = '1'
+                   AND M.SLIP_GB   < '105'
+                   AND D.DELY_QTY  > 0
+        ]]>
+                 GROUP BY D.ORDER_NO
+                        , D.ORDER_G_SEQ
+                        , D.ORDER_D_SEQ
+                        , M.WH_CODE
+                        , M.DIRECT_YN
+                        , M.SLIP_PROC) SD
+              , TWAREHOUSE WH
+              , TGOODS GD
+         WHERE CD.ORDER_NO    = SD.ORDER_NO
+           AND CD.ORDER_G_SEQ = SD.ORDER_G_SEQ
+           AND CD.ORDER_D_SEQ = SD.ORDER_D_SEQ
+           AND SD.WH_CODE     = WH.WH_CODE 
+           AND CD.CLAIM_QTY   = SD.DELY_QTY
+           AND CD.GOODS_CODE  = GD.GOODS_CODE
+    </select>
+    
+    <select id="checkDeliveryReqOutCancel" parameterType="com.cware.netshopping.domain.PaClaimdtVO" resultType="int">
+        <![CDATA[
+             SELECT NVL(SUM(RETURN_QTY),0) AS CNT /* paclaim.xml : pacommon.paclaim.checkDeliveryReqOutCancel by PaClaimController*/
+               FROM (
+                     SELECT C.CLAIM_QTY AS RETURN_QTY
+                       FROM TCLAIMDT C
+                      WHERE C.CLAIM_GB = '30'
+                              AND C.DO_FLAG < '60'
+                              AND C.SYSLAST > 0
+                        AND C.ORDER_NO    = #{orderNo, jdbcType=VARCHAR}
+                        AND C.ORDER_G_SEQ = #{orderGSeq, jdbcType=VARCHAR}
+                        AND C.ORDER_D_SEQ = #{orderDSeq, jdbcType=VARCHAR}
+                      UNION ALL
+                     SELECT D.DELY_QTY AS RETURN_QTY
+                       FROM TSLIPM  M
+                         ,  TSLIPDT D
+                      WHERE M.SLIP_I_NO = D.SLIP_I_NO
+                        AND M.SLIP_PROC < '40'
+                              AND M.DELY_TYPE = '20'
+                              AND M.REDELY_YN = '0'
+                              AND M.SLIP_FLAG = '1'
+                              AND D.DELY_QTY > 0
+                        AND D.ORDER_NO    = #{orderNo, jdbcType=VARCHAR}
+                        AND D.ORDER_G_SEQ = #{orderGSeq, jdbcType=VARCHAR}
+                        AND D.ORDER_D_SEQ = #{orderDSeq, jdbcType=VARCHAR}
+                     )
+                ]]>
+    </select>
+    
+    <select id="selectCsLmsName" parameterType="String" resultType="String">
+    	SELECT /* paclaim.xml : pacommon.paclaim.selectCsLmsName by PaClaimController */
+    		   CS_LGROUP_NAME || ' - ' || CS_MGROUP_NAME || ' - ' || CS_SGROUP_NAME 
+		  FROM TCSKINDS
+		 WHERE CS_LMS_CODE = #{csLmsCode,jdbcType=VARCHAR}
+    </select>
+    
+    <update id="updatedirectClaimdt" parameterType="hashMap">
+        UPDATE TCLAIMDT CD /* paclaim.xml : pacommon.paclaim.updatedirectClaimdt by PaClaimController */
+           SET DO_FLAG        = '60'
+             , LAST_PROC_ID   = #{MODIFY_ID, jdbcType=VARCHAR}
+             , LAST_PROC_DATE = TO_DATE(#{MODIFY_DATE, jdbcType=VARCHAR},'YYYY/MM/DD HH24:MI:SS')
+         WHERE ORDER_NO    = #{ORDER_NO , jdbcType=VARCHAR}
+           AND ORDER_G_SEQ = #{ORDER_G_SEQ , jdbcType=VARCHAR}
+           AND ORDER_D_SEQ = #{ORDER_D_SEQ , jdbcType=VARCHAR}
+           AND ORDER_W_SEQ &lt;= #{ORDER_W_SEQ , jdbcType=VARCHAR}
+           AND CLAIM_GB = '30'
+           AND SYSLAST > 0
+           AND DO_FLAG &lt; '60'
+    </update>
+    
+    <update id="updateDeliveryReqOutCancelOrdergoods" parameterType="hashMap" >
+        UPDATE TORDERGOODS /* paclaim.xml : pacommon.paclaim.updateDeliveryReqOutCancelOrdergoods by PaClaimController */
+           SET RETURN_QTY  = RETURN_QTY + #{CLAIM_QTY, jdbcType=NUMERIC}
+         WHERE ORDER_NO    = #{ORDER_NO, jdbcType=VARCHAR}
+           AND ORDER_G_SEQ = #{ORDER_G_SEQ, jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updateTordergoods" parameterType="com.cware.netshopping.domain.PaClaimdtVO" >
+		  UPDATE TORDERGOODS SET /* entpdelivery.xml : pacommon.paclaim.updateTordergoods by PaClaimController */
+		    	                 RETURN_QTY  = RETURN_QTY + #{claimQty,jdbcType=VARCHAR}
+                           WHERE ORDER_NO    = #{orderNo, jdbcType=VARCHAR}
+                             AND ORDER_G_SEQ = #{orderGSeq, jdbcType=VARCHAR}
+	</update>
+    
+    <select id="selectSlipINoSequence" resultType="String">
+        SELECT /* paclaim.xml : pacommon.paclaim.selectSlipINoSequence by PaClaimController */
+               LPAD(SEQ_SLIP_I_NO.NEXTVAL, 14, '0')
+          FROM DUAL
+    </select>
+    
+    <insert id="insertCancelSlipm" parameterType="hashMap">
+        INSERT /* paclaim.xml : pacommon.paclaim.insertCancelSlipm by PaClaimController */
+          INTO TSLIPM (
+               SLIP_I_NO
+             , CUST_NO
+             , RECEIVER_SEQ
+             , WH_CODE
+             , SLIP_NO
+             , SLIP_FLAG
+             , SLIP_GB
+             , DELY_TYPE
+             , SLIP_PROC_ID
+             , DELY_GB
+             , MIXPACK_FLAG
+             , CREATE_SEQ
+             , CREATE_DATE
+             , SLIP_PROC
+             , SLIP_PROC_DATE
+             , OUT_CLOSE_YN
+             , OUT_CLOSE_DATE
+             , DIRECT_YN
+             , V_VOLUME_RESULT
+             , MSG_NOTE
+             , PRINTER_NO)
+        SELECT #{NEW_SLIP_I_NO, jdbcType=VARCHAR}
+             , CUST_NO
+             , RECEIVER_SEQ
+             , WH_CODE
+             , SLIP_NO
+             , '2'
+             , '201'
+             , DELY_TYPE
+             , #{MODIFY_ID, jdbcType=VARCHAR}
+             , '40'
+             , MIXPACK_FLAG
+             , CREATE_SEQ
+             , TO_DATE(#{MODIFY_DATE, jdbcType=VARCHAR},'YYYY/MM/DD HH24:MI:SS')
+             , '60'
+             , SYSDATE
+             , '1'
+             , TO_DATE(SYSDATE)
+             , DIRECT_YN
+             , V_VOLUME_RESULT
+             , NVL(#{MSG_NOTE, jdbcType=VARCHAR}, '')
+             , SLIP_I_NO
+          FROM TSLIPM
+         WHERE SLIP_I_NO = #{SLIP_I_NO, jdbcType=VARCHAR}
+    </insert>
+    
+    <insert id="insertClaimSlipdt" parameterType="hashMap">
+        INSERT /* paclaim.xml : pacommon.paclaim.insertClaimSlipdt by PaClaimController */
+          INTO TSLIPDT (
+               SLIP_I_NO
+             , SLIP_SEQ
+             , GOODS_CODE
+             , GOODSDT_CODE
+             , ORDER_NO
+             , ORDER_G_SEQ
+             , ORDER_D_SEQ
+             , ORDER_W_SEQ
+             , RETURN_QTY
+             , RETURN_QC_CODE
+             , DELY_AMT
+             , GOODS_TYPE
+             , DELY_QTY
+             , DELY_NET
+             , DELY_VAT)
+             <!--, BUY_PRICE
+             , SALE_PRICE)-->
+        SELECT #{NEW_SLIP_I_NO, jdbcType=VARCHAR}
+             , LPAD(ROWNUM, 3, '0')
+             , D.GOODS_CODE
+             , D.GOODSDT_CODE
+             , D.ORDER_NO
+             , D.ORDER_G_SEQ
+             , D.ORDER_D_SEQ
+             , D.ORDER_W_SEQ 
+             , D.SYSLAST 
+             , #{RETURN_QC_CODE, jdbcType=VARCHAR}
+             , D.SYSLAST_AMT
+             , DECODE(G.GIFT_YN, '1', '30', DECODE(D.GOODS_GB, '20', '20', '10'))
+             , 0
+             , D.SYSLAST_NET
+             , D.SYSLAST_VAT
+             <!--, D.BUY_PRICE
+             , D.SALE_PRICE -->
+          FROM TCLAIMDT D
+             , TGOODS G
+         WHERE D.ORDER_NO    = #{ORDER_NO, jdbcType=VARCHAR}
+           AND D.ORDER_G_SEQ = #{ORDER_G_SEQ, jdbcType=VARCHAR}
+           AND D.ORDER_D_SEQ = #{ORDER_D_SEQ, jdbcType=VARCHAR}
+           AND G.ENTP_CODE   = #{ENTP_CODE, jdbcType=VARCHAR}
+           AND D.CLAIM_GB    = '30'
+           AND D.SYSLAST     > 0
+           AND D.GOODS_CODE  = G.GOODS_CODE
+    </insert>
+    
+    <update id="updateOrderstock" parameterType="hashMap">
+        UPDATE TORDERSTOCK /* paclaim.xml : pacommon.paclaim.updateOrderstock by PaClaimController */
+           SET OUT_PLAN_QTY = OUT_PLAN_QTY - #{CLAIM_QTY, jdbcType=NUMERIC}
+         WHERE WH_CODE      = #{WH_CODE, jdbcType=VARCHAR}
+           AND GOODS_CODE   = #{GOODS_CODE, jdbcType=VARCHAR}
+           AND GOODSDT_CODE = #{GOODSDT_CODE, jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updatetStock" parameterType="hashMap">
+        UPDATE TSTOCK /* paclaim.xml : pacommon.paclaim.updatetStock by PaClaimController */
+           SET AQTY = AQTY - #{CLAIM_QTY, jdbcType=NUMERIC}
+         WHERE WH_CODE      = #{WH_CODE, jdbcType=VARCHAR}
+           AND GOODS_CODE   = #{GOODS_CODE, jdbcType=VARCHAR}
+           AND GOODSDT_CODE = #{GOODSDT_CODE, jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updateRack" parameterType="hashMap">
+        UPDATE TRACK /* paclaim.xml : pacommon.paclaim.updateRack by PaClaimController */
+           SET RACK_QTY = RACK_QTY - #{CLAIM_QTY, jdbcType=NUMERIC}
+         WHERE WH_CODE      = #{WH_CODE, jdbcType=VARCHAR}
+           AND GOODS_CODE   = #{GOODS_CODE, jdbcType=VARCHAR}
+           AND GOODSDT_CODE = #{GOODSDT_CODE, jdbcType=VARCHAR}
+           AND RACK_CODE    = #{RACK_CODE, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectStockModReqSeqNo" resultType="String">
+        SELECT /* paclaim.xml : pacommon.paclaim.selectStockModReqSeqNo by PaClaimController */
+               to_char(sysdate, 'YYYYMMDD') || ltrim(to_char(SEQ_STOCK_MOD_NO.NEXTVAL, '00000'))
+          FROM DUAL
+    </select>
+    
+    <insert id="insertStockModReq"  parameterType="hashMap" >
+        INSERT INTO TSTOCK_MOD_REQ (  /* paclaim.xml : pacommon.paclaim.insertStockModReq by PaClaimController */
+                    STOCK_MOD_NO,
+                    STOCK_MOD_GB,
+                    STATUS,
+                    STOCK_MOD_DATE,
+                    ITEM_CD,
+                    GOODS_CODE,
+                    GOODSDT_CODE,
+                    WH_CODE,
+                    OUT_RACK_CODE,
+                    IN_RACK_CODE,
+                    OUT_GRADE,
+                    IN_GRADE,
+                    ABLE_QTY,
+                    REQ_QTY,
+                    SIGN_QTY,
+                    NOTE,
+                    REPORT_NM,
+                    NOW_AQTY,
+                    NOW_WAIT_QTY,
+                    NOW_CHECK_QTY,
+                    NOW_BQTY_A,
+                    NOW_BQTY_B,
+                    NOW_ETC,
+                    NOW_DELY_30_QTY,
+                    END_AQTY,
+                    END_WAIT_QTY,
+                    END_CHECK_QTY,
+                    END_BQTY_A,
+                    END_BQTY_B,
+                    END_ETC,
+                    END_DELY_30_QTY,
+                    INSERT_ID,
+                    INSERT_DATE,
+                    MODIFY_ID,
+                    MODIFY_DATE)
+            SELECT #{STOCK_MOD_NO, jdbcType=VARCHAR},
+                   '1',
+                   '80',
+                   SYSDATE,
+                   #{GOODS_CODE, jdbcType=VARCHAR} || '_' || #{GOODSDT_CODE, jdbcType=VARCHAR},
+                   #{GOODS_CODE, jdbcType=VARCHAR},
+                   #{GOODSDT_CODE, jdbcType=VARCHAR},
+                   #{WH_CODE, jdbcType=VARCHAR},
+                   '',
+                   '',
+                   '',
+                   '20',
+                   S.WAIT_QTY,
+                   #{CLAIM_QTY, jdbcType=NUMERIC},
+                   #{CLAIM_QTY, jdbcType=NUMERIC},
+                   '출고전반품 회수확정',
+                   '',
+                   S.AQTY,
+                   S.WAIT_QTY,
+                   S.CHECK_QTY,
+                   S.BQTY_A,
+                   S.BQTY_B,
+                   0,
+                   E.OUT_PLAN_QTY,
+                   S.AQTY,
+                   S.WAIT_QTY + #{CLAIM_QTY, jdbcType=NUMERIC},
+                   S.CHECK_QTY,
+                   S.BQTY_A,
+                   S.BQTY_B,
+                   0,
+                   E.OUT_PLAN_QTY,
+                   #{MODIFY_ID, jdbcType=VARCHAR},
+                   SYSDATE,
+                   #{MODIFY_ID, jdbcType=VARCHAR},
+                   SYSDATE
+              FROM TSTOCK S, TORDERSTOCK E
+             WHERE S.GOODS_CODE = E.GOODS_CODE
+               AND S.GOODSDT_CODE = E.GOODSDT_CODE
+               AND S.WH_CODE = E.WH_CODE
+               AND S.GOODS_CODE = #{GOODS_CODE, jdbcType=VARCHAR}
+               AND S.GOODSDT_CODE = #{GOODSDT_CODE, jdbcType=VARCHAR}
+               AND S.WH_CODE = #{WH_CODE, jdbcType=VARCHAR}
+    </insert>
+    
+    <update id="updateReturnStockWaitQty" parameterType="hashMap" >
+          UPDATE TSTOCK  /* paclaim.xml : pacommon.paclaim.updateReturnStockWaitQty by PaClaimController */
+             SET WAIT_QTY = WAIT_QTY + #{CLAIM_QTY, jdbcType=NUMERIC}
+           WHERE GOODS_CODE   = #{GOODS_CODE, jdbcType=VARCHAR}
+             AND GOODSDT_CODE = #{GOODSDT_CODE, jdbcType=VARCHAR}
+             AND WH_CODE      = #{WH_CODE, jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updateSlipcreate40" parameterType="hashMap">
+         UPDATE TSLIPCREATE /* paclaim.xml : pacommon.paclaim.updateSlipcreate40 by PaClaimController */
+            SET CREATE_QTY   = CREATE_QTY - #{CLAIM_QTY, jdbcType=NUMERIC}
+          WHERE GOODS_CODE   = #{GOODS_CODE, jdbcType=VARCHAR}
+            AND GOODSDT_CODE = #{GOODSDT_CODE, jdbcType=VARCHAR}
+            AND WH_CODE      = #{WH_CODE, jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updateSlipM40" parameterType="hashMap">
+        UPDATE TSLIPM /* paclaim.xml : pacommon.paclaim.updateSlipM40 by PaClaimController */
+           SET SLIP_PROC      = '40'
+             , OUT_CLOSE_YN   = '1'
+             , OUT_CLOSE_DATE = TO_DATE(#{MODIFY_DATE, jdbcType=VARCHAR},'YYYY/MM/DD HH24:MI:SS')
+             , DELY_GB        = '40'
+             , SLIP_PROC_DATE = TO_DATE(#{MODIFY_DATE, jdbcType=VARCHAR},'YYYY/MM/DD HH24:MI:SS')
+             , SLIP_PROC_ID   = #{MODIFY_ID, jdbcType=VARCHAR}
+         WHERE SLIP_I_NO = #{SLIP_I_NO, jdbcType=VARCHAR}
+           AND SLIP_PROC &lt; '40'
+    </update>
+    
+    <update id="updateSlipM80" parameterType="hashMap">
+        UPDATE TSLIPM /* paclaim.xml : pacommon.paclaim.updateSlipM80 by PaClaimController */
+           SET SLIP_PROC      = '80'
+             , REAL_DELY_DATE = TO_DATE(#{MODIFY_DATE, jdbcType=VARCHAR},'YYYY/MM/DD HH24:MI:SS')
+             , SLIP_PROC_DATE = TO_DATE(#{MODIFY_DATE, jdbcType=VARCHAR},'YYYY/MM/DD HH24:MI:SS')
+             , SLIP_PROC_ID   = #{MODIFY_ID, jdbcType=VARCHAR}
+         WHERE SLIP_I_NO = #{SLIP_I_NO, jdbcType=VARCHAR}
+           AND SLIP_PROC &lt; '80'
+    </update>
+    
+    <select id="chkSyslastDelyQty" parameterType="hashMap" resultType="int">
+        SELECT /* paclaim.xml : pacommon.paclaim.chkSyslastDelyQty by PaClaimController */
+               COUNT(1) AS CHK_CNT
+          FROM TORDERDT A
+         WHERE A.ORDER_NO = #{ORDER_NO, jdbcType=VARCHAR}
+           AND A.ORDER_G_SEQ = #{ORDER_G_SEQ, jdbcType=VARCHAR}
+           AND A.ORDER_D_SEQ = #{ORDER_D_SEQ, jdbcType=VARCHAR}
+           AND DO_FLAG &lt; 80
+           AND A.DELY_TYPE = '20'
+           AND A.SYSLAST = (SELECT SUM(XB.DELY_QTY)
+                              FROM TSLIPM XA
+                                 , TSLIPDT XB 
+                             WHERE XA.SLIP_I_NO = XB.SLIP_I_NO 
+                               AND XB.ORDER_NO = A.ORDER_NO
+                               AND XB.ORDER_G_SEQ = A.ORDER_G_SEQ
+                               AND XB.ORDER_D_SEQ = A.ORDER_D_SEQ
+                               AND XA.SLIP_FLAG = '1'
+                               AND XA.SLIP_GB = '101'
+                               AND XA.SLIP_PROC = '80')
+    </select>
+    
+    <update id="updateOrderDt" parameterType="hashMap">
+        UPDATE TORDERDT OD /* paclaim.xml : pacommon.paclaim.updateOrderDt by PaClaimController */
+           SET DO_FLAG = '80'
+             , LAST_PROC_DATE = TO_DATE(#{MODIFY_DATE, jdbcType=VARCHAR},'YYYY/MM/DD HH24:MI:SS')
+             , LAST_PROC_ID = #{MODIFY_ID, jdbcType=VARCHAR}
+             , REMARK5_V = '1'
+         WHERE ORDER_NO = #{ORDER_NO, jdbcType=VARCHAR}
+           AND ORDER_G_SEQ = #{ORDER_G_SEQ, jdbcType=VARCHAR}
+           AND ORDER_D_SEQ = #{ORDER_D_SEQ, jdbcType=VARCHAR}
+           AND EXISTS (SELECT 'X'
+                         FROM TGOODS
+                        WHERE OD.GOODS_CODE = GOODS_CODE
+                          AND ENTP_CODE = #{ENTP_CODE, jdbcType=VARCHAR}
+                      )
+    </update>
+    
+    <select id="chkSlipProcMin" parameterType="hashMap" resultType="int">
+        SELECT /* paclaim.xml : pacommon.paclaim.chkSlipProcMin by PaClaimController */
+                  COUNT(1) AS CHK_CNT
+          FROM TORDERDT A
+         WHERE A.ORDER_NO    = #{ORDER_NO, jdbcType=VARCHAR}
+           AND A.ORDER_G_SEQ = #{ORDER_G_SEQ, jdbcType=VARCHAR}
+           AND A.ORDER_D_SEQ = #{ORDER_D_SEQ, jdbcType=VARCHAR}
+           AND DO_FLAG &lt; 80
+           AND A.DELY_TYPE = '20'
+           AND A.DO_FLAG &lt; (SELECT MIN(XA.SLIP_PROC)
+                                        FROM TSLIPM XA
+                                               , TSLIPDT XB 
+                                       WHERE XA.SLIP_I_NO = XB.SLIP_I_NO 
+                                          AND XB.ORDER_NO = A.ORDER_NO
+                                          AND XB.ORDER_G_SEQ = A.ORDER_G_SEQ
+                                          AND XB.ORDER_D_SEQ = A.ORDER_D_SEQ
+                                          AND XA.SLIP_FLAG = '1'
+                                          AND XA.SLIP_GB = '101'
+                                          AND XA.SLIP_PROC &lt; '80')
+    </select>
+    
+    <update id="updateOrderSlipDoFlagSync" parameterType="hashMap">
+        UPDATE TORDERDT OD /* paclaim.xml : pacommon.paclaim.updateOrderSlipDoFlagSync by PaClaimController */
+              SET DO_FLAG = (SELECT MIN(XA.SLIP_PROC)
+                              FROM TSLIPM XA
+                                 , TSLIPDT XB 
+                             WHERE XA.SLIP_I_NO = XB.SLIP_I_NO 
+                               AND XB.ORDER_NO = OD.ORDER_NO
+                               AND XB.ORDER_G_SEQ = OD.ORDER_G_SEQ
+                               AND XB.ORDER_D_SEQ = OD.ORDER_D_SEQ
+                               AND XA.SLIP_FLAG = '1'
+                               AND XA.SLIP_GB = '101'
+                               AND XA.SLIP_PROC &lt; '80')
+                 , LAST_PROC_DATE = SYSDATE
+                 , LAST_PROC_ID = #{LAST_PROC_ID, jdbcType=VARCHAR}
+         WHERE OD.ORDER_NO    = #{ORDER_NO, jdbcType=VARCHAR}
+           AND OD.ORDER_G_SEQ = #{ORDER_G_SEQ, jdbcType=VARCHAR}
+           AND OD.ORDER_D_SEQ = #{ORDER_D_SEQ, jdbcType=VARCHAR}
+           AND OD.DO_FLAG &lt; 80
+           AND OD.DELY_TYPE = '20'
+           AND OD.DO_FLAG &lt; (SELECT MIN(XA.SLIP_PROC)
+                              FROM TSLIPM XA
+                                 , TSLIPDT XB 
+                             WHERE XA.SLIP_I_NO = XB.SLIP_I_NO 
+                               AND XB.ORDER_NO = OD.ORDER_NO
+                               AND XB.ORDER_G_SEQ = OD.ORDER_G_SEQ
+                               AND XB.ORDER_D_SEQ = OD.ORDER_D_SEQ
+                               AND XA.SLIP_FLAG = '1'
+                               AND XA.SLIP_GB = '101'
+                               AND XA.SLIP_PROC &lt; '80')
+    </update>
+    
+    <select id="selectExchangeGoodsdtCode" parameterType="com.cware.netshopping.domain.OrderdtVO" resultType="hashMap">
+        SELECT /*+ INDEX_DESC(CD PK_TCLAIMDT) */
+               CD.GOODSDT_CODE
+             , CD.GOODSDT_INFO
+          FROM TCLAIMDT CD
+         WHERE CD.ORDER_NO    = #{orderNo   , jdbcType=VARCHAR}
+           AND CD.ORDER_G_SEQ = #{orderGSeq , jdbcType=VARCHAR}
+           AND CD.ORDER_D_SEQ = #{orderDSeq , jdbcType=VARCHAR}
+           AND CD.CLAIM_GB    = '40'
+           AND CD.DO_FLAG     >= '40'
+           AND ROWNUM         = 1    
+    </select>
+    
+        <select id="selectEntpDirectDeliveryCount" parameterType="hashMap" resultType="int">
+        SELECT COUNT(*)  /* paclaim.xml : pacommon.paclaim.selectEntpDirectDeliveryCount by PaClaimController */
+          FROM TSLIPCJORDERINFO
+         WHERE CUST_USE_NO = (SELECT SLIP_I_NO 
+                              	FROM TSLIPDT
+                               WHERE ORDER_NO = #{ORDER_NO, jdbcType=VARCHAR}
+                                 AND ORDER_G_SEQ = #{ORDER_G_SEQ, jdbcType=VARCHAR}
+                                 AND ORDER_D_SEQ = #{ORDER_D_SEQ, jdbcType=VARCHAR}
+                                 AND ORDER_W_SEQ = '001')
+    </select>
+    
+    <select id="selectEntpDirectLotteDeliveryList" parameterType="hashMap" resultType="hashMap">
+        SELECT /* paclaim.xml : pacommon.paclaim.selectEntpDirectLotteDeliveryList by PaClaimController */
+				S.CUST_CD,
+		     	DECODE(S.WK_SCT,'001','01','02') AS WK_SCT,
+		     	DECODE(S.INV_NO,'XXXXXXXXXXXX','',S.INV_NO) AS INV_NO,
+		     	S.ORD_NO,
+		     	NVL(S.REF_ORD_NO, S.ORD_NO) AS REF_ORD_NO
+		   FROM TSLIPLOTTEORDERINFO S
+		  WHERE S.PROCESS_NO IN (SELECT #{ORDER_NO, jdbcType=VARCHAR}||#{ORDER_G_SEQ, jdbcType=VARCHAR}||#{ORDER_D_SEQ, jdbcType=VARCHAR}||'001' 
+                                   FROM DUAL 
+                                 UNION ALL 
+                                 SELECT C.ORDER_NO || C.ORDER_G_SEQ || C.ORDER_D_SEQ || C.ORDER_W_SEQ  
+                                   FROM TCLAIMDT C
+                                  WHERE C.ORDER_NO = #{ORDER_NO, jdbcType=VARCHAR}
+                                    AND C.ORDER_G_SEQ = #{ORDER_G_SEQ, jdbcType=VARCHAR}
+                                    AND C.ORDER_D_SEQ = #{ORDER_D_SEQ, jdbcType=VARCHAR} 
+                                    AND C.CLAIM_GB = '30'
+                                    AND C.SYSLAST > 0 )
+    </select>
+    
+    <update id="updateLotteOrderInfoRequestYn" parameterType="hashMap">
+         UPDATE TSLIPLOTTEORDERINFO SET /*paclaim.xml : logistics.entpdelivery.updateLotteOrderInfoRequestYn by PaClaimController */
+                REQUEST_YN  = '9'
+              , MODIFY_DATE = SYSDATE
+              , MODIFY_ID   = #{MODIFY_ID, jdbcType=VARCHAR}
+          WHERE ORD_NO      = #{ORD_NO, jdbcType=VARCHAR}
+            AND REQUEST_YN  = '0' 
+    </update>
+    
+    <select id="selectEntpDirectHanjinDeliveryList" parameterType="hashMap" resultType="hashMap">
+        SELECT /* paclaim.xml : pacommon.paclaim.selectEntpDirectHanjinDeliveryList by PaClaimController */
+				S.CUST_EDI_CD,
+		     	S.CUST_ORD_NO
+		   FROM TSLIPHANJINORDERINFO S
+		  WHERE S.PROCESS_NO IN (SELECT #{ORDER_NO, jdbcType=VARCHAR}||#{ORDER_G_SEQ, jdbcType=VARCHAR}||#{ORDER_D_SEQ, jdbcType=VARCHAR}||'001' 
+                                   FROM DUAL
+                                UNION ALL 
+                                 SELECT C.ORDER_NO || C.ORDER_G_SEQ || C.ORDER_D_SEQ || C.ORDER_W_SEQ  
+                                   FROM TCLAIMDT C
+                                  WHERE C.ORDER_NO = #{ORDER_NO, jdbcType=VARCHAR}
+                                    AND C.ORDER_G_SEQ = #{ORDER_G_SEQ, jdbcType=VARCHAR}
+                                    AND C.ORDER_D_SEQ = #{ORDER_D_SEQ, jdbcType=VARCHAR}
+                                    AND C.CLAIM_GB = '30'
+                                    AND C.SYSLAST > 0 )
+    </select>
+    
+    <update id="updateHanjinOrderInfoRequestYn" parameterType="hashMap">
+         UPDATE TSLIPHANJINORDERINFO SET /* paclaim.xml : pacommon.paclaim.updateHanjinOrderInfoRequestYn by PaClaimController */
+                REQUEST_YN   = '9'
+              , INSERT_ID  = #{MODIFY_ID, jdbcType=VARCHAR}
+              , INSERT_DATE   = SYSDATE 
+          WHERE CUST_ORD_NO  = #{CUST_ORD_NO, jdbcType=VARCHAR}
+            AND REQUEST_YN = '0' 
+    </update>
+    
+    <insert id="insertReqoutApiHistory" parameterType="com.cware.netshopping.domain.model.ReqoutApiHistory">
+       INSERT INTO TREQOUT_APIHISTORY ( /*paclaim.xml : logistics.entpdelivery.insertReqoutApiHistory by PaClaimController */
+                   REQ_NO,
+                   ORD_NO,
+                   DELY_TYPE,
+                   ERROR_CODE,
+                   ERROR_REASON,
+                   INSERT_ID,
+                   INSERT_DATE,
+                   MODIFY_ID,
+                   MODIFY_DATE )
+            VALUES (
+                   TO_CHAR(SYSDATE,'YYYYMMDDHH24') || LPAD(SEQ_REQOUT_APIHISTORY.NEXTVAL,6,'0')
+                 , #{ordNo, jdbcType=VARCHAR}
+                 , #{delyType, jdbcType=VARCHAR}
+                 , #{errorCode, jdbcType=VARCHAR}
+                 , #{errorReason, jdbcType=VARCHAR}
+                 , #{insertId, jdbcType=VARCHAR}
+                 , sysdate
+                 , #{insertId, jdbcType=VARCHAR}
+                 , sysdate )
+    </insert>
+    
+	<insert id="insertEntpDirectReturnBeforeOut" parameterType="hashMap">
+        INSERT INTO TSLIPCJORDERINFO  /* paclaim.xml : pacommon.paclaim.insertEntpDirectReturnBeforeOut by PaClaimController */
+                  ( CUST_ID,
+                    RCPT_YMD,
+                    CUST_USE_NO,
+                    RCPT_DV,
+                    WORK_DV_CD,
+                    REQ_DV_CD,
+                    MPCK_KEY,
+                    MPCK_SEQ,
+                    CAL_DV_CD,
+                    FRT_DV_CD,
+                    CNTR_ITEM_CD,
+                    BOX_TYPE_CD,
+                    BOX_QTY,
+                    FRT,
+                    CUST_MGMT_DLCM_CD,
+                    SENDR_NM,
+                    SENDR_TEL_NO1,
+                    SENDR_TEL_NO2,
+                    SENDR_TEL_NO3,
+                    SENDR_CELL_NO1,
+                    SENDR_CELL_NO2,
+                    SENDR_CELL_NO3,
+                    SENDR_SAFE_NO1,
+                    SENDR_SAFE_NO2,
+                    SENDR_SAFE_NO3,
+                    SENDR_ZIP_NO,
+                    SENDR_ADDR,
+                    SENDR_DETAIL_ADDR,
+                    RCVR_NM,
+                    RCVR_TEL_NO1,
+                    RCVR_TEL_NO2,
+                    RCVR_TEL_NO3,
+                    RCVR_CELL_NO1,
+                    RCVR_CELL_NO2,
+                    RCVR_CELL_NO3,
+                    RCVR_SAFE_NO1,
+                    RCVR_SAFE_NO2,
+                    RCVR_SAFE_NO3,
+                    RCVR_ZIP_NO,
+                    RCVR_ADDR,
+                    RCVR_DETAIL_ADDR,
+                    ORDRR_NM,
+                    ORDRR_TEL_NO1,
+                    ORDRR_TEL_NO2,
+                    ORDRR_TEL_NO3,
+                    ORDRR_CELL_NO1,
+                    ORDRR_CELL_NO2,
+                    ORDRR_CELL_NO3,
+                    ORDRR_SAFE_NO1,
+                    ORDRR_SAFE_NO2,
+                    ORDRR_SAFE_NO3,
+                    ORDRR_ZIP_NO,
+                    ORDRR_ADDR,
+                    ORDRR_DETAIL_ADDR,
+                    INVC_NO,
+                    ORI_INVC_NO,
+                    ORI_ORD_NO,
+                    COLCT_EXPCT_YMD,
+                    COLCT_EXPCT_HOUR,
+                    SHIP_EXPCT_YMD,
+                    SHIP_EXPCT_HOUR,
+                    PRT_ST,
+                    ARTICLE_AMT,
+                    REMARK_1,
+                    REMARK_2,
+                    REMARK_3,
+                    COD_YN,
+                    GDS_CD,
+                    GDS_NM,
+                    GDS_QTY,
+                    UNIT_CD,
+                    UNIT_NM,
+                    GDS_AMT,
+                    ETC_1,
+                    ETC_2,
+                    ETC_3,
+                    ETC_4,
+                    ETC_5,
+                    DLV_DV,
+                    RCPT_ERR_YN,
+                    RCPT_ERR_MSG,
+                    EAI_PRGS_ST,
+                    EAI_ERR_MSG,
+                    REG_EMP_ID,
+                    REG_DTIME,
+                    MODI_EMP_ID,
+                    MODI_DTIME,
+                    REQUEST_YN,
+                    SERIAL,
+                    PROCESS_NO,
+                    REF_ORD_NO,
+                    ORDER_NO,
+                    ORDER_G_SEQ,
+                    ORDER_D_SEQ,
+                    ORDER_W_SEQ,
+                    SLIP_I_NO,
+                    DELY_PROC_GB  )
+          SELECT 
+              CUST_ID
+            , RCPT_YMD
+            , CUST_USE_NO
+            , RCPT_DV
+            , WORK_DV_CD
+            , '02' AS  REQ_DV_CD
+            , MPCK_KEY || '02' AS MPCK_KEY
+            , MPCK_SEQ
+            , CAL_DV_CD
+            , FRT_DV_CD
+            , CNTR_ITEM_CD
+            , BOX_TYPE_CD
+            , BOX_QTY
+            , FRT
+            , CUST_MGMT_DLCM_CD
+            , SENDR_NM
+            , SENDR_TEL_NO1
+            , SENDR_TEL_NO2
+            , SENDR_TEL_NO3
+            , SENDR_CELL_NO1
+            , SENDR_CELL_NO2
+            , SENDR_CELL_NO3
+            , SENDR_SAFE_NO1
+            , SENDR_SAFE_NO2
+            , SENDR_SAFE_NO3
+            , SENDR_ZIP_NO
+            , SENDR_ADDR
+            , SENDR_DETAIL_ADDR
+            , RCVR_NM
+            , RCVR_TEL_NO1
+            , RCVR_TEL_NO2
+            , RCVR_TEL_NO3
+            , RCVR_CELL_NO1
+            , RCVR_CELL_NO2
+            , RCVR_CELL_NO3
+            , RCVR_SAFE_NO1
+            , RCVR_SAFE_NO2
+            , RCVR_SAFE_NO3
+            , RCVR_ZIP_NO
+            , RCVR_ADDR
+            , RCVR_DETAIL_ADDR
+            , ORDRR_NM
+            , ORDRR_TEL_NO1
+            , ORDRR_TEL_NO2
+            , ORDRR_TEL_NO3
+            , ORDRR_CELL_NO1
+            , ORDRR_CELL_NO2
+            , ORDRR_CELL_NO3
+            , ORDRR_SAFE_NO1
+            , ORDRR_SAFE_NO2
+            , ORDRR_SAFE_NO3
+            , ORDRR_ZIP_NO
+            , ORDRR_ADDR
+            , ORDRR_DETAIL_ADDR
+            , INVC_NO
+            , ORI_INVC_NO
+            , ORI_ORD_NO
+            , COLCT_EXPCT_YMD
+            , COLCT_EXPCT_HOUR
+            , SHIP_EXPCT_YMD
+            , SHIP_EXPCT_HOUR
+            , PRT_ST
+            , ARTICLE_AMT
+            , REMARK_1
+            , REMARK_2
+            , REMARK_3
+            , COD_YN
+            , GDS_CD
+            , GDS_NM
+            , GDS_QTY
+            , UNIT_CD
+            , UNIT_NM
+            , GDS_AMT
+            , ETC_1
+            , ETC_2
+            , ETC_3
+            , ETC_4
+            , ETC_5
+            , DLV_DV
+            , RCPT_ERR_YN
+            , RCPT_ERR_MSG
+            , EAI_PRGS_ST
+            , EAI_ERR_MSG
+            , NVL(#{MODIFY_ID, jdbcType=VARCHAR},REG_EMP_ID) AS REG_EMP_ID
+            , TO_DATE(#{MODIFY_DATE, jdbcType=VARCHAR},'YYYY/MM/DD HH24:MI:SS') AS REG_DTIME
+            , NVL(#{MODIFY_ID, jdbcType=VARCHAR},MODI_EMP_ID) AS MODI_EMP_ID
+            , TO_DATE(#{MODIFY_DATE, jdbcType=VARCHAR},'YYYY/MM/DD HH24:MI:SS') AS MODI_DTIME
+            , '1' AS REQUEST_YN
+            , '' AS SERIAL
+            , NVL(PROCESS_NO, #{ORDER_NO, jdbcType=VARCHAR}||#{ORDER_G_SEQ, jdbcType=VARCHAR}||#{ORDER_D_SEQ, jdbcType=VARCHAR}||'001') AS PROCESS_NO
+            , REF_ORD_NO
+            , ORDER_NO
+            , ORDER_G_SEQ
+            , ORDER_D_SEQ
+            , ORDER_W_SEQ
+            , SLIP_I_NO
+            , DELY_PROC_GB
+           FROM TSLIPCJORDERINFO
+         WHERE CUST_USE_NO = #{CUST_USE_NO, jdbcType=VARCHAR}
+           AND RCPT_DV = '01'   /* 접수구분  01 : 일반  02 : 반품 */
+           AND REQ_DV_CD = '01' /* 요청구분  01 : 요청  02 : 취소 */
+	</insert>
+	
+	<select id="selectEntpDirectReturnCount" parameterType="hashMap" resultType="int">
+        SELECT COUNT(*)  /* paclaim.xml : pacommon.paclaim.selectEntpDirectReturnCount by PaClaimController */
+          FROM TSLIPCJORDERINFO
+         WHERE CUST_USE_NO = #{ORDER_NO, jdbcType=VARCHAR}||#{ORDER_G_SEQ, jdbcType=VARCHAR}||#{ORDER_D_SEQ, jdbcType=VARCHAR}||#{ORDER_W_SEQ, jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertEntpDirectReturnBeforeReturn" parameterType="hashMap">
+        INSERT INTO TSLIPCJORDERINFO  /* paclaim.xml : pacommon.paclaim.insertEntpDirectReturnBeforeReturn by PaClaimController */
+                  ( CUST_ID,
+                    RCPT_YMD,
+                    CUST_USE_NO,
+                    RCPT_DV,
+                    WORK_DV_CD,
+                    REQ_DV_CD,
+                    MPCK_KEY,
+                    MPCK_SEQ,
+                    CAL_DV_CD,
+                    FRT_DV_CD,
+                    CNTR_ITEM_CD,
+                    BOX_TYPE_CD,
+                    BOX_QTY,
+                    FRT,
+                    CUST_MGMT_DLCM_CD,
+                    SENDR_NM,
+                    SENDR_TEL_NO1,
+                    SENDR_TEL_NO2,
+                    SENDR_TEL_NO3,
+                    SENDR_CELL_NO1,
+                    SENDR_CELL_NO2,
+                    SENDR_CELL_NO3,
+                    SENDR_SAFE_NO1,
+                    SENDR_SAFE_NO2,
+                    SENDR_SAFE_NO3,
+                    SENDR_ZIP_NO,
+                    SENDR_ADDR,
+                    SENDR_DETAIL_ADDR,
+                    RCVR_NM,
+                    RCVR_TEL_NO1,
+                    RCVR_TEL_NO2,
+                    RCVR_TEL_NO3,
+                    RCVR_CELL_NO1,
+                    RCVR_CELL_NO2,
+                    RCVR_CELL_NO3,
+                    RCVR_SAFE_NO1,
+                    RCVR_SAFE_NO2,
+                    RCVR_SAFE_NO3,
+                    RCVR_ZIP_NO,
+                    RCVR_ADDR,
+                    RCVR_DETAIL_ADDR,
+                    ORDRR_NM,
+                    ORDRR_TEL_NO1,
+                    ORDRR_TEL_NO2,
+                    ORDRR_TEL_NO3,
+                    ORDRR_CELL_NO1,
+                    ORDRR_CELL_NO2,
+                    ORDRR_CELL_NO3,
+                    ORDRR_SAFE_NO1,
+                    ORDRR_SAFE_NO2,
+                    ORDRR_SAFE_NO3,
+                    ORDRR_ZIP_NO,
+                    ORDRR_ADDR,
+                    ORDRR_DETAIL_ADDR,
+                    INVC_NO,
+                    ORI_INVC_NO,
+                    ORI_ORD_NO,
+                    COLCT_EXPCT_YMD,
+                    COLCT_EXPCT_HOUR,
+                    SHIP_EXPCT_YMD,
+                    SHIP_EXPCT_HOUR,
+                    PRT_ST,
+                    ARTICLE_AMT,
+                    REMARK_1,
+                    REMARK_2,
+                    REMARK_3,
+                    COD_YN,
+                    GDS_CD,
+                    GDS_NM,
+                    GDS_QTY,
+                    UNIT_CD,
+                    UNIT_NM,
+                    GDS_AMT,
+                    ETC_1,
+                    ETC_2,
+                    ETC_3,
+                    ETC_4,
+                    ETC_5,
+                    DLV_DV,
+                    RCPT_ERR_YN,
+                    RCPT_ERR_MSG,
+                    EAI_PRGS_ST,
+                    EAI_ERR_MSG,
+                    REG_EMP_ID,
+                    REG_DTIME,
+                    MODI_EMP_ID,
+                    MODI_DTIME,
+                    REQUEST_YN,
+                    SERIAL,
+                    PROCESS_NO,
+                    REF_ORD_NO,
+                    ORDER_NO,
+                    ORDER_G_SEQ,
+                    ORDER_D_SEQ,
+                    ORDER_W_SEQ,
+                    SLIP_I_NO,
+                    DELY_PROC_GB  )
+          SELECT 
+              CUST_ID
+            , RCPT_YMD
+            , CUST_USE_NO
+            , RCPT_DV
+            , WORK_DV_CD
+            , '02' AS  REQ_DV_CD
+            , MPCK_KEY || '02' AS MPCK_KEY
+            , MPCK_SEQ
+            , CAL_DV_CD
+            , FRT_DV_CD
+            , CNTR_ITEM_CD
+            , BOX_TYPE_CD
+            , BOX_QTY
+            , FRT
+            , CUST_MGMT_DLCM_CD
+            , SENDR_NM
+            , SENDR_TEL_NO1
+            , SENDR_TEL_NO2
+            , SENDR_TEL_NO3
+            , SENDR_CELL_NO1
+            , SENDR_CELL_NO2
+            , SENDR_CELL_NO3
+            , SENDR_SAFE_NO1
+            , SENDR_SAFE_NO2
+            , SENDR_SAFE_NO3
+            , SENDR_ZIP_NO
+            , SENDR_ADDR
+            , SENDR_DETAIL_ADDR
+            , RCVR_NM
+            , RCVR_TEL_NO1
+            , RCVR_TEL_NO2
+            , RCVR_TEL_NO3
+            , RCVR_CELL_NO1
+            , RCVR_CELL_NO2
+            , RCVR_CELL_NO3
+            , RCVR_SAFE_NO1
+            , RCVR_SAFE_NO2
+            , RCVR_SAFE_NO3
+            , RCVR_ZIP_NO
+            , RCVR_ADDR
+            , RCVR_DETAIL_ADDR
+            , ORDRR_NM
+            , ORDRR_TEL_NO1
+            , ORDRR_TEL_NO2
+            , ORDRR_TEL_NO3
+            , ORDRR_CELL_NO1
+            , ORDRR_CELL_NO2
+            , ORDRR_CELL_NO3
+            , ORDRR_SAFE_NO1
+            , ORDRR_SAFE_NO2
+            , ORDRR_SAFE_NO3
+            , ORDRR_ZIP_NO
+            , ORDRR_ADDR
+            , ORDRR_DETAIL_ADDR
+            , INVC_NO
+            , ORI_INVC_NO
+            , ORI_ORD_NO
+            , COLCT_EXPCT_YMD
+            , COLCT_EXPCT_HOUR
+            , SHIP_EXPCT_YMD
+            , SHIP_EXPCT_HOUR
+            , PRT_ST
+            , ARTICLE_AMT
+            , REMARK_1
+            , REMARK_2
+            , REMARK_3
+            , COD_YN
+            , GDS_CD
+            , GDS_NM
+            , GDS_QTY
+            , UNIT_CD
+            , UNIT_NM
+            , GDS_AMT
+            , ETC_1
+            , ETC_2
+            , ETC_3
+            , ETC_4
+            , ETC_5
+            , DLV_DV
+            , RCPT_ERR_YN
+            , RCPT_ERR_MSG
+            , EAI_PRGS_ST
+            , EAI_ERR_MSG
+            , NVL(#{MODIFY_ID, jdbcType=VARCHAR},REG_EMP_ID) AS REG_EMP_ID
+            , TO_DATE(#{MODIFY_DATE, jdbcType=VARCHAR},'YYYY/MM/DD HH24:MI:SS') AS REG_DTIME
+            , NVL(#{MODIFY_ID, jdbcType=VARCHAR},MODI_EMP_ID) AS MODI_EMP_ID
+            , TO_DATE(#{MODIFY_DATE, jdbcType=VARCHAR},'YYYY/MM/DD HH24:MI:SS') AS MODI_DTIME
+            , '1' AS REQUEST_YN
+            , '' AS SERIAL
+            , NVL(PROCESS_NO, #{ORDER_NO, jdbcType=VARCHAR}||#{ORDER_G_SEQ, jdbcType=VARCHAR}||#{ORDER_D_SEQ, jdbcType=VARCHAR}||#{ORDER_W_SEQ, jdbcType=VARCHAR}) AS PROCESS_NO
+            , REF_ORD_NO
+            , ORDER_NO
+            , ORDER_G_SEQ
+            , ORDER_D_SEQ
+            , ORDER_W_SEQ
+            , SLIP_I_NO
+            , DELY_PROC_GB
+           FROM TSLIPCJORDERINFO
+         WHERE CUST_USE_NO = #{CUST_USE_NO, jdbcType=VARCHAR}
+           AND RCPT_DV = '02'   /* 접수구분  01 : 일반  02 : 반품 */
+           AND REQ_DV_CD = '01' /* 요청구분  01 : 요청  02 : 취소 */
+    </insert>
+    
+    <insert id="insertReqOutHistory" parameterType="hashMap">
+        INSERT INTO TREQOUTHISTORY ( /* paclaim.xml : pacommon.paclaim.insertReqOutHistory by PaClaimController */
+               SLIP_I_NO
+             , RETURN_ORDER_NO
+             , RETURN_ORDER_G_SEQ
+             , RETURN_ORDER_D_SEQ
+             , RETURN_ORDER_W_SEQ
+             , PROC_ID
+             , PROC_DATE
+               )
+        VALUES ( #{SLIP_I_NO, jdbcType=VARCHAR}
+        	   , #{ORDER_NO, jdbcType=VARCHAR}
+        	   , #{ORDER_G_SEQ, jdbcType=VARCHAR}
+        	   , #{ORDER_D_SEQ, jdbcType=VARCHAR}
+        	   , #{ORDER_W_SEQ, jdbcType=VARCHAR}
+               , #{MODIFY_ID, jdbcType=VARCHAR}
+               , TO_DATE(#{MODIFY_DATE, jdbcType=VARCHAR},'YYYY/MM/DD HH24:MI:SS')
+               )
+    </insert>
+    
+    <update id="updateCustsystemLastCon" parameterType="String">
+        UPDATE TCUSTSYSTEM /* paclaim.xml : pacommon.paclaim.updateCustsystemLastCon by PaClaimController */
+           SET LAST_CON_MEDIA = '62'
+             , LAST_CON_DATE  = SYSDATE
+             , MODIFY_ID      = '999999'
+             , MODIFY_DATE    = SYSDATE
+         WHERE CUST_NO        = #{custNo, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectEntpManHp" parameterType="hashMap" resultType="String">
+    	SELECT /* paclaim.xml : pacommon.paclaim.selectEntpManHp by PaClaimController */
+    		   TE.ENTP_MAN_HP1 || TE.ENTP_MAN_HP2 || TE.ENTP_MAN_HP3
+		  FROM TENTPUSER TE
+		 WHERE TE.ENTP_CODE 	= #{ENTP_CODE,jdbcType=VARCHAR}
+		   AND TE.ENTP_MAN_SEQ 	= #{ENTP_MAN_SEQ,jdbcType=VARCHAR}
+		   AND TE.NO_SLIP_SMS_YN = '1' 
+    </select>
+    
+    <select id="selectHcReqDate" resultType="String">
+    	SELECT /* paclaim.xml : pacommon.paclaim.selectHcReqDate by PaClaimController */
+			   TO_CHAR(FUN_GET_DELYDAY_HOLI_DATE('10', TRUNC(SYSDATE), '1', 2), 'YYYY/MM/DD')
+		  FROM DUAL
+    </select>
+    
+    <select id="selectEntpDirectCjDeliveryList" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* paclaim.xml : pacommon.paclaim.selectEntpDirectCjDeliveryList by PaClaimController */
+              A.CUST_ID
+            , A.RCPT_YMD
+            , A.CUST_USE_NO
+            , A.REF_ORD_NO
+            , A.RCPT_DV
+            , A.WORK_DV_CD
+            , '02' AS  REQ_DV_CD
+            , A.MPCK_KEY || '02' AS MPCK_KEY
+            , A.CAL_DV_CD
+            , A.FRT_DV_CD
+            , A.CNTR_ITEM_CD
+            , A.BOX_TYPE_CD
+            , A.BOX_QTY
+            , A.FRT
+            , A.CUST_MGMT_DLCM_CD
+            , A.SENDR_NM
+            , A.SENDR_TEL_NO1
+            , A.SENDR_TEL_NO2
+            , A.SENDR_TEL_NO3
+            , A.SENDR_CELL_NO1
+            , A.SENDR_CELL_NO2
+            , A.SENDR_CELL_NO3
+            , A.SENDR_SAFE_NO1
+            , A.SENDR_SAFE_NO2
+            , A.SENDR_SAFE_NO3
+            , A.SENDR_ZIP_NO
+            , A.SENDR_ADDR
+            , A.SENDR_DETAIL_ADDR
+            , A.RCVR_NM
+            , A.RCVR_TEL_NO1
+            , A.RCVR_TEL_NO2
+            , A.RCVR_TEL_NO3
+            , A.RCVR_CELL_NO1
+            , A.RCVR_CELL_NO2
+            , A.RCVR_CELL_NO3
+            , A.RCVR_SAFE_NO1
+            , A.RCVR_SAFE_NO2
+            , A.RCVR_SAFE_NO3
+            , A.RCVR_ZIP_NO
+            , A.RCVR_ADDR
+            , A.RCVR_DETAIL_ADDR
+            , A.ORDRR_NM
+            , A.ORDRR_TEL_NO1
+            , A.ORDRR_TEL_NO2
+            , A.ORDRR_TEL_NO3
+            , A.ORDRR_CELL_NO1
+            , A.ORDRR_CELL_NO2
+            , A.ORDRR_CELL_NO3
+            , A.ORDRR_SAFE_NO1
+            , A.ORDRR_SAFE_NO2
+            , A.ORDRR_SAFE_NO3
+            , A.ORDRR_ZIP_NO
+            , A.ORDRR_ADDR
+            , A.ORDRR_DETAIL_ADDR
+            , A.INVC_NO
+            , A.ORI_INVC_NO
+            , A.ORI_ORD_NO
+            , A.COLCT_EXPCT_YMD
+            , A.COLCT_EXPCT_HOUR
+            , A.SHIP_EXPCT_YMD
+            , A.SHIP_EXPCT_HOUR
+            , A.PRT_ST
+            , A.ARTICLE_AMT
+            , A.REMARK_1
+            , A.REMARK_2
+            , A.REMARK_3
+            , A.COD_YN
+            , A.ETC_1
+            , A.ETC_2
+            , A.ETC_3
+            , A.ETC_4
+            , A.ETC_5
+            , A.DLV_DV
+            , A.MPCK_SEQ
+            , A.GDS_CD
+            , A.GDS_NM
+            , A.GDS_QTY
+            , A.UNIT_CD
+            , A.UNIT_NM
+            , A.GDS_AMT
+            , C.ENTP_CODE
+            , NVL(D.S_IDNO, C.S_IDNO) AS S_IDNO
+            , A.DELY_PROC_GB
+           FROM TSLIPCJORDERINFO A, TGOODS B, TENTERPRISE C, TENTPDIRECTINFO D, TGOODSADDINFO E
+         WHERE A.PROCESS_NO = #{ORDER_NO, jdbcType=VARCHAR}||#{ORDER_G_SEQ, jdbcType=VARCHAR}||#{ORDER_D_SEQ, jdbcType=VARCHAR}||'001'
+           AND A.RCPT_DV = '01'   /* 접수구분  01 : 일반  02 : 반품 */
+           AND A.REQ_DV_CD = '01' /* 요청구분  01 : 요청  02 : 취소 */
+           AND A.GDS_CD = B.GOODS_CODE
+           AND B.GOODS_CODE = E.GOODS_CODE
+           AND D.DIRECT_DELY_SEQ = E.DIRECT_DELY_SEQ
+           AND CASE WHEN B.DELY_TYPE = '10' AND A.RCPT_DV = '02' THEN 
+                '100001'
+               ELSE
+                B.ENTP_CODE
+               END = C.ENTP_CODE
+           AND A.CUST_ID = D.CUST_ID(+)
+           AND C.ENTP_CODE = D.ENTP_CODE(+)
+    </select>
+    
+    <select id="selectEntpDirectCjReturnList" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* paclaim.xml : pacommon.paclaim.selectEntpDirectCjReturnList by PaClaimController */
+              A.CUST_ID
+            , A.RCPT_YMD
+            , A.CUST_USE_NO
+            , A.REF_ORD_NO
+            , A.RCPT_DV
+            , A.WORK_DV_CD
+            , '02' AS  REQ_DV_CD
+            , A.MPCK_KEY || '02' AS MPCK_KEY
+            , A.CAL_DV_CD
+            , A.FRT_DV_CD
+            , A.CNTR_ITEM_CD
+            , A.BOX_TYPE_CD
+            , A.BOX_QTY
+            , A.FRT
+            , A.CUST_MGMT_DLCM_CD
+            , A.SENDR_NM
+            , A.SENDR_TEL_NO1
+            , A.SENDR_TEL_NO2
+            , A.SENDR_TEL_NO3
+            , A.SENDR_CELL_NO1
+            , A.SENDR_CELL_NO2
+            , A.SENDR_CELL_NO3
+            , A.SENDR_SAFE_NO1
+            , A.SENDR_SAFE_NO2
+            , A.SENDR_SAFE_NO3
+            , A.SENDR_ZIP_NO
+            , A.SENDR_ADDR
+            , A.SENDR_DETAIL_ADDR
+            , A.RCVR_NM
+            , A.RCVR_TEL_NO1
+            , A.RCVR_TEL_NO2
+            , A.RCVR_TEL_NO3
+            , A.RCVR_CELL_NO1
+            , A.RCVR_CELL_NO2
+            , A.RCVR_CELL_NO3
+            , A.RCVR_SAFE_NO1
+            , A.RCVR_SAFE_NO2
+            , A.RCVR_SAFE_NO3
+            , A.RCVR_ZIP_NO
+            , A.RCVR_ADDR
+            , A.RCVR_DETAIL_ADDR
+            , A.ORDRR_NM
+            , A.ORDRR_TEL_NO1
+            , A.ORDRR_TEL_NO2
+            , A.ORDRR_TEL_NO3
+            , A.ORDRR_CELL_NO1
+            , A.ORDRR_CELL_NO2
+            , A.ORDRR_CELL_NO3
+            , A.ORDRR_SAFE_NO1
+            , A.ORDRR_SAFE_NO2
+            , A.ORDRR_SAFE_NO3
+            , A.ORDRR_ZIP_NO
+            , A.ORDRR_ADDR
+            , A.ORDRR_DETAIL_ADDR
+            , A.INVC_NO
+            , A.ORI_INVC_NO
+            , A.ORI_ORD_NO
+            , A.COLCT_EXPCT_YMD
+            , A.COLCT_EXPCT_HOUR
+            , A.SHIP_EXPCT_YMD
+            , A.SHIP_EXPCT_HOUR
+            , A.PRT_ST
+            , A.ARTICLE_AMT
+            , A.REMARK_1
+            , A.REMARK_2
+            , A.REMARK_3
+            , A.COD_YN
+            , A.ETC_1
+            , A.ETC_2
+            , A.ETC_3
+            , A.ETC_4
+            , A.ETC_5
+            , A.DLV_DV
+            , A.MPCK_SEQ
+            , A.GDS_CD
+            , A.GDS_NM
+            , A.GDS_QTY
+            , A.UNIT_CD
+            , A.UNIT_NM
+            , A.GDS_AMT
+            , E.ENTP_CODE
+            , NVL(D.S_IDNO, E.S_IDNO) AS S_IDNO
+            , A.DELY_PROC_GB
+           FROM TSLIPCJORDERINFO A, TCLAIMDT C, TGOODS GM, TENTERPRISE E, TENTPDIRECTINFO D, TGOODSADDINFO GA
+         WHERE A.PROCESS_NO = C.ORDER_NO||C.ORDER_G_SEQ||C.ORDER_D_SEQ||C.ORDER_W_SEQ
+           AND C.ORDER_NO = #{ORDER_NO, jdbcType=VARCHAR}
+           AND C.ORDER_G_SEQ = #{ORDER_G_SEQ, jdbcType=VARCHAR}
+           AND C.ORDER_D_SEQ = #{ORDER_D_SEQ, jdbcType=VARCHAR}
+           AND C.CLAIM_GB = '30'
+           AND C.SYSLAST > 0
+           AND A.RCPT_DV = '02'   /* 접수구분  01 : 일반  02 : 반품 */
+           AND A.REQ_DV_CD = '01' /* 요청구분  01 : 요청  02 : 취소 */
+           AND A.GDS_CD = GM.GOODS_CODE
+           AND GM.GOODS_CODE = GA.GOODS_CODE
+           AND D.DIRECT_DELY_SEQ = GA.DIRECT_DELY_SEQ
+           AND CASE WHEN GM.DELY_TYPE = '10' AND A.RCPT_DV = '02' THEN
+           		 '100001'
+           	   ELSE
+           	   	 GM.ENTP_CODE
+               END = E.ENTP_CODE
+           AND A.CUST_ID = D.CUST_ID(+)
+           AND E.ENTP_CODE = D.ENTP_CODE(+)
+    </select>
+    
+    <select id="selectCjToken" parameterType="hashMap" resultType="int">
+        SELECT /* paclaim.xml : pacommon.paclaim.selectCjToken by PaClaimController */
+               COUNT(*)
+          FROM TCJONEDAYTOKEN T
+         WHERE T.TOKEN_NUM = #{tokenNum,  jdbcType=VARCHAR}
+           AND T.ENTP_CODE = #{entpCode,  jdbcType=VARCHAR}
+           AND T.CJ_S_IDNO = #{cjSIdno,  jdbcType=VARCHAR}
+           AND T.CUST_ID = #{custId,  jdbcType=VARCHAR}
+           AND T.TOKEN_EXPRTN_DTM > TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+        <choose>
+         <when test='notice != null and notice != ""'>
+            AND T.NOTICE = #{notice,  jdbcType=VARCHAR}
+         </when>
+         <otherwise>
+            AND T.NOTICE IS NULL
+         </otherwise>
+        </choose>
+    </select>
+    
+    <select id="getCjOnedayTokenNo" parameterType="hashMap" resultType="string">
+        SELECT /* paclaim.xml : pacommon.paclaim.getCjOnedayTokenNo by PaClaimController */
+               T.TOKEN_NUM AS TOKEN_NUM
+		  FROM TCJONEDAYTOKEN T
+		 WHERE T.ENTP_CODE = #{entpCode,  jdbcType=VARCHAR}
+           AND T.CJ_S_IDNO = #{cjSIdno,  jdbcType=VARCHAR}
+           AND T.CUST_ID = #{custId,  jdbcType=VARCHAR}
+		   AND T.TOKEN_EXPRTN_DTM > TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+		   AND T.TOKEN_SEQ = (SELECT MAX(C.TOKEN_SEQ)
+                                FROM TCJONEDAYTOKEN C
+                               WHERE C.ENTP_CODE = #{entpCode,  jdbcType=VARCHAR}
+                                 AND C.CJ_S_IDNO = #{cjSIdno,  jdbcType=VARCHAR}
+                                 AND C.CUST_ID = #{custId,  jdbcType=VARCHAR})
+    </select>
+    
+    <select id="getTokenSequenceNo" resultType="string">
+        select /* paclaim.xml : pacommon.paclaim.getTokenSequenceNo by PaClaimController */
+               to_char(sysdate, 'YYYYMMDD') || ltrim(to_char(SEQ_CJ_TOKEN.NEXTVAL, '000000'))
+          from DUAL
+    </select>
+    
+    <insert id ="insertCjOneDayToken" parameterType="hashMap">
+        INSERT INTO TCJONEDAYTOKEN ( /* paclaim.xml : pacommon.paclaim.insertCjOneDayToken by PaClaimController */
+                   TOKEN_SEQ,
+                   RESULT_CD,
+                   RESULT_DETAIL,
+                   TOKEN_NUM,
+                   TOKEN_EXPRTN_DTM,
+                   NOTICE,
+                   INSERT_DATE,
+                   ENTP_CODE,
+                   CJ_S_IDNO,
+                   CUST_ID
+                 )
+          VALUES (
+                   #{tokenSeq,   jdbcType=VARCHAR},
+                   #{resultCd, jdbcType=VARCHAR},
+                   #{resultDetail,  jdbcType=VARCHAR},
+                   #{tokenNum,  jdbcType=VARCHAR},
+                   #{tokenExprtnDtm,  jdbcType=VARCHAR},
+                   #{notice,  jdbcType=VARCHAR},
+                   SYSDATE,
+                   #{entpCode,  jdbcType=VARCHAR},
+                   #{cjSIdno,  jdbcType=VARCHAR},
+                   #{custId,  jdbcType=VARCHAR}
+                 )
+    </insert>
+    
+    <insert id="insertCjSlipError" parameterType="com.cware.netshopping.domain.model.CjSlipError">
+       INSERT INTO TCJSLIP_ERROR ( /* paclaim.xml : pacommon.paclaim.insertCjSlipError by PaClaimController */
+                   ERROR_NO,
+                   API_GUBUN,
+                   API_PARAM,
+                   ERROR_CODE,
+                   ERROR_REASON,
+                   INSERT_ID,
+                   INSERT_DATE )
+            VALUES (
+                   TO_CHAR(SYSDATE,'YYYYMMDDHH24') || LPAD(SEQ_CJ_ERROR.NEXTVAL,6,'0')
+                 , #{apiGubun, jdbcType=VARCHAR}
+                 , #{apiParam, jdbcType=VARCHAR}
+                 , #{errorCode, jdbcType=VARCHAR}
+                 , #{errorReason, jdbcType=VARCHAR}
+                 , #{insertId, jdbcType=VARCHAR}
+                 , sysdate )
+    </insert>
+    
+    <update id="updateCjOrderInfoRequestYn" parameterType="hashMap">
+         UPDATE TSLIPCJORDERINFO SET /* paclaim.xml : pacommon.paclaim.updateCjOrderInfoRequestYn by PaClaimController */
+                REQUEST_YN   = '9'
+              , MODI_EMP_ID  = #{MODIFY_ID, jdbcType=VARCHAR}
+              , MODI_DTIME   = SYSDATE 
+          WHERE CUST_USE_NO  = #{CUST_USE_NO, jdbcType=VARCHAR}
+            AND REQUEST_YN = '0' 
+    </update>
+    
+    <select id="selectDelyName" parameterType="String" resultType="String">
+    	SELECT CODE_NAME /* paclaim.xml : pacommon.paclaim.selectDelyName by PaClaimController */
+    	  FROM TCODE 
+    	 WHERE CODE_LGROUP = 'B005' 
+    	   AND CODE_MGROUP = #{delyGb, jdbcType=VARCHAR}
+    </select>
+    
+</mapper>

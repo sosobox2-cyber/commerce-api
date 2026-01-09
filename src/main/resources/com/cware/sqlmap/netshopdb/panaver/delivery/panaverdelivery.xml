@@ -1,0 +1,674 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="panaver.delivery">
+    <update id="updateOrderChangePlaceOrder" parameterType="string">
+        UPDATE /* panaver.delivery.updateOrderChangePlaceOrder : panaverdelivery.xml */
+               TPANAVERORDERCHANGE
+           SET PLACE_DATE = SYSDATE
+             , MODIFY_DATE = SYSDATE
+         WHERE PLACE_DATE IS NULL
+           AND PRODUCT_ORDER_STATUS = '10'
+           AND PRODUCT_ORDER_ID = #{productOrderId, jdbcType=VARCHAR}
+    </update>
+    <insert id="insertOrderm" parameterType="com.cware.api.panaver.order.seller.SellerServiceStub$Order">
+       MERGE INTO /* panaver.delivery.insertOrderm : panaverdelivery.xml */
+                  TPANAVERORDERM T
+            USING DUAL
+               ON ( T.ORDER_ID = #{localOrderID, jdbcType=VARCHAR}
+                  )
+     WHEN MATCHED
+             THEN
+       UPDATE SET   ORDER_DATE = #{localOrderDate, jdbcType=TIMESTAMP, javaType=java.util.GregorianCalendar, typeHandler=com.cware.netshopping.common.typehandler.GregorianCalendarDataTypeHandler}
+                  , ORDERER_ID = #{localOrdererID, jdbcType=VARCHAR}
+                  , ORDERER_NAME = #{localOrdererName, jdbcType=VARCHAR}
+                  , ORDERER_TEL1 = CWARE_ENC_DEC(#{localOrdererTel1, jdbcType=VARCHAR}, 'E')
+                  , ORDERER_TEL2 = CWARE_ENC_DEC(#{localOrdererTel2, jdbcType=VARCHAR}, 'E')
+                  , PAYMENT_DATE = #{localPaymentDate, jdbcType=TIMESTAMP, javaType=java.util.GregorianCalendar, typeHandler=com.cware.netshopping.common.typehandler.GregorianCalendarDataTypeHandler}
+                  , PAYMENT_MEANS = #{localPaymentMeans, jdbcType=VARCHAR}
+                  , PAYMENT_DUE_DATE = #{localPaymentDueDate, jdbcType=TIMESTAMP, javaType=java.util.GregorianCalendar, typeHandler=com.cware.netshopping.common.typehandler.GregorianCalendarDataTypeHandler}
+                  , ORDER_DISCOUNT_AMT = DECODE(#{localOrderDiscountAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localOrderDiscountAmount, jdbcType=NUMERIC})
+                  , GENERAL_PAYMENT_AMT = DECODE(#{localGeneralPaymentAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localGeneralPaymentAmount, jdbcType=NUMERIC})
+                  , NAVER_PAYMENT_AMT = DECODE(#{localNaverMileagePaymentAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localNaverMileagePaymentAmount, jdbcType=NUMERIC})
+                  , CHARGE_AMT_PAYMENT_AMT = DECODE(#{localChargeAmountPaymentAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localChargeAmountPaymentAmount, jdbcType=NUMERIC})
+                  , ACCUMULATION_PAYMENT_AMT = DECODE(#{localCheckoutAccumulationPaymentAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localCheckoutAccumulationPaymentAmount, jdbcType=NUMERIC})
+                  , IS_DELIVERY_MEMO_INPUT = #{localIsDeliveryMemoParticularInput, jdbcType=VARCHAR}
+                  , PAY_LOCATION_TYPE = #{localPayLocationType, jdbcType=VARCHAR}
+                  , ORDERER_NO = #{localOrdererNo, jdbcType=VARCHAR}
+                  , MODIFY_DATE = SYSDATE
+ WHEN NOT MATCHED
+             THEN
+           INSERT ( ORDER_DATE
+                  , ORDER_ID
+                  , ORDERER_ID
+                  , ORDERER_NAME
+                  , ORDERER_TEL1
+                  , ORDERER_TEL2
+                  , PAYMENT_DATE
+                  , PAYMENT_MEANS
+                  , PAYMENT_DUE_DATE
+                  , ORDER_DISCOUNT_AMT
+                  , GENERAL_PAYMENT_AMT
+                  , NAVER_PAYMENT_AMT
+                  , CHARGE_AMT_PAYMENT_AMT
+                  , ACCUMULATION_PAYMENT_AMT
+                  , IS_DELIVERY_MEMO_INPUT
+                  , PAY_LOCATION_TYPE
+                  , ORDERER_NO
+                  , INSERT_DATE
+                  , MODIFY_DATE
+                  )
+             VALUES
+                  ( #{localOrderDate, jdbcType=TIMESTAMP, javaType=java.util.GregorianCalendar, typeHandler=com.cware.netshopping.common.typehandler.GregorianCalendarDataTypeHandler}
+                  , #{localOrderID, jdbcType=VARCHAR}
+                  , #{localOrdererID, jdbcType=VARCHAR}
+                  , #{localOrdererName, jdbcType=VARCHAR}
+                  , CWARE_ENC_DEC(#{localOrdererTel1, jdbcType=VARCHAR}, 'E')
+                  , CWARE_ENC_DEC(#{localOrdererTel2, jdbcType=VARCHAR}, 'E')
+                  , #{localPaymentDate, jdbcType=TIMESTAMP, javaType=java.util.GregorianCalendar, typeHandler=com.cware.netshopping.common.typehandler.GregorianCalendarDataTypeHandler}
+                  , #{localPaymentMeans, jdbcType=VARCHAR}
+                  , #{localPaymentDueDate, jdbcType=TIMESTAMP, javaType=java.util.GregorianCalendar, typeHandler=com.cware.netshopping.common.typehandler.GregorianCalendarDataTypeHandler}
+                  , DECODE(#{localOrderDiscountAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localOrderDiscountAmount, jdbcType=NUMERIC})
+                  , DECODE(#{localGeneralPaymentAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localGeneralPaymentAmount, jdbcType=NUMERIC})
+                  , DECODE(#{localNaverMileagePaymentAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localNaverMileagePaymentAmount, jdbcType=NUMERIC})
+                  , DECODE(#{localChargeAmountPaymentAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localChargeAmountPaymentAmount, jdbcType=NUMERIC})
+                  , DECODE(#{localCheckoutAccumulationPaymentAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localCheckoutAccumulationPaymentAmount, jdbcType=NUMERIC})
+                  , #{localIsDeliveryMemoParticularInput, jdbcType=VARCHAR}
+                  , #{localPayLocationType, jdbcType=VARCHAR}
+                  , #{localOrdererNo, jdbcType=VARCHAR}
+                  , SYSDATE
+                  , SYSDATE
+                  )
+    </insert>
+    <insert id="mergeOrderList" parameterType="com.cware.api.panaver.order.seller.SellerServiceStub$ProductOrder">
+         MERGE INTO /* panaver.delivery.mergeOrderList : panaverdelivery.xml */
+                    TPANAVERORDERLIST
+              USING DUAL
+                 ON ( PRODUCT_ORDER_ID = #{localProductOrderID, jdbcType=VARCHAR}
+                    )
+       WHEN MATCHED
+               THEN
+         UPDATE SET PRODUCT_ORDER_STATUS = (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O611' AND CODE_NAME = #{localProductOrderStatus, jdbcType=VARCHAR})
+                  , PRODUCT_ID = #{localProductID, jdbcType=VARCHAR}
+                  , PRODUCT_NAME = #{localProductName, jdbcType=VARCHAR}
+                  , PRODUCT_CLASS = #{localProductClass, jdbcType=VARCHAR}
+                  , PRODUCT_OPTION = #{localProductOption, jdbcType=VARCHAR}
+                  , QUANTITY = DECODE(#{localQuantity, jdbcType=NUMERIC}, -2147483648, NULL, #{localQuantity, jdbcType=NUMERIC})
+                  , UNIT_PRICE = DECODE(#{localUnitPrice, jdbcType=NUMERIC}, -2147483648, NULL, #{localUnitPrice, jdbcType=NUMERIC})
+                  , OPTION_PRICE = DECODE(#{localOptionPrice, jdbcType=NUMERIC}, -2147483648, NULL, #{localOptionPrice, jdbcType=NUMERIC})
+                  , OPTION_CODE = #{localOptionCode, jdbcType=VARCHAR}
+                  , TOTAL_PRODUCT_AMT = DECODE(#{localTotalProductAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localTotalProductAmount, jdbcType=NUMERIC})
+                  , PRODUCT_DISCOUNT_AMT = DECODE(#{localProductDiscountAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localProductDiscountAmount, jdbcType=NUMERIC})
+                  , PRODUCT_IMEDIATE_DISCOUNT_AMT = DECODE(#{localProductImediateDiscountAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localProductImediateDiscountAmount, jdbcType=NUMERIC})
+                  , PRODUCT_PRODUCT_DISCOUNT_AMT = DECODE(#{localProductProductDiscountAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localProductProductDiscountAmount, jdbcType=NUMERIC})
+                  , PRODUCT_MULTIPLE_DISCOUNT_AMT = DECODE(#{localProductMultiplePurchaseDiscountAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localProductMultiplePurchaseDiscountAmount, jdbcType=NUMERIC})
+                  , TOTAL_PAYMENT_AMT = DECODE(#{localTotalPaymentAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localTotalPaymentAmount, jdbcType=NUMERIC})
+                  , SELLER_PRODUCT_CODE = #{localSellerProductCode, jdbcType=VARCHAR}
+                  , MALL_ID = #{localMallID, jdbcType=VARCHAR}
+                  , EXPECTED_DELIVERY_METHOD = #{localExpectedDeliveryMethod, jdbcType=VARCHAR, javaType=com.cware.api.panaver.order.seller.SellerServiceStub$DeliveryMethodType, typeHandler=com.cware.netshopping.common.typehandler.NaverDeliveryMethodTypeHandler}
+                  , PACKAGE_NUMBER = #{localPackageNumber, jdbcType=VARCHAR}
+                  , SHIPPING_FEE_TYPE = #{localShippingFeeType, jdbcType=VARCHAR}
+                  , DELIVERY_POLICY_TYPE = #{localDeliveryPolicyType, jdbcType=VARCHAR}
+                  , DELIVERY_FEE_AMT = DECODE(#{localDeliveryFeeAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localDeliveryFeeAmount, jdbcType=NUMERIC})
+                  , SECTION_DELIVERY_FEE = DECODE(#{localSectionDeliveryFee, jdbcType=NUMERIC}, -2147483648, NULL, #{localSectionDeliveryFee, jdbcType=NUMERIC})
+                  , DELIVERY_DISCOUNT_AMT = DECODE(#{localDeliveryDiscountAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localDeliveryDiscountAmount, jdbcType=NUMERIC})
+                  , SHIPPING_MEMO = (SELECT SHIPPING_MEMO FROM (SELECT #{localShippingMemo, jdbcType=VARCHAR} AS SHIPPING_MEMO FROM DUAL WHERE LENGTHB(#{localShippingMemo, jdbcType=VARCHAR}) &lt;= 300 UNION ALL SELECT SUBSTRB(#{localShippingMemo, jdbcType=VARCHAR}, 0, 283) || '...(내용잘림)' AS SHIPPING_MEMO FROM DUAL WHERE LENGTHB(#{localShippingMemo, jdbcType=VARCHAR}) &gt; 300))
+                  , SHIPPING_DUE_DATE = #{localShippingDueDate, jdbcType=TIMESTAMP, javaType=java.util.GregorianCalendar, typeHandler=com.cware.netshopping.common.typehandler.GregorianCalendarDataTypeHandler}
+                  , DECISION_DATE = #{localDecisionDate, jdbcType=TIMESTAMP, javaType=java.util.GregorianCalendar, typeHandler=com.cware.netshopping.common.typehandler.GregorianCalendarDataTypeHandler}
+                  , FREE_GIFT = #{localFreeGift, jdbcType=VARCHAR}
+                  , PLACE_ORDER_STATUS = (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O617' AND CODE_NAME = #{localPlaceOrderStatus, jdbcType=VARCHAR, javaType=com.cware.api.panaver.order.seller.SellerServiceStub$PlaceOrderStatusType, typeHandler=com.cware.netshopping.common.typehandler.NaverPlaceOrderStatusTypeHandler})
+                  , PLACE_ORDER_DATE = #{localPlaceOrderDate, jdbcType=TIMESTAMP, javaType=java.util.GregorianCalendar, typeHandler=com.cware.netshopping.common.typehandler.GregorianCalendarDataTypeHandler}
+                  , DELAYED_REASON = (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O623' AND CODE_NAME = #{localDelayedDispatchReason, jdbcType=VARCHAR})
+                  , DELAYED_DETAILED_REASON = #{localDelayedDispatchDetailedReason, jdbcType=VARCHAR}
+                  , SELLER_DISCOUNT_AMT = DECODE(#{localSellerBurdenDiscountAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localSellerBurdenDiscountAmount, jdbcType=NUMERIC})
+                  , SELLER_IMEDIATE_DISCOUNT_AMT = DECODE(#{localSellerBurdenImediateDiscountAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localSellerBurdenImediateDiscountAmount, jdbcType=NUMERIC})
+                  , SELLER_PRODUCT_DISCOUNT_AMT = DECODE(#{localSellerBurdenProductDiscountAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localSellerBurdenProductDiscountAmount, jdbcType=NUMERIC})
+                  , SELLER_MULTIPLE_DISCOUNT_AMT = DECODE(#{localSellerBurdenMultiplePurchaseDiscountAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localSellerBurdenMultiplePurchaseDiscountAmount, jdbcType=NUMERIC})
+                  , COMMISION_RATING_TYPE = #{localCommissionRatingType, jdbcType=VARCHAR}
+                  , COMMISION_PRE_PAY_STATUS = #{localCommissionPrePayStatus, jdbcType=VARCHAR, javaType=com.cware.api.panaver.order.seller.SellerServiceStub$CommissionPrePayMethodType, typeHandler=com.cware.netshopping.common.typehandler.NaverCommissionPrePayMethodTypeHandler}
+                  , PAYMENT_COMMISION = DECODE(#{localPaymentCommission, jdbcType=NUMERIC}, -2147483648, NULL, #{localPaymentCommission, jdbcType=NUMERIC})
+                  , SALE_COMMISION = DECODE(#{localSaleCommission, jdbcType=NUMERIC}, -2147483648, NULL, #{localSaleCommission, jdbcType=NUMERIC})
+                  , CHANNEL_COMMISION = DECODE(#{localChannelCommission, jdbcType=NUMERIC}, -2147483648, NULL, #{localChannelCommission, jdbcType=NUMERIC})
+                  , INTERLOCK_COMMISION = DECODE(#{localKnowledgeShoppingSellingInterlockCommission, jdbcType=NUMERIC}, -2147483648, NULL, #{localKnowledgeShoppingSellingInterlockCommission, jdbcType=NUMERIC})
+                  , EXPECTED_SETTLEMENT_AMT = DECODE(#{localExpectedSettlementAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localExpectedSettlementAmount, jdbcType=NUMERIC})
+                  , INFLOW_PATH = #{localInflowPath, jdbcType=VARCHAR}
+                  , ITEM_NO = #{localItemNo, jdbcType=VARCHAR}
+                  , OPTION_MANAGE_CODE = #{localOptionManageCode, jdbcType=VARCHAR}
+                  , PURCHASER_SOCIAL_SECURITY_NO = #{localPurchaserSocialSecurityNo, jdbcType=VARCHAR}
+                  , SELLER_CUSTOM_CODE1 = #{localSellerCustomCode1, jdbcType=VARCHAR}
+                  , SELLER_CUSTOM_CODE2 = #{localSellerCustomCode2, jdbcType=VARCHAR}
+                  , CLAIM_ID = #{localClaimID, jdbcType=VARCHAR}
+                  , INDIVIDUAL_CUSTOM_UNIQUE_CODE = #{localIndividualCustomUniqueCode, jdbcType=VARCHAR}
+                  , GIFT_RECEIVING_STATUS = #{localGiftReceivingStatus, jdbcType=VARCHAR, javaType=com.cware.api.panaver.order.seller.SellerServiceStub$GiftReceivingStatusType, typeHandler=com.cware.netshopping.common.typehandler.NaverGiftReceivingStatusTypeHandler}
+                  , MODIFY_DATE = SYSDATE
+   WHEN NOT MATCHED
+               THEN
+             INSERT
+                  ( PRODUCT_ORDER_ID
+                  , PRODUCT_ORDER_STATUS
+                  , PA_ORDER_GB
+                  , PROC_FLAG
+                  , PRODUCT_ID
+                  , PRODUCT_NAME
+                  , PRODUCT_CLASS
+                  , PRODUCT_OPTION
+                  , QUANTITY
+                  , UNIT_PRICE
+                  , OPTION_PRICE
+                  , OPTION_CODE
+                  , TOTAL_PRODUCT_AMT
+                  , PRODUCT_DISCOUNT_AMT
+                  , PRODUCT_IMEDIATE_DISCOUNT_AMT
+                  , PRODUCT_PRODUCT_DISCOUNT_AMT
+                  , PRODUCT_MULTIPLE_DISCOUNT_AMT
+                  , TOTAL_PAYMENT_AMT
+                  , SELLER_PRODUCT_CODE
+                  , MALL_ID
+                  , EXPECTED_DELIVERY_METHOD
+                  , PACKAGE_NUMBER
+                  , SHIPPING_FEE_TYPE
+                  , DELIVERY_POLICY_TYPE
+                  , DELIVERY_FEE_AMT
+                  , SECTION_DELIVERY_FEE
+                  , DELIVERY_DISCOUNT_AMT
+                  , SHIPPING_MEMO
+                  , SHIPPING_DUE_DATE
+                  , DECISION_DATE
+                  , FREE_GIFT
+                  , PLACE_ORDER_STATUS
+                  , PLACE_ORDER_DATE
+                  , DELAYED_REASON
+                  , DELAYED_DETAILED_REASON
+                  , SELLER_DISCOUNT_AMT
+                  , SELLER_IMEDIATE_DISCOUNT_AMT
+                  , SELLER_PRODUCT_DISCOUNT_AMT
+                  , SELLER_MULTIPLE_DISCOUNT_AMT
+                  , COMMISION_RATING_TYPE
+                  , COMMISION_PRE_PAY_STATUS
+                  , PAYMENT_COMMISION
+                  , SALE_COMMISION
+                  , CHANNEL_COMMISION
+                  , INTERLOCK_COMMISION
+                  , EXPECTED_SETTLEMENT_AMT
+                  , INFLOW_PATH
+                  , ITEM_NO
+                  , OPTION_MANAGE_CODE
+                  , PURCHASER_SOCIAL_SECURITY_NO
+                  , SELLER_CUSTOM_CODE1
+                  , SELLER_CUSTOM_CODE2
+                  , CLAIM_ID
+                  , INDIVIDUAL_CUSTOM_UNIQUE_CODE
+                  , GIFT_RECEIVING_STATUS
+                  , INSERT_DATE
+                  , MODIFY_DATE
+                  )
+             VALUES
+                  ( #{localProductOrderID, jdbcType=VARCHAR}
+                  , (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O611' AND CODE_NAME = #{localProductOrderStatus, jdbcType=VARCHAR})
+                  , '10'
+                  , '00'
+                  , #{localProductID, jdbcType=VARCHAR}
+                  , #{localProductName, jdbcType=VARCHAR}
+                  , #{localProductClass, jdbcType=VARCHAR}
+                  , #{localProductOption, jdbcType=VARCHAR}
+                  , DECODE(#{localQuantity, jdbcType=NUMERIC}, -2147483648, NULL, #{localQuantity, jdbcType=NUMERIC})
+                  , DECODE(#{localUnitPrice, jdbcType=NUMERIC}, -2147483648, NULL, #{localUnitPrice, jdbcType=NUMERIC})
+                  , DECODE(#{localOptionPrice, jdbcType=NUMERIC}, -2147483648, NULL, #{localOptionPrice, jdbcType=NUMERIC})
+                  , #{localOptionCode, jdbcType=VARCHAR}
+                  , DECODE(#{localTotalProductAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localTotalProductAmount, jdbcType=NUMERIC})
+                  , DECODE(#{localProductDiscountAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localProductDiscountAmount, jdbcType=NUMERIC})
+                  , DECODE(#{localProductImediateDiscountAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localProductImediateDiscountAmount, jdbcType=NUMERIC})
+                  , DECODE(#{localProductProductDiscountAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localProductProductDiscountAmount, jdbcType=NUMERIC})
+                  , DECODE(#{localProductMultiplePurchaseDiscountAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localProductMultiplePurchaseDiscountAmount, jdbcType=NUMERIC})
+                  , DECODE(#{localTotalPaymentAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localTotalPaymentAmount, jdbcType=NUMERIC})
+                  , #{localSellerProductCode, jdbcType=VARCHAR}
+                  , #{localMallID, jdbcType=VARCHAR}
+                  , #{localExpectedDeliveryMethod, jdbcType=VARCHAR, javaType=com.cware.api.panaver.order.seller.SellerServiceStub$DeliveryMethodType, typeHandler=com.cware.netshopping.common.typehandler.NaverDeliveryMethodTypeHandler}
+                  , #{localPackageNumber, jdbcType=VARCHAR}
+                  , #{localShippingFeeType, jdbcType=VARCHAR}
+                  , #{localDeliveryPolicyType, jdbcType=VARCHAR}
+                  , DECODE(#{localDeliveryFeeAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localDeliveryFeeAmount, jdbcType=NUMERIC})
+                  , DECODE(#{localSectionDeliveryFee, jdbcType=NUMERIC}, -2147483648, NULL, #{localSectionDeliveryFee, jdbcType=NUMERIC})
+                  , DECODE(#{localDeliveryDiscountAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localDeliveryDiscountAmount, jdbcType=NUMERIC})
+                  , (SELECT SHIPPING_MEMO FROM (SELECT #{localShippingMemo, jdbcType=VARCHAR} AS SHIPPING_MEMO FROM DUAL WHERE LENGTHB(#{localShippingMemo, jdbcType=VARCHAR}) &lt;= 300 UNION ALL SELECT SUBSTRB(#{localShippingMemo, jdbcType=VARCHAR}, 0, 283) || '...(내용잘림)' AS SHIPPING_MEMO FROM DUAL WHERE LENGTHB(#{localShippingMemo, jdbcType=VARCHAR}) &gt; 300))  
+                  , #{localShippingDueDate, jdbcType=TIMESTAMP, javaType=java.util.GregorianCalendar, typeHandler=com.cware.netshopping.common.typehandler.GregorianCalendarDataTypeHandler}
+                  , #{localDecisionDate, jdbcType=TIMESTAMP, javaType=java.util.GregorianCalendar, typeHandler=com.cware.netshopping.common.typehandler.GregorianCalendarDataTypeHandler}
+                  , #{localFreeGift, jdbcType=VARCHAR}
+                  , (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O617' AND CODE_NAME = #{localPlaceOrderStatus, jdbcType=VARCHAR, javaType=com.cware.api.panaver.order.seller.SellerServiceStub$PlaceOrderStatusType, typeHandler=com.cware.netshopping.common.typehandler.NaverPlaceOrderStatusTypeHandler})
+                  , #{localPlaceOrderDate, jdbcType=TIMESTAMP, javaType=java.util.GregorianCalendar, typeHandler=com.cware.netshopping.common.typehandler.GregorianCalendarDataTypeHandler}
+                  , (SELECT CODE_MGROUP FROM TCODE WHERE CODE_LGROUP = 'O623' AND CODE_NAME = #{localDelayedDispatchReason, jdbcType=VARCHAR})
+                  , #{localDelayedDispatchDetailedReason, jdbcType=VARCHAR}
+                  , DECODE(#{localSellerBurdenDiscountAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localSellerBurdenDiscountAmount, jdbcType=NUMERIC})
+                  , DECODE(#{localSellerBurdenImediateDiscountAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localSellerBurdenImediateDiscountAmount, jdbcType=NUMERIC})
+                  , DECODE(#{localSellerBurdenProductDiscountAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localSellerBurdenProductDiscountAmount, jdbcType=NUMERIC})
+                  , DECODE(#{localSellerBurdenMultiplePurchaseDiscountAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localSellerBurdenMultiplePurchaseDiscountAmount, jdbcType=NUMERIC})
+                  , #{localCommissionRatingType, jdbcType=VARCHAR}
+                  , #{localCommissionPrePayStatus, jdbcType=VARCHAR, javaType=com.cware.api.panaver.order.seller.SellerServiceStub$CommissionPrePayMethodType, typeHandler=com.cware.netshopping.common.typehandler.NaverCommissionPrePayMethodTypeHandler}
+                  , DECODE(#{localPaymentCommission, jdbcType=NUMERIC}, -2147483648, NULL, #{localPaymentCommission, jdbcType=NUMERIC})
+                  , DECODE(#{localSaleCommission, jdbcType=NUMERIC}, -2147483648, NULL, #{localSaleCommission, jdbcType=NUMERIC})
+                  , DECODE(#{localChannelCommission, jdbcType=NUMERIC}, -2147483648, NULL, #{localChannelCommission, jdbcType=NUMERIC})
+                  , DECODE(#{localKnowledgeShoppingSellingInterlockCommission, jdbcType=NUMERIC}, -2147483648, NULL, #{localKnowledgeShoppingSellingInterlockCommission, jdbcType=NUMERIC})
+                  , DECODE(#{localExpectedSettlementAmount, jdbcType=NUMERIC}, -2147483648, NULL, #{localExpectedSettlementAmount, jdbcType=NUMERIC})
+                  , #{localInflowPath, jdbcType=VARCHAR}
+                  , #{localItemNo, jdbcType=VARCHAR}
+                  , #{localOptionManageCode, jdbcType=VARCHAR}
+                  , #{localPurchaserSocialSecurityNo, jdbcType=VARCHAR}
+                  , #{localSellerCustomCode1, jdbcType=VARCHAR}
+                  , #{localSellerCustomCode2, jdbcType=VARCHAR}
+                  , #{localClaimID, jdbcType=VARCHAR}
+                  , #{localIndividualCustomUniqueCode, jdbcType=VARCHAR}
+                  , #{localGiftReceivingStatus, jdbcType=VARCHAR, javaType=com.cware.api.panaver.order.seller.SellerServiceStub$GiftReceivingStatusType, typeHandler=com.cware.netshopping.common.typehandler.NaverGiftReceivingStatusTypeHandler}
+                  , SYSDATE
+                  , SYSDATE
+                  )
+    </insert>
+    <select id="selectNotPlacedAndPayedOrder" parameterType="String" resultType="hashMap">
+        SELECT /* panaver.delivery.selectNotPlacedAndPayedOrder : panaverdelivery.xml */
+               T.ORDER_ID
+             , T.PRODUCT_ORDER_ID
+          FROM TPANAVERORDERCHANGE T
+         WHERE T.PRODUCT_ORDER_ID = #{productOrderID, jdbcType=VARCHAR}
+           AND T.LAST_CHANGED_STATUS = '10'
+           AND T.PRODUCT_ORDER_STATUS = '10'
+           AND T.PAYMENT_DATE IS NOT NULL
+           AND T.PLACE_DATE IS NULL
+    </select>
+    <select id="selectOrderInputTargetDtList" parameterType="String" resultType="hashMap">
+        SELECT /* panaver.delivery.selectOrderInputTargetDtList : panaverdelivery.xml */
+               /*+  LEADING(PM) USE_NL(OL PGM PGD)  */
+               PM.PA_ORDER_NO
+             , PM.PA_CODE
+             , PM.MAPPING_SEQ
+             , TC.REMARK1 AS MEDIA_CODE
+             , TO_CHAR(OM.ORDER_DATE, 'YYYYMMDDHH24MISS') AS ORDER_DATE
+             , PGD.GOODS_CODE
+             , PGD.GOODSDT_CODE
+             , OL.QUANTITY AS ORDER_QTY
+             , TO_CHAR(PGP.APPLY_DATE, 'YYYYMMDDHH24MISS') APPLY_DATE
+             , PGP.SUPPLY_PRICE
+             , OL.TOTAL_PAYMENT_AMT AS RSALE_AMT
+             , OL.SELLER_DISCOUNT_AMT AS SELLER_DC_AMT
+             , (PGP.LUMP_SUM_DC_AMT * OL.QUANTITY) AS LUMP_SUM_DC_AMT
+             , (PGP.LUMP_SUM_ENTP_DC_AMT) AS LUMP_SUM_ENTP_DC_AMT
+             , (PGP.LUMP_SUM_OWN_DC_AMT) AS LUMP_SUM_OWN_DC_AMT
+             , OM.ORDERER_NAME AS CUST_NAME
+             , CWARE_ENC_DEC(OM.ORDERER_TEL1, 'D') AS CUST_TEL1
+             , CWARE_ENC_DEC(OM.ORDERER_TEL2, 'D') AS CUST_TEL2
+             , A.NAME AS RECEIVER_NAME
+             , CWARE_ENC_DEC(A.TEL1, 'D') AS RECEIVER_TEL
+             , CWARE_ENC_DEC(A.TEL2, 'D') AS RECEIVER_HP
+             , CWARE_ENC_DEC(A.BASE_ADDRESS, 'D') || ' ' || CWARE_ENC_DEC(A.DETAILED_ADDRESS, 'D') AS RECEIVER_ADDR
+             , OL.SHIPPING_MEMO AS MSG
+             , CWARE_ENC_DEC(A.ZIP_CODE, 'D') AS RCVR_MAIL_NO
+             , '' AS RCVR_MAIL_NO_SEQ
+             , CWARE_ENC_DEC(A.BASE_ADDRESS, 'D') AS RCVR_BASE_ADDR
+             , CWARE_ENC_DEC(A.DETAILED_ADDRESS, 'D') AS RCVR_DTLS_ADDR
+             , DECODE(A.IS_ROAD_NAME_ADDRESS, 'false', '01', '02') AS TYPE_ADD
+             , OL.PRODUCT_ID AS PA_GOODS_CODE
+             , OL.DELIVERY_POLICY_TYPE
+             , OL.DELIVERY_FEE_AMT + OL.SECTION_DELIVERY_FEE as SHP_FEE_COST
+             , PGP.PRICE_SEQ  <!-- PRICE_SEQ 추가 -->
+             , DECODE(PM.PA_DO_FLAG, '10' , '10' ,'20') DO_FLAG 
+             , PM.PA_ORDER_SEQ AS PRODUCT_ORDER_ID
+             , PP.COUPON_PROMO_NO AS PROMO_NO
+             , PP.COUPON_OWN_COST AS OWN_COST
+             , PP.COUPON_ENTP_COST AS ENTP_COST
+             , TO_CHAR(PROMO.PROMO_BDATE, 'yyyy/mm/dd hh24:mi:ss') AS COUPON_PROMO_BDATE
+             , TO_CHAR(PROMO.PROMO_EDATE, 'yyyy/mm/dd hh24:mi:ss') AS COUPON_PROMO_EDATE
+             , NVL(PP.COUPON_DC_AMT, 0) AS OUT_PROMO_PRICE
+             , NVL(OL.SELLER_PRODUCT_DISCOUNT_AMT, 0) AS INSTANT_COUPON_DISCOUNT
+             , PGD.PA_OPTION_CODE
+             , TO_CHAR(GP.APPLY_DATE, 'YYYYMMDDHH24MISS') AS STOA_APPLY_DATE
+          FROM TPAORDERM PM
+    INNER JOIN TPANAVERORDERM OM
+            ON PM.PA_ORDER_NO = OM.ORDER_ID
+    INNER JOIN TPANAVERORDERLIST OL
+            ON PM.PA_ORDER_NO = OL.ORDER_ID
+           AND PM.PA_ORDER_SEQ = OL.PRODUCT_ORDER_ID
+           AND PM.PA_ORDER_GB = OL.PA_ORDER_GB
+    INNER JOIN TPANAVERADDRESS A
+            ON 
+               CASE 
+                   WHEN OL.SHIPPING_ADDRESS_SEQ IS NULL THEN OL.TAKING_ADDRESS_SEQ
+                   WHEN OL.SHIPPING_ADDRESS_SEQ IS NOT NULL THEN OL.SHIPPING_ADDRESS_SEQ
+                END
+                   = A.ADDRESS_SEQ
+    INNER JOIN TCODE TC
+            ON PM.PA_CODE = TC.CODE_MGROUP
+    INNER JOIN TPAGOODSDTMAPPING PGD
+            ON OL.OPTION_CODE = PGD.PA_OPTION_CODE
+    INNER JOIN TPANAVERGOODS PGM
+            ON PGM.GOODS_CODE = PGD.GOODS_CODE
+           AND PGM.PA_CODE = PGD.PA_CODE
+           AND OL.PRODUCT_ID = PGM.PRODUCT_ID
+    INNER JOIN TPAGOODSPRICE PGP
+            ON PGD.GOODS_CODE = PGP.GOODS_CODE
+           AND PM.PA_CODE = PGP.PA_CODE
+    INNER JOIN TPAGOODSPRICEAPPLY PP
+            ON PGM.GOODS_CODE = PP.GOODS_CODE
+           AND PGM.PA_GROUP_CODE = PP.PA_GROUP_CODE
+           AND PGM.PA_CODE = PP.PA_CODE
+    LEFT OUTER JOIN TPROMOM PROMO
+            ON PP.COUPON_PROMO_NO = PROMO.PROMO_NO
+    LEFT OUTER JOIN TGOODSPRICE GP
+            ON GP.GOODS_CODE = PGP.GOODS_CODE
+         WHERE PGP.ROWID = (SELECT /*+ INDEX_DESC(I PK_TPAGOODSPRICE) */
+                                   ROWID 
+                              FROM TPAGOODSPRICE I 
+                             WHERE I.GOODS_CODE = PGP.GOODS_CODE 
+                               AND I.PA_CODE = PM.PA_CODE 
+                               AND I.TRANS_DATE &lt;= OM.ORDER_DATE
+                               AND I.SALE_PRICE = OL.UNIT_PRICE <!-- 실시간 가격변경 조건(판매가) 추가  --> 
+                               AND I.TRANS_DATE IS NOT NULL 
+                               AND ROWNUM = 1)
+           AND (PP.APPLY_DATE, PP.PRICE_APPLY_SEQ) = (SELECT /*+ INDEX_DESC (PP2 PK_TPAGOODSPRICEAPPLY)*/
+                                                            PP2.APPLY_DATE, PP2.PRICE_APPLY_SEQ
+                                                        FROM TPAGOODSPRICEAPPLY PP2
+                                                       WHERE PP2.GOODS_CODE = PP.GOODS_CODE
+                                                         AND PP2.PA_GROUP_CODE = PP.PA_GROUP_CODE
+                                                         AND PP2.PA_CODE = PP.PA_CODE
+                                                         AND PP2.APPLY_DATE &lt;= OM.ORDER_DATE
+                                                         AND PP2.TRANS_DATE &lt;= OM.ORDER_DATE
+                                                         AND ROWNUM = 1 )
+           AND GP.ROWID = (SELECT /*+ INDEX_DESC (GP2 PK_TGOODSPRICE)*/
+                                     GP2.ROWID
+                             FROM TGOODSPRICE GP2
+                            WHERE GP2.GOODS_CODE  = GP.GOODS_CODE
+                              AND GP2.APPLY_DATE &lt; OM.ORDER_DATE
+                              AND ROWNUM = 1)
+           AND (OL.SELLER_DISCOUNT_AMT / OL.QUANTITY) = PP.COUPON_DC_AMT + PP.ARS_DC_AMT + PP.LUMP_SUM_DC_AMT + NVL(OL.SELLER_PRODUCT_DISCOUNT_AMT / OL.QUANTITY, 0)
+           AND TC.CODE_LGROUP = 'O501'
+           AND PM.PA_ORDER_GB = '10'
+           AND PM.CREATE_YN = '0'
+           AND PM.PRE_CANCEL_YN = '0'
+           AND PA_ORDER_NO = #{orderID, jdbcType=VARCHAR}
+    </select>
+    <select id="selectShippingAddressByProductOrderID" parameterType="string" resultType="com.cware.netshopping.domain.PaNaverAddressVO">
+        SELECT /* panaver.delivery.selectShippingAddressByProductOrderID : panaverdelivery.xml */
+               A.ADDRESS_SEQ
+             , A.ADDRESS_TYPE
+             , A.ZIP_CODE
+             , CWARE_ENC_DEC(A.BASE_ADDRESS, 'D') AS BASE_ADDRESS
+             , CWARE_ENC_DEC(A.DETAILED_ADDRESS, 'D') AS DETAILED_ADDRESS
+             , A.IS_ROAD_NAME_ADDRESS
+             , A.CITY
+             , A.STATE
+             , A.COUNTRY
+             , CWARE_ENC_DEC(A.TEL1, 'D') AS TEL1
+             , CWARE_ENC_DEC(A.TEL2, 'D') AS TEL2
+             , A.NAME
+             , A.INSERT_DATE
+          FROM TPANAVERADDRESS A
+    INNER JOIN TPANAVERORDERLIST O
+            ON A.ADDRESS_SEQ = O.SHIPPING_ADDRESS_SEQ
+         WHERE O.PRODUCT_ORDER_ID = #{productOrderID, jdbcType=VARCHAR}
+    </select>
+    <select id="selectMappingSeqByProductOrderInfo" parameterType="hashMap" resultType="string">
+        SELECT /* panaver.delivery.selectMappingSeqByProductOrderInfo : panaverdelivery.xml */
+               MAPPING_SEQ
+          FROM TPAORDERM
+         WHERE PA_ORDER_SEQ = #{productOrderID, jdbcType=VARCHAR}
+           AND PA_ORDER_GB = #{paOrderGb, jdbcType=VARCHAR}
+         <if test='orderID != null and orderId != ""'>
+           AND PA_ORDER_NO = #{orderID, jdbcType=VARCHAR}
+         </if>
+    </select>
+    <select id="selectOrderMappingInfoByMappingSeq" parameterType="string" resultType="hashMap">
+        SELECT /* panaver.delivery.selectOrderMappingInfoByMappingSeq : panaverdelivery.xml */
+               PA_ORDER_NO
+             , PA_ORDER_SEQ
+             , PA_CODE
+             , ORDER_NO
+             , PA_CLAIM_NO
+          FROM TPAORDERM
+         WHERE MAPPING_SEQ = #{mappingSeq, jdbcType=VARCHAR}
+    </select>
+    <select id="selectSlipProcList" resultType="hashMap">
+        SELECT /* panaver.delivery.selectSlipProcList : panaverdelivery.xml */
+               PM.MAPPING_SEQ
+             , SM.SLIP_NO AS TRACKING_NUMBER
+             , SM.SLIP_I_NO
+             , TO_CHAR(SP.SLIP_PROC_DATE, 'YYYYMMDDHH24MISS') AS DISPATCH_DATE
+             , PM.PA_ORDER_SEQ AS PRODUCT_ORDER_ID
+             , PM.PA_ORDER_NO
+             , DG.PA_DELY_GB AS DELIVERY_COMPANY_CODE
+             , '40' AS PA_DO_FLAG
+             , TO_CHAR(FUN_GET_DELYDAY_HOLI_DATE('10', OL.SHIPPING_DUE_DATE,1,3), 'YYYYMMDD') || '235959' AS DELY_DATE
+          FROM TPAORDERM PM
+    INNER JOIN TPANAVERORDERLIST OL
+            ON PM.PA_ORDER_NO = OL.ORDER_ID
+           AND PM.PA_ORDER_SEQ = OL.PRODUCT_ORDER_ID
+    INNER JOIN TSLIPDT SD
+            ON PM.ORDER_NO    = SD.ORDER_NO
+           AND PM.ORDER_G_SEQ = SD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ = SD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ = SD.ORDER_W_SEQ
+    INNER JOIN TSLIPM SM
+            ON SM.SLIP_I_NO   = SD.SLIP_I_NO
+    INNER JOIN TSLIPPROC SP
+            ON SM.SLIP_I_NO   = SP.SLIP_I_NO
+     LEFT JOIN TPADELYGB DG
+            ON SM.DELY_GB = DG.DELY_GB
+           AND '04' = DG.PA_CODE
+    INNER JOIN TORDERGOODS OG
+            ON PM.ORDER_NO    = OG.ORDER_NO
+           AND PM.ORDER_G_SEQ = OG.ORDER_G_SEQ
+         WHERE PM.PA_DO_FLAG  = '30'
+           AND PM.PA_ORDER_GB = '10'
+           AND PM.PA_CODE     = '41'
+           AND SP.SLIP_PROC   = '40'
+           AND SM.SLIP_GB = '101'
+           AND SM.SLIP_PROC >= 40
+           AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+           AND SM.SLIP_NO IS NOT NULL /*운송장이 있는 주문 건*/
+    </select>
+    
+    <update id="updatePaOrdermResult" parameterType="com.cware.netshopping.domain.model.Paorderm">
+        UPDATE /* panaver.delivery.updatePaOrdermResult : panaverdelivery.xml */
+               TPAORDERM
+           SET PA_SHIP_NO = #{paShipNo, jdbcType=VARCHAR}
+             , API_RESULT_CODE = #{apiResultCode , jdbcType=VARCHAR}
+             , API_RESULT_MESSAGE = #{apiResultMessage , jdbcType=VARCHAR}
+             <if test='apiResultCode == "000000"'>
+             , PA_DO_FLAG = #{paDoFlag , jdbcType=VARCHAR}
+             , PROC_DATE = #{procDate , jdbcType=TIMESTAMP}
+             </if>
+             <if test='preCancelYn != null and preCancelYn != ""'>
+             , PRE_CANCEL_YN = #{preCancelYn, jdbcType=VARCHAR}
+             </if>
+             <if test='remark1V != null and remark1V != ""'>
+             , REMARK1_V = #{remark1V, jdbcType=VARCHAR}
+             </if>
+         WHERE 1=1
+           <choose>
+            <when test='mappingSeq != "" and mappingSeq != null'>
+            AND MAPPING_SEQ = #{mappingSeq , jdbcType=VARCHAR} 
+            </when>
+            <when test="paOrderNo != '' and paOrderNo != null">
+            AND PA_ORDER_NO  = #{paOrderNo , jdbcType=VARCHAR}
+            AND PA_ORDER_SEQ = #{paOrderSeq , jdbcType=VARCHAR}
+            AND PA_CODE = #{paCode , jdbcType=VARCHAR}
+            </when>
+           </choose>
+           <if test='paOrderGb != null and paOrderGb != ""'>
+            AND PA_ORDER_GB = #{paOrderGb, jdbcType=VARCHAR}
+           </if>
+           <if test='remark1V != null and remark1V != ""'>
+            AND REMARK1_V IS NULL
+           </if>
+    </update>
+    
+    <select id="selectDelayProcList" resultType="hashMap">
+           SELECT /* panaver.delivery.selectDelayProcList : panaverdelivery.xml */
+                  X.MAPPING_SEQ 
+                , X.PA_CODE
+                , X.PA_ORDER_SEQ AS PRODUCT_ORDER_ID
+                , X.PA_ORDER_NO
+                , X.SITE_GB
+                , X.CNT
+                , TO_CHAR(X.SHIPPING_DUE_DATE, 'YYYYMMDDHH24MISS') AS SHIPPING_DUE_DATE
+                , X.PA_GROUP_CODE
+                , X.REASON_DETAIL
+                , X.DELY_DATE
+                , '30' AS PA_DO_FLAG
+             FROM (SELECT PM.MAPPING_SEQ
+                        , PM.PA_CODE
+                        , PM.PA_ORDER_SEQ
+                        , PM.PA_ORDER_NO 
+                        , TC.CODE_SNAME AS SITE_GB
+                        , ROW_NUMBER() OVER(PARTITION BY PO.PRODUCT_ORDER_ID ORDER BY PO.PRODUCT_ORDER_ID, G.INSTALL_YN DESC) CNT
+                        , PO.SHIPPING_DUE_DATE
+                        , PM.PA_GROUP_CODE
+                        , '발송 예정일 지연 안내' AS REASON_DETAIL
+                        , DECODE(NVL(GA.ORDER_CREATE_YN, DECODE(G.INSTALL_YN, '1', '1', '0')), '1', TO_CHAR(FUN_GET_DELYDAY_HOLI_DATE('10',SHIPPING_DUE_DATE,1,10), 'YYYYMMDD') || '235959'
+                                                                                                   , TO_CHAR(FUN_GET_DELYDAY_HOLI_DATE('10',SHIPPING_DUE_DATE,1,3), 'YYYYMMDD') || '235959') AS DELY_DATE
+                     FROM TPANAVERORDERLIST PO
+               INNER JOIN TPANAVERGOODS PG
+                       ON PO.PRODUCT_ID = PG.PRODUCT_ID
+               INNER JOIN TGOODS G
+                       ON PG.GOODS_CODE = G.GOODS_CODE
+                LEFT JOIN TGOODSADDINFO GA
+                       ON PG.GOODS_CODE = GA.GOODS_CODE
+               INNER JOIN TPAORDERM PM
+                       ON PO.ORDER_ID     = PM.PA_ORDER_NO
+                      AND PO.PRODUCT_ORDER_ID = PM.PA_ORDER_SEQ
+               INNER JOIN TCODE TC
+                       ON TC.CODE_MGROUP = PM.PA_GROUP_CODE
+                    WHERE PM.PA_CODE = '41'
+                      AND PM.PA_ORDER_GB = '10'
+                      AND PO.SHIPPING_DUE_DATE IS NOT NULL
+                      AND PM.PRE_CANCEL_YN = '0'
+                      AND PM.CREATE_YN     = '1'              
+                      AND TRUNC(PO.SHIPPING_DUE_DATE) &lt;= TRUNC(SYSDATE)               
+                      AND PM.PA_DO_FLAG &lt; '40'
+                      AND PM.PA_GROUP_CODE = '04' 
+                      AND TC.CODE_LGROUP = 'O500'
+                      AND PM.REMARK1_V IS NULL 
+                      AND NOT EXISTS ( SELECT 'X'
+                                         FROM TPAORDERM CM
+                                        WHERE CM.PRE_CANCEL_YN      = '0'
+                                          AND CM.CREATE_YN          = '1'
+                                          AND CM.PA_CODE            = PM.PA_CODE
+                                          AND CM.PA_ORDER_NO        = PM.PA_ORDER_NO
+                                          AND CM.PA_GROUP_CODE      = PM.PA_GROUP_CODE
+                                          AND CM.PA_ORDER_SEQ       = PM.PA_ORDER_SEQ
+                                          AND CM.PA_ORDER_GB        = '20'
+                                          AND ROWNUM = 1
+                                     )
+                      AND NOT EXISTS ( SELECT 'X'
+                                         FROM TSLIPDT SD
+                                   INNER JOIN TSLIPM SM
+                                           ON SM.SLIP_I_NO = SD.SLIP_I_NO
+                                        WHERE SD.ORDER_NO = PM.ORDER_NO
+                                          AND SD.ORDER_G_SEQ = PM.ORDER_G_SEQ
+                                          AND SD.ORDER_D_SEQ = PM.ORDER_D_SEQ
+                                          AND SD.ORDER_W_SEQ = PM.ORDER_W_SEQ
+                                          AND SM.SLIP_NO IS NOT NULL
+                                          AND ROWNUM = 1
+                                     )
+                  ) X
+             WHERE X.CNT = 1
+    </select>
+    <update id="updateShippingDueDate" parameterType="hashMap">
+           UPDATE /* panaver.delivery.updateShippingDueDate : panaverdelivery.xml */
+                  TPANAVERORDERLIST
+              SET SHIPPING_DUE_DATE = TO_DATE(#{shippingDueDate, jdbcType=TIMESTAMP}, 'YYYYMMDDHH24MISS')
+            WHERE PRODUCT_ORDER_ID = #{productOrderID, jdbcType=VARCHAR}
+              AND SHIPPING_DUE_DATE &lt; TO_DATE(#{shippingDueDate, jdbcType=TIMESTAMP}, 'YYYYMMDDHH24MISS')
+    </update>
+    
+    <select id="selectOrderCancelCnt" parameterType="com.cware.netshopping.domain.model.Paorderm" resultType="int">
+        SELECT /* panaver.delivery.selectOrderCancelCnt : panaverdelivery.xml */
+               COUNT(1)
+          FROM TPAORDERM
+         WHERE PA_ORDER_GB = '20'
+           AND PA_CODE = '41'
+           AND PA_ORDER_NO = #{paOrderNo, jdbcType=VARCHAR}
+           AND PA_ORDER_SEQ = #{paOrderSeq, jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectOrderPromo" parameterType="hashMap" resultType="com.cware.netshopping.domain.OrderpromoVO">
+        SELECT /* panaver.delivery.selectOrderPromo : panaverdelivery.xml */ 
+        		*
+          FROM ( SELECT PPT.SEQ
+		              , PPT.PROC_GB
+		              , PM.PROMO_NO AS PROMO_NO
+		              , PPT.PA_CODE
+		              , TG.GOODS_CODE
+		              , PM.DO_TYPE
+		              , PM.COUPON_YN
+		              , PM.MEDIA_CODE
+		              , PM.PROMO_BDATE AS COUPON_PROMO_BDATE
+		              , PM.PROMO_EDATE AS COUPON_PROMO_EDATE
+		              , PPT.DO_AMT AS PROC_COST
+		              , PPT.OWN_COST AS OWN_PROC_COST
+		              , PPT.ENTP_COST AS ENTP_PROC_COST   
+		              , PPT.INSERT_DATE
+		           FROM TPROMOM          PM
+		              , TPAPROMOTARGET   PPT
+		              , TGOODS           TG
+		              , TPANAVERGOODS    NG
+		           WHERE PM.PROMO_NO       = PPT.PROMO_NO
+		             AND PPT.GOODS_CODE    = TG.GOODS_CODE
+		             AND TG.GOODS_CODE     = NG.GOODS_CODE
+		             AND PPT.GOODS_CODE    = #{GOODS_CODE, jdbcType=VARCHAR}
+		             AND PM.COUPON_YN      = '1'
+		             AND PM.APP_TYPE       = '10'
+		             AND PPT.PA_CODE       = NG.PA_CODE
+		             AND PM.IMMEDIATELY_YN = '1'
+		             AND NVL(PM.ALCOUT_PROMO_YN, '0') = '0'
+		             AND PM.GOODS_ALL_YN   = '0'
+		             AND ((PPT.USE_CODE       = '00' AND PPT.PROC_GB IN ('I', 'U') )  OR (PPT.PROC_GB = 'D') ) 
+		             AND PPT.TRANS_DATE    IS NOT NULL
+		             AND PPT.TRANS_DATE    &lt; TO_DATE(#{ORDER_DATE, jdbcType=VARCHAR}, 'YYYY-MM-DD HH24MISS')
+		             AND (( TO_DATE(#{ORDER_DATE,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE )
+		             	   OR ( TO_DATE(#{ORDER_DATE,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') >  PPT.PROMO_EDATE AND PPT.PROC_GB = 'D' ) )                 
+		             AND TG.GIFT_YN        = '0'
+		        ORDER BY PPT.TRANS_DATE DESC)		        
+         WHERE ROWNUM            = 1
+    </select>
+    
+    <!-- 프로모션 별 운영관리 기능 효율화(REQ_PRM_040) : S -->
+    <select id="selectOrderPaPromo" parameterType="hashMap" resultType="com.cware.netshopping.domain.OrderpromoVO">
+        SELECT /* panaver.delivery.selectOrderPaPromo : panaverdelivery.xml */ 
+        		*
+          FROM ( SELECT PPT.SEQ
+		              , PPT.PROC_GB
+		              , PM.PROMO_NO AS PROMO_NO
+		              , PPT.PA_CODE
+		              , TG.GOODS_CODE
+		              , PM.DO_TYPE
+		              , PM.COUPON_YN
+		              , PM.MEDIA_CODE
+		              , PM.PROMO_BDATE AS COUPON_PROMO_BDATE
+		              , PM.PROMO_EDATE AS COUPON_PROMO_EDATE
+		              , PPT.DO_AMT AS PROC_COST
+		              , PPT.OWN_COST AS OWN_PROC_COST
+		              , PPT.ENTP_COST AS ENTP_PROC_COST   
+		              , PPT.INSERT_DATE
+		           FROM TPROMOM          PM
+		              , TPAPROMOTARGET   PPT
+		              , TGOODS           TG
+		              , TPANAVERGOODS    NG
+		           WHERE PM.PROMO_NO       = PPT.PROMO_NO
+		             AND PPT.GOODS_CODE    = TG.GOODS_CODE
+		             AND TG.GOODS_CODE     = NG.GOODS_CODE
+		             AND PPT.GOODS_CODE    = #{GOODS_CODE, jdbcType=VARCHAR}
+		             AND PM.COUPON_YN      = '1'
+		             AND PM.APP_TYPE       = '10'
+		             AND PPT.PA_CODE       = NG.PA_CODE
+		             AND PM.IMMEDIATELY_YN = '1'
+		             AND NVL(PM.ALCOUT_PROMO_YN, '0') = '1'
+		             AND PM.GOODS_ALL_YN   = '0'
+		             AND ((PPT.USE_CODE       = '00' AND PPT.PROC_GB IN ('I', 'U') )  OR (PPT.PROC_GB = 'D') ) 
+		             AND PPT.TRANS_DATE    IS NOT NULL
+		             AND PPT.TRANS_DATE    &lt; TO_DATE(#{ORDER_DATE, jdbcType=VARCHAR}, 'YYYY-MM-DD HH24MISS')
+		             AND (( TO_DATE(#{ORDER_DATE,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE )
+		             	   OR ( TO_DATE(#{ORDER_DATE,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') >  PPT.PROMO_EDATE AND PPT.PROC_GB = 'D' ) )                 
+		             AND TG.GIFT_YN        = '0'
+		        ORDER BY PPT.TRANS_DATE DESC)		        
+         WHERE ROWNUM            = 1
+    </select>
+    <!-- 프로모션 별 운영관리 기능 효율화(REQ_PRM_040) : E -->
+</mapper>

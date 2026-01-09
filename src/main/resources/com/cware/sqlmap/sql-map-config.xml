@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//ibatis.apache.org//DTD Config 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-config.dtd">
+<configuration>
+    <settings>
+        <setting name="cacheEnabled" value="true"/>
+	  	<setting name="callSettersOnNulls" value="true"/>
+	  	<setting name="mapUnderscoreToCamelCase" value="true"/>
+	  	<setting name="returnInstanceForEmptyRow" value="true"/>
+	  	<setting name="jdbcTypeForNull" value="NULL"/>
+    </settings>
+    
+    <typeAliases>
+		<package name="com.cware.netshopping.pagmkt.v2.domain" />
+	</typeAliases>
+    
+    <typeHandlers>
+        <typeHandler handler="com.cware.netshopping.common.typehandler.GregorianCalendarDataTypeHandler" javaType="java.util.GregorianCalendar" />
+        <typeHandler handler="com.cware.netshopping.common.typehandler.NaverAddressTypeHandler" javaType="com.cware.api.panaver.order.seller.SellerServiceStub$ProductOrderChangeType" />
+        <typeHandler handler="com.cware.netshopping.common.typehandler.NaverClaimRequestReasonTypeHandler" javaType="com.cware.api.panaver.order.seller.SellerServiceStub$ClaimRequestReasonType" />
+        <typeHandler handler="com.cware.netshopping.common.typehandler.NaverClaimStatusTypeHandler" javaType="com.cware.api.panaver.order.seller.SellerServiceStub$ClaimStatusType" />
+        <typeHandler handler="com.cware.netshopping.common.typehandler.NaverClaimTypeHandler" javaType="com.cware.api.panaver.order.seller.SellerServiceStub$ClaimType" />
+        <typeHandler handler="com.cware.netshopping.common.typehandler.NaverCommissionPrePayMethodTypeHandler" javaType="com.cware.api.panaver.order.seller.SellerServiceStub$CommissionPrePayMethodType" />
+        <typeHandler handler="com.cware.netshopping.common.typehandler.NaverDelayedDispatchReasonTypeHandler" javaType="com.cware.api.panaver.order.seller.SellerServiceStub$DelayedDispatchReasonType" />
+        <typeHandler handler="com.cware.netshopping.common.typehandler.NaverDeliveryMethodTypeHandler" javaType="com.cware.api.panaver.order.seller.SellerServiceStub$DeliveryMethodType" />
+        <typeHandler handler="com.cware.netshopping.common.typehandler.NaverGiftReceivingStatusTypeHandler" javaType="com.cware.api.panaver.order.seller.SellerServiceStub$GiftReceivingStatusType" />
+        <typeHandler handler="com.cware.netshopping.common.typehandler.NaverHoldbackClassTypeHandler" javaType="com.cware.api.panaver.order.seller.SellerServiceStub$HoldbackClassType" />
+        <typeHandler handler="com.cware.netshopping.common.typehandler.NaverHoldbackStatusTypeHandler" javaType="com.cware.api.panaver.order.seller.SellerServiceStub$HoldbackStatusType" />
+        <typeHandler handler="com.cware.netshopping.common.typehandler.NaverProductOrderChangeTypeHandler" javaType="com.cware.api.panaver.order.seller.SellerServiceStub$ProductOrderChangeType" />
+        <typeHandler handler="com.cware.netshopping.common.typehandler.NaverProductOrderStatusTypeHandler" javaType="com.cware.api.panaver.order.seller.SellerServiceStub$ProductOrderStatusType" />
+    </typeHandlers>
+    
+    <plugins>
+        <plugin interceptor="com.cware.framework.core.dataaccess.plugins.ResultSetPlugin">
+            <!-- Oracle PostgreSQL -->
+            <property name="dbmsId" value="Oracle"/>
+        </plugin>   
+        <plugin interceptor="com.cware.framework.core.dataaccess.plugins.StatmentPlugin">
+            <!-- Oracle PostgreSQL -->
+            <property name="dbmsId" value="Oracle"/>
+        </plugin>       
+    </plugins>  
+    <mappers>
+     	<!-- 넷쇼핑 & 코어 -->
+        <mapper resource="com/cware/sqlmap/netshopdb/common/system/system.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/common/code/code.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/core/custcenter/cash.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/core/custcenter/order.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/core/custcenter/saveamt.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/core/custcenter/shoppingpoint.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/core/custcenter/payment.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/core/manage/display.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/core/manage/goods.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/core/manage/lottery.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/core/logistics/slipreturn.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/core/logistics/slipout.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/core/exchange/ums.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/core/system/code.xml"/>
+        
+        <!-- 제휴 공통 -->
+        <mapper resource="com/cware/sqlmap/netshopdb/pacommon/order/paorder.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pacommon/claim/paclaim.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pacommon/common/pacommon.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pacommon/counsel/pacounsel.xml"/>
+        
+        <!-- 11번가 -->
+        <mapper resource="com/cware/sqlmap/netshopdb/pa11st/delivery/pa11stdelivery.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pa11st/order/pa11storder.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pa11st/claim/pa11stclaim.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pa11st/exchange/pa11stexchange.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pa11st/common/pa11stcommon.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pa11st/goods/pa11stgoods.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pa11st/broadcast/pa11stbroadcast.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pa11st/stockCheck/pa11ststockCheck.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pa11st/counsel/pa11stcounsel.xml"/>
+
+        <!-- G마켓 -->
+        <mapper resource="com/cware/sqlmap/netshopdb/pagmkt/common/pagmktcommon.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pagmkt/goods/pagmktgoods.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pagmkt/delivery/pagmktdelivery.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pagmkt/claim/pagmktclaim.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pagmkt/order/pagmktorder.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pagmkt/exchange/pagmktexchange.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pagmkt/counsel/pagmktcounsel.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pagmkt/stockcheck/pagmktstockcheck.xml"/> 
+        <mapper resource="com/cware/sqlmap/netshopdb/pagmkt/broadcast/pagmktbroadcast.xml"/>      
+        <mapper resource="com/cware/sqlmap/netshopdb/pagmkt/cancel/pagmktcancel.xml"/>
+        <!-- G마켓 연동구조개선 --> 
+        <mapper resource="com/cware/sqlmap/netshopdb/pagmkt/v2/pagmktgoods.xml"/>    
+        
+        <!-- Naver -->
+        <mapper resource="com/cware/sqlmap/netshopdb/panaver/common/panavercommon.xml"/>     
+        <mapper resource="com/cware/sqlmap/netshopdb/panaver/infocommon/panaverinfocommon.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/panaver/goods/panavergoods.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/panaver/order/panaverorder.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/panaver/cancel/panavercancel.xml"/>  
+        <mapper resource="com/cware/sqlmap/netshopdb/panaver/order/panaverorder.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/panaver/delivery/panaverdelivery.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/panaver/claim/panaverclaim.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/panaver/exchange/panaverexchange.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/panaver/counsel/panavercounsel.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/panaver/account/panaveraccount.xml"/>
+        
+        <!-- Naver V3 -->
+        <mapper resource="com/cware/sqlmap/netshopdb/panaverV3/goods/panaverV3goods.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/panaverV3/infocommon/panaverv3infocommon.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/panaverV3/cancel/panaverv3cancel.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/panaverV3/exchange/panaverv3exchange.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/panaverV3/delivery/panaverv3delivery.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/panaverV3/claim/panaverv3claim.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/panaverV3/account/panaverv3account.xml"/>
+        
+        <!-- 제휴 - 쿠팡 -->
+        <mapper resource="com/cware/sqlmap/netshopdb/pacopn/counsel/pacopncounsel.xml" />
+        <mapper resource="com/cware/sqlmap/netshopdb/pacopn/delivery/pacopndelivery.xml" />
+        <mapper resource="com/cware/sqlmap/netshopdb/pacopn/order/pacopnorder.xml" />
+        <mapper resource="com/cware/sqlmap/netshopdb/pacopn/claim/pacopnclaim.xml" />
+        <mapper resource="com/cware/sqlmap/netshopdb/pacopn/exchange/pacopnexchange.xml" />
+        <mapper resource="com/cware/sqlmap/netshopdb/pacopn/sales/pacopnsales.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pacopn/goods/pacopngoods.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pacopn/common/pacopncommon.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pacopn/stockcheck/pacopnstockcheck.xml"/>
+        
+        <!-- 제휴 위메프 -->
+        <mapper resource="com/cware/sqlmap/netshopdb/pawemp/common/pawempcommon.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pawemp/goods/pawempgoods.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pawemp/order/pawemporder.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pawemp/claim/pawempclaim.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pawemp/exchange/pawempexchange.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pawemp/sales/pawempsales.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pawemp/counsel/pawempcounsel.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pawemp/broadcast/pawempbroadcast.xml"/>
+        
+        <!-- 인터파크 -->
+        <mapper resource="com/cware/sqlmap/netshopdb/paintp/common/paintpcommon.xml"/>      
+        <mapper resource="com/cware/sqlmap/netshopdb/paintp/order/paintporder.xml"/>      
+        <mapper resource="com/cware/sqlmap/netshopdb/paintp/claim/paintpclaim.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/paintp/goods/paintpgoods.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/paintp/counsel/paintpcounsel.xml"/>     
+
+        <!-- 롯데온  -->
+        <mapper resource="com/cware/sqlmap/netshopdb/palton/delivery/paltondelivery.xml"/>      
+		<mapper resource="com/cware/sqlmap/netshopdb/palton/common/paltoncommon.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/palton/goods/paltongoods.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/palton/claim/paltonclaim.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/palton/counsel/paltoncounsel.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/palton/counsel/paltoncounsel.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/palton/stockcheck/paltonstockcheck.xml"/>
+        <!-- 티몬  -->
+		<mapper resource="com/cware/sqlmap/netshopdb/patmon/common/patmoncommon.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/patmon/goods/patmongoods.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/patmon/delivery/patmondelivery.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/patmon/claim/patmonclaim.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/patmon/counsel/patmoncounsel.xml"/>
+		
+		<!-- SSG  -->
+		<mapper resource="com/cware/sqlmap/netshopdb/passg/common/passgcommon.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/passg/goods/passggoods.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/passg/delivery/passgdelivery.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/passg/claim/passgclaim.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/passg/counsel/passgcounsel.xml"/>
+		
+		<!-- HALF  -->
+		<mapper resource="com/cware/sqlmap/netshopdb/pahalf/common/pahalfcommon.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/pahalf/goods/pahalfgoods.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/pahalf/order/pahalforder.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/pahalf/claim/pahalfclaim.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/pahalf/counsel/pahalfcounsel.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/pahalf/broadcast/pahalfbroadcast.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/pahalf/delivery/pahalfdelivery.xml"/>
+		
+		<!-- 카카오  -->
+		<mapper resource="com/cware/sqlmap/netshopdb/pakakao/common/pakakaocommon.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/pakakao/goods/pakakaogoods.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/pakakao/delivery/pakakaodelivery.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/pakakao/claim/pakakaoclaim.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/pakakao/counsel/pakakaocounsel.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/pakakao/settlement/pakakaosettlement.xml"/>
+		
+		<!-- T deal -->
+        <mapper resource="com/cware/sqlmap/netshopdb/patdeal/cancel/patdealcancel.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/patdeal/exchange/patdealexchange.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/patdeal/delivery/patdealdelivery.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/patdeal/claim/patdealclaim.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/patdeal/account/patdealaccount.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/patdeal/common/patdealcommon.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/patdeal/goods/patdealgoods.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/patdeal/counsel/patdealcounsel.xml"/>
+		<mapper resource="com/cware/sqlmap/netshopdb/patdeal/slack/patdealslack.xml"/>
+		
+		<!-- 패션플러스 -->
+        <mapper resource="com/cware/sqlmap/netshopdb/pafaple/cancel/pafaplecancel.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pafaple/delivery/pafapledelivery.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pafaple/claim/pafapleclaim.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pafaple/account/pafapleaccount.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pafaple/common/pafaplecommon.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pafaple/goods/pafaplegoods.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pafaple/counsel/pafaplecounsel.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/pafaple/broadcast/pafaplebroadcast.xml"/>
+        
+        <!-- 퀸잇 -->
+        <mapper resource="com/cware/sqlmap/netshopdb/paqeen/goods/paqeengoods.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/paqeen/delivery/paqeendelivery.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/paqeen/claim/paqeenclaim.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/paqeen/cancel/paqeencancel.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/paqeen/counsel/paqeencounsel.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/paqeen/common/paqeencommon.xml"/>
+        <mapper resource="com/cware/sqlmap/netshopdb/paqeen/account/paqeenaccount.xml"/>
+        
+    </mappers>
+    
+          
+        
+        
+</configuration>

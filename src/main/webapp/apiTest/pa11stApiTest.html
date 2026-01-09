@@ -1,0 +1,640 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <title> New Document </title>
+  <meta name="Generator" content="EditPlus">
+  <meta name="Author" content="">
+  <meta name="Keywords" content="">
+  <meta name="Description" content="">
+  <meta http-equiv="Content-Type" content="text/xml; charset=utf-8" />
+
+  <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+  <script type="text/javascript">
+      
+	$(function () {
+	
+	    $(".tab_content").hide();
+	    $(".tab_content:first").show();
+	    $("ul.tabs li").click(function () {
+	        $("ul.tabs li").removeClass("active").css("color", "#333");
+	        $(this).addClass("active").css("color", "red");
+	        $(".tab_content").hide()
+	        var activeTab = $(this).attr("rel");
+	        $("#" + activeTab).fadeIn()
+	    });
+	    
+        $('button').click(function() {
+            var form = $(this).closest('form');
+            resultRequst(form);
+       });
+       
+       $('a').click(function() {
+           showView($(this).parent().next());
+       });
+	    
+       $('#btn_clear').click(function() {
+           doc = document.getElementById("ifr_result");
+           frameDoc = doc.contentWindow.document;
+           frameDoc.removeChild(frameDoc.documentElement);
+       });
+	});
+	
+    function showView(obj){
+        if(obj.hasClass('active')){
+           obj.removeClass('active');
+           obj.show();
+        }else{
+           obj.addClass('active');
+           obj.hide();
+        }
+    } 	
+    
+    function resultRequst(form){ 
+        var urlStr = form.attr('action');
+        form.attr('target', 'resultView');
+        form.attr('action', $('input[name=serverpath]:checked').val()+urlStr);
+        form.submit();
+        form.attr('action', urlStr);
+    }
+
+  </script>
+ 
+<style>
+    ul.header {
+        margin: 0;
+        padding: 0;
+        float: left;
+        list-style: none;
+        height: 20px;
+        width: 100%;
+        font-family:"dotum";
+        font-size:13px;
+    }   
+    ul.tabs {
+        margin: 0;
+        padding: 0;
+        float: left;
+        list-style: none;
+        height: 50px;
+        border-bottom: 1px solid #eee;
+        border-left: 1px solid #eee;
+        width: 100%;
+        font-family:"dotum";
+        font-size:12px;
+    }
+    ul.tabs li {
+        float: left;
+        text-align:center;
+        cursor: pointer;
+        width:82px;
+        height: 31px;
+        line-height: 31px;
+        border: 1px solid #eee;
+        border-left: none;
+        font-weight: bold;
+        background: #fafafa;
+        overflow: hidden;
+        position: relative;
+    }
+    ul.tabs li.active {
+        background: #D8D8D8;
+        border-bottom: 1px solid #D8D8D8;
+    }
+    .tab_container {
+        border: 2px solid #eee;
+        border-top: none;
+        clear: both;
+        float: left;
+        overflow:scroll;
+        width: 100%;
+        height: 800px;
+        background: #FFFFFF;
+          line-height: 1em;             
+    }
+    .tab_container_result {
+        border: 2px solid #eee;
+        border-top: none;
+        clear: both;
+        float: left;
+        width: 700px;
+        height: 800px;
+        background: #FFFFFF;
+    }           
+    .tab_content {
+        padding: 2px;
+        font-size: 12px;
+        margin-right: 25px;
+        min-width:450px;
+        display: none;
+          
+    }
+    .tab_container .tab_content ul {
+        width:100%;
+        margin:0px;
+        padding:0px;
+        line-height: 2em;
+    }
+    .tab_container .tab_content ul li {
+        width :420px;
+        padding:0px;
+        list-style:none;
+        white-space:pre;
+        line-height: 2em;
+        margin-left: 10%;
+        border: 1px solid #eaeaea;
+    }
+    
+    .tab_container .tab_content ul li button{
+        margin-left: 28%;
+        width: 40%;
+        height: 30px;
+    }
+    
+    .left-box {
+      float: left;
+    }
+    
+    .right-box {
+      float: right;
+    }
+    
+    ;
+     #container {
+        width: 200px;
+        margin: 0 auto;
+    }       
+    
+    input[type="text"] {
+        float: right;  
+        width: 50%;             
+        <!-- margin-right: 10%; -->        
+    }   
+    a{
+        text-decoration: none;
+    }    
+</style>
+
+ </head>
+ 
+ <body>
+      <table>
+        <tr>
+        <td colspan="2">
+            <div id="container">
+                <div class="header">
+                    <label>[OPEN-API pa11st API] 실행환경선택 : </label>
+                    <input type="radio" id="path1" name="serverpath" checked="checked" value="http://localhost:9300"><label><b>[로컬(PORT:9300)]</b></label>
+                    <input type="radio" id="path2" name="serverpath" value="http://1.255.85.244:8443"><label><font color="green"><b>[개발]</b></font></label>
+					<input type="radio" id="path3" name="serverpath" value="http://1.255.86.244:8086"><label><font color="green"><b>[BMT]</b></font></label>
+					<input type="radio" id="path4" name="serverpath" value="https://1.225.238.84:8443"><label><font color="red"><b>[REAL]</b></font></label>
+                </div>
+            </div>
+        </td>
+        </tr>
+        <tr>
+            <td>
+                <div id="container">
+                    <ul class="tabs">
+                        <li class="active" rel="tab1">기초정보</li>
+                        <li rel="tab2">상품</li>
+                        <li rel="tab3">Q&A</li>
+                        <li rel="tab4">주문/배송</li>
+                        <li rel="tab5">방송</li>
+                    </ul>
+                    <div class="tab_container">
+                        <div id="tab1" class="tab_content">
+                            <form method="get" action="/pa11st/common/goodskinds-list">
+	                            <p><a href="#">전체카테고리조회</a></p>
+                                <ul style="display:none" class="active">
+                                    <li><button type="button" >전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/pa11st/common/cert-goodskinds-list">
+                                <p><a href="#">카테고리별인증여부저장</a></p>
+                                <ul style="display:none" class="active">
+                                    <li><button type="button" >전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/pa11st/common/origin-list">
+	                            <p><a href="#">원산지조회</a></p>
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/pa11st/common/goods-offer-list">
+                                <p><a href="#">상품고시조회</a></p>
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/pa11st/common/entpslip-insert">
+	                            <p><a href="#">출고지등록</a></p>
+                                <ul style="display:none" class="active">
+                                    <li>업체코드 :      <input type="text" id="entpCode"    name="entpCode"     value="0"/></li>
+                                    <li>업체담당자순번 : <input type="text" id="entpManSeq"  name="entpManSeq"   value=""/></li>
+                                    <li>제휴사코드 :    <input type="text" id="paCode"      name="paCode"       value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/pa11st/common/entpslip-update">
+	                            <p><a href="#">출고지수정</a></p>
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action=/pa11st/common/returnslip-insert>
+	                            <p><a href="#">반품/교환지 등록</a></p>
+                                <ul style="display:none" class="active">
+                                    <li>업체코드 :      <input type="text" id="entpCode"    name="entpCode"     value="0"/></li>
+                                    <li>업체담당자순번 : <input type="text" id="entpManSeq"  name="entpManSeq"   value=""/></li>
+                                    <li>제휴사코드 :    <input type="text" id="paCode"      name="paCode"       value=""/></li>                                 
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/pa11st/common/returnslip-update">
+                                <p><a href="#">반품/교환지 수정</a></p>
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/pa11st/common/no-dely-area-insert">
+	                            <p><a href="#">배송불가지역 등록</a></p>
+                                <ul style="display:none" class="active">
+                                    <li>제휴사코드 :  <input type="text" id="paCode" name="paCode" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/pa11st/common/no-dely-area-select">
+                                <p><a href="#">배송불가지역 조회</a></p>
+                                <ul style="display:none" class="active">
+                                    <li>배송불가지역 순번 :  <input type="text" id="noDelyAreaCode" name="noDelyAreaCode" value=""/></li>
+                                    <li>배송불가징역 템플릿번호:  <input type="text" id="prdInfoTmpltNo" name="prdInfoTmpltNo" value=""/></li>
+                                    <li>제휴사코드:  <input type="text" id="paCode" name="paCode" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/pa11st/common/no-dely-area-update">
+                                <p><a href="#">배송불가지역 수정</a></p>
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/pa11st/common/no-dely-area-apply">
+	                            <p><a href="#">배송불가지역 적용</a></p>
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/pa11st/common/no-dely-area-clear">
+	                            <p><a href="#">배송불가지역 해제</a></p>
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/pa11st/common/goodsbrand-list">
+                                <p><a href="#">브랜드조회</a></p>
+                                <ul style="display:none" class="active">
+                                    <li><button type="button" >전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/pa11st/common/entpslip-cost-insert">
+                                <p><a href="#">출고지 조건부 배송비 등록/수정</a></p>
+                                <ul style="display:none" class="active">
+                                    <li>paCode(11,12) :  <input type="text" id="paCode" name="paCode" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/pa11st/common/settlement-list">
+                                <p><a href="#">정산내역조회</a></p>
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                        </div><!-- #tab1 end -->    
+                                
+                        <div id="tab2" class="tab_content">
+                            <form method="get" action="/pa11st/goods/goods-insert">
+                                <p><a href="#">상품등록</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>상품코드 :  <input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li>제휴사코드 :  <input type="text" id="paCode" name="paCode" value=""/></li>
+                                    <li>처리자ID :  <input type="text" id="procId" name="procId" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/pa11st/goods/goods-modify">
+                                <p><a href="#">상품수정</a></p>  
+                                <ul id="view2-2" style="display:none" class="active">
+                                    <li>상품코드 :   <input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li>제휴사코드 : <input type="text" id="paCode" name="paCode" value=""/></li>
+                                    <li>처리자ID :   <input type="text" id="procId" name="procId" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>      
+                            <form method="get" action="/pa11st/goods/goodsprice-coupon-modify">
+                                <p><a href="#">상품가격/즉시할인수정</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>상품코드 :   <input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li>제휴사코드 : <input type="text" id="paCode" name="paCode" value=""/></li>
+                                    <li>처리자ID :   <input type="text" id="procId" name="procId" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>      
+                            <form method="get" action="/pa11st/goods/goodsdt-modify">
+                                <p><a href="#">상품옵션수정</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>상품코드 :  <input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li>제휴사코드 : <input type="text" id="paCode" name="paCode" value=""/></li>
+                                    <li>처리자ID :  <input type="text" id="procId" name="procId" value=""/></li>                                       
+                                    <li><button type="button">전송</button></li>
+                                </ul>                               
+                            </form>    
+                            <form method="get" action="/pa11st/goods/goods-stock-modify">
+                                <p><a href="#">상품재고 수정</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>상품코드 :  <input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li>제휴사코드 : <input type="text" id="paCode" name="paCode" value=""/></li>
+                                    <li>처리자ID :  <input type="text" id="procId" name="procId" value=""/></li>                                      
+                                    <li><button type="button">전송</button></li>
+                                </ul>                               
+                            </form>
+                            <form method="get" action="/pa11st/goods/goods-stock-list">
+                                <p><a href="#">상품재고번호 조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>상품코드 :          <input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li>11번가 상품코드 :    <input type="text" id="productNo" name="productNo" value=""/></li>                                       
+                                    <li>제휴사코드 :        <input type="text" id="paCode" name="paCode" value=""/></li>                                       
+                                    <li>처리자ID :         <input type="text" id="procId" name="procId" value=""/></li>                                       
+                                    <li><button type="button">전송</button></li>
+                                </ul>                               
+                            </form>
+                            <form method="get" action="/pa11st/goods/goods-desc-modify">
+                                <p><a href="#">상품상세설명 수정</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>상품코드 :  <input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li>제휴사코드 : <input type="text" id="paCode" name="paCode" value=""/></li>
+                                    <li>처리자ID :  <input type="text" id="procId" name="procId" value=""/></li>                                      
+                                    <li><button type="button">전송</button></li>
+                                </ul>                               
+                            </form>
+                            <form method="get" action="/pa11st/goods/goods-sell-stop">
+                                <p><a href="#">판매중지처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>상품코드 :  <input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li>제휴사코드 : <input type="text" id="paCode" name="paCode" value=""/></li>
+                                    <li>처리자ID :  <input type="text" id="procId" name="procId" value=""/></li>   
+                                    <li><button type="button">전송</button></li>
+                                </ul>                               
+                            </form>                        
+                            <form method="get" action="/pa11st/goods/goods-sell-restart">
+                                <p><a href="#">판매중지해제</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>상품코드 :  <input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li>제휴사코드 : <input type="text" id="paCode" name="paCode" value=""/></li>
+                                    <li>처리자ID :  <input type="text" id="procId" name="procId" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>                               
+                            </form>                        
+                            <form method="get" action="/pa11st/goods/goods-info-sync">
+                                <p><a href="#">상품정보 동기화</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>상품코드 :  <input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li>처리자ID :  <input type="text" id="procId" name="procId" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>                               
+                            </form>                        
+                            <form method="get" action="/pa11st/goods/goods-stock-sync">
+                                <p><a href="#">상품재고 동기화</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>처리자ID :  <input type="text" id="procId" name="procId" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>                               
+                            </form>        
+                            <form method="get" action="/pa11st/goods/pa-moniter-stock-list">
+                                <p><a href="#">재고번호매칭 실패 단품 재고번호 조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>처리자ID :  <input type="text" id="procId" name="procId" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>                               
+                            </form>                
+                        </div><!-- #tab2 end -->
+                        
+                        <div id="tab3" class="tab_content">
+                            <form method="get" action="/pa11st/counsel/goods-counsel-list">
+                                <p><a href="#" >상품Q&A조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li><button type="button" >전송</button></li>
+                                </ul>
+                            </form>      
+                            <form method="get" action="/pa11st/counsel/goods-counsel-proc">
+                                <p><a href="#">상품Q&A답변처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/pa11st/counsel/urgent-counsel-list">
+                                <p><a href="#">긴급메세지 조회</a></p>  
+                                <ul style="display:none" class="active">
+                                	<li>FROM날짜 :      <input type="text" id="fromDate" name="fromDate" value=""/></li>
+                                    <li>TO날짜 :      <input type="text" id="toDate" name="toDate" value=""/></li>
+                                    <li>처리상태 :      <input type="text" id="flag" name="flag" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/pa11st/counsel/urgent-counsel-proc">
+                                <p><a href="#">긴급메세지 답변처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                        </div><!-- #tab3 end -->
+                        <div id="tab4" class="tab_content">
+                            <form method="get" action="/pa11st/delivery/order-list">
+                                <p><a href="#">발주대상목록 조회 (결재완료 목록조회)</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>FROM날짜 :      <input type="text" id="fromDate" name="fromDate" value=""/></li>
+                                    <li>TO날짜 :      <input type="text" id="toDate" name="toDate" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                                                                                                   
+                            <form method="get" action="/pa11st/delivery/order-confirm-proc">
+                                <p><a href="#">발주확인처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>주문번호 :        <input type="text" id="ordNo" name="ordNo" value=""/></li>
+                                    <li>주문번호순번 :     <input type="text" id="ordPrdSeq" name="ordPrdSeq" value=""/></li>
+                                    <li>배송번호 :        <input type="text" id="dlvNo" name="dlvNo" value=""/></li>
+                                    <li>상품코드 :        <input type="text" id="prdNo" name="prdNo" value=""/></li>
+                                    <li>11번가계약코드 :  <input type="text" id="paCode" name="paCode" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>               
+                            <form method="get" action="/pa11st/delivery/order-confirm-list">
+                                <p><a href="#">발주확인목록 조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>FROM날짜 :      <input type="text" id="fromDate" name="fromDate" value=""/></li>
+                                    <li>TO날짜 :      <input type="text" id="toDate" name="toDate" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>               
+                            <form method="get" action="/pa11st/order/order-reject-proc">
+                                <p><a href="#">판매불가처리 (판매거부처리)</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>주문번호 :        <input type="text" id="ordNo" name="ordNo" value=""/></li>
+                                    <li>주문번호순번 :    <input type="text" id="ordPrdSeq" name="ordPrdSeq" value=""/></li>
+                                    <li>사유코드 :       <input type="text" id="ordCnRsnCd" name="ordCnRsnCd" value=""/></li>
+                                    <li>사유 :           <input type="text" id="ordCnDtlsRsn" name="ordCnDtlsRsn" value=""/></li>
+                                    <li>제휴사구분코드 :  <input type="text" id="paCode" name="paCode" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>               
+                            <form method="get" action="/pa11st/delivery/slip-out-proc">
+                                <p><a href="#">발송처리 (배송중 처리)</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>               
+                            <form method="get" action="/pa11st/delivery/delivery-complete-list">
+                                <p><a href="#">판매완료 내역  (구매확정 목록조회)</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>FROM날짜 :    <input type="text" id="fromDate" name="fromDate" value=""/></li>
+                                    <li>TO날짜 :      <input type="text" id="toDate" name="toDate" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>               
+                            <form method="get" action="/pa11st/order/cancel-list">
+                                <p><a href="#">취소신청목록조회 (주문취소 요청 목록조회)</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>FROM날짜 :    <input type="text" id="fromDate" name="fromDate" value=""/></li>
+                                    <li>TO날짜 :      <input type="text" id="toDate" name="toDate" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/pa11st/order/cancel-withdraw-list">
+                                <p><a href="#">취소철회목록 조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>FROM날짜 :    <input type="text" id="fromDate" name="fromDate" value=""/></li>
+                                    <li>TO날짜 :      <input type="text" id="toDate" name="toDate" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                  
+                            <form method="get" action="/pa11st/order/cancel-complete-list">
+                                <p><a href="#">취소완료목록 조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>FROM날짜 :    <input type="text" id="fromDate" name="fromDate" value=""/></li>
+                                    <li>TO날짜 :      <input type="text" id="toDate" name="toDate" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                  
+                            <form method="get" action="/pa11st/order/cancel-confirm-proc">
+                                <p><a href="#">주문취소승인 및 주문취소거부처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/pa11st/claim/return-list">
+                                <p><a href="#">반품신청목록조회(반품 요청 목록조회)</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>FROM날짜 :    <input type="text" id="fromDate" name="fromDate" value=""/></li>
+                                    <li>TO날짜 :      <input type="text" id="toDate" name="toDate" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>               
+                            <form method="get" action="/pa11st/claim/return-confirm-proc">
+                                <p><a href="#">반품승인처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>               
+                            <form method="get" action="/pa11st/claim/return-complete-list">
+                                <p><a href="#">반품완료목록조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>FROM날짜 :    <input type="text" id="fromDate" name="fromDate" value=""/></li>
+                                    <li>TO날짜 :      <input type="text" id="toDate" name="toDate" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>   
+                            <form method="get" action="/pa11st/claim/return-cancel-list">
+                                <p><a href="#">반품철회목록조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>FROM날짜 :    <input type="text" id="fromDate" name="fromDate" value=""/></li>
+                                    <li>TO날짜 :      <input type="text" id="toDate" name="toDate" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>               
+                            <form method="get" action="/pa11st/claim/return-hold-proc">
+                                <p><a href="#">반품완료보류처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>               
+                            <form method="get" action="/pa11st/exchange/exchange-list">
+                                <p><a href="#">교환신청목록조회(교환 요청 목록조회)</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>FROM날짜 :    <input type="text" id="fromDate" name="fromDate" value=""/></li>
+                                    <li>TO날짜 :      <input type="text" id="toDate" name="toDate" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>               
+                            <form method="get" action="/pa11st/exchange/exchange-confirm-proc">
+                                <p><a href="#">교환승인처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>               
+                            <form method="get" action="/pa11st/exchange/exchange-reject-proc">
+                                <p><a href="#">교환거부처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>               
+                            <form method="get" action="/pa11st/exchange/exchange-cancel-list">
+                                <p><a href="#">교환철회목록조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>               
+                            <form method="get" action="/pa11st/claim/auth-cancel-list">
+                                <p><a href="#">수취확인후 직권취소목록조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>FROM날짜 :    <input type="text" id="fromDate" name="fromDate" value=""/></li>
+                                    <li>TO날짜 :      <input type="text" id="toDate" name="toDate" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>               
+                            <form method="get" action="/pa11st/stock/stock-check">
+                                <p><a href="#">실시간재고체크</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>               
+                        </div><!-- #tab4 end -->
+                        <div id="tab5" class="tab_content">
+                            <form method="get" action="/pa11st/broadcast/broadcastsche-list">
+                                <p><a href="#">편성스케줄조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>openApiCode :  <input type="text" id="openApiCode" name="openApiCode" value=""/></li>
+                                    <li>bdDate :  <input type="text" id="bdDate" name="bdDate" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>   
+                        </div><!-- #tab5 end -->
+                    </div>
+                </div>
+            </td>
+            <td>
+	            <div class='left-box'>
+                   <p><b><label >실행결과</label></b></p> 
+                </div>
+                <div class='right-box'>
+                   <button type="button" id="btn_clear">결과 초기화</button>
+                </div>
+	            <!-- .tab_container -->
+	            <div class="tab_container_result">
+	               <iframe src="" width="700" height="800" name="resultView" id="ifr_result"></iframe>
+	            </div>
+	            <!-- .tab_container -->         
+            </td>
+        <!-- #container -->
+        </table>    
+ </body>
+</html>

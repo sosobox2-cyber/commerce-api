@@ -1,0 +1,1111 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <title> New Document </title>
+  <meta name="Generator" content="EditPlus">
+  <meta name="Author" content="">
+  <meta name="Keywords" content="">
+  <meta name="Description" content="">
+  <meta http-equiv="Content-Type" content="text/xml; charset=utf-8" />
+
+  <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+  <script type="text/javascript">
+  
+	$(function () {
+	
+	    $(".tab_content").hide();
+	    $(".tab_content:first").show();
+	    $("ul.tabs li").click(function () {
+	        $("ul.tabs li").removeClass("active").css("color", "#333");
+	        $(this).addClass("active").css("color", "red");
+	        $(".tab_content").hide()
+	        var activeTab = $(this).attr("rel");
+	        $("#" + activeTab).fadeIn()
+	    });
+	    
+		$('button').click(function() {
+		     var form = $(this).closest('form');
+	    	 resultRequst(form);
+		});
+		
+		$('a').click(function() {
+			 showView($(this).parent().next());
+		});
+	    
+	});
+	
+    function showView(obj){
+        if(obj.hasClass('active')){
+           obj.removeClass('active');
+           obj.show();
+        }else{
+           obj.addClass('active');
+           obj.hide();
+        }
+    }  
+    
+    function resultRequst(form){ 
+    	var urlStr = form.attr('action');
+        form.attr('target', 'resultView');
+        form.attr('action', $('input[name=serverpath]:checked').val()+urlStr);
+        alert(urlStr);
+        form.submit();
+        form.attr('action', urlStr);
+    }
+
+  </script>
+  
+<style>
+    ul.header {
+        margin: 0;
+        padding: 0;
+        float: left;
+        list-style: none;
+        height: 20px;
+        width: 100%;
+        font-family:"dotum";
+        font-size:13px;
+    }   
+    ul.tabs {
+        margin: 0;
+        padding: 0;
+        float: left;
+        list-style: none;
+        height: 50px;
+        border-bottom: 1px solid #eee;
+        border-left: 1px solid #eee;
+        width: 100%;
+        font-family:"dotum";
+        font-size:12px;
+    }
+    ul.tabs li {
+        float: left;
+        text-align:center;
+        cursor: pointer;
+        width:82px;
+        height: 31px;
+        line-height: 31px;
+        border: 1px solid #eee;
+        border-left: none;
+        font-weight: bold;
+        background: #fafafa;
+        overflow: hidden;
+        position: relative;
+    }
+    ul.tabs li.active {
+        background: #D8D8D8;
+        border-bottom: 1px solid #D8D8D8;
+    }
+    .tab_container {
+        border: 2px solid #eee;
+        border-top: none;
+        clear: both;
+        float: left;
+        overflow:scroll;
+        width: 100%;
+        height: 800px;
+        background: #FFFFFF;
+          line-height: 1em;             
+    }
+    .tab_container_result {
+        border: 2px solid #eee;
+        border-top: none;
+        clear: both;
+        float: left;
+        width: 700px;
+        height: 800px;
+        background: #FFFFFF;
+    }           
+    .tab_content {
+        padding: 2px;
+        font-size: 12px;
+        margin-right: 25px;
+        min-width:450px;
+        display: none;
+          
+    }
+    .tab_container .tab_content ul {
+        width:100%;
+        margin:0px;
+        padding:0px;
+        line-height: 2em;
+    }
+    .tab_container .tab_content ul li {
+        width :420px;
+        padding:0px;
+        list-style:none;
+        white-space:pre;
+        line-height: 2em;
+        margin-left: 10%;
+        border: 1px solid #eaeaea;
+    }
+    
+    .tab_container .tab_content ul li button{
+        margin-left: 28%;
+        width: 40%;
+        height: 30px;
+    }           
+    
+    ;
+     #container {
+        width: 200px;
+        margin: 0 auto;
+    }       
+    
+    input[type="text"] {
+        float: right;  
+        width: 50%;                 
+    }   
+    
+    input[type="file"] {
+        float: right;  
+        width: 50%;             
+    }   
+            
+    a{
+        text-decoration: none;
+    }                
+                                                                
+</style>
+
+ </head>
+ 
+ <body>
+      <table>
+        <tr>
+        <td colspan="2">
+            <div id="container">
+                <div class="header">
+                    <label>[OPEN-API 셀러툴] 실행환경선택 : </label>
+                    <input type="radio" id="path1" name="serverpath" checked="checked" value="http://localhost:8050"><label><b>[로컬(PORT:8050)]</b></label>
+                    <input type="radio" id="path2" name="serverpath" value="http://open-api-dev.shinsegaetvshopping.com"><label><font color="green"><b>[개발]</b></font></label>
+                    <input type="radio" id="path3" name="serverpath" value="http://open-api-dev.shinsegaetvshopping.com"><label><font color="red"><b>[운영]</b></font></label>
+                </div>
+            </div>
+        </td>
+        </tr>
+        <tr>
+            <td>
+                <div id="container">
+                    <ul class="tabs">
+                        <li class="active" rel="tab1">기초정보</li>
+                        <li rel="tab2">임시상품</li>
+                        <li rel="tab3">주문배송</li>
+                        <li rel="tab4">판매상품</li>
+                    </ul>
+                    <div class="tab_container">
+                        <div id="tab1" class="tab_content">
+                            <form method="get" action="/partner/code/md-list">
+	                             <p><a href="#">MD리스트</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :      <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :  <input type="text" id="entpId"   name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">MD 코드 :     <input type="text" id="mdCode" name="mdCode" value=""/></li>
+                                    <li style="color: blue">MD 이름 :     <input type="text" id="mdName" name="mdName" value=""/></li>
+                                    
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/goods-lgroup-list">
+	                             <p><a href="#">상품 CAT 조회 - CAT</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :      <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :  <input type="text" id="entpId"   name="entpId"   value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">CAT 코드 : <input type="text" id="lGroupCode" name="lGroupCode" value=""/></li>
+                                    <li style="color: blue">CAT 명 :  <input type="text" id="lGroupName" name="lGroupName" value=""/></li>
+
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/goods-mgroup-list">
+	                             <p><a href="#">상품 대분류 조회 - 대</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">CAT 코드 : <input type="text" id="lGroupCode" name="lGroupCode" value=""/></li>
+                                    <li style="color: blue">대분류 코드 : <input type="text" id="mGroupCode" name="mGroupCode" value=""/></li>
+                                    <li style="color: blue">대분류 명 : <input type="text" id="mGroupName" name="mGroupName" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/goods-sgroup-list">
+	                             <p><a href="#">상품 중분류 조회 - 중</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">CAT 코드 : <input type="text" id="lGroupCode" name="lGroupCode" value=""/></li>
+                                    <li style="color: blue">대분류 코드 : <input type="text" id="mGroupCode" name="mGroupCode" value=""/></li>
+                                    <li style="color: blue">중분류 코드 : <input type="text" id="sGroupCode" name="sGroupCode" value=""/></li>
+                                    <li style="color: blue">중분류 명 : <input type="text" id="sGroupName" name="sGroupName" value=""/></li>
+
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/goods-dgroup-list">
+	                             <p><a href="#">상품 소분류 조회 - 소</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">CAT 코드 : <input type="text" id="lGroupCode" name="lGroupCode" value=""/></li>
+                                    <li style="color: blue">대분류 코드 : <input type="text" id="mGroupCode" name="mGroupCode" value=""/></li>
+                                    <li style="color: blue">중분류 코드 : <input type="text" id="sGroupCode" name="sGroupCode" value=""/></li>
+                                    <li style="color: blue">소분류 코드 : <input type="text" id="dGroupCode" name="dGroupCode" value=""/></li>
+                                    <li style="color: blue">소분류 명 : <input type="text" id="dGroupName" name="dGroupName" value=""/></li>
+
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                             <form method="get" action="/partner/code/color-group-code-list">
+	                             <p><a href="#">단품색상그룹 조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">그룹코드 : <input type="text" id="cspfGroup" name="cspfGroup" value=""/></li>
+                                    <li style="color: blue">그룹명 : <input type="text" id="cspfDesc" name="cspfDesc" value=""/></li>
+
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/size-group-code-list">
+	                             <p><a href="#" style="text-decoration:none">단품크기그룹 조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">그룹코드 : <input type="text" id="cspfGroup" name="cspfGroup" value=""/></li>
+                                    <li style="color: blue">그룹명 : <input type="text" id="cspfDesc" name="cspfDesc" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/form-group-code-list">
+	                             <p><a href="#">단품형태그룹 조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">그룹코드 : <input type="text" id="cspfGroup" name="cspfGroup" value=""/></li>
+                                    <li style="color: blue">그룹명 : <input type="text" id="cspfDesc" name="cspfDesc" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/pattern-group-code-list">
+	                             <p><a href="#">단품무늬그룹 조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">그룹코드 : <input type="text" id="cspfGroup" name="cspfGroup" value=""/></li>
+                                    <li style="color: blue">그룹명 : <input type="text" id="cspfDesc" name="cspfDesc" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/color-code-list">
+	                             <p><a href="#">단품기초코드(색상) 조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>단품 색상그룹 코드 : <input type="text" id="cspfGroup" name="cspfGroup" value="C000"/></li>
+                                    <li style="color: blue">색상코드 : <input type="text" id="cspfCode" name="cspfCode" value=""/></li>
+                                    <li style="color: blue">색상명칭 : <input type="text" id="cspfName" name="cspfName" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/size-code-list">
+	                             <p><a href="#">단품기초코드(크기) 조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>단품 크기그룹 코드 : <input type="text" id="cspfGroup" name="cspfGroup" value="S107"/></li>
+                                    <li style="color: blue">크기코드 : <input type="text" id="cspfCode" name="cspfCode" value=""/></li>
+                                    <li style="color: blue">크기명칭 : <input type="text" id="cspfName" name="cspfName" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/form-code-list">
+	                             <p><a href="#">단품기초코드(형태) 조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>단품 형태그룹 코드 : <input type="text" id="cspfGroup" name="cspfGroup" value="F013"/></li>
+                                    <li style="color: blue">형태코드 : <input type="text" id="cspfCode" name="cspfCode" value=""/></li>
+                                    <li style="color: blue">형태명칭 : <input type="text" id="cspfName" name="cspfName" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/pattern-code-list">
+	                             <p><a href="#">단품기초코드(무늬) 조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>단품 무늬그룹 코드 : <input type="text" id="cspfGroup" name="cspfGroup" value="P000"/></li>
+                                    <li style="color: blue">무늬코드 : <input type="text" id="cspfCode" name="cspfCode" value=""/></li>
+                                    <li style="color: blue">무늬명칭 : <input type="text" id="cspfName" name="cspfName" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/buy-method-list">
+	                             <p><a href="#">매입방법 조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/brand-list">
+	                             <p><a href="#">브랜드 조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">브랜드 코드 : <input type="text" id="brandCode" name="brandCode" value=""/></li>
+                                    <li style="color: blue">브랜드 명칭 : <input type="text" id="brandName" name="brandName" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/describe-code-list">
+	                             <p><a href="#">기술서항목 조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/describe-code-list">
+	                             <p><a href="#">기술서항목 조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/entpman-list">
+	                             <p><a href="#">업체 담당자 조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>담당자 관리구분 : <input type="text" id="entpManGb" name="entpManGb" value="10"/></li>                                                     
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/origin-list">
+	                             <p><a href="#">제조국(원산지) 조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">제조국 코드 : <input type="text" id="originCode" name="originCode" value=""/></li>
+                                    <li style="color: blue">제조국 명 : <input type="text" id="originName" name="originName" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/make-company-list">
+	                             <p><a href="#">제조업체 조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">제조업체 코드 : <input type="text" id="makeCompanyCode" name="makeCompanyCode" value=""/></li>
+                                    <li style="color: blue">제조업체 명 : <input type="text" id="makeCompanyName" name="makeCompanyName" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/order-media-list">
+	                             <p><a href="#">주문매체 조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">매체 코드 : <input type="text" id="orderMediaCode" name="orderMediaCode" value=""/></li>
+                                    <li style="color: blue">매체 명 : <input type="text" id="orderMediaName" name="orderMediaName" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/nosales-reason-code-list">
+	                             <p><a href="#">판매불가 사유 조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/goods-offer-code-list">
+	                             <p><a href="#">상품정보제공고시 품목 조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/goods-offer-list">
+	                             <p><a href="#">상품정보제공고시 항목 조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">제공공시 품목코드 : <input type="text" id="typeCode" name="typeCode" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/delivery-company-list">
+	                             <p><a href="#" style="text-decoration:none" onClick="javascript:showView('view25');return false;">배송사 조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">배송사 코드 : <input type="text" id="delyGb" name="delyGb" value=""/></li>
+                                    <li style="color: blue">배송사 명 : <input type="text" id="delyName" name="delyName" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="get" action="/partner/code/shipping-policy-list">
+	                             <p><a href="#">고객 배송비정책 목록 조회</a></p>
+                                 <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">배송비정책 코드 : <input type="text" id="shipCostCode" name="shipCostCode" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                         
+                        </div><!-- #tab1 end -->    
+                                
+                        <div id="tab2" class="tab_content">
+                            <form method="post" action="/partner/goods/pregoods-describe-input">
+                                <p><a href="#">임시상품 기술서 등록</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>상품코드 :    <input type="text" id="scmGoodsCode" name="scmGoodsCode" value=""/></li>
+                                    <li>기술서 코드 : <input type="text" id="descCode" name="descCode" value=""/></li>
+                                    <li>기술서 내용 : <input type="text" id="descExt" name="descExt" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>
+                            <form method="post" action="/partner/goods/pregoodsdt-input">
+                                <p><a href="#">임시상품 단품정보 등록</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>상품코드 :    <input type="text" id="scmGoodsCode" name="scmGoodsCode" value=""/></li>
+                                    <li>색상그룹코드 :    <input type="text" id="colorGroupCode" name="colorGroupCode" value=""/></li>
+                                    <li>무늬그룹코드 :    <input type="text" id="patternGroupCode" name="patternGroupCode" value=""/></li>
+                                    <li>색상코드 :    <input type="text" id="colorCode" name="colorCode" value=""/></li>
+                                    <li>무늬코드 :    <input type="text" id="patternCode" name="patternCode" value=""/></li>
+                                    <li>크기코드 :    <input type="text" id="sizeCode" name="sizeCode" value=""/></li>
+                                    <li>형태코드 :    <input type="text" id="formCode" name="formCode" value=""/></li>
+                                    <li>단품기타 :    <input type="text" id="otherText" name="otherText" value=""/></li>
+                                    <li>최대판매수량 :    <input type="text" id="maxSaleQty" name="maxSaleQty" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>      
+                            <form method="post" action="/partner/goods/pregoods-image-url">
+                                <p><a href="#">임시상품 이미지 등록(URL)</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>상품코드 :    <input type="text" id="scmGoodsCode" name="scmGoodsCode" value=""/></li>
+                                    <li>메인이미지URL :    <input type="text" id="imgUrlBase" name="imgUrlBase" value=""/></li>  
+                                    <li style="color: blue">서브이미지1URL :    <input type="text" id="imgUrlA" name="imgUrlA" value=""/></li>
+                                    <li style="color: blue">서브이미지2URL :    <input type="text" id="imgUrlB" name="imgUrlB" value=""/></li>   
+                                    <li style="color: blue">서브이미지3URL :    <input type="text" id="imgUrlC" name="imgUrlC" value=""/></li>   
+                                    <li style="color: blue">서브이미지4URL :    <input type="text" id="imgUrlD" name="imgUrlD" value=""/></li>   
+                                    <li style="color: blue">모바일이미지URL :    <input type="text" id="imgUrlE" name="imgUrlE" value=""/></li>                                       
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>      
+                            <form method="post" action="/partner/goods/pregoods-image-file" enctype="multipart/form-data">
+                                <p><a href="#" style="text-decoration:none">임시상품 이미지 등록(File)</a></p>     
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :      <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :  <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>임시상품 코드 :  <input type="text" id="scmGoodsCode" name="scmGoodsCode" value=""/></li>
+                                    <li>처리코드 :      <input type="text" id="imgUrlBase" name="imgUrlBase" value="I"/></li>  
+                                    <li>메인이미지 :    <input type="file" id="imgFileBase" name="imgFileBase"></li>
+                                    <li>서브이미지A :   <input type="file" id="imgFileA" name="imgFileA"/></li>   
+                                    <li>서브이미지B :   <input type="file" id="imgFileB" name="imgFileB"/></li>   
+                                    <li>서브이미지C :   <input type="file" id="imgFileC" name="imgFileC"/></li>   
+                                    <li>서브이미지D :   <input type="file" id="imgFileD" name="imgFileD"/></li>                                       
+                                    <li>모바일이미지 :  <input type="file" id="imgFileE" name="imgFileE"/></li>                                       
+                                    <li><button type="button">전송</button></li>
+                                </ul>                         
+                            </form>      
+                            <form method="post" action="/partner/goods/pregoods-base-input">
+                                <p><a href="#">임시상품 기초정보 등록</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :    <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 : <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID : <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD :  <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>상품명 :      <input type="text" id="goodsName" name="goodsName" value=""/></li>
+                                    <li>검색어 :      <input type="text" id="keyword" name="keyword" value=""/></li>
+                                    <li>ARS명 :      <input type="text" id="arsName" name="arsName" value=""/></li>
+                                    <li>모바일상품명 : <input type="text" id="mobileGoodsName" name="mobileGoodsName" value=""/></li>
+                                    <li>업체담당자 : <input type="text" id="entpManSeq" name="entpManSeq" value=""/></li>
+                                    <li>MD : <input type="text" id="mdCode" name="mdCode" value=""/></li>
+                                    <li>과세여부 : <input type="text" id="taxYn" name="taxYn" value=""/></li>
+                                    <li>CAT : <input type="text" id="codeLgroup" name="codeLgroup" value=""/></li>
+                                    <li>대분류 : <input type="text" id="codeMgroup" name="codeMgroup" value=""/></li>
+                                    <li>중분류 : <input type="text" id="codeSgroup" name="codeSgroup" value=""/></li>
+                                    <li>소분류 : <input type="text" id="codeDgroup" name="codeDgroup" value=""/></li>
+                                    <li>배송비정책코드 : <input type="text" id="shipCostCode" name="shipCostCode" value=""/></li>
+                                    <li>배송박스수량 : <input type="text" id="delyBoxQty" name="delyBoxQty" value=""/></li>
+                                    <li>설치배송여부 : <input type="text" id="installYn" name="installYn" value=""/></li>
+                                    <li>성인상품여부 : <input type="text" id="adultYn" name="adultYn" value=""/></li>
+                                    <li>제조업체 : <input type="text" id="makecoCode" name="makecoCode" value=""/></li>
+                                    <li>원산지 : <input type="text" id="originCode" name="originCode" value=""/></li>
+                                    <li>브랜드 : <input type="text" id="brandCode" name="brandCode" value=""/></li>
+                                    <li>매입가 : <input type="text" id="buyPrice" name="buyPrice" value=""/></li>
+                                    <li>판매가 : <input type="text" id="salePrice" name="salePrice" value=""/></li>
+                                    <li>시중판매가 : <input type="text" id="custPrice" name="custPrice" value=""/></li>
+                                    <li>출고담당자 : <input type="text" id="shipManSeq" name="shipManSeq" value=""/></li>
+                                    <li>회수담당자 : <input type="text" id="returnManSeq" name="returnManSeq" value=""/></li>
+                                    <li>정보제공타입 : <input type="text" id="offerType" name="offerType" value=""/></li>
+                                    <li>무게 : <input type="text" id="weight" name="weight" value=""/></li>
+                                    <li>부피설명 : <input type="text" id="volumeDesc" name="volumeDesc" value=""/></li>
+                                    <li>형태코드 : <input type="text" id="formCode" name="formCode" value=""/></li>
+                                    <li>크기코드 : <input type="text" id="sizeCode" name="sizeCode" value=""/></li>
+                                    <li>매입과세여부 : <input type="text" id="costTaxYn" name="costTaxYn" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>      
+                            <form method="post" action="/partner/goods/pregoods-offer">
+                                <p><a href="#">임시상품 정보제공고시 등록</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>상품코드 :    <input type="text" id="scmGoodsCode" name="scmGoodsCode" value=""/></li>
+                                    <li>상품유형 코드 : <input type="text" id="typeCode" name="typeCode" value=""/></li>
+                                    <li>항목코드 : <input type="text" id="offerCode" name="offerCode" value=""/></li>
+                                    <li>항목내용 : <input type="text" id="offerContents" name="offerContents" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>      
+                            <form method="post" action="/partner/goods/price">
+                                <p><a href="#">임시상품 가격수정</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>상품코드 :    <input type="text" id="scmGoodsCode" name="scmGoodsCode" value=""/></li>
+                                    <li>매입가 :    <input type="text" id="buyPrice" name="buyPrice" value=""/></li>
+                                    <li>판매가 :    <input type="text" id="salePrice" name="salePrice" value=""/></li>
+                                    <li>시중판매가 :    <input type="text" id="custPrice" name="custPrice" value=""/></li>
+                                    
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>      
+                            <form method="post" action="/partner/goods/pregoods-describe-modify">
+                                <p><a href="#">임시상품 기술서 수정</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>상품코드 :    <input type="text" id="scmGoodsCode" name="scmGoodsCode" value=""/></li>
+                                    <li>기술서 코드 : <input type="text" id="descCode" name="descCode" value=""/></li>
+                                    <li>기술서 내용 : <input type="text" id="descExt" name="descExt" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>      
+                            <form method="post" action="/partner/goods/pregoods-offer-modify">
+                                <p><a href="#" style="text-decoration:none" onClick="javascript:showView('view2-9');return false;">임시상품 정보제공고시 수정</a></p>  
+                                <ul id="view2-9" style="display:none" class="active">
+                                    <li>연결코드 :    <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>상품코드 :    <input type="text" id="scmGoodsCode" name="scmGoodsCode" value=""/></li>
+                                    <li>상품유형 코드 : <input type="text" id="typeCode" name="typeCode" value=""/></li>
+                                    <li>항목코드 : <input type="text" id="offerCode" name="offerCode" value=""/></li>
+                                    <li>항목내용 : <input type="text" id="offerContents" name="offerContents" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>      
+                            <form method="post" action="/partner/goods/pregoods-inplanqty-modify">
+                                <p><a href="#">임시상품 재고변경</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>상품코드 :    <input type="text" id="scmGoodsCode" name="scmGoodsCode" value=""/></li>
+                                    <li>단품코드 :    <input type="text" id="goodsdtCode" name="goodsdtCode" value=""/></li>
+                                    <li>판매수량 :    <input type="text" id="inplanQty" name="inplanQty" value=""/></li>
+                                    
+                                    <li><button type="button">전송4</button></li>
+                                </ul>
+                            </form>      
+                            <form method="post" action="/partner/goods/pregoods-approval">
+                                <p><a href="#">임시상품 승인요청</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>상품코드 :    <input type="text" id="scmGoodsCode" name="scmGoodsCode" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                              
+                            <form method="get" action="/partner/goods/pregoods-list">
+                                <p><a href="#">임시상품 조회(리스트)</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">조회시작일자 :    <input type="text" id="bDate" name="bDate" value=""/></li>
+                                    <li style="color: blue">조회종료일자 : <input type="text" id="eDate" name="eDate" value=""/></li>
+                                    <li style="color: blue">임시상품코드 : <input type="text" id="scmGoodsCode" name="scmGoodsCode" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                              
+                            <form method="get" action="/partner/goods/pregoods-detail">
+                                <p><a href="#">임시상품 승인요청</a></p>  
+                                <ul id="view2-13" style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">조회시작일자 :    <input type="text" id="bDate" name="bDate" value=""/></li>
+                                    <li style="color: blue">조회종료일자 : <input type="text" id="eDate" name="eDate" value=""/></li>
+                                    <li style="color: blue">임시상품코드 : <input type="text" id="scmGoodsCode" name="scmGoodsCode" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                              
+                        </div><!-- #tab2 end -->
+                        <div id="tab3" class="tab_content">
+                            <form method="get" action="/partner/delivery/order-list">
+                                <p><a href="#">주문/교환 배송 대상조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>조회단계 :    <input type="text" id="doFlag" name="doFlag" value=""/></li>
+                                    <li>배송구분 : <input type="text" id="orderGb" name="orderGb" value=""/></li>
+                                    <li>조회시작일자 :    <input type="text" id="bDate" name="bDate" value=""/></li>
+                                    <li>조회종료일자 : <input type="text" id="eDate" name="eDate" value=""/></li>
+                                    <li style="color: blue">주문번호 : <input type="text" id="orderNo" name="orderNo" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>      
+                            <form method="post" action="/partner/delivery/delivery-order">
+                                <p><a href="#">출하지시 처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>배송구분 :    <input type="text" id="orderGb" name="orderGb" value=""/></li>
+                                    <li>주문번호 :    <input type="text" id="orderNo" name="orderNo" value=""/></li>
+                                    <li>상품순번 :    <input type="text" id="orderGSeq" name="orderGSeq" value=""/></li>
+                                    <li>세트순번 :    <input type="text" id="orderDSeq" name="orderDSeq" value=""/></li>
+                                    <li>처리순번 :    <input type="text" id="orderWSeq" name="orderWSeq" value=""/></li>
+                                    <li>판매상품코드 :    <input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li>판매단품코드 :    <input type="text" id="goodsdtCode" name="goodsdtCode" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>      
+                            <form method="post" action="/partner/delivery/delivery-out">
+                                <p><a href="#">출고 처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :       <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :       <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :   <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD :  <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>배송구분 :       <input type="text" id="orderGb" name="orderGb" value=""/></li>
+                                    <li>주문번호 :       <input type="text" id="orderNo" name="orderNo" value=""/></li>
+                                    <li>상품순번 :       <input type="text" id="orderGSeq" name="orderGSeq" value=""/></li>
+                                    <li>세트순번 :       <input type="text" id="orderDSeq" name="orderDSeq" value=""/></li>
+                                    <li>처리순번 :       <input type="text" id="orderWSeq" name="orderWSeq" value=""/></li>
+                                    <li>판매상품코드 :    <input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li>판매단품코드 :    <input type="text" id="goodsdtCode" name="goodsdtCode" value=""/></li>
+                                    <li>운송장번호 :     <input type="text" id="slipNo" name="slipNo" value=""/></li>
+                                    <li>배송사코드 :     <input type="text" id="delyGb" name="delyGb" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>      
+                            <form method="post" action="/partner/delivery/delivery-complete">
+                                <p><a href="#">배송완료 처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드            :       <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드            :       <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID     :       <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD  :       <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>배송구분            :       <input type="text" id="orderGb" name="orderGb" value=""/></li>
+                                    <li>주문번호            :       <input type="text" id="orderNo" name="orderNo" value=""/></li>
+                                    <li>상품순번            :       <input type="text" id="orderGSeq" name="orderGSeq" value=""/></li>
+                                    <li>세트순번            :       <input type="text" id="orderDSeq" name="orderDSeq" value=""/></li>
+                                    <li>처리순번            :       <input type="text" id="orderWSeq" name="orderWSeq" value=""/></li>
+                                    <li>판매상품코드  :       <input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li>판매단품코드  :       <input type="text" id="goodsdtCode" name="goodsdtCode" value=""/></li>
+                                    <li>수취인명            :       <input type="text" id="receiverName" name="receiverName" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>      
+                            <form method="get" action="/partner/return/return-list">
+                                <p><a href="#">반품교환 회수 대상조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>회수구분 : <input type="text" id="claimGb" name="claimGb" value=""/></li>
+                                    <li>조회시작일자 :    <input type="text" id="bDate" name="bDate" value=""/></li>
+                                    <li>조회종료일자 : <input type="text" id="eDate" name="eDate" value=""/></li>
+                                    <li style="color: blue">주문번호 : <input type="text" id="orderNo" name="orderNo" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>      
+                            <form method="post" action="/partner/return/collect-confirm">
+                                <p><a href="#">회수확정 처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드            :       <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드            :       <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID     :       <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD  :       <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>회수구분            :       <input type="text" id="claimGb" name="claimGb" value=""/></li>
+                                    <li>주문번호            :       <input type="text" id="orderNo" name="orderNo" value=""/></li>
+                                    <li>상품순번            :       <input type="text" id="orderGSeq" name="orderGSeq" value=""/></li>
+                                    <li>세트순번            :       <input type="text" id="orderDSeq" name="orderDSeq" value=""/></li>
+                                    <li>처리순번            :       <input type="text" id="orderWSeq" name="orderWSeq" value=""/></li>
+                                    <li>판매상품코드  :       <input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li>판매단품코드  :       <input type="text" id="goodsdtCode" name="goodsdtCode" value=""/></li>
+                                    <li>운송장번호       :       <input type="text" id="slipNo" name="slipNo" value=""/></li>
+                                    <li>배송사코드       :       <input type="text" id="delyGb" name="delyGb" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                             
+                            <form method="get" action="/partner/return/before-return-list">
+                                <p><a href="#">출고 전 반품 대상 조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드            :       <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드            :       <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID     :       <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD  :       <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>주문번호            :       <input type="text" id="orderNo" name="orderNo" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                             
+                            <form method="post" action="/partner/return/before-return-confirm">
+                                <p><a href="#">출고 전 반품 처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드            :       <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드            :       <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID     :       <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD  :       <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>주문번호            :       <input type="text" id="orderNo" name="orderNo" value=""/></li>
+                                    <li>상품순번            :       <input type="text" id="orderGSeq" name="orderGSeq" value=""/></li>
+                                    <li>세트순번            :       <input type="text" id="orderDSeq" name="orderDSeq" value=""/></li>
+                                    <li>판매상품코드  :       <input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li>판매단품코드  :       <input type="text" id="goodsdtCode" name="goodsdtCode" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                             
+                            <form method="get" action="/partner/delivery/order-transaction-list">
+                                <p><a href="#">상품별 주문거래내역 조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드            :       <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드            :       <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID     :       <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD  :       <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>조회 년월   :       <input type="text" id="gatherDate" name="gatherDate" value=""/></li>
+                                    <li>조회 차수   :       <input type="text" id="payTimes" name="payTimes" value=""/></li>
+                                    <li style="color: blue">판매상품코드 : <input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                             
+                            <form method="get" action="/partner/delivery/delivery-complete-list">
+                                <p><a href="#">배송완료 목록 조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드            :       <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드            :       <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID     :       <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD  :       <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>배송구분 : <input type="text" id="orderGb" name="orderGb" value=""/></li>
+                                    <li>조회시작일자 :        <input type="text" id="bDate" name="bDate" value=""/></li>
+                                    <li>조회종료일자 :        <input type="text" id="eDate" name="eDate" value=""/></li>
+                                    <li style="color: blue">주문코드 : <input type="text" id="orderNo" name="orderNo" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                             
+                            <form method="get" action="/partner/return/collect-list">
+                                <p><a href="#">회수확정 목록 조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드            :       <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드            :       <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID     :       <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD  :       <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>회수구분 : <input type="text" id="claimGb" name="claimGb" value=""/></li>
+                                    <li>조회시작일자 :        <input type="text" id="bDate" name="bDate" value=""/></li>
+                                    <li>조회종료일자 :        <input type="text" id="eDate" name="eDate" value=""/></li>
+                                    <li style="color: blue">주문코드 : <input type="text" id="orderNo" name="orderNo" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                             
+                            <form method="get" action="/partner/delivery/order-cancel-list">
+                                <p><a href="#">주문취소 조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드            :       <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드            :       <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID     :       <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD  :       <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>조회시작일자 :        <input type="text" id="bDate" name="bDate" value=""/></li>
+                                    <li>조회종료일자 :        <input type="text" id="eDate" name="eDate" value=""/></li>
+                                    <li style="color: blue">주문코드 : <input type="text" id="orderNo" name="orderNo" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                             
+                            <form method="get" action="/partner/return/return-cancel-list">
+                                <p><a href="#">반품취소 조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드            :       <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드            :       <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID     :       <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD  :       <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>조회시작일자 :        <input type="text" id="bDate" name="bDate" value=""/></li>
+                                    <li>조회종료일자 :        <input type="text" id="eDate" name="eDate" value=""/></li>
+                                    <li style="color: blue">주문코드 : <input type="text" id="orderNo" name="orderNo" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                             
+                            <form method="get" action="/partner/delivery/order-shipcost-list">
+                                <p><a href="#">주문배송비 조회</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드            :       <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드            :       <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID     :       <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD  :       <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>조회시작일자 :        <input type="text" id="bDate" name="bDate" value=""/></li>
+                                    <li>조회종료일자 :        <input type="text" id="eDate" name="eDate" value=""/></li>
+                                    <li style="color: blue">주문코드 : <input type="text" id="orderNo" name="orderNo" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                             
+                        </div><!-- #tab3 end -->
+                        <div id="tab4" class="tab_content">
+                            <form method="get" action="/partner/goods/list">
+                                <p><a href="#">판매상품조회(리스트)</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :      <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :   <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD :    <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">조회 시작일자<input type="text" id="bDate" name="bDate" value=""/></li>
+                                    <li style="color: blue">조회 종료일자<input type="text" id="eDate" name="eDate" value=""/></li>
+                                    <li style="color: blue">상품코드<input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                                                                                                   
+                            <form method="get" action="/partner/goods/detail">
+                                <p><a href="#">판매상품조회(상세)</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :      <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :   <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD :    <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">조회 시작일자<input type="text" id="bDate" name="bDate" value=""/></li>
+                                    <li style="color: blue">조회 종료일자<input type="text" id="eDate" name="eDate" value=""/></li>
+                                    <li style="color: blue">상품코드<input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                                                                                                            
+                            <form method="post" action="/partner/goods/offer">
+                                <p><a href="#">판매상품 정보고시 등록</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :      <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :   <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD :    <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">판매상품코드 : <input type="text" id="goodsCode"         name="goodsCode"                value=""/></li>
+                                    <li style="color: blue">타입코드 : <input type="text" id="typeCode"          name="typeCode"                 value=""/></li>
+                                    <li style="color: blue">항목코드 : <input type="text" id="offerCode"         name="offerCode"                value=""/></li>
+                                    <li style="color: blue">항목내용 : <input type="text" id="offerContents" name="offerContents"        value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                                                                                                            
+                            <form method="post" action="/partner/goods/base">
+                                <p><a href="#" style="text-decoration:none" onClick="javascript:showView('view4-4');return false;">판매상품 기초정보 수정</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :      <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :   <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD :    <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">판매상품코드 : <input type="text" id="goodsCode"             name="goodsCode"                value=""/></li>
+                                    <li style="color: blue">상품명 : <input type="text" id="goodsName"             name="goodsName"                value=""/></li>
+                                    <li style="color: blue">검색어 : <input type="text" id="keyword"               name="keyword"                  value=""/></li>
+                                    <li style="color: blue">ARS상품명 : <input type="text" id="arsName"               name="arsName"                  value=""/></li>
+                                    <li style="color: blue">모바일 상품명 : <input type="text" id="mobileGoodsName" name="mobileGoodsName"    value=""/></li>
+                                    <li style="color: blue">무게 : <input type="text" id="weight"                    name="weight"                   value=""/></li>
+                                    <li style="color: blue">부피설명 : <input type="text" id="volumeDesc"            name="volumeDesc"           value=""/></li>
+                                    <li style="color: blue">배송비 정책 코드 : <input type="text" id="shipCostCode"      name="shipCostCode"         value=""/></li>
+                                    <li style="color: blue">성인상품여부 : <input type="text" id="adultYn"               name="adultYn"                  value=""/></li>
+                                    <li style="color: blue">주문최소수량 : <input type="text" id="orderMinQty"       name="orderMinQty"          value=""/></li>
+                                    <li style="color: blue">주문최대수량 : <input type="text" id="orderMaxQty"       name="orderMaxQty"          value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                                                                                                            
+                            <form method="post" action="/partner/goods/inplanqty-modify">
+                                <p><a href="#">판매상품 재고변경</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :      <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :   <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD :    <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">판매상품코드 : <input type="text" id="goodsCode"         name="goodsCode"                value=""/></li>
+                                    <li style="color: blue">판매단품코드 : <input type="text" id="goodsdtCode"   name="goodsdtCode"          value=""/></li>
+                                    <li style="color: blue">판매가능수량 : <input type="text" id="inplanQty"         name="inplanQty"                value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                                                                                                            
+                            <form method="post" action="/partner/goods/goodsprice-modify">
+                                <p><a href="#">판매상품 가격변경</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :      <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :   <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD :    <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li>판매상품코드 :      <input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li>가격적용일시 :      <input type="text" id="applyDate" name="applyDate" value=""/></li>
+                                    <li>매입가 :    <input type="text" id="buyPrice" name="buyPrice" value=""/></li>
+                                    <li>매입단가(vat제외) :      <input type="text" id="buyCost" name="buyCost" value=""/></li>
+                                    <li>매입vat :      <input type="text" id="buyVat" name="buyVat" value=""/></li>
+                                    <li>판매가 :   <input type="text" id="salePrice" name="salePrice" value=""/></li>
+                                    <li>판매단가(vat제외) :    <input type="text" id="saleCost" name="saleCost" value=""/></li>
+                                    <li>판매vat :    <input type="text" id="saleVat" name="saleVat" value=""/></li>
+                                   
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                                                                                                            
+                            <form method="post" action="/partner/goods/describe">
+                                <p><a href="#">판매상품 기술서 등록</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :      <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :   <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD :    <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">판매상품코드 : <input type="text" id="goodsCode"         name="goodsCode"                value=""/></li>
+                                    <li style="color: blue">기술서코드 : <input type="text" id="descCode"          name="descCode"               value=""/></li>
+                                    <li style="color: blue">기술서내용 : <input type="text" id="descExt"           name="descExt"                  value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                                                                                                            
+                            <form method="post" action="/partner/goods/goodsdt">
+                                <p><a href="#">판매상품 단품정보 등록</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :      <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :   <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD :    <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">판매상품코드 : <input type="text" id="goodsCode"         name="goodsCode"            value=""/></li>
+                                    <li style="color: blue">크기코드 : <input type="text" id="sizeCode"          name="sizeCode"             value=""/></li>
+                                    <li style="color: blue">색상코드 : <input type="text" id="colorCode"         name="colorCode"            value=""/></li>
+                                    <li style="color: blue">무늬코드 : <input type="text" id="patternCode"   name="patternCode"      value=""/></li>
+                                    <li style="color: blue">형태코드 : <input type="text" id="formCode"          name="formCode"             value=""/></li>
+                                    <li style="color: blue">텍스트입력 : <input type="text" id="dtText"                name="dtText"               value=""/></li>
+                                    <li style="color: blue">최대판매수량 : <input type="text" id="maxSaleQty"        name="maxSaleQty"       value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                                                                                                            
+                            <form method="post" action="/partner/goods/image-url">
+                                <p><a href="#">판매상품 이미지 등록(URL)</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :    <input type="text" id="entpCode" name="entpCode" value="400710"/></li>
+                                    <li>업체사용자ID :    <input type="text" id="entpId" name="entpId" value="E400710"/></li>
+                                    <li>업체PASSWORD : <input type="text" id="entpPass" name="entpPass" value="0"/></li>
+                                    <li>상품코드 :    <input type="text" id="goodsCode" name="goodsCode" value=""/></li>
+                                    <li>메인이미지URL :    <input type="text" id="imgUrlBase" name="imgUrlBase" value=""/></li>  
+                                    <li style="color: blue">서브이미지1URL :    <input type="text" id="imgUrlA" name="imgUrlA" value=""/></li>
+                                    <li style="color: blue">서브이미지2URL :    <input type="text" id="imgUrlB" name="imgUrlB" value=""/></li>   
+                                    <li style="color: blue">서브이미지3URL :    <input type="text" id="imgUrlC" name="imgUrlC" value=""/></li>   
+                                    <li style="color: blue">서브이미지4URL :    <input type="text" id="imgUrlD" name="imgUrlD" value=""/></li>   
+                                    <li style="color: blue">모바일이미지URL :    <input type="text" id="imgUrlE" name="imgUrlE" value=""/></li>                                       
+                                    <li><button type="button" >전송</button></li>
+                                </ul>
+                            </form>                                                                                                            
+                            <form method="post" action="/partner/goods/sales-no-goods">
+                                <p><a href="#">판매상품 판매중단 처리</a></p>  
+                                <ul style="display:none" class="active">
+                                    <li>연결코드 :      <input type="text" id="linkCode" name="linkCode" value="SLINK"/></li>
+                                    <li>업체코드 :      <input type="text" id="entpCode" name="entpCode" value="400002"/></li>
+                                    <li>업체사용자ID :   <input type="text" id="entpId" name="entpId" value="DEV_API"/></li>
+                                    <li>업체PASSWORD :    <input type="text" id="entpPass" name="entpPass" value="12345678"/></li>
+                                    <li style="color: blue">판매상품코드 : <input type="text" id="goodsCode"         name="goodsCode"                value=""/></li>
+                                    <li style="color: blue">판매단품코드 : <input type="text" id="goodsdtCode"   name="goodsdtCode"          value=""/></li>
+                                    <li style="color: blue">판매구분 : <input type="text" id="saleGb"                name="saleGb"               value=""/></li>
+                                    <li style="color: blue">불가사유코드 : <input type="text" id="saleNoCode"        name="saleNoCode"           value=""/></li>
+                                    <li style="color: blue">불가코멘트 : <input type="text" id="saleNoNote"        name="saleNoNote"           value=""/></li>
+                                    <li><button type="button">전송</button></li>
+                                </ul>
+                            </form>                                                                                                            
+                        </div><!-- #tab4 end -->
+                    </div>
+                </div>
+            </td>
+            <td>
+	            <p><b><label>실행결과</label></b></p>
+	            <!-- .tab_container -->
+	            <div class="tab_container_result">
+	               <iframe src="" width="700" height="800" name="resultView"></iframe>
+	            </div>
+	            <!-- .tab_container -->         
+            </td>
+        <!-- #container -->
+        </table>    
+ </body>
+</html>

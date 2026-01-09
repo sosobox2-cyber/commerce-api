@@ -1,0 +1,898 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+        
+<mapper namespace="pawemp.order">
+	<select id="selectPaWempOrderListExists" parameterType="com.cware.netshopping.domain.model.PaWempOrderList" resultType="int">
+		SELECT /* pawemporder.xml: pawemp.order.selectPaWempOrderListExists by PaWempOrderController*/
+			   COUNT(1) AS CNT
+		  FROM TPAWEMPORDERLIST WEL
+		 WHERE PA_ORDER_NO = #{paOrderNo ,jdbcType=VARCHAR}
+		   AND PA_SHIP_NO  = #{paShipNo  ,jdbcType=VARCHAR}
+	</select>
+	
+    <insert id="insertPaWempOrderList" parameterType="com.cware.netshopping.domain.model.PaWempOrderList" >
+        INSERT /* pawemporder.xml : insertPaWempOrderList by PaWempOrderController */
+          INTO TPAWEMPORDERLIST (
+            PA_ORDER_NO,
+            PA_SHIP_NO,
+            ORDER_DATE,
+            PAY_DATE,
+            ORIGIN_SHIP_DATE,
+            ORDER_CONFIRM_DATE,
+            ORDER_SHIP_DATE,
+            SHIP_COMPLETE_DATE,
+            BUYER_NAME,
+            BUYER_PHONE,
+            SHIP_PRICE,
+            PREPAY_TYPE,
+            SHIP_TYPE,
+            DELIVERY_STATUS,
+            DELIVERY_METHOD,
+            DELIVERY_METHOD_MESSAGE,
+            SCHEDULE_SHIP_DATE,
+            DELY_COMP,
+            INVOICE_NO,
+            RECEIVER_NAME,
+            RECEIVER_PHONE,
+            CUSTOMS_PIN,
+            ZIPCODE,
+            BASE_ADDR,
+            DETAIL_ADDR,
+            DELIVERY_MESSAGE,
+            INSERT_ID,
+            INSERT_DATE,
+            MODIFY_ID,
+            MODIFY_DATE
+          ) 
+          VALUES (
+             #{paOrderNo                  ,jdbcType=VARCHAR},
+             #{paShipNo                   ,jdbcType=VARCHAR}, 
+             #{orderDate                  ,jdbcType=TIMESTAMP}, 
+             #{payDate                    ,jdbcType=TIMESTAMP}, 
+             #{originShipDate             ,jdbcType=TIMESTAMP}, 
+             #{orderConfirmDate           ,jdbcType=TIMESTAMP}, 
+             #{orderShipDate              ,jdbcType=TIMESTAMP}, 
+             #{shipCompleteDate           ,jdbcType=TIMESTAMP},  
+             substr(#{buyerName                  ,jdbcType=VARCHAR}, 1, 10),
+             CWARE_ENC_DEC(#{buyerPhone   ,jdbcType=VARCHAR}, 'E'), 
+             #{shipPrice                  ,jdbcType=NUMERIC}, 
+             FUN_TCODE_MGROUP('O690', #{prepayType, jdbcType=VARCHAR}),
+             FUN_TCODE_MGROUP('O691', #{shipType, jdbcType=VARCHAR}),
+             FUN_TCODE_MGROUP('O692', #{deliveryStatus, jdbcType=VARCHAR}),
+             FUN_TCODE_MGROUP('O693', #{deliveryMethod, jdbcType=VARCHAR}), 
+             #{deliveryMethodMessage      ,jdbcType=VARCHAR},  
+             #{scheduleShipDate           ,jdbcType=TIMESTAMP},
+             #{delyComp                   ,jdbcType=VARCHAR}, 
+             #{invoiceNo                  ,jdbcType=VARCHAR}, 
+             #{receiverName               ,jdbcType=VARCHAR}, 
+             CWARE_ENC_DEC(#{receiverPhone,jdbcType=VARCHAR}, 'E'), 
+             CWARE_ENC_DEC(#{customsPin   ,jdbcType=VARCHAR}, 'E'), 
+             CWARE_ENC_DEC(#{zipcode      ,jdbcType=VARCHAR}, 'E'), 
+             CWARE_ENC_DEC(#{baseAddr     ,jdbcType=VARCHAR}, 'E'),
+             CWARE_ENC_DEC(#{detailAddr   ,jdbcType=VARCHAR}, 'E'), 
+             #{deliveryMessage            ,jdbcType=VARCHAR},
+             #{insertId                   ,jdbcType=VARCHAR},
+             SYSDATE,
+             #{modifyId                   ,jdbcType=VARCHAR},
+             SYSDATE
+           )
+    </insert>
+    
+    <select id="selectPaWempOrderItemList" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaWempOrderItemList">
+        SELECT /* pawemporder.xml : selectPaWempOrderItemList by PaWempOrderController */
+               PA_ORDER_NO
+               ,PA_SHIP_NO
+               ,PA_ORDER_SEQ
+               ,ORDER_PRODUCT_NO
+               ,PRODUCT_NO
+               ,PRODUCT_NAME
+               ,PRODUCT_ORIGIN_PRICE
+               ,PRODUCT_PRICE
+               ,PRODUCT_COMMISSION_PRICE
+               ,PRODUCT_QTY
+               ,WMP_CHARGE_DISCOUNT
+               ,SELLER_CHARGE_DISCOUNT
+               ,CARD_CHARGE_DISCOUNT
+               ,GOODS_CODE
+               ,ORDER_OPTION_NO
+               ,OPTION_NO
+               ,OPTION_NAME
+               ,OPTION_QTY
+               ,GOODSDT_CODE
+          FROM TPAWEMPORDERITEMLIST
+         WHERE PA_ORDER_NO      = #{paOrderNo      ,jdbcType=VARCHAR}
+           AND PA_SHIP_NO       = #{paShipNo       ,jdbcType=VARCHAR}
+         <if test='paOrderSeq != null and paOrderSeq != ""'>
+           AND PA_ORDER_SEQ     = #{paOrderSeq     ,jdbcType=VARCHAR}           	
+         </if>
+         <if test='orderProductNo != null and orderProductNo != ""'>
+           AND ORDER_PRODUCT_NO = #{orderProductNo ,jdbcType=VARCHAR}               
+         </if>
+         <if test='orderOptionNo != null and orderOptionNo != ""'>
+           AND ORDER_OPTION_NO  = #{orderOptionNo  ,jdbcType=VARCHAR}               
+         </if>
+    </select>
+    
+    <insert id="insertPaWempOrderItemList" parameterType="com.cware.netshopping.domain.model.PaWempOrderItemList" >
+        INSERT /* pawemporder.xml : insertPaWempOrderItemList by PaWempOrderController */
+          INTO TPAWEMPORDERITEMLIST (
+            PA_ORDER_NO,
+            PA_SHIP_NO,
+            PA_ORDER_SEQ,
+            ORDER_PRODUCT_NO,
+            PRODUCT_NO,
+            PRODUCT_NAME,
+            PRODUCT_ORIGIN_PRICE,
+            PRODUCT_PRICE,
+            PRODUCT_COMMISSION_PRICE,
+            PRODUCT_QTY,
+            WMP_CHARGE_DISCOUNT,
+            SELLER_CHARGE_DISCOUNT,
+            CARD_CHARGE_DISCOUNT,
+            GOODS_CODE,
+            ORDER_OPTION_NO,
+            OPTION_NO,
+            OPTION_NAME,
+            OPTION_QTY,
+            GOODSDT_CODE,
+            INSERT_ID,
+            INSERT_DATE,
+            MODIFY_ID,
+            MODIFY_DATE
+          ) 
+          VALUES (
+             #{paOrderNo             ,jdbcType=VARCHAR},
+             #{paShipNo              ,jdbcType=VARCHAR}, 
+             #{paOrderSeq            ,jdbcType=VARCHAR},
+             #{orderProductNo        ,jdbcType=VARCHAR},
+             #{productNo             ,jdbcType=VARCHAR},
+             #{productName           ,jdbcType=VARCHAR},
+             #{productOriginPrice    ,jdbcType=NUMERIC},
+             #{productPrice          ,jdbcType=NUMERIC},
+             #{productCommissionPrice,jdbcType=NUMERIC},
+             #{productQty            ,jdbcType=NUMERIC},
+             #{wmpChargeDiscount     ,jdbcType=NUMERIC},
+             #{sellerChargeDiscount  ,jdbcType=NUMERIC},
+             #{cardChargeDiscount    ,jdbcType=NUMERIC},
+             #{goodsCode             ,jdbcType=VARCHAR},
+             #{orderOptionNo         ,jdbcType=VARCHAR},
+             #{optionNo              ,jdbcType=VARCHAR},
+             #{optionName            ,jdbcType=VARCHAR}, 
+             #{optionQty             ,jdbcType=NUMERIC},
+             #{goodsdtCode           ,jdbcType=VARCHAR},
+             #{insertId              ,jdbcType=VARCHAR},
+             SYSDATE,
+             #{modifyId              ,jdbcType=VARCHAR},
+             SYSDATE
+           )
+    </insert>
+    
+    <select id="selectOrderInputTargetList" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaWempTargetVO">
+        SELECT /* pawemporder.xml : selectOrderInputTargetList by PaWempOrderController */
+               AA.PA_ORDER_NO
+             , AA.TARGET_CNT
+          FROM (SELECT POM.PA_ORDER_NO
+                     , COUNT(1) TARGET_CNT
+                  FROM TPAORDERM POM
+                 WHERE POM.PA_CODE       IN ('61', '62')
+                   AND POM.PA_ORDER_GB   = '10'
+                   AND POM.CREATE_YN     = '0'
+                   AND POM.PRE_CANCEL_YN = '0'
+                   AND POM.INSERT_DATE   &gt; TRUNC(SYSDATE)-5
+                 GROUP BY POM.PA_ORDER_NO
+                 ORDER BY POM.PA_ORDER_NO) AA
+         WHERE ROWNUM &lt;= #{paOrderCreateCnt, jdbcType=NUMERIC}
+    </select>
+    
+    <select id="selectOrderInputTargetDtList" parameterType="hashMap" resultType="hashMap">
+	   SELECT /* pawemporder.xml: selectOrderInputTargetDtList */
+	   		  *
+	     FROM (
+		        SELECT POM.PA_CODE
+		             , POM.PA_ORDER_NO
+		             , WI.PA_SHIP_NO
+		             , POM.PA_ORDER_SEQ
+		             , POM.MAPPING_SEQ
+		             , TC.REMARK1                                              AS MEDIA_CODE
+		             , TC.CODE_GROUP                                           AS CODE_GROUP
+		             , TO_CHAR(WO.ORDER_DATE, 'YYYYMMDDHH24MISS')              AS ORDER_DATE
+		             , WI.GOODS_CODE
+		             , NVL(WI.GOODSDT_CODE, '001')                             AS GOODSDT_CODE
+		             , WI.OPTION_QTY                                           AS ORDER_QTY
+		             , TO_CHAR(PGP.APPLY_DATE, 'YYYYMMDDHH24MISS')             AS APPLY_DATE
+		             , (WI.PRODUCT_PRICE * WI.OPTION_QTY) - (WMP_CHARGE_DISCOUNT + SELLER_CHARGE_DISCOUNT) AS RSALE_AMT
+		             , PGP.SUPPLY_PRICE                                        AS SUPPLY_PRICE             
+		             , WO.BUYER_NAME                                           AS CUST_NAME
+		             , REPLACE(CWARE_ENC_DEC(WO.BUYER_PHONE, 'D'), '-', '')    AS CUST_TEL1
+		             , REPLACE(CWARE_ENC_DEC(WO.BUYER_PHONE, 'D'), '-', '')    AS CUST_TEL2
+		             , WO.RECEIVER_NAME                                        AS RECEIVER_NAME
+		             , REPLACE(CWARE_ENC_DEC(WO.RECEIVER_PHONE, 'D'), '-', '') AS RECEIVER_TEL
+		             , REPLACE(CWARE_ENC_DEC(WO.RECEIVER_PHONE, 'D'), '-', '') AS RECEIVER_HP
+		             , CWARE_ENC_DEC(WO.BASE_ADDR, 'D') 
+		                   || CWARE_ENC_DEC(WO.DETAIL_ADDR, 'D')               AS RECEIVER_ADDR
+		             , CWARE_ENC_DEC(WO.BASE_ADDR, 'D')                        AS RECEIVER_ADDR1
+		             , CWARE_ENC_DEC(WO.DETAIL_ADDR, 'D')                      AS RECEIVER_ADDR2
+		             , REPLACE(CWARE_ENC_DEC(WO.ZIPCODE, 'D'), '-', '')        AS RECEIVER_ZIPCODE
+		             , PGP.SALE_PRICE * WI.OPTION_QTY - ((WI.PRODUCT_PRICE * WI.OPTION_QTY) - (WMP_CHARGE_DISCOUNT + SELLER_CHARGE_DISCOUNT)) AS SELLER_DC_AMT
+		             , NVL((PGP.LUMP_SUM_DC_AMT * WI.OPTION_QTY ),0) 		   AS LUMP_SUM_DC_AMT
+		             , NVL((PGP.LUMP_SUM_ENTP_DC_AMT),0)					   AS LUMP_SUM_ENTP_DC_AMT
+		             , NVL((PGP.LUMP_SUM_OWN_DC_AMT),0)						   AS LUMP_SUM_OWN_DC_AMT
+		             , WO.DELIVERY_MESSAGE                                     AS MSG
+		             , NVL(WO.SHIP_PRICE, 0)                                   AS PA_SHPFEE_COST
+			         , PGM.PRODUCT_NO                                          AS PA_GOODS_CODE
+			         , PGP.PRICE_SEQ
+			         , DECODE(POM.PA_DO_FLAG, '10', '10', '20')                AS DO_FLAG
+			         , WI.PRODUCT_PRICE
+			         , PGP.SALE_PRICE
+			         , PGP.DC_AMT
+			         , PGP.LUMP_SUM_DC_AMT AS LUMP_SUM_DC_AMT_ORG
+			         , 0 AS SD_PROMO_PRICE
+			         , NVL(NVL(PP.COUPON_DC_AMT,
+                        (SELECT /*+INDEX_DESC (PPT IDX_TPAPROMOTARGET_04)*/
+                                   CASE WHEN  PPT.PROC_GB = 'D' THEN 0
+                                        WHEN  PPT.PROC_GB = 'U' AND PPT.USE_CODE != '00'  THEN 0
+                                        ELSE  PPT.DO_AMT
+                                        END
+                               FROM TPAPROMOTARGET PPT
+                                  , TPROMOM TB_A
+                              WHERE PPT.GOODS_CODE = PGM.GOODS_CODE
+                                AND PPT.PA_CODE    = PGM.PA_CODE
+                                AND PPT.PROMO_NO = TB_A.PROMO_NO
+                                AND TB_A.COUPON_YN = '1'
+                                AND TB_A.IMMEDIATELY_YN = '1'
+                                AND NVL(TB_A.ALCOUT_PROMO_YN, '0') = '1'
+                                AND PPT.TRANS_DATE IS NOT NULL
+                                AND PPT.TRANS_DATE &lt; WO.ORDER_DATE
+                                AND ((WO.ORDER_DATE BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE + #{ papromoAllowTerm, jdbcType=VARCHAR})
+                                      OR (WO.ORDER_DATE > PPT.PROMO_EDATE AND PPT.PROC_GB = 'D' )
+                                      OR (POM.REMARK4_N IS NOT NULL AND POM.REMARK4_N = 1) )
+                                AND ROWNUM         = 1)
+                                ), 0) AS OUT_PROMO_PRICE 
+			         , POM.REMARK4_N
+			         , PP.COUPON_PROMO_NO AS PROMO_NO
+			         , PP.COUPON_OWN_COST AS OWN_COST
+		             , PP.COUPON_ENTP_COST AS ENTP_COST
+		             , TO_CHAR(PROMO.PROMO_BDATE, 'yyyy/mm/dd hh24:mi:ss') AS COUPON_PROMO_BDATE
+		             , TO_CHAR(PROMO.PROMO_EDATE, 'yyyy/mm/dd hh24:mi:ss') AS COUPON_PROMO_EDATE
+		             , TO_CHAR(GP.APPLY_DATE, 'YYYYMMDDHH24MISS') AS STOA_APPLY_DATE
+		          FROM TPAORDERM            POM
+		             , TPAWEMPORDERLIST     WO
+		             , TPAWEMPORDERITEMLIST WI
+		             , TPAWEMPGOODS         PGM
+		             , TPAGOODSPRICE        PGP
+		             , TCODE                TC
+		             , TPAGOODSPRICEAPPLY   PP
+		             , TPROMOM              PROMO
+		             , TGOODSPRICE GP
+		         WHERE POM.PA_ORDER_NO   = WO.PA_ORDER_NO
+		           AND POM.PA_SHIP_NO    = WO.PA_SHIP_NO
+		           AND POM.PA_ORDER_NO   = WI.PA_ORDER_NO
+		           AND POM.PA_SHIP_NO    = WI.PA_SHIP_NO
+		           AND POM.PA_ORDER_SEQ  = WI.PA_ORDER_SEQ
+		           AND WI.PRODUCT_NO     = PGM.PRODUCT_NO
+		           AND PGM.GOODS_CODE    = PGP.GOODS_CODE
+		           AND PGP.ROWID         = (SELECT /*+ INDEX_DESC(I PK_TPAGOODSPRICE) */
+		                                           ROWID
+		                                      FROM TPAGOODSPRICE I
+		                                     WHERE I.PA_CODE    = POM.PA_CODE
+		                                       AND I.GOODS_CODE = PGP.GOODS_CODE
+		                                       AND I.TRANS_DATE &lt;= WO.ORDER_DATE                                       
+		                                       AND I.TRANS_DATE IS NOT NULL
+		                                       AND ROWNUM       = 1)
+		           AND PGM.GOODS_CODE    = PP.GOODS_CODE
+		           AND PGM.PA_GROUP_CODE = PP.PA_GROUP_CODE
+		           AND PGM.PA_CODE       = PP.PA_CODE
+		           AND (PP.APPLY_DATE, PP.PRICE_APPLY_SEQ) = (SELECT /*+ INDEX_DESC (PP2 PK_TPAGOODSPRICEAPPLY)*/
+                                                                         PP2.APPLY_DATE, PP2.PRICE_APPLY_SEQ
+                                                                FROM TPAGOODSPRICEAPPLY PP2
+                                                               WHERE PP2.GOODS_CODE = PP.GOODS_CODE
+                                                                 AND PP2.PA_GROUP_CODE = PP.PA_GROUP_CODE
+                                                                 AND PP2.PA_CODE = PP.PA_CODE
+                                                                 AND PP2.APPLY_DATE &lt;= WO.ORDER_DATE
+                                                                 AND PP2.TRANS_DATE &lt;= WO.ORDER_DATE
+                                                                 AND ROWNUM = 1 )
+                   AND PP.COUPON_PROMO_NO = PROMO.PROMO_NO(+)
+                   AND GP.GOODS_CODE = PGP.GOODS_CODE
+                   AND GP.ROWID = (SELECT /*+ INDEX_DESC (GP2 PK_TGOODSPRICE)*/
+                                             GP2.ROWID
+                                     FROM TGOODSPRICE GP2
+                                    WHERE GP2.GOODS_CODE  = GP.GOODS_CODE
+                                      AND GP2.APPLY_DATE &lt; WO.ORDER_DATE
+                                      AND ROWNUM = 1)
+		           AND POM.CREATE_YN     = '0'
+		           AND POM.PA_ORDER_GB   = '10'
+		           AND POM.PRE_CANCEL_YN = '0'
+		           AND POM.PA_CODE       = PGP.PA_CODE
+		           AND TC.CODE_LGROUP    = 'O501'
+		           AND POM.PA_CODE       = TC.CODE_MGROUP
+		           AND TC.USE_YN         = '1'
+		           AND POM.PA_ORDER_NO   = #{paOrderNo, jdbcType=VARCHAR} 
+		           )
+	    WHERE SALE_PRICE - DC_AMT - LUMP_SUM_DC_AMT_ORG = PRODUCT_PRICE + SD_PROMO_PRICE + OUT_PROMO_PRICE 
+		ORDER BY PA_SHIP_NO, PA_ORDER_SEQ
+		           <!-- 
+		           AND PGP.SALE_PRICE - PGP.DC_AMT - PGP.LUMP_SUM_DC_AMT 
+		             = WI.PRODUCT_PRICE  + NVL(( SELECT /*+INDEX_DESC (PPT IDX_TPAPROMOTARGET_04)*/
+		                                                CASE WHEN  PPT.PROC_GB = 'D' THEN 0
+		                                                     WHEN  PPT.PROC_GB = 'U' AND PPT.USE_CODE != '00'  THEN 0
+		                                                     ELSE  PPT.DO_AMT
+		                                                END
+		                                           FROM TPAPROMOTARGET PPT, TPROMOM TB_A
+		                                          WHERE PPT.GOODS_CODE = PGM.GOODS_CODE
+		                                            AND PPT.PA_CODE    = PGM.PA_CODE
+		                                            AND PPT.PROMO_NO = TB_A.PROMO_NO
+		                                            AND TB_A.COUPON_YN = '1'
+		                                            AND TB_A.IMMEDIATELY_YN = '1'
+		                                            AND NVL(TB_A.ALCOUT_PROMO_YN, '0') = '0'
+		                                            AND PPT.TRANS_DATE IS NOT NULL
+		                                            AND PPT.TRANS_DATE &lt; WO.ORDER_DATE
+		                                            AND ((WO.ORDER_DATE BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE)  OR (WO.ORDER_DATE > PPT.PROMO_EDATE AND PPT.PROC_GB = 'D' ))                                            
+		                                            AND ROWNUM         = 1 ),0)
+		                                 + NVL(( SELECT /*+INDEX_DESC (PPT IDX_TPAPROMOTARGET_04)*/
+		                                                CASE WHEN  PPT.PROC_GB = 'D' THEN 0
+		                                                     WHEN  PPT.PROC_GB = 'U' AND PPT.USE_CODE != '00'  THEN 0
+		                                                     ELSE  PPT.DO_AMT
+		                                                END
+		                                           FROM TPAPROMOTARGET PPT, TPROMOM TB_A
+		                                          WHERE PPT.GOODS_CODE = PGM.GOODS_CODE
+		                                            AND PPT.PA_CODE    = PGM.PA_CODE
+		                                            AND PPT.PROMO_NO = TB_A.PROMO_NO
+		                                            AND TB_A.COUPON_YN = '1'
+		                                            AND TB_A.IMMEDIATELY_YN = '1'
+		                                            AND NVL(TB_A.ALCOUT_PROMO_YN, '0') = '1'
+		                                            AND PPT.TRANS_DATE IS NOT NULL
+		                                            AND PPT.TRANS_DATE &lt; WO.ORDER_DATE
+		                                            AND ((WO.ORDER_DATE BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE)  OR (WO.ORDER_DATE > PPT.PROMO_EDATE AND PPT.PROC_GB = 'D' )) 
+		                                            AND ROWNUM         = 1 ),0)
+		                                             -->
+    </select>
+    
+    <select id="selectRefusalInfo" parameterType="String" resultType="com.cware.netshopping.domain.PaWempTargetVO">
+        SELECT /* pawemporder.xml: selectRefusalInfo */
+               POM.PA_ORDER_NO
+             , POM.PA_ORDER_SEQ
+             , POM.PA_SHIP_NO
+             , COI.ORDER_OPTION_NO
+             , COI.OPTION_QTY
+             , POM.PA_CODE
+             , COI.GOODS_CODE
+             , COI.GOODSDT_CODE
+             , COI.PRODUCT_NO
+             , POM.ORDER_CANCEL_YN
+          FROM TPAORDERM            POM
+             , TPAWEMPORDERITEMLIST COI
+         WHERE POM.PA_ORDER_NO  = COI.PA_ORDER_NO
+           AND POM.PA_SHIP_NO   = COI.PA_SHIP_NO
+           AND POM.PA_ORDER_SEQ = COI.PA_ORDER_SEQ
+           AND POM.MAPPING_SEQ  = #{mappingSeq, jdbcType=VARCHAR}
+    </select>
+    
+    <update id="updatePreCancelYn" parameterType="hashMap">
+        UPDATE TPAORDERM /* pawemporder.xml : updatePreCancelYn by PaWempOrderController */
+           SET PRE_CANCEL_YN      = #{preCancelYn      ,jdbcType=VARCHAR}
+             , PRE_CANCEL_REASON  = #{preCancelReason  ,jdbcType=VARCHAR}
+             <if test="apiResultMessage != '' and apiResultMessage != null">
+             , API_RESULT_CODE    = #{apiResultCode    ,jdbcType=VARCHAR}
+             , API_RESULT_MESSAGE = #{apiResultMessage ,jdbcType=VARCHAR}
+             , PROC_DATE          = SYSDATE
+             </if>
+         WHERE MAPPING_SEQ        = #{mappingSeq       ,jdbcType=VARCHAR}
+           AND CREATE_YN          = '0'
+           AND PRE_CANCEL_YN      = '0'
+    </update>
+    
+    <select id="selectSlipOutProcList" resultType="hashMap">
+        SELECT /* pawemporder.xml : selectSlipOutProcList by PaWempOrderController */
+               distinct PM.PA_SHIP_NO
+             , PM.PA_CODE
+          FROM TPAORDERM PM
+             , TSLIPM SM
+             , TSLIPDT SD
+             , TORDERGOODS OG
+         WHERE SM.SLIP_I_NO   = SD.SLIP_I_NO
+           AND PM.ORDER_NO    = SD.ORDER_NO
+           AND PM.ORDER_G_SEQ = SD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ = SD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ = SD.ORDER_W_SEQ
+           AND PM.ORDER_NO    = OG.ORDER_NO
+           AND PM.ORDER_G_SEQ = OG.ORDER_G_SEQ
+           AND PM.PA_DO_FLAG  = '30'
+           AND PM.PA_ORDER_GB = '10'
+           AND PM.PA_CODE     IN ('61', '62')
+           AND SM.SLIP_PROC     >= '40'
+           AND (SM.SLIP_NO IS NOT NULL OR SM.SLIP_PROC = '80')
+           AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+    </select>
+
+    <select id="selectSlipOutProcDtList" parameterType="String" resultType="hashMap">
+        SELECT /* pawemporder.xml: selectSlipOutProcDtList by PaWempOrderController */
+               POM.MAPPING_SEQ     AS MAPPING_SEQ
+             , POM.PA_SHIP_NO      AS PA_SHIP_NO
+             , POM.PA_ORDER_NO     AS PA_ORDER_NO
+             , POM.PA_ORDER_SEQ    AS PA_ORDER_SEQ
+             , NVL((SELECT PDG.PA_DELY_GB FROM TPADELYGB PDG WHERE PDG.PA_CODE = '06' AND SM.DELY_GB = PDG.DELY_GB), 'D002') AS PA_DELY_GB
+             , NVL((SELECT PDG.PA_DELY_GB_NAME FROM TPADELYGB PDG WHERE PDG.PA_CODE = '06' AND SM.DELY_GB = PDG.DELY_GB), 'CJ대한통운') AS PA_DELY_GB_NAME
+             , CASE WHEN SLIP_PROC = '80' AND SM.SLIP_NO IS NULL THEN 'DIRECT'
+               	    ELSE SM.SLIP_NO 
+               END AS INVOICE_NO
+             , SM.SLIP_I_NO        AS SLIP_I_NO
+             , SM.DELY_HOPE_YN     AS DELY_HOPE_YN
+             , TO_CHAR(NVL(SM.DELY_HOPE_DATE, SYSDATE+5), 'YYYY-MM-DD') AS SCHEDULE_SHIP_DATE
+             , POM.PA_CODE
+          FROM TPAORDERM   POM
+             , TSLIPDT     SD
+             , TSLIPM      SM
+             , TORDERGOODS OG
+         WHERE POM.ORDER_NO     = SD.ORDER_NO
+           AND POM.ORDER_G_SEQ  = SD.ORDER_G_SEQ
+           AND POM.ORDER_D_SEQ  = SD.ORDER_D_SEQ
+           AND POM.ORDER_W_SEQ  = SD.ORDER_W_SEQ
+           AND SD.SLIP_I_NO     = SM.SLIP_I_NO
+           AND POM.ORDER_NO     = OG.ORDER_NO
+           AND POM.ORDER_G_SEQ  = OG.ORDER_G_SEQ
+           AND POM.PA_CODE      IN ('61', '62')
+           AND POM.PA_DO_FLAG   = '30'
+           AND POM.PA_ORDER_GB  = '10'
+           AND SM.SLIP_PROC    >= '40'
+           AND SM.SLIP_GB       = '101'
+           AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+           AND POM.PA_SHIP_NO   = #{paShipNo, jdbcType=VARCHAR}
+         ORDER BY POM.PA_ORDER_SEQ
+    </select>
+    
+    <update id="updateSlipOutProc" parameterType="hashMap">
+      UPDATE TPAORDERM /* pawemporder.xml: updateSlipOutProc by PaWempOrderController */
+         SET PA_DO_FLAG         = '40' /*배송중(출고완료)*/
+           , API_RESULT_CODE    = '000000'
+           , API_RESULT_MESSAGE = '출고처리성공'
+           , PROC_DATE          = SYSDATE
+           , MODIFY_ID          = #{modifyId, jdbcType=VARCHAR}
+           , MODIFY_DATE        = SYSDATE
+       WHERE MAPPING_SEQ        = #{mappingSeq, jdbcType=VARCHAR}
+    </update>  
+    
+    <update id="updateSlipOutProcFail" parameterType="hashMap">
+      UPDATE TPAORDERM /* pawemporder.xml: updateSlipOutProcFail by PaWempOrderController */
+         SET API_RESULT_CODE    = '999999'
+           , API_RESULT_MESSAGE = #{apiMsg   ,jdbcType=VARCHAR}           
+           , MODIFY_ID          = #{modifyId ,jdbcType=VARCHAR}           
+           , MODIFY_DATE        = SYSDATE
+       WHERE MAPPING_SEQ        = #{mappingSeq, jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updateDeliveryComplete" parameterType="com.cware.netshopping.domain.model.Paorderm">
+      UPDATE TPAORDERM /* pawemporder.xml : updateDeliveryComplete by PaWempOrderController */
+         SET API_RESULT_CODE    = #{apiResultCode   , jdbcType=VARCHAR}
+		   , API_RESULT_MESSAGE = #{apiResultMessage, jdbcType=VARCHAR}
+		   , MODIFY_ID          = #{modifyId        , jdbcType=VARCHAR}
+		   , MODIFY_DATE        = SYSDATE
+		   <if test='apiResultMessage == "배송완료 처리 성공"'>
+		   , PA_DO_FLAG         = '80' /*배송완료*/
+           , PROC_DATE          = #{procDate        , jdbcType=TIMESTAMP}
+           </if>
+       WHERE PA_ORDER_GB        = '10' /*주문*/
+         AND PA_CODE            = #{paCode    ,jdbcType=VARCHAR}
+         AND PA_ORDER_NO        = #{paOrderNo ,jdbcType=VARCHAR}
+         AND PA_SHIP_NO         = #{paShipNo  ,jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updatePaOrdermCancelRefusal" parameterType="com.cware.netshopping.domain.model.Paorderm">
+        UPDATE TPAORDERM /* pawemporder.xml : updatePaOrdermCancelRefusal by PaWempOrderController */
+           SET PA_DO_FLAG         = '40' /* 출고 */
+             , PROC_DATE          = SYSDATE
+             , API_RESULT_CODE    = '000000'
+             , API_RESULT_MESSAGE = '취소클레임거부로 인한 발송처리'
+         WHERE PA_ORDER_GB        = '10' /*주문*/
+           AND PA_CODE            = #{paCode    ,jdbcType=VARCHAR}
+           AND PA_ORDER_NO        = #{paOrderNo ,jdbcType=VARCHAR}
+           AND PA_SHIP_NO         = #{paShipNo  ,jdbcType=VARCHAR}
+           AND PA_DO_FLAG         &lt; '40' /* 출고미만 */
+    </update>
+    
+    <update id="updateInvoiceInfo" parameterType="com.cware.netshopping.domain.model.PaWempOrderList">
+      UPDATE TPAWEMPORDERLIST /* pawemporder.xml: updateInvoiceInfo by PaWempOrderController */
+         SET DELIVERY_METHOD = #{deliveryMethod ,jdbcType=VARCHAR}
+           , DELIVERY_STATUS = #{deliveryStatus ,jdbcType=VARCHAR}
+           , DELY_COMP       = #{delyComp       ,jdbcType=VARCHAR}
+           , INVOICE_NO      = #{invoiceNo      ,jdbcType=VARCHAR}
+           , MODIFY_ID       = #{modifyId       ,jdbcType=VARCHAR}
+           , MODIFY_DATE     = SYSDATE
+       WHERE PA_SHIP_NO      = #{paShipNo       ,jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectCancelRequestList" resultType="com.cware.netshopping.domain.model.PaWempClaimList">
+        SELECT /* pawemporder.xml : pawemp.order.selectCancelRequestList */
+               WCL.PA_CLAIM_NO
+             , WCL.PA_ORDER_NO
+             , WCL.PA_SHIP_NO
+          FROM TPAWEMPCLAIMLIST WCL
+         WHERE WCL.PA_ORDER_GB        = '20'
+           AND WCL.CANCEL_WITHDRAW_YN = '0'
+           AND WCL.INSERT_DATE        &gt; SYSDATE - 7
+           AND NOT EXISTS ( SELECT 1
+                              FROM TPAWEMPCLAIMITEMLIST WCI
+                             WHERE WCL.PA_CLAIM_NO = WCI.PA_CLAIM_NO
+                               AND WCL.PA_ORDER_NO = WCI.PA_ORDER_NO
+                               AND WCL.PA_SHIP_NO  = WCI.PA_SHIP_NO
+                               AND WCL.PA_ORDER_GB = WCI.PA_ORDER_GB
+                               AND WCI.PROC_FLAG   IN ('10', '20') /* 취소승인,거절 */
+                           )
+    </select>
+    
+    <select id="selectCancelRequestDtList" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaWempDeliveryVO">
+        SELECT /* pawemporder.xml : pawemp.order.selectCancelRequestDtList */
+               WCI.PA_CLAIM_NO
+             , PM.PA_ORDER_NO
+             , PM.PA_SHIP_NO
+             , PM.PA_ORDER_SEQ
+             , OD.DO_FLAG
+             , PM.MAPPING_SEQ
+             , PM.PA_CODE
+             , SM.SLIP_NO          AS INVOICE_NO
+             , PDG.PA_DELY_GB      AS PARCEL_COMPANY_CODE
+             , PDG.PA_DELY_GB_NAME AS PA_DELY_GB_NAME
+             , SM.DELY_HOPE_YN     AS DELY_HOPE_YN
+             , TO_CHAR(NVL(SM.DELY_HOPE_DATE, SYSDATE+5), 'YYYY-MM-DD') AS SCHEDULE_SHIP_DATE
+             , PM.ORDER_NO
+             , PM.ORDER_G_SEQ
+             , PM.ORDER_D_SEQ
+             , PM.ORDER_W_SEQ
+             , OD.GOODS_GB
+             , SM.SLIP_I_NO
+             , OD.GOODS_CODE
+             , OD.GOODSDT_CODE
+             , SM.DELY_GB
+             , WCI.PRODUCT_QTY
+             , NVL(WCI.OPTION_QTY, 0) AS OPTION_QTY
+          FROM TPAORDERM            PM
+             , TPAWEMPCLAIMITEMLIST WCI
+             , TORDERDT             OD
+             , TSLIPM               SM
+             , TSLIPDT              SD
+             , TPADELYGB            PDG
+         WHERE PM.PA_ORDER_NO  = WCI.PA_ORDER_NO
+           AND PM.PA_ORDER_SEQ = WCI.PA_ORDER_SEQ
+           AND PM.PA_SHIP_NO   = WCI.PA_SHIP_NO
+           AND PM.ORDER_NO     = OD.ORDER_NO
+           AND PM.ORDER_G_SEQ  = OD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ  = OD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ  = OD.ORDER_W_SEQ
+           AND PM.ORDER_NO     = SD.ORDER_NO(+)
+           AND PM.ORDER_G_SEQ  = SD.ORDER_G_SEQ(+)
+           AND PM.ORDER_D_SEQ  = SD.ORDER_D_SEQ(+)
+           AND PM.ORDER_W_SEQ  = SD.ORDER_W_SEQ(+)
+           AND SD.SLIP_I_NO    = SM.SLIP_I_NO(+)
+           AND SM.DELY_GB      = PDG.DELY_GB(+)
+           AND PM.PA_ORDER_GB  = '10'
+           AND PM.PA_ORDER_NO  = #{paOrderNo   ,jdbcType=VARCHAR}
+           AND PM.PA_SHIP_NO   = #{paShipNo    ,jdbcType=VARCHAR}
+           AND WCI.PA_CLAIM_NO = #{paClaimNo   ,jdbcType=VARCHAR}
+           AND PDG.PA_CODE(+)  = '06'
+    </select>
+    
+    <update id="updateClaimItemProcFlag" parameterType="com.cware.netshopping.domain.model.PaWempClaimItemList">
+      UPDATE TPAWEMPCLAIMITEMLIST /* pawemporder.xml: updateClaimItemProcFlag by PaWempOrderController */
+         SET PROC_FLAG   = #{procFlag , jdbcType=VARCHAR}
+           , MODIFY_ID   = #{modifyId , jdbcType=VARCHAR}
+           , MODIFY_DATE = SYSDATE
+       WHERE PA_CLAIM_NO = #{paClaimNo, jdbcType=VARCHAR}
+         AND PA_ORDER_NO = #{paOrderNo, jdbcType=VARCHAR}
+         AND PA_SHIP_NO  = #{paShipNo , jdbcType=VARCHAR}
+         AND PA_ORDER_GB = #{paOrderGb, jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updateCancelWithdrawYn" parameterType="com.cware.netshopping.domain.model.PaWempClaimList">
+        UPDATE TPAWEMPCLAIMLIST /* pawemporder.xml: pawemp.order.updateCancelWithdrawYn */
+           SET CANCEL_WITHDRAW_YN = #{cancelWithdrawYn, jdbcType=VARCHAR}
+             , MODIFY_ID          = #{modifyId        , jdbcType=VARCHAR}
+             , MODIFY_DATE        = SYSDATE
+         WHERE PA_CLAIM_NO        = #{paClaimNo       , jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectCancelInputTargetList" resultType="com.cware.netshopping.domain.PaWempTargetVO">
+        SELECT /* pawemporder.xml : selectCancelInputTargetList by PaWempOrderController */
+               POM.PA_ORDER_NO
+             , POM.PA_ORDER_SEQ
+             , POM.PA_SHIP_NO
+             , POM.PA_CLAIM_NO
+             , POM.PA_CODE
+          FROM TPAORDERM POM
+         WHERE POM.PA_CODE          IN ('61', '62')
+           AND POM.PA_ORDER_GB      = '20'
+           AND POM.CREATE_YN        = '0'
+           AND POM.PRE_CANCEL_YN    = '0'
+           AND POM.OUT_BEF_CLAIM_GB = '0'
+           AND POM.INSERT_DATE      &gt; TRUNC(SYSDATE) - 5
+    </select>
+    
+    <select id="selectCancelInputTargetDtList" parameterType="hashMap" resultType="hashMap">
+        SELECT /* pawemporder.xml : selectCancelInputTargetDtList by PaWempOrderController */
+               PM.MAPPING_SEQ
+             , OPM.ORDER_NO
+             , OPM.ORDER_G_SEQ
+             , PM.PA_PROC_QTY
+             , NVL((SELECT CS_LGROUP || CS_MGROUP || CS_SGROUP FROM TPACLAIMCODE PC WHERE PC.PA_CLAIM_NAME = PO.CLAIM_REASON AND PC.PA_CODE = '06' AND CLAIM_GB = '20'), '620628') AS CANCEL_CODE
+             , OPM.PRE_CANCEL_YN
+             , TC.CODE_GROUP
+          FROM TPAORDERM        PM   /*취소건*/
+             , TPAORDERM        OPM  /*원주문건*/
+             , TPAWEMPCLAIMLIST PO
+             , TORDERDT         OD
+             , TCODE            TC
+         WHERE PM.PA_ORDER_NO      = OPM.PA_ORDER_NO
+           AND PM.PA_ORDER_SEQ     = OPM.PA_ORDER_SEQ
+           AND PM.PA_SHIP_NO       = OPM.PA_SHIP_NO
+           AND PM.PA_CODE          = OPM.PA_CODE
+           AND PM.PA_ORDER_NO      = PO.PA_ORDER_NO
+           AND PM.PA_SHIP_NO       = PO.PA_SHIP_NO
+           AND PM.PA_CLAIM_NO      = PO.PA_CLAIM_NO
+           AND PM.PA_ORDER_GB      = PO.PA_ORDER_GB
+           AND OPM.ORDER_NO        = OD.ORDER_NO
+           AND OPM.ORDER_G_SEQ     = OD.ORDER_G_SEQ
+           AND OPM.ORDER_D_SEQ     = OD.ORDER_D_SEQ
+           AND OPM.ORDER_W_SEQ     = OD.ORDER_W_SEQ
+           AND PM.PA_CODE          = TC.CODE_MGROUP
+           AND TC.CODE_LGROUP      = 'O501'
+           AND TC.USE_YN           = '1'
+           AND PM.PA_CODE          = #{paCode, jdbcType=VARCHAR}
+           AND PM.PA_ORDER_GB      = '20'
+           AND PM.CREATE_YN        = '0'
+           AND PM.PRE_CANCEL_YN    = '0'
+           AND PM.OUT_BEF_CLAIM_GB = '0'
+           AND PM.PA_DO_FLAG       = '20'
+           AND OPM.PA_ORDER_GB     = '10'
+           AND OPM.CREATE_YN       = '1'
+           AND PM.INSERT_DATE      &gt; SYSDATE - 5
+           AND (OPM.CREATE_YN      = '1' OR OPM.PRE_CANCEL_YN = '1')
+           AND OD.DO_FLAG          &lt; '30'
+           AND PM.PA_ORDER_NO      = #{paOrderNo  ,jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ     = #{paOrderSeq ,jdbcType=VARCHAR} 
+           AND PM.PA_SHIP_NO       = #{paShipNo   ,jdbcType=VARCHAR}
+           AND PM.PA_CLAIM_NO      = #{paClaimNo  ,jdbcType=VARCHAR}
+           
+        UNION ALL
+        
+        SELECT PM.MAPPING_SEQ
+             , '' AS ORDER_NO
+             , '' AS ORDER_G_SEQ
+             , '' AS PA_PROC_QTY
+             , '' AS CANCEL_CODE
+             , '1' AS PRE_CANCEL_YN
+             , TC.CODE_GROUP
+          FROM TPAORDERM PM
+             , TCODE     TC
+         WHERE PM.PA_CODE          = #{paCode, jdbcType=VARCHAR}
+           AND PM.PA_ORDER_GB      = '20'
+           AND PM.CREATE_YN        = '0'
+           AND PM.PRE_CANCEL_YN    = '0'
+           AND PM.OUT_BEF_CLAIM_GB = '0'
+           AND PM.INSERT_DATE      &gt; TRUNC(SYSDATE) - 5
+           AND PM.PA_ORDER_NO      = #{paOrderNo  ,jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ     = #{paOrderSeq ,jdbcType=VARCHAR} 
+           AND PM.PA_SHIP_NO       = #{paShipNo   ,jdbcType=VARCHAR}
+           AND PM.PA_CLAIM_NO      = #{paClaimNo  ,jdbcType=VARCHAR}
+           AND PM.PA_CODE          = TC.CODE_MGROUP
+           AND TC.CODE_LGROUP      = 'O501'
+           AND TC.USE_YN           = '1'
+           AND NOT EXISTS (SELECT 1 
+                             FROM TPAWEMPORDERITEMLIST OL 
+                            WHERE PM.PA_ORDER_NO  = OL.PA_ORDER_NO
+                              AND PM.PA_ORDER_SEQ = OL.PA_ORDER_SEQ)
+    </select>
+    
+    <select id="selectBusinessDayAccount" parameterType="hashMap" resultType="int">
+        SELECT /* pawemporder.xml : selectBusinessDayAccount by PaWempOrderController */
+               TRUNC(TO_NUMBER(SYSDATE - REQUEST_DATE)*24) - 
+               (FUN_GET_DELYDAY_CNT(#{delyGb, jdbcType=VARCHAR},TRUNC(REQUEST_DATE), SYSDATE,'0') * 24)
+               AS BUSINESS_DAY
+          FROM TPAWEMPCLAIMLIST
+         WHERE PA_CLAIM_NO = #{paClaimNo, jdbcType=VARCHAR}
+    </select>
+	
+	<select id="selectDeliveryCompleteList" resultType="hashMap">
+	    SELECT /* pawemporder.xml: pawemp.order.selectDeliveryCompleteList by PaWempOrderController */
+	           /**+ no_merge */
+	           PA_ORDER_NO
+	         , PA_SHIP_NO 
+	         , PA_CODE
+	      FROM (
+	            SELECT
+	                    DISTINCT POM.PA_ORDER_NO
+	                  , POM.PA_SHIP_NO
+	                  , POM.PA_CODE
+	                  , NVL(API_RESULT_MESSAGE , ' ') AS API_RESULT_MESSAGE
+	                  , ROWNUM  <!--  ROWNUM 제거하지말것!!!! 비효율적인 통계정보 쿼리변환으로 API_RESULT_MESSAGE NOT LIKE '%송장오류로%' 이 전체 대상에서  실행되는것 방지 -->
+	               FROM TPAORDERM POM
+	                  , TSLIPDT   TSD
+	                  , TSLIPM    TSM
+	              WHERE POM.ORDER_NO    = TSD.ORDER_NO
+	                AND POM.ORDER_G_SEQ = TSD.ORDER_G_SEQ
+	                AND POM.ORDER_D_SEQ = TSD.ORDER_D_SEQ
+	                AND POM.ORDER_W_SEQ = TSD.ORDER_W_SEQ
+	                AND TSD.SLIP_I_NO   = TSM.SLIP_I_NO
+	                AND POM.PA_CODE     IN ('61', '62')
+	                AND POM.PA_DO_FLAG  = '40'
+	                AND POM.PA_ORDER_GB = '10'
+	                AND POM.PA_PROC_QTY > 0
+	                AND TSM.SLIP_PROC   = '80'
+	                <!--AND TSM.SLIP_PROC_DATE >= TRUNC(SYSDATE) TSLIP INDEX RANGE 스캔보다 TPAORDERM_INDEX08 USE 가 더 적합해보임-->
+	              ORDER BY POM.PA_SHIP_NO
+	             ) 
+	     WHERE API_RESULT_MESSAGE NOT LIKE '%송장오류로%'
+	       AND API_RESULT_MESSAGE NOT LIKE '%주문상세%'
+	</select>
+	
+	<select id="selectOrgItemInfoByCancelInfo" parameterType="String" resultType="com.cware.netshopping.domain.PaWempDeliveryVO">
+		SELECT /* pawemporder.xml: pawemp.order.selectOrgItemInfoByCancelInfo by PaWempOrderController */
+		       POM.PA_CODE
+       		 , CCL.PA_ORDER_GB
+       		 , CIL.PA_ORDER_NO
+       		 , CIL.PA_ORDER_SEQ
+       		 , CIL.PA_SHIP_NO
+       		 , CCL.PA_CLAIM_NO
+       		 , CIL.OPTION_QTY
+       		 , CIL.PRODUCT_QTY
+    	  FROM TPAWEMPCLAIMLIST CCL
+       		 , TPAWEMPCLAIMITEMLIST CIL
+       		 , TPAORDERM POM
+       		 , TORDERDT OD
+     	 WHERE CCL.PA_ORDER_GB  = '20'
+       	   AND CCL.PA_CLAIM_NO  = CIL.PA_CLAIM_NO
+       	   AND CCL.PA_ORDER_NO  = CIL.PA_ORDER_NO
+       	   AND CCL.PA_SHIP_NO   = CIL.PA_SHIP_NO
+       	   AND CCL.PA_ORDER_GB  = CIL.PA_ORDER_GB
+       	   AND POM.PA_CODE      IN ('61', '62')
+       	   AND POM.PA_ORDER_NO  = CIL.PA_ORDER_NO
+       	   AND POM.PA_SHIP_NO   = CIL.PA_SHIP_NO
+       	   AND POM.PA_ORDER_SEQ = CIL.PA_ORDER_SEQ
+       	   AND POM.PA_ORDER_GB  = '10'
+       	   AND POM.CREATE_YN    = '1'
+       	   AND POM.ORDER_NO     = OD.ORDER_NO
+       	   AND POM.ORDER_G_SEQ  = OD.ORDER_G_SEQ
+       	   AND POM.ORDER_D_SEQ  = OD.ORDER_D_SEQ
+       	   AND POM.ORDER_W_SEQ  = OD.ORDER_W_SEQ
+       	   AND CCL.PA_CLAIM_NO  = #{paClaimNo, jdbcType=VARCHAR}
+	</select>
+    
+    <update id="updateDeliveryStatus" parameterType="hashMap">
+      UPDATE TPAWEMPORDERLIST /* pawemporder.xml: updateDeliveryStatus by PaWempOrderController */
+         SET DELIVERY_STATUS = #{deliveryStatus, jdbcType=VARCHAR}
+           , MODIFY_ID       = #{modifyId      , jdbcType=VARCHAR}
+           , MODIFY_DATE     = SYSDATE
+       WHERE PA_SHIP_NO      = #{paShipNo      , jdbcType=VARCHAR}
+    </update>
+    
+    <!-- 옵티마이저가  /*+INDEX_DESC (PPT IDX_TPAPROMOTARGET_04)*/를 계속 의도대로 사용하지 않아 ORDER BY 절로 수정  -->
+    <select id="selectOrderPromo" parameterType="hashMap" resultType="com.cware.netshopping.domain.OrderpromoVO">
+    	SELECT /* pawemporder.xml : pawemp.order.selectOrderPromo by PaWempOrderController */ 
+        	    * 
+          FROM ( SELECT PPT.SEQ
+		              , PPT.PROC_GB 
+		              , PM.PROMO_NO AS PROMO_NO
+		              , PPT.PA_CODE
+		              , TG.GOODS_CODE
+		              , PM.DO_TYPE
+		              , PM.COUPON_YN
+		              , PM.MEDIA_CODE
+		              , PM.PROMO_BDATE AS COUPON_PROMO_BDATE
+		              , PM.PROMO_EDATE AS COUPON_PROMO_EDATE
+		              , PPT.DO_AMT AS PROC_COST
+		              , PPT.OWN_COST AS OWN_PROC_COST
+		              , PPT.ENTP_COST AS ENTP_PROC_COST   
+		              , PPT.INSERT_DATE              
+		           FROM TPROMOM          PM
+		              , TPAPROMOTARGET   PPT
+		              , TGOODS           TG
+		              , TPAWEMPGOODS     WG
+		           WHERE PM.PROMO_NO       = PPT.PROMO_NO
+		             AND PPT.GOODS_CODE    = TG.GOODS_CODE
+		             AND TG.GOODS_CODE     = WG.GOODS_CODE
+		             AND PPT.GOODS_CODE    = #{GOODS_CODE,jdbcType=VARCHAR}
+		             AND PM.COUPON_YN      = '1'
+		             AND PM.APP_TYPE       = '10'
+		             AND PPT.PA_CODE       = WG.PA_CODE
+		             AND PM.IMMEDIATELY_YN = '1'
+		             AND NVL(PM.ALCOUT_PROMO_YN, '0') = '0'
+		             AND PM.GOODS_ALL_YN   = '0'
+		             AND ((PPT.USE_CODE       = '00' AND PPT.PROC_GB IN ('I', 'U') )  OR (PPT.PROC_GB = 'D') ) 
+		             AND PPT.TRANS_DATE    IS NOT NULL
+		             AND PPT.TRANS_DATE    &lt; TO_DATE(#{ORDER_DATE,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS')
+		             AND (( TO_DATE(#{ORDER_DATE,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE )
+		             	   OR ( TO_DATE(#{ORDER_DATE,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') >  PPT.PROMO_EDATE AND PPT.PROC_GB = 'D' ) )             
+		             AND TG.GIFT_YN        = '0'  
+		        ORDER BY PPT.TRANS_DATE DESC )                                         
+         WHERE ROWNUM = 1
+    </select>
+    
+    <!-- 프로모션 별 운영관리 기능 효율화(REQ_PRM_040) : S -->
+    <!-- 제휴OUT프로모션 조회 -->
+    <select id="selectOrderPaPromo" parameterType="hashMap" resultType="com.cware.netshopping.domain.OrderpromoVO">
+    	SELECT /* pawemporder.xml : pawemp.order.selectOrderPaPromo by PaWempOrderController */ 
+        	    *
+          FROM ( SELECT PPT.SEQ
+		              , PPT.PROC_GB 
+		              , PM.PROMO_NO AS PROMO_NO
+		              , PPT.PA_CODE
+		              , TG.GOODS_CODE
+		              , PM.DO_TYPE
+		              , PM.COUPON_YN
+		              , PM.MEDIA_CODE
+		              , PM.PROMO_BDATE AS COUPON_PROMO_BDATE
+		              , PM.PROMO_EDATE AS COUPON_PROMO_EDATE
+		              , PPT.DO_AMT AS PROC_COST
+		              , PPT.OWN_COST AS OWN_PROC_COST
+		              , PPT.ENTP_COST AS ENTP_PROC_COST   
+		              , PPT.INSERT_DATE              
+		           FROM TPROMOM          PM
+		              , TPAPROMOTARGET   PPT
+		              , TGOODS           TG
+		              , TPAWEMPGOODS     WG
+		           WHERE PM.PROMO_NO       = PPT.PROMO_NO
+		             AND PPT.GOODS_CODE    = TG.GOODS_CODE
+		             AND TG.GOODS_CODE     = WG.GOODS_CODE
+		             AND PPT.GOODS_CODE    = #{GOODS_CODE,jdbcType=VARCHAR}
+		             AND PM.COUPON_YN      = '1'
+		             AND PM.APP_TYPE       = '10'
+		             AND PPT.PA_CODE       = WG.PA_CODE
+		             AND PM.IMMEDIATELY_YN = '1'
+		             AND NVL(PM.ALCOUT_PROMO_YN, '0') = '1'
+		             AND PM.GOODS_ALL_YN   = '0'
+		             AND ((PPT.USE_CODE       = '00' AND PPT.PROC_GB IN ('I', 'U') )  OR (PPT.PROC_GB = 'D') ) 
+		             AND PPT.TRANS_DATE    IS NOT NULL
+		             AND PPT.TRANS_DATE    &lt; TO_DATE(#{ORDER_DATE,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS')
+		             AND (( TO_DATE(#{ORDER_DATE,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE )
+		             	   OR ( TO_DATE(#{ORDER_DATE,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') >  PPT.PROMO_EDATE AND PPT.PROC_GB = 'D' ) )             
+		             AND TG.GIFT_YN        = '0'  
+		          ORDER BY PPT.TRANS_DATE DESC )
+         WHERE ROWNUM = 1
+    </select>
+    <!-- 프로모션 별 운영관리 기능 효율화(REQ_PRM_040) : E -->
+    
+    <select id="selectSlipUpdateProcList" resultType="hashMap">
+      SELECT /* pawemporder.xml : pawemp.order.selectSlipUpdateProcList by PaWempOrderController */ 
+               POM.MAPPING_SEQ     AS MAPPING_SEQ
+             , POM.PA_CODE		   AS PA_CODE
+             , POM.PA_SHIP_NO	   AS PA_SHIP_NO
+             , SM.SLIP_NO          AS INVOICE_NO
+             , PDG.PA_DELY_GB      AS PA_DELY_GB
+          FROM TPAORDERM   POM
+             , TSLIPDT     SD
+             , TSLIPM      SM
+             , TORDERGOODS OG
+             , TPADELYGB   PDG
+             , TPASLIPINFO SP
+         WHERE POM.ORDER_NO         = SD.ORDER_NO
+           AND POM.ORDER_G_SEQ      = SD.ORDER_G_SEQ
+           AND POM.ORDER_D_SEQ      = SD.ORDER_D_SEQ
+           AND POM.ORDER_W_SEQ      = SD.ORDER_W_SEQ
+           AND SD.SLIP_I_NO         = SM.SLIP_I_NO
+           AND POM.ORDER_NO         = OG.ORDER_NO
+           AND POM.ORDER_G_SEQ      = OG.ORDER_G_SEQ
+           AND SP.MAPPING_SEQ       = POM.MAPPING_SEQ
+           AND SP.PA_GROUP_CODE     = POM.PA_GROUP_CODE
+           AND SP.LAST_YN           = '1'
+           AND SP.SLIP_NO          != SM.SLIP_NO
+           AND SP.INSERT_DATE       > SYSDATE - 10
+           AND PDG.PA_CODE          = '06'
+           AND PDG.DELY_GB          = SM.DELY_GB
+           AND POM.PA_CODE         IN ('61', '62')
+           AND POM.PA_DO_FLAG       = '40'
+           AND POM.PA_ORDER_GB      = '10'
+           AND SM.SLIP_PROC         = '40'
+           AND SM.SLIP_GB           = '101'
+           AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+           AND SP.TRANS_PA_DELY_GB != 'DIRECT' <!--  기타택배 -> 일반택배 변환 가능한지 확인 필요 -->
+           AND PDG.PA_DELY_GB	   != 'DIRECT' <!--  기타택배 송장 업데이트 하지 않음 -->
+         ORDER BY POM.PA_SHIP_NO
+    </select>  
+    
+    <select id="selectSoldoutTransYn" parameterType="hashMap" resultType="String">
+        SELECT /* pawemporder.xml : selectSoldoutTransYn by PaWempOrderController */
+               NVL(DM.TRANS_STOCK_YN, '0') AS TRANS_STOCK_YN
+          FROM TPAGOODSDTMAPPING DM
+         WHERE DM.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR} 
+           AND DM.GOODSDT_CODE = #{goodsdtCode, jdbcType=VARCHAR} 
+           AND DM.PA_CODE = #{paCode, jdbcType=VARCHAR}
+    </select>  
+</mapper>

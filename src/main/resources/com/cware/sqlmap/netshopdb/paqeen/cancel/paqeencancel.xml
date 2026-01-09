@@ -1,0 +1,874 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="paqeen.cancel">
+
+	<select id="countOrderList" parameterType="com.cware.netshopping.domain.PaQeenCancelListVO" resultType="int">
+        SELECT /* paqeencancel.xml : paQeen.cancel.countOrderList by PaQeenCancelController */
+		       COUNT(1) AS CNT
+		  FROM TPAQEENORDERLIST OL
+		     , ( SELECT MAPPING_SEQ
+                   , PA_CODE
+                   , PA_ORDER_GB
+                   , PA_ORDER_NO
+                   , PA_ORDER_NO || PA_ORDER_SEQ AS PA_ORDER_SEQ
+                   , PA_ORDER_NO || PA_SHIP_NO AS PA_SHIP_NO
+                   , PA_SHIP_SEQ
+                   , PA_GROUP_CODE
+                   , CREATE_YN
+                FROM TPAORDERM
+               WHERE PA_CODE IN ('F1','F2')) PM
+		 WHERE OL.ORDER_ID       = PM.PA_ORDER_NO
+		   AND OL.GROUP_ID		 = PM.PA_ORDER_SEQ
+		   AND OL.ORDER_LINE_ID	 = PM.PA_SHIP_NO
+		   AND PM.PA_ORDER_GB    = '10'
+		   AND PM.CREATE_YN	     = '1'
+		   AND OL.ORDER_ID       = #{orderId, jdbcType=VARCHAR}
+		   AND OL.GROUP_ID 		 = #{groupId, jdbcType=VARCHAR}
+		   AND OL.ORDER_LINE_ID  = #{orderItemId, jdbcType=VARCHAR}
+		   AND OL.INSERT_DATE 	 &lt; NVL(#{createdAtMillis, jdbcType=TIMESTAMP}, SYSDATE) 
+	</select>
+
+	<select id="selectCancelOrderDelyGb" parameterType="com.cware.netshopping.domain.PaQeenCancelListVO" resultType="String">
+		SELECT GD.DELY_TYPE /* paqeencancel.xml : paQeen.cancel.selectCancelOrderDelyGb by PaQeenCancelController */
+		  FROM TGOODS GD
+			 , ( SELECT MAPPING_SEQ
+                   , PA_CODE
+                   , ORDER_NO
+                   , PA_ORDER_NO
+                   , PA_ORDER_NO || PA_ORDER_SEQ AS PA_ORDER_SEQ
+                   , PA_ORDER_NO || PA_SHIP_NO AS PA_SHIP_NO
+                   , ORDER_G_SEQ
+                   , ORDER_W_SEQ
+                   , ORDER_D_SEQ
+                FROM TPAORDERM
+               WHERE PA_CODE IN ('F1','F2')) PM
+			 , TORDERDT OD
+		 WHERE PM.ORDER_NO = OD.ORDER_NO
+		   AND PM.ORDER_G_SEQ = OD.ORDER_G_SEQ
+		   AND PM.ORDER_W_SEQ = OD.ORDER_W_SEQ
+		   AND PM.ORDER_D_SEQ = OD.ORDER_D_SEQ
+		   AND OD.GOODS_CODE = GD.GOODS_CODE
+		   AND PM.PA_ORDER_NO  = #{orderId, jdbcType=VARCHAR}
+		   AND PM.PA_ORDER_SEQ = #{groupId , jdbcType=VARCHAR}
+		   AND PM.PA_SHIP_NO   = #{orderItemId, jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectDoflag" parameterType="com.cware.netshopping.domain.PaQeenCancelListVO" resultType="String">
+        SELECT /* paqeencancel.xml : paQeen.cancel.selectDoflag by PaQeenCancelController */
+               DT.DO_FLAG
+          FROM ( SELECT MAPPING_SEQ
+                   , PA_CODE
+                   , ORDER_NO
+                   , PA_ORDER_GB
+                   , PA_ORDER_NO
+                   , PA_ORDER_NO || PA_ORDER_SEQ AS PA_ORDER_SEQ
+                   , PA_ORDER_NO || PA_SHIP_NO AS PA_SHIP_NO
+                   , ORDER_G_SEQ
+                   , ORDER_W_SEQ
+                   , ORDER_D_SEQ
+                FROM TPAORDERM
+               WHERE PA_CODE IN ('F1','F2')) OM
+             , TORDERDT DT
+         WHERE OM.PA_ORDER_GB  = '10'
+           AND OM.ORDER_NO     = DT.ORDER_NO
+           AND OM.ORDER_G_SEQ  = DT.ORDER_G_SEQ
+           AND OM.ORDER_D_SEQ  = DT.ORDER_D_SEQ
+           AND OM.ORDER_W_SEQ  = DT.ORDER_W_SEQ
+           AND OM.PA_ORDER_NO  = #{orderId	  , jdbcType=VARCHAR}
+           AND OM.PA_ORDER_SEQ = #{groupId	  , jdbcType=VARCHAR}
+           AND OM.PA_SHIP_NO   = #{orderItemId, jdbcType=VARCHAR}
+           AND OM.PA_CODE      = #{paCode     , jdbcType=VARCHAR} 
+    </select>
+    
+    <select id="selectPaQeenCancelListCount" parameterType="com.cware.netshopping.domain.PaQeenCancelListVO" resultType="int">
+        SELECT /* paqeencancel.xml : paQeen.cancel.selectPaQeenCancelListCount by PaQeenCancelController */
+               COUNT(1) AS CNT
+          FROM TPAQEENCANCELLIST CL
+         WHERE CL.ORDER_ID       = #{orderId, jdbcType=VARCHAR}
+           AND CL.GROUP_ID       = #{groupId, jdbcType=VARCHAR}
+           AND CL.ORDER_ITEM_ID  = #{orderItemId, jdbcType=VARCHAR}
+           AND CL.TICKET_ID		 = #{ticketId, jdbcType=VARCHAR}
+           AND CL.WITHDRAW_YN    = '0'
+           AND CL.PROC_FLAG = '10' /* 취소완료 건 */
+    </select>
+    
+    <select id="selectOutBefClaimGb" parameterType="com.cware.netshopping.domain.PaQeenCancelListVO" resultType="String">
+        SELECT /* paqeencancel.xml : paQeen.cancel.selectOutBefClaimGb by PaQeenCancelController */
+               CASE WHEN OD.DO_FLAG &lt; 30 THEN '0'
+                    ELSE '1'
+               END AS OUT_CLAIM_GB
+          FROM ( SELECT MAPPING_SEQ
+                 , PA_CODE
+                 , PA_ORDER_GB
+                 , PA_ORDER_NO
+                 , ORDER_NO
+                 , ORDER_G_SEQ
+                 , ORDER_D_SEQ
+                 , ORDER_W_SEQ
+                 , PA_ORDER_NO || PA_ORDER_SEQ AS PA_ORDER_SEQ
+                 , PA_ORDER_NO || PA_SHIP_NO AS PA_SHIP_NO
+              FROM TPAORDERM
+             WHERE PA_CODE IN ('F1','F2')) PM
+             , TORDERDT         OD
+         WHERE PM.PA_ORDER_GB  = '10'
+           AND PM.ORDER_NO     = OD.ORDER_NO
+           AND PM.ORDER_G_SEQ  = OD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ  = OD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ  = OD.ORDER_W_SEQ
+           AND PM.PA_ORDER_NO  = #{orderId, jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ = #{groupId, jdbcType=VARCHAR}
+           AND PM.PA_SHIP_NO   = #{orderItemId, jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectCancelOrderReasonType"  parameterType="hashMap" resultType="String">
+		SELECT  /* paqeencancel.xml : paqeen.cancel.selectCancelOrderReasonType by PaQeenClaimController */
+			   TM.PA_CLAIM_CODE
+		  FROM TPACLAIMCODE TM
+		 WHERE TM.PA_CODE 		= '15'
+		   AND TM.CLAIM_GB 		= #{claimGb  , jdbcType=VARCHAR}
+		   AND TM.PA_CLAIM_NAME = #{paClaimName  , jdbcType=VARCHAR}
+	</select>
+    
+     <select id="checkCancelExistYn" parameterType="com.cware.netshopping.domain.PaQeenCancelListVO" resultType="int">
+        SELECT/* paqeencancel.xml : paQeen.cancel.checkCancelExistYn by PaQeenCancelController */
+               COUNT(1) AS CNT
+          FROM TPAQEENCANCELLIST CL
+         WHERE CL.ORDER_ID  = #{orderId, jdbcType=VARCHAR}
+           AND CL.GROUP_ID  = #{groupId, jdbcType=VARCHAR}
+           AND CL.TICKET_ID = #{ticketId, jdbcType=VARCHAR}
+           AND CL.ORDER_ITEM_ID = #{orderItemId, jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertTpaQeenCancelList" parameterType="com.cware.netshopping.domain.PaQeenCancelListVO">
+        INSERT /* paqeencancel.xml : paQeen.cancel.insertTpaQeenCancelList by PaQeenCancelController */
+          INTO TPAQEENCANCELLIST (
+               TICKET_ID
+             , ORDER_ID
+             , GROUP_ID
+             , ORDER_ITEM_ID
+             , STATE
+             , PA_ORDER_GB
+             , REASON_TYPE
+             , REASON
+             , REJECT_REASON
+             , AUDITOR_GROUP
+             , CREATED_AT_MILLIS
+             , CONFIRMED_AT_MILLIS
+             , RESOLVED_AT_MILLIS
+             , REJECTED_AT_MILLIS
+             , WITHDRAWN_AT_MILLIS
+             , INSERT_DATE
+             , MODIFY_DATE
+             , IS_CUSTOMER_NEGLIGENCE
+             , PROC_FLAG
+             , PROC_NOTE
+             , CANCEL_PROC_NOTE
+             , CANCEL_PROC_ID
+             , WITHDRAW_YN
+             , WITHDRAW_DATE
+             , QUANTITY
+            ) 
+        VALUES(
+              #{ticketId             , jdbcType=VARCHAR}
+            , #{orderId              , jdbcType=VARCHAR}
+            , #{groupId           	 , jdbcType=VARCHAR}
+            , #{orderItemId         , jdbcType=VARCHAR}
+            , #{state     			 , jdbcType=VARCHAR}
+            , #{paOrderGb       	 , jdbcType=VARCHAR}
+            , #{reasonType      	 , jdbcType=VARCHAR}
+            , #{reason          	 , jdbcType=VARCHAR}
+            , #{rejectReason      	 , jdbcType=VARCHAR}
+            , #{auditorGroup   		 , jdbcType=VARCHAR}
+            , #{createdAtMillis      , jdbcType=TIMESTAMP}
+            , #{confirmedAtMillis    , jdbcType=TIMESTAMP}
+            , #{resolvedAtMillis     , jdbcType=TIMESTAMP}
+            , #{rejectedAtMillis     , jdbcType=TIMESTAMP}
+            , #{withdrawnAtMillis    , jdbcType=TIMESTAMP}
+            , #{insertDate           , jdbcType=TIMESTAMP}
+            , #{modifyDate           , jdbcType=TIMESTAMP}
+            , #{isCustomerNegligence , jdbcType=VARCHAR}
+            , #{procFlag             , jdbcType=VARCHAR}
+            , #{procNote             , jdbcType=VARCHAR}
+            , #{cancelProcNote       , jdbcType=VARCHAR}
+            , #{cancelProcId         , jdbcType=VARCHAR}
+            , #{withdrawYn           , jdbcType=VARCHAR}
+            , #{withdrawDate         , jdbcType=TIMESTAMP}
+            , #{quantity             , jdbcType=NUMERIC}
+        )  
+     </insert>
+     
+     <select id="selectClaimTargetList" parameterType="int" resultType="hashMap">
+       SELECT /* paqeencancel.xml : paqeen.cancel.selectClaimTargetList by PaQeenCancelController */
+              PM.PA_ORDER_NO
+            , PM.PA_ORDER_NO || PM.PA_CLAIM_NO AS PA_CLAIM_NO
+            , PM.PA_ORDER_NO || PM.PA_SHIP_NO AS PA_SHIP_NO
+            , PM.PA_SHIP_SEQ
+            , PM.PA_ORDER_NO || PM.PA_ORDER_SEQ AS PA_ORDER_SEQ
+            , PM.PA_ORDER_GB            
+            , PM.ORDER_NO
+            , PM.PA_CODE
+            , PM.PA_GROUP_CODE
+            , TC.CODE_SNAME AS SITE_GB
+		 FROM TCODE TC
+		 	, TPAORDERM PM
+		WHERE TC.CODE_MGROUP   	=  PM.PA_GROUP_CODE
+		  AND PM.PA_CODE 		IN ('F1', 'F2')
+		  AND PM.CREATE_YN 		= '0'
+		  AND PM.PRE_CANCEL_YN 	= '0'
+		  AND TC.CODE_LGROUP   	= 'O500'
+		  AND PM.INSERT_DATE &gt; TRUNC(SYSDATE) - 30
+		  <choose>	  	
+		  	 <when test='paOrderGb =="20"'>
+			  	 AND PM.PA_ORDER_GB  	 = '20'
+			  	 AND PM.OUT_BEF_CLAIM_GB = '0'
+		  	 </when> 
+		  	 <when test='paOrderGb =="30" or paOrderGb == "60"'>
+		  	 	 AND ( (PM.PA_ORDER_GB  = '30' AND (PM.PA_DO_FLAG = '20' OR PM.PA_DO_FLAG = '60') )
+		  	             OR (PM.PA_ORDER_GB = '20' AND PM.OUT_BEF_CLAIM_GB = '1' AND PM.PA_DO_FLAG = '60') )
+		  	 </when>
+		  	 <when test='paOrderGb =="31"'>
+			  	 AND PM.PA_ORDER_GB   	 = '31'
+		  	 </when>
+		  	 <when test='paOrderGb =="40"'>
+			  	 AND PM.PA_ORDER_GB  	 = '40'
+			  	 AND PM.CHANGE_FLAG IN ('01', '02') 
+			  	 AND NOT EXISTS ( SELECT 1 
+		  	 	  				 FROM TPAORDERM RPM
+                             	WHERE RPM.PA_CLAIM_NO   = PM.PA_CLAIM_NO
+		                          AND RPM.PA_ORDER_NO   = PM.PA_ORDER_NO
+		                          AND RPM.PA_ORDER_SEQ  = PM.PA_ORDER_SEQ
+		                          AND RPM.PA_CODE       = PM.PA_CODE
+		                          AND RPM.PA_SHIP_NO    = PM.PA_SHIP_NO
+		                          AND RPM.PA_ORDER_GB   = '46')
+		  	 </when>
+		  	 <when test='paOrderGb =="41"'>
+			  	 AND PM.PA_ORDER_GB  	 = '46'
+			  	 AND NOT EXISTS ( SELECT 1 
+		  	 	  				 FROM TPAORDERM RPM
+                             	WHERE RPM.PA_CLAIM_NO   = PM.PA_CLAIM_NO
+		                          AND RPM.PA_ORDER_NO   = PM.PA_ORDER_NO
+		                          AND RPM.PA_ORDER_SEQ  = PM.PA_ORDER_SEQ
+		                          AND RPM.PA_CODE       = PM.PA_CODE
+		                          AND RPM.PA_SHIP_NO    = PM.PA_SHIP_NO
+		                          AND RPM.PRE_CANCEL_YN  = '1'
+		                          AND RPM.PA_ORDER_GB   = '45')
+		  	 </when>
+		  </choose>
+    </select>
+    
+    <select id="selectCancelInputTargetDtList" resultType="hashMap" parameterType="hashMap">	
+	       SELECT /* paqeencancel.xml : paqeen.cancel.selectCancelInputTargetDtList by PaQeenCancelController */
+	              PM.MAPPING_SEQ
+	            , OPM.ORDER_NO
+	            , OPM.ORDER_G_SEQ
+	            , PM.PA_PROC_QTY
+	            , (SELECT CS_LGROUP || CS_MGROUP || CS_SGROUP
+  					 FROM TPACLAIMCODE 
+ 					WHERE PA_CODE = '15' 
+   					  AND CLAIM_GB = '20' 
+					  AND PA_CLAIM_CODE = PC.REASON_TYPE) AS CANCEL_CODE
+             	, OPM.PRE_CANCEL_YN
+	         FROM ( SELECT MAPPING_SEQ
+	                 , PA_CODE
+	                 , PA_ORDER_GB
+	                 , PA_ORDER_NO
+	                 , PA_ORDER_NO || PA_ORDER_SEQ AS PA_ORDER_SEQ
+	                 , PA_ORDER_NO || PA_SHIP_NO AS PA_SHIP_NO
+	                 , PA_ORDER_NO || PA_CLAIM_NO AS PA_CLAIM_NO
+	                 , PA_GROUP_CODE
+	                 , ORDER_NO
+	                 , ORDER_G_SEQ
+	                 , ORDER_D_SEQ
+	                 , ORDER_W_SEQ
+	                 , PA_DO_FLAG
+	                 , CREATE_YN
+	                 , PRE_CANCEL_YN
+	                 , OUT_BEF_CLAIM_GB
+	                 , INSERT_DATE
+	                 , PA_PROC_QTY
+	              FROM TPAORDERM
+	             WHERE PA_CODE IN ('F1','F2')) PM   /*취소건*/
+	            , ( SELECT MAPPING_SEQ
+		                 , PA_CODE
+		                 , PA_ORDER_GB
+		                 , PA_ORDER_NO
+		                 , PA_ORDER_NO || PA_ORDER_SEQ AS PA_ORDER_SEQ
+		                 , PA_ORDER_NO || PA_SHIP_NO AS PA_SHIP_NO
+		                 , PA_ORDER_NO || PA_CLAIM_NO AS PA_CLAIM_NO
+		                 , PA_GROUP_CODE
+		                 , ORDER_NO
+		                 , ORDER_G_SEQ
+		                 , ORDER_D_SEQ
+		                 , ORDER_W_SEQ
+		                 , PA_DO_FLAG
+		                 , CREATE_YN
+		                 , PRE_CANCEL_YN
+		              FROM TPAORDERM
+		             WHERE PA_CODE IN ('F1','F2')) OPM  /*원주문건*/
+	            , TPAQEENCANCELLIST  PC
+	            , TORDERDT          OD
+            WHERE PM.PA_ORDER_NO 	  = OPM.PA_ORDER_NO
+			  AND PM.PA_ORDER_SEQ 	  = OPM.PA_ORDER_SEQ
+			  AND PM.PA_SHIP_NO     = OPM.PA_SHIP_NO
+			  AND PM.PA_CODE 		  = OPM.PA_CODE
+			  AND OPM.PA_ORDER_GB 	  = '10'
+			  AND OPM.CREATE_YN 	  = '1'
+			  AND PM.PA_ORDER_GB 	  = '20'
+			  AND PM.CREATE_YN 		  = '0'
+			  AND PM.PRE_CANCEL_YN 	  = '0'
+			  AND PM.OUT_BEF_CLAIM_GB = '0'
+			  AND PM.PA_DO_FLAG 	  = '20'
+			  AND PM.PA_ORDER_NO 	  = PC.ORDER_ID
+			  AND PM.PA_ORDER_SEQ 	  = PC.GROUP_ID
+			  AND PM.PA_SHIP_NO       = PC.ORDER_ITEM_ID
+			  AND PM.PA_CLAIM_NO	  = PC.TICKET_ID
+			  AND OPM.ORDER_NO 		  = OD.ORDER_NO
+			  AND OPM.ORDER_G_SEQ 	  = OD.ORDER_G_SEQ
+			  AND OPM.ORDER_D_SEQ 	  = OD.ORDER_D_SEQ
+			  AND OPM.ORDER_W_SEQ 	  = OD.ORDER_W_SEQ
+			  AND PM.INSERT_DATE &gt; SYSDATE - 5
+			  AND (OPM.CREATE_YN = '1' OR OPM.PRE_CANCEL_YN = '1')
+	          AND OD.DO_FLAG          &lt; '30'
+	          AND PM.PA_CODE          = #{paCode	 , jdbcType=VARCHAR}
+	          AND PM.PA_ORDER_NO      = #{paOrderNo  , jdbcType=VARCHAR}
+	          AND PM.PA_ORDER_SEQ     = #{paOrderSeq , jdbcType=VARCHAR}
+	          AND PM.PA_SHIP_NO		  = #{paShipNo   , jdbcType=VARCHAR}
+	          AND PM.PA_CLAIM_NO 	  = #{paClaimNo  , jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectPaQeenOrderCancelList" resultType="hashMap">
+	    SELECT /* paqeencancel.xml : paqeen.cancel.selectPaQeenOrderCancelList by PaQeenCancelController */
+	    	   PAO.ORDER_ID
+	         , PAO.GROUP_ID
+	         , PAO.ORDER_ITEM_ID
+	         , PAO.TICKET_ID
+	         , PM.PA_CODE
+	         , PM.ORDER_NO AS STOA_ORDER_NO
+	         , PM.OUT_BEF_CLAIM_GB
+	         , PM.PA_ORDER_GB
+	         , PAO.QUANTITY
+	         , CASE WHEN TO_NUMBER(OD.DO_FLAG) > 30 THEN '40'
+	                WHEN TO_NUMBER(OD.DO_FLAG) = 30 THEN '30'
+	                ELSE '20' END AS DO_FLAG
+	         , PM.PA_PROC_QTY - PAO.QUANTITY AS PARTIAL_QTY
+	         , PAO.STATE
+	         , PM.ORDER_CANCEL_YN
+	         , PM.PA_GROUP_CODE
+	         , PM.ORDER_NO AS SK_ORDER_NO
+	         , 'PAQEEN' AS SITE_GB
+	         , PM.ORDER_G_SEQ
+	         , PM.ORDER_D_SEQ
+	         , PM.ORDER_W_SEQ
+	         , PM.MAPPING_SEQ
+	      FROM ( SELECT PA_CODE
+	                  , MAPPING_SEQ
+	                  , PA_ORDER_GB
+	                  , PA_ORDER_NO
+	                  , PA_ORDER_NO || PA_ORDER_SEQ AS PA_ORDER_SEQ
+	                  , PA_ORDER_NO || PA_SHIP_NO AS PA_SHIP_NO
+	                  , PA_ORDER_NO || PA_CLAIM_NO AS PA_CLAIM_NO
+	                  , PA_SHIP_SEQ
+	                  , PA_GROUP_CODE
+	                  , ORDER_NO
+	                  , ORDER_G_SEQ
+	                  , ORDER_D_SEQ
+	                  , ORDER_W_SEQ
+	                  , PA_DO_FLAG
+	                  , OUT_BEF_CLAIM_GB
+	                  , ORDER_CANCEL_YN
+	                  , PA_PROC_QTY
+	                  , INSERT_DATE
+	                  , PRE_CANCEL_YN
+	               FROM TPAORDERM
+	              WHERE PA_CODE = #{paCode, jdbcType=VARCHAR}) PM
+	         , TPAQEENCANCELLIST PAO
+	         , TORDERDT          OD
+	     WHERE PM.PA_ORDER_GB  = '10'
+	       AND PM.PA_ORDER_NO  = PAO.ORDER_ID
+	       AND PM.PA_ORDER_SEQ = PAO.GROUP_ID
+	       AND PM.PA_SHIP_NO   = PAO.ORDER_ITEM_ID
+	       AND PM.ORDER_NO     = OD.ORDER_NO
+	       AND PM.ORDER_G_SEQ  = OD.ORDER_G_SEQ
+	       AND PM.ORDER_D_SEQ  = OD.ORDER_D_SEQ
+	       AND PM.ORDER_W_SEQ  = OD.ORDER_W_SEQ
+	       AND PAO.WITHDRAW_YN = '0'
+	       AND PM.PRE_CANCEL_YN = '0'  
+	       AND PM.INSERT_DATE  > SYSDATE - 15
+	       AND PAO.STATE  = 'SUBMITTED'
+	       AND PAO.PROC_FLAG NOT IN ('10','20')
+	       
+	       UNION ALL
+	       
+	    SELECT /* paqeencancel.xml : paqeen.cancel.selectPaQeenOrderCancelList by PaQeenCancelController */
+               PAO.ORDER_ID
+           	 , PAO.GROUP_ID
+             , PAO.ORDER_ITEM_ID
+             , PAO.TICKET_ID
+             , PM.PA_CODE
+             , PM.ORDER_NO AS STOA_ORDER_NO
+             , PM.OUT_BEF_CLAIM_GB
+             , PM.PA_ORDER_GB
+             , PAO.QUANTITY
+             , CASE WHEN TO_NUMBER(OD.DO_FLAG) > 30 THEN '40'
+                    WHEN TO_NUMBER(OD.DO_FLAG) = 30 THEN '30'
+                    ELSE '20' END AS DO_FLAG
+             , PM.PA_PROC_QTY - PAO.QUANTITY AS PARTIAL_QTY
+             , PAO.STATE
+             , PM.ORDER_CANCEL_YN
+             , PM.PA_GROUP_CODE
+             , PM.ORDER_NO AS SK_ORDER_NO
+             , 'PAQEEN' AS SITE_GB
+             , PM.ORDER_G_SEQ
+             , PM.ORDER_D_SEQ
+             , PM.ORDER_W_SEQ
+             , PM.MAPPING_SEQ
+        FROM ( SELECT PA_CODE
+                    , MAPPING_SEQ
+                    , PA_ORDER_GB
+                    , PA_ORDER_NO
+                    , PA_ORDER_NO || PA_ORDER_SEQ AS PA_ORDER_SEQ
+                    , PA_ORDER_NO || PA_SHIP_NO AS PA_SHIP_NO
+                    , PA_ORDER_NO || PA_CLAIM_NO AS PA_CLAIM_NO
+                    , PA_SHIP_SEQ
+                    , PA_GROUP_CODE
+                    , ORDER_NO
+                    , ORDER_G_SEQ
+                    , ORDER_D_SEQ
+                    , ORDER_W_SEQ
+                    , PA_DO_FLAG
+                    , OUT_BEF_CLAIM_GB
+                    , ORDER_CANCEL_YN
+                    , PA_PROC_QTY
+                    , INSERT_DATE
+                    , PRE_CANCEL_YN
+                 FROM TPAORDERM
+                WHERE PA_CODE = #{paCode, jdbcType=VARCHAR}) PM
+           , TPAQEENCANCELLIST PAO
+           , TORDERDT          OD
+       WHERE PM.PA_ORDER_GB  = '10'
+         AND PM.PA_ORDER_NO  = PAO.ORDER_ID
+         AND PM.PA_ORDER_SEQ = PAO.GROUP_ID
+         AND PM.PA_SHIP_NO   = PAO.ORDER_ITEM_ID
+         AND PM.ORDER_NO     = OD.ORDER_NO
+         AND PM.ORDER_G_SEQ  = OD.ORDER_G_SEQ
+         AND PM.ORDER_D_SEQ  = OD.ORDER_D_SEQ
+         AND PM.ORDER_W_SEQ  = OD.ORDER_W_SEQ
+         AND OD.DELY_TYPE 	 = '10'
+         AND PAO.WITHDRAW_YN = '0'
+         AND PM.PRE_CANCEL_YN = '0'  
+         AND PM.INSERT_DATE  > SYSDATE - 15
+         AND PAO.STATE  = 'SUBMITTED'
+         AND PAO.PROC_FLAG ='20'
+         AND PAO.PROC_NOTE IS NULL
+    </select>
+    
+    <update id="updatePaQeenCancelStatus"  parameterType="hashMap">
+        UPDATE /* paqeencancel.xml : paqeen.cancel.updatePaQeenCancelStatus by PaQeenCancelController */
+        	   TPAQEENCANCELLIST
+           SET STATE = 'CONFIRMED'
+             , PROC_FLAG   = '10'
+             , MODIFY_DATE = SYSDATE
+         WHERE TICKET_ID = #{paClaimNo, jdbcType=VARCHAR}
+           AND GROUP_ID  = #{paOrderSeq, jdbcType=VARCHAR}
+           AND ORDER_ITEM_ID = #{paShipNo, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectPaQeenOrderCancelRefusalList" resultType="hashMap" parameterType="hashMap">
+	    SELECT /* paqeencancel.xml : paqeen.cancel.selectPaQeenOrderCancelRefusalList by PaQeenCancelController */
+	    	   PAO.ORDER_ID
+	         , PAO.GROUP_ID
+	         , PAO.TICKET_ID
+	         , PM.PA_CODE
+	         , CASE WHEN TO_NUMBER(OD.DO_FLAG) > 30 THEN '40'
+	                WHEN TO_NUMBER(OD.DO_FLAG) = 30 THEN '30'
+	                ELSE '20' END AS DO_FLAG
+	         , PM.PA_PROC_QTY - PAO.QUANTITY AS PARTIAL_QTY
+	         , SM.SLIP_NO 
+	      FROM ( SELECT PA_CODE
+	                  , PA_ORDER_GB
+	                  , PA_ORDER_NO
+	                  , PA_ORDER_NO || PA_ORDER_SEQ AS PA_ORDER_SEQ
+	                  , PA_ORDER_NO || PA_SHIP_NO AS PA_SHIP_NO
+	                  , PA_ORDER_NO || PA_CLAIM_NO AS PA_CLAIM_NO
+	                  , PA_SHIP_SEQ
+	                  , PA_GROUP_CODE
+	                  , ORDER_NO
+	                  , ORDER_G_SEQ
+	                  , ORDER_D_SEQ
+	                  , ORDER_W_SEQ
+	                  , PA_DO_FLAG
+	                  , OUT_BEF_CLAIM_GB
+	                  , ORDER_CANCEL_YN
+	                  , PA_PROC_QTY
+	                  , INSERT_DATE
+	               FROM TPAORDERM
+	              WHERE PA_CODE IN ('F1','F2')) PM
+	         , TPAQEENCANCELLIST PAO
+	         , TORDERDT          OD
+             , TSLIPM 			 SM
+             , TSLIPDT 			 SD
+	     WHERE PM.PA_ORDER_GB  = '10'
+	       AND PM.PA_ORDER_NO  = PAO.ORDER_ID
+	       AND PM.PA_ORDER_SEQ = PAO.GROUP_ID
+	       AND PM.ORDER_NO     = OD.ORDER_NO
+	       AND PM.ORDER_G_SEQ  = OD.ORDER_G_SEQ
+	       AND PM.ORDER_D_SEQ  = OD.ORDER_D_SEQ
+	       AND PM.ORDER_W_SEQ  = OD.ORDER_W_SEQ
+           AND PM.ORDER_NO     = SD.ORDER_NO(+)
+           AND PM.ORDER_G_SEQ  = SD.ORDER_G_SEQ(+)
+           AND PM.ORDER_D_SEQ  = SD.ORDER_D_SEQ(+)
+           AND PM.ORDER_W_SEQ  = SD.ORDER_W_SEQ(+)
+           AND SD.SLIP_I_NO    = SM.SLIP_I_NO(+)
+	       AND PAO.WITHDRAW_YN = '0'
+	       AND PAO.PROC_FLAG   IN ('00','07')
+	       AND PM.PA_CODE      IN ('F1', 'F2')
+	       AND PAO.STATE = 'SUBMITTED'
+	       AND PM.INSERT_DATE  &gt; SYSDATE - 15
+	      <if test="ORDER_ID != null and ORDER_ID != ''">
+	       AND PAO.ORDER_ID = #{ORDER_ID, jdbcType=VARCHAR }
+          </if>
+	      <if test="GROUP_ID != null and GROUP_ID != ''">
+	       AND PAO.GROUP_ID = #{GROUP_ID, jdbcType=VARCHAR }
+          </if>
+          
+          UNION ALL
+          
+	    SELECT PAO.ORDER_ID
+	         , PAO.GROUP_ID
+	         , PAO.TICKET_ID
+	         , PM.PA_CODE
+	         , CASE WHEN TO_NUMBER(OD.DO_FLAG) > 30 THEN '40'
+	                WHEN TO_NUMBER(OD.DO_FLAG) = 30 THEN '30'
+	                ELSE '20' END AS DO_FLAG
+	         , PM.PA_PROC_QTY - PAO.QUANTITY AS PARTIAL_QTY
+	         , SM.SLIP_NO 
+	      FROM ( SELECT PA_CODE
+	                  , PA_ORDER_GB
+	                  , PA_ORDER_NO
+	                  , PA_ORDER_NO || PA_ORDER_SEQ AS PA_ORDER_SEQ
+	                  , PA_ORDER_NO || PA_SHIP_NO AS PA_SHIP_NO
+	                  , PA_ORDER_NO || PA_CLAIM_NO AS PA_CLAIM_NO
+	                  , PA_SHIP_SEQ
+	                  , PA_GROUP_CODE
+	                  , ORDER_NO
+	                  , ORDER_G_SEQ
+	                  , ORDER_D_SEQ
+	                  , ORDER_W_SEQ
+	                  , PA_DO_FLAG
+	                  , OUT_BEF_CLAIM_GB
+	                  , ORDER_CANCEL_YN
+	                  , PA_PROC_QTY
+	                  , INSERT_DATE
+	               FROM TPAORDERM
+	              WHERE PA_CODE IN ('F1','F2')) PM
+	         , TPAQEENCANCELLIST PAO
+	         , TORDERDT          OD
+             , TSLIPM 			 SM
+             , TSLIPDT 			 SD
+	     WHERE PM.PA_ORDER_GB  = '10'
+	       AND PM.PA_ORDER_NO  = PAO.ORDER_ID
+	       AND PM.PA_ORDER_SEQ = PAO.GROUP_ID
+	       AND PM.ORDER_NO     = OD.ORDER_NO
+	       AND PM.ORDER_G_SEQ  = OD.ORDER_G_SEQ
+	       AND PM.ORDER_D_SEQ  = OD.ORDER_D_SEQ
+	       AND PM.ORDER_W_SEQ  = OD.ORDER_W_SEQ
+           AND PM.ORDER_NO     = SD.ORDER_NO(+)
+           AND PM.ORDER_G_SEQ  = SD.ORDER_G_SEQ(+)
+           AND PM.ORDER_D_SEQ  = SD.ORDER_D_SEQ(+)
+           AND PM.ORDER_W_SEQ  = SD.ORDER_W_SEQ(+)
+           AND SD.SLIP_I_NO    = SM.SLIP_I_NO(+)
+	       AND PAO.WITHDRAW_YN = '0'
+	       AND PAO.PROC_FLAG   = '20'
+	       AND PAO.PROC_NOTE   IS NULL
+	       AND PM.PA_CODE      IN ('F1', 'F2')
+	       AND PAO.STATE = 'SUBMITTED'
+	       AND PM.INSERT_DATE  &gt; SYSDATE - 15
+	      <if test="ORDER_ID != null and ORDER_ID != ''">
+	       AND PAO.ORDER_ID = #{ORDER_ID, jdbcType=VARCHAR }
+          </if>
+	      <if test="GROUP_ID != null and GROUP_ID != ''">
+	       AND PAO.GROUP_ID = #{GROUP_ID, jdbcType=VARCHAR }
+          </if>
+          
+    </select>
+    
+    <update id="updatePaQeenCancelRefusalList"  parameterType="hashMap">
+        UPDATE /* paqeencancel.xml : paqeen.cancel.updatePaQeenCancelRefusalList by PaQeenCancelController */
+        	   TPAQEENCANCELLIST
+           SET PROC_NOTE 	  = #{message	   , jdbcType=VARCHAR} 
+           	 , IS_CUSTOMER_NEGLIGENCE = #{isCustomerNegligence, jdbcType=VARCHAR }
+       	   <if test="procFlag != null and procFlag != ''">
+	         , PROC_FLAG	  = #{procFlag	   , jdbcType=VARCHAR}
+           </if>
+             , MODIFY_DATE    = SYSDATE
+         WHERE ORDER_ID  = #{orderId, jdbcType=VARCHAR}
+           AND GROUP_ID  = #{groupId, jdbcType=VARCHAR}
+           AND TICKET_ID = #{ticketId, jdbcType=VARCHAR}
+           AND PROC_FLAG NOT IN ('10')
+    </update>
+    
+    <select id="selectPaQeenSoldOutordList" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* paqeencancel.xml : paqeen.cancel.selectPaQeenSoldOutordList by PaQeenCancelController */
+               PM.PA_ORDER_NO
+             , PM.PA_ORDER_SEQ
+             , PM.PA_SHIP_NO
+             , PM.PA_CLAIM_NO
+             , PM.PA_GROUP_CODE
+             , PM.PA_PROC_QTY
+             , PM.PA_CODE
+             , TC.CODE_SNAME AS SITE_GB 
+             , PM.ORDER_CANCEL_YN
+             , PM.ORDER_NO
+             , PM.MAPPING_SEQ
+             , '100001' AS RESULT_CODE
+             , PM.ORDER_CANCEL_YN
+             , PM.PA_CODE
+          FROM ( SELECT MAPPING_SEQ
+	                 , PA_CODE
+	                 , PA_ORDER_GB
+	                 , PA_ORDER_NO
+	                 , PA_ORDER_NO || PA_ORDER_SEQ AS PA_ORDER_SEQ
+	                 , PA_ORDER_NO || PA_SHIP_NO AS PA_SHIP_NO
+	                 , PA_ORDER_NO || PA_CLAIM_NO AS PA_CLAIM_NO
+	                 , PA_GROUP_CODE
+	                 , ORDER_NO
+	                 , ORDER_G_SEQ
+	                 , ORDER_D_SEQ
+	                 , ORDER_W_SEQ
+	                 , PA_DO_FLAG
+	                 , ORDER_CANCEL_YN
+	                 , PA_PROC_QTY
+	                 , INSERT_DATE
+	              FROM TPAORDERM
+	             WHERE PA_CODE IN ('F1','F2')) PM
+             , TCODE TC
+           	 , TPAQEENORDERLIST QCL
+         WHERE 1=1
+           AND PM.ORDER_CANCEL_YN IN ('05', '06')
+           AND PM.PA_ORDER_GB = '10'
+           AND PM.PA_GROUP_CODE = '15'
+           AND TC.CODE_LGROUP ='O500'
+           AND TC.CODE_MGROUP = PM.PA_GROUP_CODE
+           AND PM.PA_ORDER_NO = QCL.ORDER_ID
+           AND PM.PA_ORDER_SEQ = QCL.GROUP_ID
+           AND PM.PA_SHIP_NO = QCL.ORDER_LINE_ID
+           AND PM.INSERT_DATE > SYSDATE - 90
+    </select>
+    
+    <select id="selectCustCmpstnReason" resultType="String" parameterType="hashMap">
+        SELECT /* paqeencancel.xml : paqeen.cancel.selectCustCmpstnReason by PaQeenCancelController */
+               FUN_TCODE_NAME('C800', CCM.CMPSTN_REASON)
+          FROM ( SELECT MAPPING_SEQ
+	                 , PA_CODE
+	                 , PA_ORDER_GB
+	                 , PA_ORDER_NO
+	                 , ORDER_NO
+	                 , ORDER_G_SEQ
+	                 , ORDER_D_SEQ
+	                 , ORDER_W_SEQ
+	                 , PA_DO_FLAG
+	                 , ORDER_CANCEL_YN
+	                 , PA_PROC_QTY
+	              FROM TPAORDERM
+	             WHERE PA_CODE = #{PA_CODE, jdbcType=VARCHAR}) PM
+          	 , BMTCOM.TCUS_CUST_CMPSTN_MGMT_DT CCMD
+          	 , BMTCOM.TCUS_CUST_CMPSTN_MGMT CCM
+         WHERE PM.ORDER_NO = CCMD.ORD_NO
+           AND CCMD.CUST_CMPSTN_SEQ = CCM.CUST_CMPSTN_SEQ
+           AND PM.PA_ORDER_GB ='10'
+           AND PM.PA_CODE =  #{PA_CODE,      jdbcType=VARCHAR}
+           AND PM.ORDER_NO = #{ORDER_NO,      jdbcType=VARCHAR}
+           AND PM.MAPPING_SEQ = #{MAPPING_SEQ,      jdbcType=VARCHAR}
+           AND (PM.ORDER_G_SEQ || PM.ORDER_D_SEQ || PM.ORDER_W_SEQ) =  CCMD.ORD_SEQ
+           AND PM.ORDER_CANCEL_YN ='06'
+    </select>
+    
+    <update id="updatePaOrderM"  parameterType="hashMap">
+        UPDATE /* paqeencancel.xml : paqeen.cancel.updatePaOrderM by PaQeenCancelController */
+        	   TPAORDERM
+           SET PA_ORDER_GB 		  = #{paOrderGb, jdbcType=VARCHAR}
+	      	 , PA_DO_FLAG 		  = #{paDoFlag, jdbcType=VARCHAR}
+	      	 , API_RESULT_CODE 	  = #{apiResultCode, jdbcType=VARCHAR}
+             , API_RESULT_MESSAGE = #{apiResultMessage, jdbcType=VARCHAR}
+             , OUT_BEF_CLAIM_GB   = #{outBefClaimGb, jdbcType=VARCHAR}
+         WHERE PA_ORDER_NO   = #{paOrderNo, jdbcType=VARCHAR}
+           AND PA_ORDER_SEQ  = #{paOrderSeq, jdbcType=VARCHAR}
+           AND PA_SHIP_NO 	 = #{paShipNo, jdbcType=VARCHAR}
+           AND PA_CLAIM_NO   = #{paClaimNo, jdbcType=VARCHAR}
+           AND PA_CODE		 = #{paCode, jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updateTpaQeenCancelList"  parameterType="com.cware.netshopping.domain.PaQeenCancelListVO">
+        UPDATE /* paqeencancel.xml : paqeen.cancel.updateTpaQeenCancelList by PaQeenCancelController */
+        	   TPAQEENCANCELLIST
+           SET CANCEL_PROC_NOTE = #{cancelProcNote, jdbcType=VARCHAR}
+	      	 , PROC_FLAG 		= #{procFlag, jdbcType=VARCHAR}
+             , MODIFY_DATE    	= SYSDATE
+         WHERE ORDER_ID  	 = #{orderId, jdbcType=VARCHAR}
+           AND GROUP_ID  	 = #{groupId, jdbcType=VARCHAR}
+           AND TICKET_ID 	 = #{ticketId, jdbcType=VARCHAR}
+           AND ORDER_ITEM_ID = #{orderItemId, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="checkOrdermExistYn" parameterType="com.cware.netshopping.domain.model.Paorderm" resultType="int">
+        SELECT/* paqeencancel.xml : paQeen.cancel.checkOrdermExistYn by PaQeenCancelController */
+               COUNT(1) AS CNT
+          FROM TPAORDERM CL
+         WHERE CL.PA_ORDER_NO  = #{paOrderNo, jdbcType=VARCHAR}
+           AND CL.PA_ORDER_SEQ = #{paOrderSeq, jdbcType=VARCHAR}
+           AND CL.PA_CLAIM_NO  = #{paClaimNo, jdbcType=VARCHAR}
+           AND CL.PA_SHIP_NO   = #{paShipNo, jdbcType=VARCHAR}
+    </select>
+    
+    <select id="checkQeenCancelList" parameterType="com.cware.netshopping.domain.model.Paorderm" resultType="int">
+        SELECT/* paqeencancel.xml : paQeen.cancel.checkQeenCancelList by PaQeenCancelController */
+               COUNT(1) AS CNT
+          FROM TPAQEENCANCELLIST CL
+         WHERE CL.TICKET_ID     = #{paClaimNo, jdbcType=VARCHAR} 
+           AND CL.ORDER_ID 		= #{paOrderNo, jdbcType=VARCHAR} 
+           AND CL.GROUP_ID      = #{paOrderSeq, jdbcType=VARCHAR}
+           AND CL.PA_ORDER_GB      = '20'
+    	   AND CL.PROC_FLAG        = '00'
+    	   AND CL.CANCEL_PROC_NOTE = '취소접수완료(반품전환)'
+    </select>
+    
+    <update id="updateCancelWithdrawYnTx"  parameterType="com.cware.netshopping.domain.PaQeenCancelListVO">
+        UPDATE /* paqeencancel.xml : paqeen.cancel.updateCancelWithdrawYnTx by PaQeenCancelController */
+        	   TPAQEENCANCELLIST
+           SET WITHDRAW_YN 	= '1'
+             , MODIFY_DATE = SYSDATE
+             , WITHDRAW_DATE = SYSDATE
+         WHERE TICKET_ID   = #{ticketId, jdbcType=VARCHAR}
+           AND ORDER_ID	   = #{orderId, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectPaMobileOrderAutoCancelList" resultType="hashMap">
+        SELECT/* paqeencancel.xml : paqeen.cancel.selectPaMobileOrderAutoCancelList by PaQeenCancelController */
+               A.ORDER_NO
+             , A.ORDER_G_SEQ
+             , A.ORDER_DATE
+             , PM.PA_ORDER_NO
+             , PM.PA_ORDER_SEQ
+             , PM.PA_CODE
+           , PM.MAPPING_SEQ
+           , PA_ORDER_NO || PM.PA_SHIP_NO AS PA_SHIP_NO
+           , PM.PA_PROC_QTY
+          FROM TORDERDT A
+               LEFT OUTER JOIN TMOBILEGOODSDELYPLAN B
+                 ON A.ORDER_NO = B.ORDER_NO
+                AND A.ORDER_G_SEQ = B.ORDER_G_SEQ
+                AND A.ORDER_D_SEQ = B.ORDER_D_SEQ                                                             
+                AND A.ORDER_W_SEQ = B.ORDER_W_SEQ
+             , TORDERPROC C
+             , TGOODS D
+               LEFT OUTER JOIN TGOODSADDINFO E
+                 ON D.GOODS_CODE = E.GOODS_CODE
+               LEFT OUTER JOIN TLGS_ORDER_CANCEL_EXCEPT_FIX EF
+                 ON D.GOODS_CODE = EF.GOODS_CODE
+               LEFT OUTER JOIN TLGS_ORDER_CANCEL_EXCEPT_PLAN EP
+                 ON D.GOODS_CODE = EP.GOODS_CODE
+                AND TRUNC(SYSDATE) BETWEEN EP.EXCEPT_FROM_DATE AND EP.EXCEPT_TO_DATE
+                AND EP.STATUS = '10'
+             , TENTERPRISE F
+               LEFT OUTER JOIN TMOBILEENTPEXCEPT ME
+                 ON F.ENTP_CODE = ME.ENTP_CODE
+               LEFT OUTER JOIN TLGS_MOBILE_ENTP_EXCEPT_PLAN MP
+                 ON F.ENTP_CODE = MP.ENTP_CODE
+                AND TRUNC(SYSDATE) BETWEEN MP.EXCEPT_FROM_DATE AND MP.EXCEPT_TO_DATE
+                AND MP.STATUS = '10'
+             , TMD G
+             , TPAORDERM PM
+            , TPAQEENORDERLIST QCL
+         WHERE A.DO_FLAG > '20'
+           AND A.DO_FLAG &lt; '40'
+           AND A.GOODS_CODE = D.GOODS_CODE
+           AND A.ORDER_NO = C.ORDER_NO
+           AND A.ORDER_G_SEQ = C.ORDER_G_SEQ
+           AND A.ORDER_D_SEQ = C.ORDER_D_SEQ
+           AND A.ORDER_W_SEQ = C.ORDER_W_SEQ
+           AND C.DO_FLAG = '25' 
+           AND D.ENTP_CODE = F.ENTP_CODE
+           AND D.MD_CODE = G.MD_CODE
+           AND A.ORDER_NO = PM.ORDER_NO
+           AND A.ORDER_G_SEQ = PM.ORDER_G_SEQ
+           AND A.ORDER_D_SEQ = PM.ORDER_D_SEQ
+           AND A.ORDER_W_SEQ = PM.ORDER_W_SEQ
+           AND PM.PA_ORDER_NO = QCL.ORDER_ID
+            AND PM.PA_ORDER_NO || PM.PA_ORDER_SEQ = QCL.GROUP_ID
+           AND PM.PA_ORDER_NO || PM.PA_SHIP_NO = QCL.ORDER_LINE_ID
+           AND PM.PA_CODE IN ('F1','F2')
+           AND PM.PA_ORDER_GB IN ('10', '40')
+           AND PM.REMARK3_N IS NULL
+           AND D.SOURCING_MEDIA = '61'
+           AND E.TV_LIVE_GB = '2'
+           AND NVL(EP.EXCEPT_GB, NVL(EF.EXCEPT_GB, NVL(MP.MOBILE_EXCEPT_GB, NVL(ME.MOBILE_EXCEPT_GB, '1')))) = '1' 
+           AND EXISTS (SELECT 'X'
+                         FROM TENTERPRISE W, TMD E
+                        WHERE D.ENTP_CODE = W.ENTP_CODE
+                          AND W.MD_CODE = E.MD_CODE
+                          AND E.SOURCING_MEDIA = '61')
+           AND D.GIFT_YN = '0'
+           AND D.INSTALL_YN = '0'
+           AND D.INVI_GOODS_TYPE = '00'
+           AND NVL(E.ORDER_CREATE_YN, '0') = '0'
+           AND A.MEDIA_CODE = 'EX17'
+           AND NVL(E.RESERVE_YN, '0') = '0' /*예약상품제외*/
+           AND E.DAWN_YN != '1' /*새벽배송 동원홈푸드 상품제외*/
+           AND NVL(A.APPN_DAY_OUT_YN, '0') != '1' /* 지정일 출고는 당사만 하기때문에 제외 */
+           AND NVL(A.RESERV_ORD_YN, '0')   != '1' /* 예약주문은 당사만 하기때문에 제외 */
+           AND A.ORDER_DATE &lt; TRUNC(SYSDATE) - INTERVAL '2' DAY
+           AND C.PROC_DATE >= TRUNC(ADD_MONTHS(SYSDATE - INTERVAL '2' DAY,-1))
+           AND C.PROC_DATE &lt; TRUNC(SYSDATE) - INTERVAL '2' DAY
+           AND E.GLOBAL_DELY_YN = '0'
+           AND E.EM_MULTI_GOODS_YN = '0'
+           /*현재일이 배송예정일 마감일 당일인 주문 처리
+           AND (CASE
+                 WHEN B.DELY_PLAN_DELAY_DATE IS NOT NULL THEN
+                  TRUNC(B.DELY_PLAN_DELAY_DATE)
+                 ELSE
+              (FUN_GET_DELYDAY_HOLI_DATE_MOB('10',
+                                  TRUNC(C.PROC_DATE),
+                                 '1',
+                                 NVL(ME.BASE_DELY_DAY,3))) END) = TRUNC(SYSDATE)*/
+           /*현재일이 배송예정일 마감일 당일인 주문 처리 or 배송예정일 마감일이 당일 이전인 지난 주문까지 처리 시 사용*/
+           AND (CASE
+                 WHEN B.DELY_PLAN_DELAY_DATE IS NOT NULL THEN
+                  TRUNC(B.DELY_PLAN_DELAY_DATE)
+                 ELSE
+              (FUN_GET_DELYDAY_HOLI_DATE_ENTP('10',
+                                  TRUNC(C.PROC_DATE),
+                                 '1',
+                                 NVL(EP.EXCEPT_DELY_DAY, NVL(EF.EXCEPT_DELY_DAY, NVL(MP.BASE_DELY_DAY, NVL(ME.BASE_DELY_DAY, 3)))),
+                                 D.ENTP_CODE))  END) &lt;= TRUNC(SYSDATE)
+           AND (EXISTS (SELECT 'X'
+                          FROM TMOBILEENTPEXCEPT W
+                         WHERE W.ENTP_CODE = D.ENTP_CODE
+                           AND W.MOBILE_EXCEPT_GB = '1') OR
+                EXISTS (SELECT 'X'
+                          FROM TLGS_MOBILE_ENTP_EXCEPT_PLAN MP
+                         WHERE D.ENTP_CODE = MP.ENTP_CODE
+                           AND TRUNC(SYSDATE) BETWEEN MP.EXCEPT_FROM_DATE AND MP.EXCEPT_TO_DATE
+                           AND MP.STATUS = '10' ) OR
+                EXISTS (SELECT 'X'
+                          FROM TLGS_ORDER_CANCEL_EXCEPT_FIX EF
+                         WHERE EF.GOODS_CODE = D.GOODS_CODE) OR
+                EXISTS (SELECT 'X'
+                          FROM TLGS_ORDER_CANCEL_EXCEPT_PLAN EP
+                         WHERE D.GOODS_CODE = EP.GOODS_CODE
+                           AND TRUNC(SYSDATE) BETWEEN EP.EXCEPT_FROM_DATE AND EP.EXCEPT_TO_DATE
+                           AND EP.STATUS = '10'  ) )
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TCLAIMDT W
+                            WHERE W.ORDER_NO = A.ORDER_NO
+                              AND W.CUST_NO = A.CUST_NO)
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TCANCELDT W
+                            WHERE W.ORDER_NO = A.ORDER_NO
+                              AND W.CUST_NO = A.CUST_NO)  
+         GROUP BY A.ORDER_NO, A.ORDER_G_SEQ, A.ORDER_DATE, PM.PA_ORDER_NO, PM.PA_ORDER_SEQ, PM.PA_CODE, PM.MAPPING_SEQ, PM.PA_SHIP_NO, PM.PA_PROC_QTY
+         ORDER BY A.ORDER_DATE ASC
+    </select>
+    
+</mapper>

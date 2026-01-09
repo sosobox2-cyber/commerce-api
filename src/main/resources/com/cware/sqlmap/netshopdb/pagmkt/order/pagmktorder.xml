@@ -1,0 +1,597 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pagmkt.order">
+
+    <select id="selectOrderInputTargetList" parameterType="hashMap" resultType="hashMap">
+        SELECT /* pagmktorder.xml : paGmkt.order.selectOrderInputTargetList by PaGmktOrderController */
+               POM.PA_ORDER_NO
+               ,POM.PA_CODE
+               ,POM.PA_GROUP_CODE
+               ,TC.CODE_SNAME AS SITE_GB
+          FROM TPAORDERM POM, TCODE TC
+         WHERE POM.PA_CODE IN ('20' ,'21', '22')
+           AND POM.PA_ORDER_GB   = '10'
+           AND POM.CREATE_YN     = '0'
+           AND POM.PRE_CANCEL_YN = '0'
+           AND TC.CODE_LGROUP ='O500'
+           AND TC.CODE_MGROUP = POM.PA_GROUP_CODE
+           AND POM.PA_DO_FLAG    != '10'
+           AND POM.INSERT_DATE   > TRUNC(SYSDATE)-15
+           AND POM.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+         GROUP BY POM.PA_ORDER_NO, POM.PA_CODE, POM.PA_GROUP_CODE, TC.CODE_SNAME
+    </select>
+    
+    <select id="selectPreOrderInputTargetList" resultType="hashMap"> <!-- 추후에 selectOrderInputTargetList 와 퇑합 , acution 작업때문에 일단 분리 --> 
+        SELECT /* pagmktorder.xml : paGmkt.order.selectOrderInputTargetList by PaGmktOrderController */
+               POM.PA_ORDER_NO
+               , POM.PA_CODE
+               , POM.PA_GROUP_CODE
+               , TC.CODE_SNAME AS SITE_GB
+          FROM TPAORDERM POM, TCODE TC
+         WHERE POM.PA_CODE IN ('20' ,'21', '22')
+           AND POM.PA_ORDER_GB   = '10'
+           AND TC.CODE_LGROUP ='O500'
+           AND TC.CODE_MGROUP = POM.PA_GROUP_CODE
+           AND POM.CREATE_YN     = '0'
+           AND POM.PRE_CANCEL_YN = '0'
+           AND POM.PA_DO_FLAG    = '10'
+           AND PA_GROUP_CODE     = #{paGroupCode, jdbcType=VARCHAR} 
+           AND POM.INSERT_DATE   > TRUNC(SYSDATE)-15
+         GROUP BY POM.PA_ORDER_NO, POM.PA_CODE, POM.PA_GROUP_CODE, TC.CODE_SNAME 
+    </select>
+
+    
+    <select id="selectPreOrderUpdateTargetList" parameterType="hashMap" resultType="hashMap">
+          SELECT /* pagmktorder.xml : paGmkt.order.selectPreOrderUpdateTargetList by PaGmktOrderController */
+               POM.PA_ORDER_NO
+              ,POM.ORDER_NO
+              ,POM.PA_CODE
+              ,POM.PA_GROUP_CODE
+              ,TC.CODE_SNAME AS SITE_GB
+          FROM TPAGMKTORDERLIST OL
+              ,TPAORDERM POM
+              ,TCODE TC
+         WHERE TC.CODE_LGROUP ='O500'
+           AND TC.CODE_MGROUP = POM.PA_GROUP_CODE
+           AND POM.PA_ORDER_NO      = OL.PAY_NO
+           AND POM.PA_ORDER_SEQ     = OL.CONTR_NO
+           AND OL.PAY_DATE IS NOT NULL 
+           AND POM.PA_CODE IN ('20' ,'21', '22')
+           AND POM.PA_ORDER_GB   = '10'
+           AND POM.CREATE_YN     = '1'
+           AND POM.PRE_CANCEL_YN = '0'
+           AND POM.INSERT_DATE   > TRUNC(SYSDATE)-15
+           AND POM.PA_DO_FLAG    = '10'
+           AND POM.PA_GROUP_CODE = #{paGroupCode    , jdbcType=VARCHAR}
+           AND NOT EXISTS ( SELECT 'X'
+                              FROM TPAGMKTCANCELLIST CL
+                             WHERE CL.PAY_NO   =  OL.PAY_NO
+                               AND CL.CONTR_NO =  OL.CONTR_NO
+                               AND CL.WITHDRAW_YN = '0')
+         GROUP BY POM.PA_ORDER_NO, POM.ORDER_NO, POM.PA_CODE ,POM.PA_GROUP_CODE, TC.CODE_SNAME
+    </select>
+    
+    <select id="selectOrderInputTargetDtList" parameterType="hashMap" resultType="hashMap">
+        SELECT /* pagmktorder.xml : paGmkt.order.selectOrderInputTargetDtList by PaGmktOrderController */
+               PM.PA_ORDER_NO
+             , PM.PA_CODE
+             , OL.PAY_NO
+             , OL.SITE_GOODS_NO AS PA_GOODS_CODE
+             , OL.CONTR_NO
+             , PM.MAPPING_SEQ
+             , DECODE(OL.G9_ORDER_YN, '1', TC.REMARK2, TC.REMARK1) AS MEDIA_CODE
+             , TO_CHAR( NVL(OL.PAY_DATE , OL.ORDER_DATE), 'YYYYMMDDHH24MISS') AS ORDER_DATE  
+             , TO_CHAR( NVL(OL.ORDER_DATE  , OL.PAY_DATE)	, 'YYYYMMDDHH24MISS') AS ORDER_DATE_ORG
+             , PGD.GOODS_CODE
+             , PGD.GOODSDT_CODE
+             , OL.CONTR_QTY AS ORDER_QTY
+             , TO_CHAR(PGP.APPLY_DATE, 'YYYYMMDDHH24MISS') APPLY_DATE
+             , (OL.ACNT_PRICE - OL.SHIPPING_FEE) AS RSALE_PRICE
+             , PGP.SUPPLY_PRICE
+             , OL.BUYER_NAME AS CUST_NAME
+             , CWARE_ENC_DEC(OL.BUYER_MOBILE,'D') AS CUST_TEL1
+             , CWARE_ENC_DEC(OL.BUYER_TEL,'D')    AS CUST_TEL2
+             , OL.RECEIVER_NAME AS RECEIVER_NAME
+             , NVL(CWARE_ENC_DEC(OL.RECEIVER_TEL   ,'D') ,  CWARE_ENC_DEC(OL.BUYER_TEL,'D')    ) AS RECEIVER_TEL
+             , NVL(CWARE_ENC_DEC(OL.RECEIVER_MOBILE,'D') ,  CWARE_ENC_DEC(OL.BUYER_MOBILE,'D') ) AS RECEIVER_HP
+             , OL.RECEIVER_ZIPCODE  AS ZIPCODE 
+             , CWARE_ENC_DEC(OL.RECEIVER_ADDRESS1,'D') || ' ' || CWARE_ENC_DEC(OL.RECEIVER_ADDRESS2,'D') AS RECEIVER_ADDR
+             , CWARE_ENC_DEC(OL.RECEIVER_ADDRESS,'D') AS FULL_RECEIVER_ADDR
+             , NVL((PGP.DC_AMT * OL.CONTR_QTY),0) AS SELLER_DC_AMT
+             , NVL((PGP.LUMP_SUM_DC_AMT * OL.CONTR_QTY),0) AS LUMP_SUM_DC_AMT
+             , NVL((PGP.LUMP_SUM_ENTP_DC_AMT),0) AS LUMP_SUM_ENTP_DC_AMT
+             , NVL((PGP.LUMP_SUM_OWN_DC_AMT),0) AS LUMP_SUM_OWN_DC_AMT
+             , OL.DEL_MEMO AS MSG
+             , OL.SHIPPING_FEE AS SHPFEE_COST
+             , CWARE_ENC_DEC(OL.RECEIVER_ADDRESS1,'D') AS RECEIVER_ADDR1
+             , CWARE_ENC_DEC(OL.RECEIVER_ADDRESS2,'D') AS RECEIVER_ADDR2
+             , PGP.PRICE_SEQ
+             , DECODE(PA_DO_FLAG, '10' , '10' ,'20' ) DO_FLAG <!-- 무통장 입금을 위해 추가 -->
+             , TC.CODE_SNAME AS SITE_GB
+             , (PGP.SALE_PRICE * OL.CONTR_QTY) - (PGP.DC_AMT * OL.CONTR_QTY) AS PROMO_PRICE
+             , DECODE( PM.PA_GROUP_CODE , '02' ,'60', '55' ) AS RECEIVE_METHOD
+             , PGP.SALE_PRICE
+             , PGM.PA_GROUP_CODE
+		     , 0 AS SD_PROMO_PRICE
+		     , NVL(NVL(PP.COUPON_DC_AMT, 
+		                (SELECT /*+INDEX_DESC (PPT IDX_TPAPROMOTARGET_04)*/
+		                  CASE WHEN  PPT.PROC_GB   = 'D'   THEN 0
+		               WHEN  PPT.USE_CODE != '00'  THEN 0
+		               ELSE  PPT.DO_AMT
+		               END
+		           FROM TPAPROMOTARGET PPT
+		            , TPROMOM PR
+		          WHERE PPT.GOODS_CODE           = PGP.GOODS_CODE
+		            AND PPT.PA_CODE            = PGP.PA_CODE    
+		            AND PPT.PROMO_NO             = PR.PROMO_NO
+		            AND PR.COUPON_YN             = '1'
+		            AND PR.IMMEDIATELY_YN        = '1'
+		            AND PPT.TRANS_DATE IS NOT NULL
+		            AND NVL(PR.ALCOUT_PROMO_YN, '0') = '1'
+		            AND (INSTR(PPT.PA_GROUP_CODE,  PM.PA_GROUP_CODE )) > 0
+		            AND PPT.TRANS_DATE &lt; NVL(OL.ORDER_DATE, OL.PAY_DATE)
+		            AND ((NVL(OL.ORDER_DATE, OL.PAY_DATE) BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE + 1 )  
+		                  OR (NVL(OL.ORDER_DATE, OL.PAY_DATE) > PPT.PROMO_EDATE AND  PPT.PROC_GB = 'D' )
+		                  OR (PM.REMARK4_N IS NOT NULL AND PM.REMARK4_N = 1)
+		                  )
+		            AND ROWNUM = 1)
+		            ),0) AS OUT_PROMO_PRICE
+			 , SELLER_DISCOUNT_PRICE					
+			 , #{PAPROMO_ALLOW_TERM, jdbcType=VARCHAR} AS PAPROMO_ALLOW_TERM
+			 , PM.REMARK4_N
+			 , PP.COUPON_PROMO_NO AS PROMO_NO
+             , PP.COUPON_OWN_COST AS OWN_COST
+             , PP.COUPON_ENTP_COST AS ENTP_COST
+             , TO_CHAR(PROMO.PROMO_BDATE, 'yyyy/mm/dd hh24:mi:ss') AS COUPON_PROMO_BDATE
+             , TO_CHAR(PROMO.PROMO_EDATE, 'yyyy/mm/dd hh24:mi:ss') AS COUPON_PROMO_EDATE
+             , TO_CHAR(GP.APPLY_DATE, 'YYYYMMDDHH24MISS') AS STOA_APPLY_DATE
+          FROM TPAORDERM PM
+             , TPAGMKTORDERLIST OL
+             , TCODE TC
+             , TPAGMKTGOODS PGM
+             , TPAGOODSDTMAPPING PGD
+             , TPAGOODSPRICE PGP
+             , TPAGOODSPRICEAPPLY PP
+             , TPROMOM PROMO
+             , TGOODSPRICE GP
+         WHERE PM.PA_ORDER_NO      		= OL.PAY_NO
+           AND PM.PA_ORDER_SEQ     		= OL.CONTR_NO
+           AND PM.PA_GROUP_CODE    		= TC.CODE_MGROUP
+           AND PGM.GOODS_CODE      		= PGD.GOODS_CODE
+           AND OL.SITE_GOODS_NO    		= PGM.ITEM_NO
+           AND PM.PA_CODE          			= PGD.PA_CODE
+           AND OL.ITEM_OPTION_CODE 		= PGD.PA_OPTION_CODE
+           AND PGD.GOODS_CODE      		= PGP.GOODS_CODE
+           AND PM.PA_CODE          			= PGP.PA_CODE
+           AND PGM.PA_GROUP_CODE   		= PM.PA_GROUP_CODE
+	       AND PGP.ROWID           			= (SELECT /*+ INDEX_DESC (PP PK_TPAGOODSPRICE)*/
+	                                        	    		 	 PP.ROWID
+			                                        	 FROM TPAGOODSPRICE PP
+			                                       		WHERE PP.GOODS_CODE  = OL.OUT_GOODS_NO
+			                                        	   AND PP.APPLY_DATE &lt; NVL(OL.ORDER_DATE, OL.PAY_DATE)
+			                                         	   AND PP.TRANS_DATE &lt; NVL(OL.ORDER_DATE, OL.PAY_DATE)
+			                                         	   AND PP.PA_CODE 	 = PM.PA_CODE
+			                                         	   AND ROWNUM = 1)
+           AND PGM.GOODS_CODE    = PP.GOODS_CODE                                 
+           AND PGM.PA_GROUP_CODE = PP.PA_GROUP_CODE
+           AND PGM.PA_CODE       = PP.PA_CODE
+           AND (PP.APPLY_DATE, PP.PRICE_APPLY_SEQ) = (SELECT /*+ INDEX_DESC (PP2 PK_TPAGOODSPRICEAPPLY)*/
+											                                  PP2.APPLY_DATE, PP2.PRICE_APPLY_SEQ
+											                         FROM TPAGOODSPRICEAPPLY PP2
+											                        WHERE PP2.GOODS_CODE = PP.GOODS_CODE
+											                           AND PP2.PA_GROUP_CODE = PP.PA_GROUP_CODE
+											                           AND PP2.PA_CODE = PP.PA_CODE
+											                           AND PP2.APPLY_DATE &lt;= OL.order_date
+											                           AND PP2.TRANS_DATE &lt;= OL.order_date
+											                           AND ROWNUM = 1 )
+           AND PP.COUPON_PROMO_NO = PROMO.PROMO_NO(+)                                         	  
+           AND GP.GOODS_CODE = PGP.GOODS_CODE
+           AND GP.ROWID = (SELECT /*+ INDEX_DESC (GP2 PK_TGOODSPRICE)*/
+                                     GP2.ROWID
+                             FROM TGOODSPRICE GP2
+                            WHERE GP2.GOODS_CODE  = GP.GOODS_CODE
+                              AND GP2.APPLY_DATE &lt; NVL(OL.ORDER_DATE, OL.PAY_DATE)
+                              AND ROWNUM = 1)
+           AND TC.CODE_LGROUP      		= 'O500'
+           AND TC.CODE_MGROUP      		=  PM.PA_GROUP_CODE 
+           AND PM.PA_ORDER_GB      		= '10'
+           AND PM.CREATE_YN        			= '0'
+           AND PM.PRE_CANCEL_YN    		= '0'
+		   AND PM.PA_CODE          			= #{PA_CODE        , jdbcType=VARCHAR}
+           AND PM.PA_GROUP_CODE    		= #{PA_GROUP_CODE  , jdbcType=VARCHAR}
+           AND PM.PA_ORDER_NO      		= #{PA_ORDER_NO    , jdbcType=VARCHAR}
+           AND PGP.SALE_PRICE 	   			= OL.SALE_PRICE
+		   
+		   <!-- 
+		   AND (OL.SELLER_DISCOUNT_PRICE / OL.CONTR_QTY) = NVL((SELECT /*+INDEX_DESC (PPT IDX_TPAPROMOTARGET_04)*/
+                                               						   CASE WHEN  PPT.PROC_GB   = 'D'   THEN 0
+					                                                   WHEN  PPT.USE_CODE != '00'  THEN 0
+					                                                   ELSE  PPT.DO_AMT
+						                                               END
+						                                          FROM TPAPROMOTARGET PPT
+						                                             , TPROMOM PR
+						                                         WHERE PPT.GOODS_CODE 	  			= PGP.GOODS_CODE
+						                                           AND PPT.PA_CODE      			= PGP.PA_CODE    
+						                                           AND PPT.PROMO_NO       			= PR.PROMO_NO
+						                                           AND PR.COUPON_YN       			= '1'
+						                                           AND PR.IMMEDIATELY_YN  			= '1'
+						                                           AND PPT.TRANS_DATE IS NOT NULL
+						                                           AND NVL(PR.ALCOUT_PROMO_YN, '0') = '0'
+						                                           AND (INSTR(PPT.PA_GROUP_CODE,  PM.PA_GROUP_CODE )) > 0
+						                                           AND PPT.TRANS_DATE &lt;  NVL(OL.ORDER_DATE, OL.PAY_DATE)
+						                                           AND ((   NVL(OL.ORDER_DATE, OL.PAY_DATE) BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE)  OR (  NVL(OL.ORDER_DATE, OL.PAY_DATE) > PPT.PROMO_EDATE AND  PPT.PROC_GB = 'D' ))
+						                                           AND ROWNUM = 1), 0)
+						                                 +     
+						                                   NVL((SELECT /*+INDEX_DESC (PPT IDX_TPAPROMOTARGET_04)*/
+						                                               CASE WHEN  PPT.PROC_GB = 'D' 	THEN 0
+						                                                    WHEN  PPT.USE_CODE != '00'  THEN 0
+						                                                    ELSE  PPT.DO_AMT
+						                                               END
+						                                          FROM TPAPROMOTARGET PPT
+						                                             , TPROMOM PR
+						                                         WHERE PPT.GOODS_CODE 	  			= PGP.GOODS_CODE
+						                                           AND PPT.PA_CODE      			= PGP.PA_CODE    
+						                                           AND PPT.PROMO_NO       			= PR.PROMO_NO
+						                                           AND PR.COUPON_YN       			= '1'
+						                                           AND PR.IMMEDIATELY_YN  			= '1'
+						                                           AND PPT.TRANS_DATE IS NOT NULL
+						                                           AND NVL(PR.ALCOUT_PROMO_YN, '0') = '1'
+						                                           AND (INSTR(PPT.PA_GROUP_CODE,  PM.PA_GROUP_CODE )) > 0
+						                                           AND PPT.TRANS_DATE &lt;  NVL(OL.ORDER_DATE, OL.PAY_DATE)
+						                                           AND (( NVL(OL.ORDER_DATE, OL.PAY_DATE) BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE)  OR ( NVL(OL.ORDER_DATE, OL.PAY_DATE) > PPT.PROMO_EDATE AND  PPT.PROC_GB = 'D' ))
+						                                           AND ROWNUM = 1), 0)
+						                                 + PGP.DC_AMT 
+						                                 + PGP.LUMP_SUM_DC_AMT -->
+    </select>
+    
+    <select id="selectPaOrderShipCost" parameterType="hashMap" resultType="double">
+        SELECT MAX(SHP_FEE) AS SHP_FEE
+          FROM (
+                SELECT  MAX(OL.SHIPPING_FEE) SHP_FEE 
+                  FROM TPAGMKTORDERLIST OL
+                      ,TPAORDERM POM
+                 WHERE POM.PA_ORDER_NO      = OL.PAY_NO
+                   AND POM.PA_ORDER_SEQ     = OL.CONTR_NO
+                   AND OL.PAY_DATE IS NOT NULL 
+                   AND POM.PA_CODE IN ('20' ,'21', '22')
+                   AND POM.PA_ORDER_GB   = '10'
+                   AND POM.CREATE_YN     = '1'
+                   AND POM.PRE_CANCEL_YN = '0'
+                   AND POM.PA_DO_FLAG    = '10'
+                   AND POM.PA_ORDER_NO   = #{paOrderNo      , jdbcType=VARCHAR}
+                   AND POM.PA_GROUP_CODE = #{paGroupCode    , jdbcType=VARCHAR}
+                   AND POM.INSERT_DATE   > TRUNC(SYSDATE)-15
+                   AND NOT EXISTS ( SELECT 'X'
+                                      FROM TPAGMKTCANCELLIST CL
+                                     WHERE CL.PAY_NO   =  OL.PAY_NO
+                                       AND CL.CONTR_NO =  OL.CONTR_NO
+                                       AND CL.WITHDRAW_YN = '0')
+                UNION
+          
+                SELECT 0 FROM DUAL
+        )
+    </select>
+    
+    <select id="selectCancelInputTargetList" parameterType= "hashMap"  resultType="hashMap">
+        SELECT /* pagmktorder.xml : pagmkt.order.selectCancelInputTargetList by PaGmktOrderController */
+               POM.PA_ORDER_NO
+             , POM.PA_ORDER_SEQ
+             , POM.PA_GROUP_CODE
+             , POM.PA_CODE
+             , TC.CODE_SNAME AS SITE_GB
+          FROM TPAORDERM POM, TCODE TC
+         WHERE POM.PA_CODE IN ('20','21', '22')
+           AND POM.PA_ORDER_GB      = '20'
+           AND POM.CREATE_YN        = '0'
+           AND POM.PRE_CANCEL_YN    = '0'
+           AND POM.OUT_BEF_CLAIM_GB = '0'
+           AND TC.CODE_LGROUP       = 'O500'
+           AND TC.CODE_MGROUP       = POM.PA_GROUP_CODE
+           AND POM.PA_GROUP_CODE    = #{paGroupCode, jdbcType=VARCHAR} 
+           AND POM.INSERT_DATE > TRUNC(SYSDATE) - 30
+    </select>
+        
+    <select id="selectCancelInputTargetDtList" parameterType="hashMap" resultType="hashMap">
+       SELECT /* pagmktorder.xml : pagmkt.order.selectCancelInputTargetDtList by PaGmktOrderController */
+               PM.MAPPING_SEQ
+             , OPM.ORDER_NO
+             , OPM.ORDER_G_SEQ
+             , OPM.PA_PROC_QTY
+             , CASE WHEN PM.PA_GROUP_CODE = '02' THEN DECODE(REASON,'0','620296','620297') 
+                    WHEN PM.PA_GROUP_CODE = '03' THEN DECODE(REASON,'0','620396','620397') 
+               END CANCEL_CODE           
+             , OPM.PRE_CANCEL_YN
+             , TC.CODE_SNAME AS SITE_GB
+             , OPM.PA_DO_FLAG
+          FROM TPAORDERM PM   /*취소건*/
+             , TPAORDERM OPM  /*원주문건*/
+             , TPAGMKTCANCELLIST PO
+             , TCODE             TC
+         WHERE PM.PA_ORDER_NO   = OPM.PA_ORDER_NO
+           AND PM.PA_ORDER_SEQ  = OPM.PA_ORDER_SEQ
+           AND PM.PA_CODE       = OPM.PA_CODE
+           <!--AND PM.PA_CODE IN ('20','21', '22') -->
+           AND PM.PA_ORDER_GB   = '20'
+           AND PM.CREATE_YN     = '0'
+           AND PM.PRE_CANCEL_YN = '0'
+           AND PM.INSERT_DATE > TRUNC(SYSDATE) - 30
+           AND OPM.PA_ORDER_GB  = '10'
+           AND OPM.CREATE_YN    = '1'
+           AND PM.PA_ORDER_NO   = PO.PAY_NO
+           AND PM.PA_ORDER_SEQ  = PO.CONTR_NO
+           AND PM.PA_ORDER_GB   = '20'
+           AND PM.PA_ORDER_NO   = #{paOrderNo   , jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ  = #{paOrderSeq  , jdbcType=VARCHAR} 
+           AND PM.PA_CODE       = #{paCode      , jdbcType=VARCHAR}
+           AND PM.PA_GROUP_CODE = #{paGroupCode , jdbcType=VARCHAR}
+           AND PO.PROC_FLAG    != '20'
+           AND PO.WITHDRAW_YN   = '0'
+           AND TC.CODE_LGROUP   = 'O500'
+           AND TC.CODE_MGROUP   = PM.PA_GROUP_CODE
+
+         UNION ALL
+        
+        SELECT PM.MAPPING_SEQ
+             , '' AS ORDER_NO
+             , '' AS ORDER_G_SEQ
+             , '' AS PA_PROC_QTY
+             , '' AS CANCEL_CODE
+             , '1' AS PRE_CANCEL_YN
+             , TC.CODE_SNAME AS SITE_GB
+             , '' AS PA_DO_FLAG
+          FROM TPAORDERM PM, TCODE TC
+         WHERE 1 =1 <!-- PM.PA_CODE IN ('20','21', '22') -->
+           AND PM.PA_ORDER_GB   = '20'
+           AND PM.CREATE_YN     = '0'
+           AND PM.PRE_CANCEL_YN = '0'
+           AND PM.INSERT_DATE > TRUNC(SYSDATE) - 30
+           AND PM.PA_ORDER_NO   = #{paOrderNo       , jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ  = #{paOrderSeq      , jdbcType=VARCHAR}
+           AND PM.PA_CODE       = #{paCode          , jdbcType=VARCHAR}
+           AND PM.PA_GROUP_CODE = #{paGroupCode     , jdbcType=VARCHAR}
+           AND TC.CODE_LGROUP   = 'O500'
+           AND TC.CODE_MGROUP   = PM.PA_GROUP_CODE
+           AND NOT EXISTS (SELECT 1 
+                             FROM TPAGMKTORDERLIST OL 
+                            WHERE PM.PA_ORDER_NO  = OL.PAY_NO
+                              AND PM.PA_ORDER_SEQ = OL.CONTR_NO)
+    </select>
+    
+    <update id="updatePreCancelYn" parameterType="hashMap">
+        UPDATE TPAORDERM /* pagmktorder.xml : pagmkt.order.updatePreCancelYn by PaGmktOrderController */
+           SET PRE_CANCEL_YN     = #{preCancelYn        , jdbcType=VARCHAR}
+             , PRE_CANCEL_REASON = #{preCancelReason    , jdbcType=VARCHAR}
+         WHERE MAPPING_SEQ       = #{mappingSeq         , jdbcType=VARCHAR}
+           AND CREATE_YN         = '0'
+           AND PRE_CANCEL_YN     = '0'
+    </update>
+    
+    <select id="selectRefusalInfo" parameterType="String" resultType="hashMap">
+        SELECT /* pagmktorder.xml : pagmkt.order.selectRefusalInfo by PaGmktOrderController */
+               PM.PA_ORDER_NO
+             , PM.PA_ORDER_SEQ
+             , PM.PA_CODE
+             , PM.PA_GROUP_CODE
+             , TC.CODE_SNAME AS SITE_GB
+          FROM TPAORDERM PM, TCODE TC
+         WHERE PM.MAPPING_SEQ = #{mappingSeq, jdbcType=VARCHAR}
+           AND TC.CODE_LGROUP = 'O500'
+           AND TC.CODE_MGROUP = PM.PA_GROUP_CODE
+    </select>
+    
+    <select id="getSourcingMediaForTest" parameterType="String" resultType="String">
+        SELECT /* pagmktorder.xml : pagmkt.order.getSourcingMediaForTest by PaGmktOrderController */ 
+            DECODE(GD.SOURCING_MEDIA, '01' ,'21', '22' ) AS PA_CODE 
+        FROM TGOODS GD
+        WHERE GD.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+    </select>
+    
+     
+    <select id="getSourcingMediaForClaimTest" parameterType="hashMap" resultType="String">
+        SELECT /* pagmktorder.xml : pagmkt.order.getSourcingMediaForClaimTest by PaGmktOrderController */ 
+               PM.PA_CODE 
+        FROM   TPAORDERM PM
+        WHERE  PM.PA_ORDER_NO   = #{payNo       , jdbcType=VARCHAR} 
+        AND    PM.PA_ORDER_SEQ  = #{contrNo     , jdbcType=VARCHAR}
+        AND    PM.PA_CODE    LIKE #{paGroupCode , jdbcType=VARCHAR} || '%'
+        AND    PM.PA_ORDER_GB   = '10'
+        AND    PM.CREATE_YN     = '1'
+        AND    PM.PRE_CANCEL_YN = '0'
+    </select>
+    <!-- 1.0 Version
+    <select id="selectOrderInputTargetDtList" parameterType="String" resultType="hashMap">
+        SELECT /* pagmktorder.xml : paGmkt.order.selectOrderInputTargetDtList by PaGmktOrderController */
+               PM.PA_CODE
+             , OL.PACK_NO
+             , OL.CONTR_NO
+             , PM.MAPPING_SEQ
+             , TC.REMARK1 AS MEDIA_CODE
+             , TO_CHAR(OL.CONTR_DATE, 'YYYYMMDDHH24MISS') AS ORDER_DATE
+             , PGD.GOODS_CODE
+             , PGD.GOODSDT_CODE
+             , OL.QUANTITY AS ORDER_QTY
+             , TO_CHAR(PGP.APPLY_DATE, 'YYYYMMDDHH24MISS') APPLY_DATE
+             , (OL.PAYMENT_PRICE - OL.SHIPPING_FEE) AS RSALE_PRICE
+             , PGP.SUPPLY_PRICE
+             , OL.BUYER_NAME AS CUST_NAME
+             , CWARE_ENC_DEC(OL.BUYER_PHONE1,'D') AS CUST_TEL1
+             , CWARE_ENC_DEC(OL.BUYER_PHONE2,'D') AS CUST_TEL2
+             , OL.RECEIVER_NAME AS RECEIVER_NAME
+             , CWARE_ENC_DEC(OL.RECEIVER_PHONE1,'D') AS RECEIVER_TEL
+             , CWARE_ENC_DEC(OL.RECEIVER_PHONE2,'D') AS RECEIVER_HP
+             , CWARE_ENC_DEC(OL.RECEIVER_ADDRESS1,'D') || ' ' || CWARE_ENC_DEC(OL.RECEIVER_ADDRESS2,'D') AS RECEIVER_ADDR
+             , PGP.DC_AMT AS SELLER_DC_AMT
+             , OL.BUYER_MEMO AS MSG
+          FROM TPAORDERM PM
+             , TPAGMKTORDERLIST OL
+             , TCODE TC
+             , TPAGMKTGOODS PGM
+             , TPAGOODSDTMAPPING PGD
+             , TPAGOODSPRICE PGP
+         WHERE PM.PA_ORDER_NO      = OL.PACK_NO
+           AND PM.PA_ORDER_SEQ     = OL.CONTR_NO
+           AND PM.PA_CODE          = TC.CODE_MGROUP
+           AND PGM.GOODS_CODE      = PGD.GOODS_CODE
+           AND OL.GMKT_ITEM_NO     = PGM.ITEM_NO
+           AND PM.PA_CODE          = PGD.PA_CODE
+           AND OL.ITEM_OPTION_CODE = PGD.PA_OPTION_CODE
+           AND PGD.GOODS_CODE      = PGP.GOODS_CODE
+           AND PM.PA_CODE          = PGP.PA_CODE
+           AND PGP.ROWID           = (SELECT ROWID 
+                                        FROM TPAGOODSPRICE I 
+                                       WHERE I.GOODS_CODE     = PGP.GOODS_CODE 
+                                         AND I.PA_CODE        = PM.PA_CODE 
+                                         AND I.TRANS_DATE &lt;= OL.CONTR_DATE 
+                                         AND I.TRANS_DATE IS NOT NULL 
+                                         AND ROWNUM           = 1)
+           AND TC.CODE_LGROUP      = 'O501'
+           AND PM.PA_ORDER_GB      = '10'
+           AND PM.CREATE_YN        = '0'
+           AND PM.PRE_CANCEL_YN    = '0'
+           AND PA_ORDER_NO         = #{paOrderNo, jdbcType=VARCHAR}
+    </select> -->
+     
+     
+     <select id="selectUnAttendedCount" parameterType="String" resultType="int">
+        SELECT COUNT(1)  /* paorder.xml : pagmkt.paorder.selectUnAttendedCount by PaGmktCommonUtil */
+          FROM(SELECT GM.PAY_NO, GM.CONTR_NO  <!-- 전체 주문 -->
+                 FROM TPAGMKTORDERLIST GM
+                WHERE GM.PAY_NO = #{payNo,jdbcType=VARCHAR}
+                   
+                MINUS  
+            
+                SELECT GM.PAY_NO, GM.CONTR_NO  <!-- 이미 입금처리가 됬다고 인지된 주문 -->
+                  FROM TPAGMKTORDERLIST GM 
+                 WHERE GM.PAY_NO = #{payNo,jdbcType=VARCHAR}
+                   AND GM.PAY_DATE IS NOT NULL 
+                     
+                MINUS
+            
+                SELECT PAY_NO, CONTR_NO         <!-- 취소 완료된 주문 -->
+                  FROM TPAGMKTCANCELLIST PM, TPAORDERM CM
+                 WHERE PM.PAY_NO = #{payNo,jdbcType=VARCHAR}
+                   AND PM.PAY_NO = CM.PA_ORDER_NO
+                   AND PM.CONTR_NO = CM.PA_ORDER_SEQ
+                   AND PM.CONTR_NO_SEQ = CM.PA_CLAIM_NO
+                   AND CM.PA_ORDER_GB   = '20'
+                   AND CM.PA_CODE IN ('21','22')
+                   AND CM.CREATE_YN = '1'
+                   AND CM.PRE_CANCEL_YN = '0' )   
+    </select>
+    
+    <select id="selectOrderPromo" parameterType="hashMap" resultType="com.cware.netshopping.domain.OrderpromoVO">      
+       SELECT /* pagmktorder.xml : pagmkt.order.selectOrderPromo by PaGmktOrderController */ 
+       		   *
+         FROM (  
+	           SELECT  B.SEQ
+	            	 , B.PROC_GB 
+	                 , A.PROMO_NO AS PROMO_NO
+	                 , B.PA_CODE
+	                 , G.GOODS_CODE
+	                 , A.DO_TYPE
+	                 , A.COUPON_YN
+	                 , A.MEDIA_CODE
+	                 , A.PROMO_BDATE AS COUPON_PROMO_BDATE
+	                 , A.PROMO_EDATE AS COUPON_PROMO_EDATE
+	                 , B.DO_AMT AS PROC_COST
+	                 , B.OWN_COST AS OWN_PROC_COST
+	                 , B.ENTP_COST AS ENTP_PROC_COST   
+	                 , B.PA_GROUP_CODE              
+	            FROM TPROMOM          A
+	                ,TPAPROMOTARGET   B
+	                ,TGOODS           G
+	           WHERE 1=1           
+	             AND A.PROMO_NO       = B.PROMO_NO
+	             AND B.GOODS_CODE     = G.GOODS_CODE
+	             AND B.GOODS_CODE     = #{GOODS_CODE,jdbcType=VARCHAR}
+	             AND (INSTR(B.PA_GROUP_CODE, #{PA_GROUP_CODE,jdbcType=VARCHAR})) > 0
+	             AND A.COUPON_YN      = '1'
+	             AND A.APP_TYPE       = '10'
+	             AND B.PA_CODE        IN ('21','22')
+	             AND A.IMMEDIATELY_YN = '1'
+	             AND NVL(A.ALCOUT_PROMO_YN, '0') = '0'
+	             AND A.GOODS_ALL_YN   = '0'
+	             AND ((B.USE_CODE       = '00' AND B.PROC_GB IN ('I', 'U') )  OR (B.PROC_GB = 'D') ) 
+	             AND TRANS_DATE       IS NOT NULL
+	             AND TRANS_DATE       &lt; TO_DATE(#{ORDER_DATE_ORG,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS')
+	             AND ((TO_DATE(#{ORDER_DATE_ORG,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') BETWEEN B.TRANS_DATE AND B.PROMO_EDATE)
+	             	   OR (TO_DATE(#{ORDER_DATE_ORG,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') > B.PROMO_EDATE AND B.PROC_GB = 'D')) 
+	             AND G.GIFT_YN        = '0'
+	        ORDER BY  B.TRANS_DATE DESC )
+        WHERE ROWNUM           = 1
+    </select>       
+    
+    <select id="selectPaAddrInfo" parameterType="hashMap" resultType="hashMap">
+    	SELECT NVL(CWARE_ENC_DEC(OL.RECEIVER_TEL   ,'D') ,  CWARE_ENC_DEC(OL.BUYER_TEL,'D')    ) AS RECEIVER_TEL
+              ,NVL(CWARE_ENC_DEC(OL.RECEIVER_MOBILE,'D') ,  CWARE_ENC_DEC(OL.BUYER_MOBILE,'D') ) AS RECEIVER_HP
+              ,OL.RECEIVER_ZIPCODE  AS ZIPCODE 
+              ,CWARE_ENC_DEC(OL.RECEIVER_ADDRESS1,'D') || ' ' || CWARE_ENC_DEC(OL.RECEIVER_ADDRESS2,'D') AS RECEIVER_ADDR
+              ,CWARE_ENC_DEC(OL.RECEIVER_ADDRESS,'D') AS FULL_RECEIVER_ADDR
+              ,CWARE_ENC_DEC(OL.RECEIVER_ADDRESS1,'D') AS RECEIVER_ADDR1
+              ,CWARE_ENC_DEC(OL.RECEIVER_ADDRESS2,'D') AS RECEIVER_ADDR2 
+              ,OD.RECEIVER_SEQ AS RECEIVER_SEQ
+              ,OL.RECEIVER_NAME
+         FROM TPAGMKTORDERLIST OL, TPAORDERM PM, TORDERDT OD
+        WHERE OL.PAY_NO        =  PM.PA_ORDER_NO
+          AND OL.CONTR_NO      =  PM.PA_ORDER_SEQ
+          AND PM.PA_ORDER_GB   = '10'
+          AND PM.CREATE_YN     = '1'
+          AND PM.PRE_CANCEL_YN = '0'
+          AND PM.PA_GROUP_CODE = #{ paGroupCode ,jdbcType=VARCHAR}
+          AND PM.PA_ORDER_NO   = #{ paOrderNo   ,jdbcType=VARCHAR}
+          AND PM.PA_DO_FLAG    = '10'
+          AND OD.ORDER_NO      = PM.ORDER_NO
+          AND OD.ORDER_G_SEQ   = PM.ORDER_G_SEQ
+          AND OD.ORDER_W_SEQ   = PM.ORDER_W_SEQ
+          AND OL.PAY_DATE IS NOT NULL
+          AND ROWNUM           = '1'        	
+          
+    </select>
+    
+    <!-- 프로모션 별 운영관리 기능 효율화(REQ_PRM_040) : S -->
+    <!-- 제휴OUT프로모션 조회 -->
+    <select id="selectOrderPaPromo" parameterType="hashMap" resultType="com.cware.netshopping.domain.OrderpromoVO">        
+       SELECT /* pagmktorder.xml : pagmkt.order.selectOrderPaPromo by PaGmktOrderController */ 
+       		   *
+         FROM (  
+	           SELECT  B.SEQ
+	            	 , B.PROC_GB 
+	                 , A.PROMO_NO AS PROMO_NO
+	                 , B.PA_CODE
+	                 , G.GOODS_CODE
+	                 , A.DO_TYPE
+	                 , A.COUPON_YN
+	                 , A.MEDIA_CODE
+	                 , A.PROMO_BDATE AS COUPON_PROMO_BDATE
+	                 , A.PROMO_EDATE AS COUPON_PROMO_EDATE
+	                 , B.DO_AMT AS PROC_COST
+	                 , B.OWN_COST AS OWN_PROC_COST
+	                 , B.ENTP_COST AS ENTP_PROC_COST   
+	                 , B.PA_GROUP_CODE              
+	            FROM TPROMOM          A
+	                ,TPAPROMOTARGET   B
+	                ,TGOODS           G
+	           WHERE 1=1           
+	             AND A.PROMO_NO       = B.PROMO_NO
+	             AND B.GOODS_CODE     = G.GOODS_CODE
+	             AND B.GOODS_CODE     = #{GOODS_CODE,jdbcType=VARCHAR}
+	             AND (INSTR(B.PA_GROUP_CODE, #{PA_GROUP_CODE,jdbcType=VARCHAR})) > 0
+	             AND A.COUPON_YN      = '1'
+	             AND A.APP_TYPE       = '10'
+	             AND B.PA_CODE        IN ('21','22')
+	             AND A.IMMEDIATELY_YN = '1'
+	             AND NVL(A.ALCOUT_PROMO_YN, '0') = '1'
+	             AND A.GOODS_ALL_YN   = '0'
+	             AND ((B.USE_CODE       = '00' AND B.PROC_GB IN ('I', 'U') )  OR (B.PROC_GB = 'D') ) 
+	             AND TRANS_DATE       IS NOT NULL
+	             AND TRANS_DATE       &lt; TO_DATE(#{ORDER_DATE_ORG,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS')
+	             AND ((TO_DATE(#{ORDER_DATE_ORG,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') BETWEEN B.TRANS_DATE AND B.PROMO_EDATE)
+	             	   OR (TO_DATE(#{ORDER_DATE_ORG,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') > B.PROMO_EDATE AND B.PROC_GB = 'D')) 
+	             AND G.GIFT_YN        = '0'
+	        ORDER BY  B.TRANS_DATE DESC )
+        WHERE ROWNUM           = 1
+    </select>       
+    <!-- 프로모션 별 운영관리 기능 효율화(REQ_PRM_040) : E -->
+</mapper>

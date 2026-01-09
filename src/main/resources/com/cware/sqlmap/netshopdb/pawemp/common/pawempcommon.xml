@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pawemp.common">
+    <select id="selectEntpShipInsertList" resultType="hashMap" parameterType="com.cware.netshopping.domain.model.PaWempEntpSlip">
+        SELECT /* pawempcommon.xml : pawemp.pawempcommon.selectEntpShipInsertList by PaWempCommonController-setAddressBook */   
+               NVL(EU.STD_POST, EU.POST_NO) AS POST_NO
+             , NVL(EU.STD_ROAD_POST_ADDR1, EU.ROAD_POST_ADDR) AS ROAD_ADDR1
+             , NVL(EU.STD_ROAD_POST_ADDR2, EU.ROAD_ADDR) AS ROAD_ADDR2
+             , NVL(EU.STD_POST_ADDR1, EU.POST_ADDR) AS POST_ADDR1
+             , NVL(EU.STD_POST_ADDR2, EU.ADDR) AS POST_ADDR2
+             , EU.ENTP_CODE
+             , EU.ENTP_MAN_SEQ
+             , REPLACE(EP.ENTP_NAME,'&amp;','') ENTP_NAME
+             , PC.ORD_COST
+             , PC.RETURN_COST
+             , PC.CHANGE_COST
+             , PC.JEJU_COST
+             , PC.ISLAND_COST
+             , PC.SHIP_COST_BASE_AMT
+          FROM TENTPUSER EU
+             , TENTERPRISE EP
+             , TPACUSTSHIPCOST PC
+         WHERE EU.ENTP_CODE = EP.ENTP_CODE        
+           AND EU.ENTP_CODE = PC.ENTP_CODE              
+           AND EU.ENTP_CODE  = #{entpCode, jdbcType=VARCHAR}
+           AND EU.ENTP_MAN_SEQ = #{entpManSeq, jdbcType=VARCHAR}
+           AND PC.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PC.SHIP_COST_CODE = #{shipCostCode, jdbcType=VARCHAR}
+           AND NOT EXISTS (
+	            SELECT 1 FROM TPAWEMPENTPSLIP PL
+		         WHERE PL.PA_CODE = #{paCode, jdbcType=VARCHAR}
+		           AND PL.ENTP_CODE	= #{entpCode, jdbcType=VARCHAR}
+		           AND PL.ENTP_MAN_SEQ = #{entpManSeq, jdbcType=VARCHAR}
+		           AND PL.SHIP_COST_CODE = #{shipCostCode, jdbcType=VARCHAR}
+		           AND PL.NO_SHIP_ISLAND = #{noShipIsland, jdbcType=VARCHAR}
+		           AND PL.INSTALL_YN = #{installYn, jdbcType=VARCHAR}
+	           )
+    </select>
+
+    <insert id="insertPaWempEntpSlip" parameterType="com.cware.netshopping.domain.model.PaWempEntpSlip">
+        INSERT /* pawempcommon.xml : pawemp.pawempcommon.insertPaWempEntpSlip by PaWempCommonController-entpShipInsert */
+          INTO TPAWEMPENTPSLIP
+             ( PA_CODE
+             , ENTP_CODE
+             , ENTP_MAN_SEQ
+             , SHIP_COST_CODE
+             , NO_SHIP_ISLAND
+             , INSTALL_YN
+             , PA_ADDR_GB
+             , PA_SHIP_POLICY_NO
+             , TRANS_TARGET_YN
+             , LAST_SYNC_DATE
+             , INSERT_DATE
+             , INSERT_ID
+             , MODIFY_DATE
+             , MODIFY_ID )
+        VALUES 
+             ( #{paCode, jdbcType=VARCHAR}
+             , #{entpCode, jdbcType=VARCHAR}
+             , #{entpManSeq, jdbcType=VARCHAR}
+             , #{shipCostCode, jdbcType=VARCHAR}
+             , #{noShipIsland, jdbcType=VARCHAR}
+             , #{installYn, jdbcType=VARCHAR}
+             , #{paAddrGb, jdbcType=VARCHAR}
+             , #{paShipPolicyNo, jdbcType=VARCHAR}
+             , #{transTargetYn, jdbcType=VARCHAR}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{insertId, jdbcType=VARCHAR}
+             , #{modifyDate, jdbcType=TIMESTAMP}
+             , #{modifyId, jdbcType=VARCHAR}
+             )  
+    </insert>
+    
+    <select id="selectEntpShipUpdateList" resultType="hashMap" parameterType="hashMap">
+        SELECT /* pawempcommon.xml : pawemp.pawempcommon.selectEntpShipUpdateList by PaWempCommonController-entpShipUpdate */
+               NVL(EU.STD_POST, EU.POST_NO) AS POST_NO
+             , NVL(EU.STD_ROAD_POST_ADDR1, EU.ROAD_POST_ADDR) AS ROAD_ADDR1
+             , NVL(EU.STD_ROAD_POST_ADDR2, EU.ROAD_ADDR) AS ROAD_ADDR2
+             , NVL(EU.STD_POST_ADDR1, EU.POST_ADDR) AS POST_ADDR1
+             , NVL(EU.STD_POST_ADDR2, EU.ADDR) AS POST_ADDR2
+             , PL.PA_CODE
+             , PL.ENTP_CODE
+             , PL.ENTP_MAN_SEQ
+             , PL.SHIP_COST_CODE
+             , PL.NO_SHIP_ISLAND
+             , PL.INSTALL_YN
+             , REPLACE(EP.ENTP_NAME,'&amp;','') ENTP_NAME
+             , PL.PA_SHIP_POLICY_NO 
+             , PC.ORD_COST
+             , PC.RETURN_COST
+             , PC.CHANGE_COST
+             , PC.SHIP_COST_BASE_AMT
+             , PC.JEJU_COST
+             , PC.ISLAND_COST
+          FROM TENTPUSER EU
+             , TENTERPRISE EP
+             , TPAWEMPENTPSLIP PL
+             , TPACUSTSHIPCOST PC
+         WHERE EU.ENTP_CODE = EP.ENTP_CODE
+           AND EU.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+           AND EU.ENTP_CODE = PL.ENTP_CODE
+           AND EU.ENTP_CODE = PC.ENTP_CODE 
+           AND PL.ENTP_CODE = PC.ENTP_CODE 
+           AND PL.SHIP_COST_CODE = PC.SHIP_COST_CODE
+           AND PL.PA_CODE = PC.PA_CODE
+           AND PL.PA_CODE IN ('61','62')
+           AND PL.PA_ADDR_GB = #{paAddrGb, jdbcType=VARCHAR}
+           AND (PL.TRANS_TARGET_YN = '1' OR PC.TRANS_TARGET_YN = '1')
+
+    </select>
+    
+    <select id="selectEntpShipUpdate" resultType="hashMap" parameterType="com.cware.netshopping.domain.model.PaWempEntpSlip">
+        SELECT /* pawempcommon.xml : pawemp.pawempcommon.selectEntpShipUpdate by PaWempSellerService */
+               NVL(EU.STD_POST, EU.POST_NO) AS POST_NO
+             , NVL(EU.STD_ROAD_POST_ADDR1, EU.ROAD_POST_ADDR) AS ROAD_ADDR1
+             , NVL(EU.STD_ROAD_POST_ADDR2, EU.ROAD_ADDR) AS ROAD_ADDR2
+             , NVL(EU.STD_POST_ADDR1, EU.POST_ADDR) AS POST_ADDR1
+             , NVL(EU.STD_POST_ADDR2, EU.ADDR) AS POST_ADDR2
+             , PL.PA_CODE
+             , PL.ENTP_CODE
+             , PL.ENTP_MAN_SEQ
+             , PL.SHIP_COST_CODE
+             , PL.NO_SHIP_ISLAND
+             , PL.INSTALL_YN
+             , REPLACE(EP.ENTP_NAME,'&amp;','') ENTP_NAME
+             , PL.PA_SHIP_POLICY_NO 
+             , PC.ORD_COST
+             , PC.RETURN_COST
+             , PC.CHANGE_COST
+             , PC.SHIP_COST_BASE_AMT
+             , PC.JEJU_COST
+             , PC.ISLAND_COST
+          FROM TENTPUSER EU
+             , TENTERPRISE EP
+             , TPAWEMPENTPSLIP PL
+             , TPACUSTSHIPCOST PC
+         WHERE EU.ENTP_CODE = EP.ENTP_CODE
+           AND EU.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+           AND EU.ENTP_CODE = PL.ENTP_CODE
+           AND EU.ENTP_CODE = PC.ENTP_CODE 
+           AND PL.ENTP_CODE = PC.ENTP_CODE 
+           AND PL.SHIP_COST_CODE = PC.SHIP_COST_CODE
+           AND PL.PA_CODE = PC.PA_CODE
+           AND PL.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PL.ENTP_CODE	= #{entpCode, jdbcType=VARCHAR}
+           AND PL.ENTP_MAN_SEQ = #{entpManSeq, jdbcType=VARCHAR}
+           AND PL.SHIP_COST_CODE = #{shipCostCode, jdbcType=VARCHAR}
+           AND PL.NO_SHIP_ISLAND = #{noShipIsland, jdbcType=VARCHAR}
+           AND PL.INSTALL_YN = #{installYn, jdbcType=VARCHAR}
+           AND (PL.TRANS_TARGET_YN = '1' OR PC.TRANS_TARGET_YN = '1')
+    </select>
+    
+    <update id="updatePaWempEntpSlip" parameterType="com.cware.netshopping.domain.model.PaWempEntpSlip">
+        UPDATE /* pawempcommon.xml : pawemp.pawempcommon.updatePaWempEntpSlip by PaWempCommonController-entpShipUpdate */
+               TPAWEMPENTPSLIP
+           SET TRANS_TARGET_YN 	= #{transTargetYn, jdbcType=VARCHAR}
+             , MODIFY_DATE 		= #{modifyDate, jdbcType=TIMESTAMP}
+             , MODIFY_ID		= #{modifyId, jdbcType=VARCHAR}
+         WHERE PA_CODE			= #{paCode, jdbcType=VARCHAR}
+           AND ENTP_CODE		= #{entpCode, jdbcType=VARCHAR}
+           AND ENTP_MAN_SEQ		= #{entpManSeq, jdbcType=VARCHAR}
+           AND SHIP_COST_CODE	= #{shipCostCode, jdbcType=VARCHAR}
+           AND NO_SHIP_ISLAND	= #{noShipIsland, jdbcType=VARCHAR}
+           AND INSTALL_YN		= #{installYn, jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updatePaWempCustShipCost"  parameterType="com.cware.netshopping.domain.model.PaWempEntpSlip">
+        UPDATE /* pawempcommon.xml : pawemp.pawempcommon.updatePaWempCustShipCost by PaWempCommonController-goodsInsert */
+               TPACUSTSHIPCOST PS
+           SET PS.TRANS_TARGET_YN = '0'
+             , PS.MODIFY_ID 	  = #{modifyId, jdbcType=VARCHAR}
+             , PS.MODIFY_DATE 	  = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE PS.PA_CODE 	 	  = #{paCode, jdbcType=VARCHAR}  
+           AND PS.ENTP_CODE 	  = #{entpCode, jdbcType=VARCHAR}
+           AND PS.SHIP_COST_CODE  = #{shipCostCode, jdbcType=VARCHAR}
+    </update>
+	
+    <delete id="deletePaWempOfferCodeMoment" >
+        DELETE /* pawempcommon.xml : pawemp.common.pawempcommon.deletePaWempOfferCodeMoment*/ 
+        FROM TPAOFFERCODEMOMENT
+    </delete>
+    
+	<insert id="insertPaWempOfferCodeMoment" parameterType="com.cware.netshopping.domain.model.PaOfferCode">
+        INSERT /* pawempcommon.xml : pawemp.common.pawempcommon.insertPaWempOfferCodeMoment*/
+            INTO TPAOFFERCODEMOMENT
+                ( PA_GROUP_CODE
+                , PA_OFFER_TYPE  
+                , PA_OFFER_CODE 
+                , PA_OFFER_TYPE_NAME 
+                , PA_OFFER_CODE_NAME 
+                , REQUIRED_YN
+                , USE_YN 
+                , REMARK )
+            VALUES 
+                ( #{paGroupCode, jdbcType=VARCHAR}
+                , #{paOfferType, jdbcType=VARCHAR}
+                , #{paOfferCode, jdbcType=VARCHAR}
+                , #{paOfferTypeName, jdbcType=VARCHAR}
+                , #{paOfferCodeName, jdbcType=VARCHAR}
+                , #{requiredYn, jdbcType=VARCHAR}
+                , #{useYn, jdbcType=VARCHAR}
+                , #{remark, jdbcType=VARCHAR} )  
+	</insert>
+	
+    <insert id="insertPaWempOfferCodeList" parameterType="com.cware.netshopping.domain.model.PaOfferCode">
+        INSERT /* pawempcommon.xml : pawemp.common.pawempcommon.insertPaWempOfferCodeList*/
+            INTO TPAOFFERCODE
+                ( PA_GROUP_CODE
+                , PA_OFFER_TYPE  
+                , PA_OFFER_CODE 
+                , PA_OFFER_TYPE_NAME 
+                , PA_OFFER_CODE_NAME 
+                , REQUIRED_YN
+                , USE_YN 
+                , REMARK
+                , INSERT_DATE
+                , INSERT_ID
+                , MODIFY_DATE
+                , MODIFY_ID )
+            SELECT OM.PA_GROUP_CODE
+                , OM.PA_OFFER_TYPE  
+                , OM.PA_OFFER_CODE 
+                , OM.PA_OFFER_TYPE_NAME 
+                , OM.PA_OFFER_CODE_NAME 
+                , OM.REQUIRED_YN
+                , OM.USE_YN 
+                , OM.REMARK
+                , #{insertDate, jdbcType=TIMESTAMP}
+                , UPPER(#{insertId, jdbcType=VARCHAR})
+                , #{insertDate, jdbcType=TIMESTAMP}
+                , UPPER(#{insertId, jdbcType=VARCHAR})
+            FROM TPAOFFERCODEMOMENT OM  
+            WHERE OM.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+                AND NOT EXISTS ( SELECT 'X'
+                                    FROM TPAOFFERCODE OC
+                                WHERE OC.PA_GROUP_CODE = OM.PA_GROUP_CODE
+                                    AND OC.PA_OFFER_TYPE = OM.PA_OFFER_TYPE
+                                    AND OC.PA_OFFER_CODE = OM.PA_OFFER_CODE
+                                )
+    </insert>
+    
+    <update id="updatePaWempOfferCodeList" parameterType="com.cware.netshopping.domain.model.PaOfferCode">
+        UPDATE /* pawempcommon.xml : pawemp.common.pawempcommon.updatePaWempOfferCodeList*/
+             ( SELECT OC.PA_OFFER_TYPE         AS OLD_PA_OFFER_TYPE
+                    , OC.PA_OFFER_CODE         AS OLD_PA_OFFER_CODE
+                    , OC.PA_OFFER_TYPE_NAME    AS OLD_PA_OFFER_TYPE_NAME
+                    , OC.PA_OFFER_CODE_NAME    AS OLD_PA_OFFER_CODE_NAME
+                    , OC.REQUIRED_YN           AS OLD_REQUIRED_YN
+                    , OC.REMARK                AS OLD_REMARK
+                    , OC.USE_YN                AS USE_YN
+                    , OC.MODIFY_DATE           AS MODIFY_DATE  
+                    , OC.MODIFY_ID             AS MODIFY_ID
+                    , OM.PA_OFFER_TYPE         AS NEW_PA_OFFER_TYPE    
+                    , OM.PA_OFFER_CODE         AS NEW_PA_OFFER_CODE
+                    , OM.PA_OFFER_TYPE_NAME    AS NEW_PA_OFFER_TYPE_NAME
+                    , OM.PA_OFFER_CODE_NAME    AS NEW_PA_OFFER_CODE_NAME
+                    , OM.REQUIRED_YN           AS NEW_REQUIRED_YN   
+                    , OM.REMARK                AS NEW_REMARK
+                 FROM TPAOFFERCODEMOMENT OM
+                    , TPAOFFERCODE OC
+                WHERE OM.PA_OFFER_TYPE = OC.PA_OFFER_TYPE
+                  AND OM.PA_OFFER_CODE = OC.PA_OFFER_CODE
+                  AND OM.PA_GROUP_CODE = OC.PA_GROUP_CODE
+                  AND OM.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+                  AND (OM.PA_OFFER_TYPE_NAME != OC.PA_OFFER_TYPE_NAME
+                    OR OM.PA_OFFER_CODE_NAME != OC.PA_OFFER_CODE_NAME
+                    OR OC.USE_YN != '1'
+                      )
+               )
+           SET OLD_PA_OFFER_TYPE_NAME = NEW_PA_OFFER_TYPE_NAME
+             , OLD_PA_OFFER_CODE_NAME = NEW_PA_OFFER_CODE_NAME
+             , OLD_REQUIRED_YN = NEW_REQUIRED_YN
+             , OLD_REMARK = NEW_REMARK
+             , USE_YN = '1'
+             , MODIFY_ID = UPPER(#{modifyId, jdbcType=VARCHAR})
+             , MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+    </update>
+    
+    <update id="updatePaWempOfferCodeListUseYn" parameterType="com.cware.netshopping.domain.model.PaOfferCode">
+        UPDATE /* pawempcommon.xml : pawemp.common.pawempcommon.updatePaWempOfferCodeListUseYn*/
+               TPAOFFERCODE OC
+           SET OC.USE_YN = '0'
+             , OC.MODIFY_ID = UPPER(#{modifyId, jdbcType=VARCHAR})
+             , OC.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE OC.USE_YN = '1'
+           AND OC.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+           AND NOT EXISTS ( SELECT 'X'
+                              FROM TPAOFFERCODEMOMENT OM
+                             WHERE OC.PA_OFFER_TYPE = OM.PA_OFFER_TYPE
+                               AND OC.PA_OFFER_CODE = OM.PA_OFFER_CODE
+                               AND OC.PA_GROUP_CODE = OM.PA_GROUP_CODE
+                          )
+    </update> 
+    
+    <select id="selectPaOfferTypeList" resultType="com.cware.netshopping.domain.model.PaOfferCode" parameterType="com.cware.netshopping.domain.model.PaOfferCode">
+        SELECT /* pawempcommon.xml : pawemp.common.pawempcommon.selectPaOfferTypeList*/
+            DISTINCT PF.PA_OFFER_TYPE
+            , PF.PA_OFFER_TYPE_NAME
+        FROM TPAOFFERCODE PF
+        WHERE PF.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+            AND PF.USE_YN = '1'
+            AND NOT EXISTS ( SELECT 'X'
+                            FROM TCODE TC
+                            WHERE TC.CODE_LGROUP = 'O506'
+                                AND TC.CODE_MGROUP = PF.PA_OFFER_TYPE
+                                AND TC.USE_YN = PF.USE_YN
+                                AND TC.CODE_GROUP = PF.PA_GROUP_CODE
+                            )
+    </select>
+    
+    <insert id="updatePaOfferType" parameterType="com.cware.netshopping.domain.model.PaOfferCode" >
+        UPDATE /* pawempcommon.xml : pawemp.common.pawempcommon.updatePaOfferType*/
+            TCODE TC
+            SET TC.USE_YN = '1'
+                , TC.MODIFY_ID = UPPER(#{modifyId, jdbcType=VARCHAR})
+                , TC.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+            WHERE TC.CODE_LGROUP = 'O506' 
+                AND TC.CODE_MGROUP = #{paOfferType, jdbcType=VARCHAR}
+                AND TC.CODE_GROUP = '06'
+    </insert>
+    
+    <insert id="insertPaOfferType" parameterType="com.cware.netshopping.domain.model.PaOfferCode">
+        INSERT /* pawempcommon.xml : pawemp.common.pawempcommon.insertPaOfferType*/
+            INTO TCODE
+                ( CODE_LGROUP
+                , CODE_MGROUP  
+                , CODE_NAME
+                , CODE_GROUP 
+                , USE_YN 
+                , INSERT_ID
+                , INSERT_DATE
+                , MODIFY_ID
+                , MODIFY_DATE )
+            VALUES 
+                ( 'O506'
+                , 'WEMP-' || #{paOfferType, jdbcType=VARCHAR}
+                , #{paOfferTypeName, jdbcType=VARCHAR}
+                , '06'
+                , '1'
+                , UPPER(#{insertId, jdbcType=VARCHAR})
+                , #{insertDate, jdbcType=TIMESTAMP}
+                , UPPER(#{modifyId, jdbcType=VARCHAR})
+                , #{modifyDate, jdbcType=TIMESTAMP} )  
+    </insert>
+    
+    <select id="selectBrandList" resultType="com.cware.netshopping.domain.model.Brand">
+		 SELECT /* pawempcommon.xml : pawemp.common.pawempcommon.selectBrandList*/
+		        A.BRAND_CODE
+		      , A.BRAND_NAME
+		   FROM TBRAND A
+		  WHERE NOT EXISTS ( SELECT 1
+		                       FROM TPAWEMPBRAND B
+		                      WHERE A.BRAND_CODE = B.BRAND_CODE
+		                   )
+    </select>
+    
+    <insert id="insertPaWempBrandList" parameterType="com.cware.netshopping.domain.model.PaWempBrand">
+        INSERT /* pawempcommon.xml : pawemp.common.pawempcommon.insertPaWempBrandList*/
+            INTO TPAWEMPBRAND
+                ( BRAND_CODE
+                , BRAND_NO  
+                , BRAND_NAME
+                , REMARK 
+                , INSERT_ID
+                , INSERT_DATE
+                , MODIFY_ID
+                , MODIFY_DATE )
+            VALUES 
+                ( #{brandCode, jdbcType=VARCHAR}
+                , #{brandNo, jdbcType=VARCHAR}
+                , #{brandName, jdbcType=VARCHAR}
+                , #{remark, jdbcType=VARCHAR}
+                , #{insertId   , jdbcType=VARCHAR}
+                , SYSDATE
+                , #{modifyId   , jdbcType=VARCHAR}
+                , SYSDATE )  
+    </insert>
+    
+    <select id="selectMakerList" resultType="com.cware.netshopping.domain.model.Makecomp">
+		 SELECT /* pawempcommon.xml : pawemp.common.pawempcommon.selectMakerList*/
+		        A.MAKECO_CODE
+		      , A.MAKECO_NAME
+		   FROM TMAKECOMP A
+		  WHERE NOT EXISTS ( SELECT 1
+		                       FROM TPAWEMPMAKER B
+		                      WHERE A.MAKECO_CODE = B.MAKER_CODE
+		                   )
+    </select>
+    
+    <insert id="insertPaWempMakerList" parameterType="com.cware.netshopping.domain.model.PaWempBrand">
+        INSERT /* pawempcommon.xml : pawemp.common.pawempcommon.insertPaWempMakerList*/
+            INTO TPAWEMPMAKER
+                ( MAKER_CODE
+                , MAKER_NO  
+                , MAKER_NAME
+                , REMARK 
+                , INSERT_ID
+                , INSERT_DATE
+                , MODIFY_ID
+                , MODIFY_DATE )
+            VALUES 
+                ( #{makerCode, jdbcType=VARCHAR}
+                , #{makerNo, jdbcType=VARCHAR}
+                , #{makerName, jdbcType=VARCHAR}
+                , #{remark, jdbcType=VARCHAR}
+                , #{insertId   , jdbcType=VARCHAR}
+                , SYSDATE
+                , #{modifyId   , jdbcType=VARCHAR}
+                , SYSDATE )  
+    </insert>
+    
+    <select id="selectDelyGb" resultType="hashMap" parameterType="String">
+        SELECT /* pawempcommon.xml : pawemp.pawempcommon.selectDelyGb*/
+          DELY_GB,
+          PA_DELY_GB
+        FROM
+          TPADELYGB
+        WHERE
+          PA_CODE = '06'
+          AND PA_DELY_GB_NAME = #{paDelyGbName, jdbcType=VARCHAR}
+    </select>
+</mapper>

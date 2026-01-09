@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="panaver.account">
+    
+    <delete id="deletePaNaverAccount" parameterType="com.cware.netshopping.domain.PanaversettlementVO">
+        DELETE /* panaveraccount.xml : panaver.account.deletePaNaverAccount by IF_PANAVERAPI_05_001 */ 
+          FROM TPANAVERSETTLEMENT
+         WHERE PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND SETTLE_BASIC_DATE BETWEEN #{fromDate	, jdbcType=TIMESTAMP}
+                                     AND #{toDate	, jdbcType=TIMESTAMP}
+    </delete>
+    
+    <select id="selectChkPaNaverAccount" parameterType="hashMap" resultType="int">
+        SELECT /* panaveraccount.xml : panaver.account.selectChkPaNaverAccount by IF_PANAVERAPI_05_001 */
+               COUNT(1)
+          FROM TPANAVERSETTLEMENT
+         WHERE PA_CODE    = #{paCode, jdbcType=VARCHAR}
+           AND SETTLE_BASIC_DATE BETWEEN TO_DATE(#{fromDate , jdbcType=VARCHAR}, 'YYYY/MM/DD')
+                                         AND TO_DATE(#{toDate , jdbcType=VARCHAR}, 'YYYY/MM/DD')
+    </select>
+    
+    <insert id="insertPaNaverSettlement" parameterType="com.cware.netshopping.domain.PanaversettlementVO">
+        INSERT /* panaveraccount.xml : panaver.account.insertPaNaverSettlement by IF_PANAVERAPI_05_001 */
+          INTO TPANAVERSETTLEMENT
+             (    PANAVR_SALES_NO
+                , PA_CODE
+				, SETTLE_BASIC_DATE
+				, SETTLE_EXPECT_DATE
+				, SETTLE_COPMPLETE_DATE
+				, ORDER_ID
+				, PRODUCT_ORDER_ID
+				, PRODUCT_ORDER_TYPE
+				, SETTLE_TYPE
+				, PRODUCT_ID
+				, PRODUCT_NAME
+				, PURCHASER_NAME
+				, PAY_SETTLE_AMT
+				, TOTAL_COMMI_AMT
+				, TOTAL_PAY_COMMI_AMT
+				, PRIMARY_PAY_MEAN
+				, PRIMARY_PAY_MEAN_BASIC_AMT
+				, PRIMARY_PAY_MEAN_PAY_COMMI_AMT
+				, SUB_PAY_MEAN
+				, SUB_PAY_MEAN_BASIC_AMT
+				, SUB_PAY_MEAN_PAY_COMMI_AMT
+				, SUB2_PAY_MEAN
+				, SUB2_PAY_MEAN_BASIC_AMT
+				, SUB2_PAY_MEAN_PAY_COMMI_AMT
+				, SUB3_PAY_MEAN
+				, SUB3_PAY_MEAN_BASIC_AMT
+				, SUB3_PAY_MEAN_PAY_COMMI_AMT
+				, CHANNEL_COMMI_AMT
+				, FREE_INSTALLMENT_COMMI_AMT
+				, SALE_COMMISSION_AMOUNT
+				, SELLING_INTERLOCK_COMMI_AMT
+				, BENEFIT_SETTLE_AMT
+				, SETTLE_EXPECT_AMT
+				, QUICK_SETTLE_CREATED
+				, INSERT_ID
+				, INSERT_DATE
+				, PAY_DATE
+             )
+        VALUES 
+             (    #{panavrSalesNo, jdbcType=VARCHAR}
+                , #{paCode, jdbcType=VARCHAR}
+				, #{settleBasicDate, jdbcType=TIMESTAMP}
+				, #{settleExpectDate, jdbcType=TIMESTAMP}
+				, #{settleCompleteDate, jdbcType=TIMESTAMP}
+				, #{orderId, jdbcType=VARCHAR}
+				, #{productOrderId, jdbcType=VARCHAR}
+				, #{productOrderType, jdbcType=VARCHAR}
+				, #{settleType, jdbcType=VARCHAR}
+				, REPLACE(#{productId, jdbcType=VARCHAR},'null','')
+				, REPLACE(#{productName, jdbcType=VARCHAR},'null','')
+				, #{purchaserName, jdbcType=VARCHAR}
+				, #{paySettleAmt, jdbcType=DOUBLE}
+				, #{totalCommiAmt, jdbcType=DOUBLE}
+				, #{totalPayCommiAmt, jdbcType=DOUBLE}
+				, #{primaryPayMean, jdbcType=VARCHAR}
+				, #{primaryPayMeanBasicAmt, jdbcType=DOUBLE}
+				, #{primaryPayMeanPayCommiAmt, jdbcType=DOUBLE}
+				, REPLACE(#{subPayMean, jdbcType=VARCHAR},'null','')
+				, #{subPayMeanBasicAmt, jdbcType=DOUBLE}
+				, #{subPayMeanPayCommiAmt, jdbcType=DOUBLE}
+				, REPLACE(#{sub2PayMean, jdbcType=VARCHAR},'null','')
+				, #{sub2PayMeanBasicAmt, jdbcType=DOUBLE}
+				, #{sub2PayMeanPayCommiAmt, jdbcType=DOUBLE}
+				, REPLACE(#{sub3PayMean, jdbcType=VARCHAR},'null','')
+				, #{sub3PayMeanBasicAmt, jdbcType=DOUBLE}
+				, #{sub3PayMeanPayCommiAmt, jdbcType=DOUBLE}
+				, #{channelCommiAmt, jdbcType=DOUBLE}
+				, #{freeInstallmentCommiAmt, jdbcType=DOUBLE}
+				, #{saleCommissionAmount, jdbcType=DOUBLE}
+				, #{sellingInterlockCommiAmt, jdbcType=DOUBLE}
+				, #{benefitSettleAmt, jdbcType=DOUBLE}
+				, #{settleExpectAmt, jdbcType=DOUBLE}
+				, REPLACE(#{quickSettleCreated, jdbcType=VARCHAR},'null','')
+				, #{insertId, jdbcType=VARCHAR}
+				, #{insertDate, jdbcType=TIMESTAMP}
+				, #{payDate, jdbcType=TIMESTAMP}
+              )    
+    </insert>
+    
+    <update id="updatePaorderm" parameterType="com.cware.netshopping.domain.PanaversettlementVO">
+      UPDATE /* panaveraccount.xml : panaver.account.updatePaorderm by IF_PANAVERAPI_05_001 */
+             TPAORDERM
+         SET API_RESULT_CODE = '0'
+           , API_RESULT_MESSAGE = '매출데이터 success'
+           , MODIFY_ID      = 'BATCH'       
+           <choose>
+            <when test='paDoFlag != "90"'>
+                , MODIFY_DATE    = #{modifyDate, jdbcType=TIMESTAMP}
+                , PA_DO_FLAG     = '90'
+                , PROC_DATE      = #{settleCompleteDate, jdbcType=TIMESTAMP}
+            </when>
+         </choose>    
+       WHERE PA_CODE        = #{paCode, jdbcType=VARCHAR}
+         AND PA_ORDER_NO    = #{orderId, jdbcType=VARCHAR}
+         AND PA_ORDER_SEQ   = #{productOrderId, jdbcType=VARCHAR}
+         AND CREATE_YN      = '1'
+         AND PRE_CANCEL_YN  = '0'     
+         AND PA_ORDER_GB    = '10'     
+    </update>
+    
+    <select id="selectPaDoFlagCheck" parameterType="com.cware.netshopping.domain.PanaversettlementVO" resultType="String">
+      SELECT /* panaveraccount.xml : panaver.account.selectPaDoFlagCheck by IF_PANAVERAPI_05_001 */
+             PM.PA_DO_FLAG
+        FROM TPAORDERM PM
+       WHERE PM.PA_CODE        = #{paCode, jdbcType=VARCHAR}
+         AND PM.PA_ORDER_NO    = #{orderId, jdbcType=VARCHAR}
+         AND PM.PA_ORDER_SEQ   = #{productOrderId, jdbcType=VARCHAR}
+         AND PM.PA_ORDER_GB    = '10'
+         AND PM.CREATE_YN      = '1'
+         AND PM.PRE_CANCEL_YN  = '0'
+         AND ROWNUM = 1
+    </select>
+</mapper>

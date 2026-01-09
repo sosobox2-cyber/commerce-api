@@ -1,0 +1,989 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="palton.goods">
+	<select id="selectPaLtonEntpSlip" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaEntpSlip">
+        SELECT /* paltongoods.xml : palton.paltongoods.selectPaLtonEntpSlip by PaLtonGoodsController-goodsInsert */
+               distinct TE.ENTP_CODE
+             , TE.ENTP_MAN_SEQ 
+             , TE.ENTP_MAN_GB AS PA_ADDR_GB
+             , PG.PA_CODE
+          FROM TPAPRODUCT TG
+             , TENTPUSER TE
+             , TPALTONGOODS PG
+             , TGOODS GD
+         WHERE DECODE(GD.DELY_TYPE,'10','100001',TG.ENTP_CODE) = TE.ENTP_CODE
+           AND PG.GOODS_CODE = TG.GOODS_CODE
+           AND PG.GOODS_CODE = GD.GOODS_CODE
+           <if test ='paAddrGb == "20"'>
+           AND DECODE(GD.DELY_TYPE, '10', '002', TG.RETURN_MAN_SEQ) = TE.ENTP_MAN_SEQ
+           </if>
+           <if test ='paAddrGb == "30"'>
+           AND DECODE(GD.DELY_TYPE, '10', '003', TG.SHIP_MAN_SEQ) = TE.ENTP_MAN_SEQ
+           </if>
+           <if test ='modCase =="MODIFY"'>
+           AND PG.TRANS_TARGET_YN = '1'
+           </if>
+           <if test='paCode != null and paCode != ""'>
+           AND PG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           </if>
+           <if test='goodsCode != null and goodsCode != ""'>
+           AND TG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           AND NOT EXISTS ( SELECT 'X'
+                              FROM TPAENTPSLIP PS
+                             WHERE PS.ENTP_CODE = TE.ENTP_CODE
+                               AND PS.ENTP_MAN_SEQ = TE.ENTP_MAN_SEQ
+                               AND PS.PA_CODE = PG.PA_CODE
+                          )
+    </select>
+    
+    <resultMap id="paLtonGoodsVOMap" type="com.cware.netshopping.domain.PaLtonGoodsVO">
+		<result property="describeExt" column="DESCRIBE_EXT" jdbcType="CLOB" javaType="string" />
+		<result property="noticeExt" column="NOTICE_EXT" jdbcType="CLOB" javaType="string" />
+	</resultMap>
+	
+    <select id="selectPaLtonGoodsInfo" parameterType="hashMap" resultMap="paLtonGoodsVOMap">
+        SELECT /* paltongoods.xml : palton.paltongoods.selectPaLtonGoodsInfo by PaLtonGoodsController-goodsInsert */
+        	   PG.PA_GROUP_CODE
+		     , PG.PA_CODE
+		     , PG.SCAT_NO
+		     , PG.SPD_NO
+		     , PG.LF_DCAT_NO AS LF_DCAT_NO
+		     , TG.GOODS_CODE AS EPD_NO
+		     , TG.GOODS_CODE
+		     , TG.GOODS_NAME AS SPD_NM
+		     , TG.ORDER_MIN_QTY
+		     , TG.ORDER_MAX_QTY
+		     , TG.ENTP_CODE
+		     , PG.BRD_NO
+		     , PG.MFCR_NM
+		     , NVL(PG.OPLC_CD,'ETC') as OPLC_CD
+		     , PG.PA_STATUS
+		     , T.TAX_YN
+		     , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS SL_STRT_DTTM
+		     , NVL(TO_CHAR(T.SALE_END_DATE, 'YYYYMMDDHH24MISS'), '99991231235959') AS SL_END_DTTM
+		     , CEIL(FUN_GET_ORDER_ABLE_QTY(PG.GOODS_CODE, '%', T.WH_CODE) * T1.CODE_GROUP) AS TRANS_ORDER_ABLE_QTY
+		     , T.ADULT_YN
+		     , T.COLLECT_YN
+		     , SC.SHIP_COST_RECEIPT
+		     , SC.JEJU_COST
+			 , SC.ISLAND_COST
+			 , TAI.ORDER_CREATE_YN
+		     , T.INSTALL_YN
+		     , T.RETURN_NO_YN
+		     , PI.IMAGE_URL
+		     , PI.TRANS_TARGET_YN AS IMAGE_CHANGE_YN
+		     , TI.IMAGE_G AS IMAGE_P
+		     , TI.IMAGE_AG AS IMAGE_AP
+		     , TI.IMAGE_BG AS IMAGE_BP
+		     , TI.IMAGE_CG AS IMAGE_CP
+		     , TI.IMAGE_DG AS IMAGE_DP	     
+		     , PG.PA_SALE_GB
+		     , (SELECT CODE_NAME
+		          FROM TCODE C1
+		         WHERE C1.CODE_LGROUP = 'O507'
+		           AND C1.CODE_MGROUP = PG.PA_CODE) AS TOP_IMAGE
+		     , (SELECT CODE_NAME
+		          FROM TCODE C1
+		         WHERE C1.CODE_LGROUP = 'O507'
+		           AND C1.CODE_MGROUP = DECODE(PG.PA_CODE, '81', '83', '84')) AS BOTTOM_IMAGE
+		     , NVL((SELECT REPLACE (DS.DESCRIBE_EXT, chr(10), '')
+		              FROM TDESCRIBE DS
+		             WHERE DS.DESCRIBE_CODE = '998'
+		               AND DS.GOODS_CODE = TG.GOODS_CODE)
+		          ,(SELECT DECODE(DS.WEB_FLAG, '1',  REPLACE(DS.DESCRIBE_EXT, chr(10), ''), DS.DESCRIBE_NOTE)
+		              FROM TDESCRIBE DS
+		             WHERE DS.DESCRIBE_CODE = '999'
+		               AND DS.GOODS_CODE = TG.GOODS_CODE)) AS DESCRIBE_EXT
+		     , (SELECT COUNT(1)
+                  FROM TDELYNOAREA TNA
+                 WHERE TNA.GOODS_CODE = TG.GOODS_CODE ) AS DELYNO_AREA_CNT
+		     , ES1.PA_ADDR_SEQ AS OWHP_NO
+		     , ES2.PA_ADDR_SEQ AS RTRP_NO
+		     , SC.GROUP_CODE
+		     , SC.SHIP_COST_CODE
+		     , AC.DV_CST_POL_NO
+		     , PP.SALE_PRICE
+		     , PP.DC_AMT
+		     , PP.LUMP_SUM_DC_AMT
+		     , PP.LUMP_SUM_OWN_DC_AMT
+		     , PP.LUMP_SUM_ENTP_DC_AMT
+		     , PP.APPLY_DATE
+		     , (SELECT TSB.DESCRIBE_NOTE
+			          FROM TDESCRIBE TSB
+			         WHERE TSB.GOODS_CODE = TG.GOODS_CODE
+			           AND TSB.DESCRIBE_CODE = '200') AS GOODS_COM
+			 , (SELECT /*+ INDEX_DESC (TNM IDX_TPANOTICEM_03)*/
+             			   TNM.NOTICE_EXT
+					  FROM TPANOTICEM TNM
+					     , TPANOTICETARGET TNT
+					     , TPANOTICEAPPLY TNA
+					 WHERE TNM.NOTICE_NO  = TNT.NOTICE_NO
+					   AND TNT.GOODS_CODE = TG.GOODS_CODE
+					   AND TNM.USE_CODE   = '00'
+					   AND INSTR(TNM.PA_GROUP_CODE, PG.PA_GROUP_CODE) > 0
+					   AND TNT.NOTICE_NO  = TNA.NOTICE_NO
+					   AND TNT.GOODS_CODE = TNA.GOODS_CODE
+					   AND TNA.PA_GROUP_CODE = PG.PA_GROUP_CODE
+					   AND ROWNUM = 1) AS NOTICE_EXT
+			 , DECODE(SC.SHIP_COST_RECEIPT, '2', (SELECT CODE_NAME
+                                              FROM TCODE C1
+                                             WHERE C1.CODE_LGROUP = 'O507'
+                                               AND C1.CODE_MGROUP = '99'), '') AS COLLECT_IMAGE
+             , CASE 
+	            WHEN EXISTS (
+	                SELECT 1
+	                  FROM TPALTONDLCRT DT
+	                 WHERE DT.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR} 
+	                   AND DT.USE_YN = 1
+	            ) THEN 'Y'
+	            ELSE 'N' END AS DLCRT_YN
+		  FROM TPAPRODUCT TG
+		     , TPALTONGOODS PG
+		     , TPAGOODSIMAGE PI
+		     , TGOODSIMAGE TI
+		     , TGOODS T
+             , TGOODSADDINFO TAI
+		     , TPAGOODSPRICE PP
+		     , TPACUSTSHIPCOST SC
+		     , TPALTONADDSHIPCOST AC
+		     , TPAENTPSLIP ES1
+		     , TPAENTPSLIP ES2
+		     , TCODE T1
+		 WHERE TG.GOODS_CODE 	= PG.GOODS_CODE
+		   AND PG.GOODS_CODE    = PI.GOODS_CODE
+		   AND PG.PA_GROUP_CODE = PI.PA_GROUP_CODE
+		   AND PG.GOODS_CODE    = T.GOODS_CODE
+		   AND PG.GOODS_CODE 	= PP.GOODS_CODE
+		   AND T.GOODS_CODE  	= TAI.GOODS_CODE
+		   AND T.GOODS_CODE		= TI.GOODS_CODE
+		   AND PG.PA_CODE 		= PP.PA_CODE
+		   AND PP.ROWID = (SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE)*/
+		                          GP.ROWID
+		                     FROM TPAGOODSPRICE GP
+		                    WHERE GP.GOODS_CODE = PG.GOODS_CODE
+		                      AND GP.APPLY_DATE &lt; SYSDATE
+		                      AND GP.PA_CODE = PG.PA_CODE
+		                      AND ROWNUM = 1)
+		   AND PG.PA_CODE 		 = SC.PA_CODE
+		   AND SC.ENTP_CODE = DECODE(T.DELY_TYPE,'10','100001',TG.ENTP_CODE)
+		   AND TG.SHIP_COST_CODE = SC.SHIP_COST_CODE
+		   AND SC.PA_CODE 		 = AC.PA_CODE
+		   AND CASE WHEN SC.JEJU_COST > SC.ORD_COST THEN SC.JEJU_COST - SC.ORD_COST ELSE 0 END  = AC.JEJU_COST
+		   AND CASE WHEN SC.ISLAND_COST > SC.ORD_COST THEN SC.ISLAND_COST - SC.ORD_COST ELSE 0 END  = AC.ISLAND_COST
+		   AND ES1.PA_CODE 		 = PG.PA_CODE
+		   AND ES1.ENTP_CODE 	 = DECODE(T.DELY_TYPE, '10', '100001', TG.ENTP_CODE)
+		   AND ES1.ENTP_MAN_SEQ  = DECODE(T.DELY_TYPE, '10', '003', TG.SHIP_MAN_SEQ)
+		   AND ES2.PA_CODE 		 = PG.PA_CODE
+		   AND ES2.ENTP_CODE 	 = DECODE(T.DELY_TYPE, '10', '100001', TG.ENTP_CODE)
+		   AND ES2.ENTP_MAN_SEQ  = DECODE(T.DELY_TYPE, '10', '002', TG.RETURN_MAN_SEQ)
+		   AND T1.CODE_LGROUP 	 = 'O505'
+		   AND T1.CODE_MGROUP 	 = PG.PA_CODE
+		   AND NVL(T.SALE_END_DATE, SYSDATE + 1) &gt; SYSDATE
+		<if test='goodsCode != null and goodsCode != ""'>
+		   AND TG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+		</if>
+		<if test='paCode != null and paCode != ""'>
+		   AND PG.PA_CODE = #{paCode, jdbcType=VARCHAR}
+		</if>
+		<if test='modCase == "MODIFY"'>
+		   AND ( PG.TRANS_TARGET_YN = '1' OR PP.TRANS_DATE IS NULL )
+		   AND PG.PA_SALE_GB = '20'
+		   AND PG.PA_STATUS = '30'
+		   AND PG.APPROVAL_STATUS  = '30'
+		</if>
+		
+		<if test='modCase == "INSERT"'>
+		   AND PG.PA_STATUS IN ('10','20')
+		   AND TG.SALE_GB = '00'
+		</if>
+		   AND SC.GROUP_CODE IS NOT NULL
+		   AND AC.DV_CST_POL_NO IS NOT NULL
+				
+    </select>
+    
+    <select id="selectPaLtonGoodsOfferList" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaGoodsOfferVO">
+        SELECT /* paltongoods.xml : palton.paltongoods.selectPaLtonGoodsOfferList by PaLtonGoodsController-goodsInsert */
+               PO.GOODS_CODE
+             , PO.PA_GROUP_CODE
+             , PO.PA_OFFER_TYPE
+             , PO.PA_OFFER_CODE 
+             , PO.PA_OFFER_EXT
+             , PC.REMARK AS REMARK1
+             , PO.REMARK2
+             , PC.PA_OFFER_TYPE_NAME
+             , PC.PA_OFFER_CODE_NAME
+          FROM TPAGOODSOFFER PO
+             , TPAOFFERCODE PC
+         WHERE PO.PA_GROUP_CODE = PC.PA_GROUP_CODE  
+           AND PO.PA_OFFER_TYPE = PC.PA_OFFER_TYPE 
+           AND PO.PA_OFFER_CODE = PC.PA_OFFER_CODE  
+           AND PO.GOODS_CODE    = #{goodsCode,   jdbcType=VARCHAR}
+           AND PO.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR}
+           AND PO.USE_YN = '1'
+    </select>
+    
+    <select id="selectPaLtonGoodsdtInfoList" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaLtonGoodsdtMappingVO">
+        SELECT /* paltongoods.xml : palton.paltongoods.selectPaLtonGoodsdtInfoList by PaLtonGoodsController-goodsInsert */ 
+               PD.GOODS_CODE 
+             , DM.PA_CODE
+             , DM.GOODSDT_CODE
+             , DM.GOODSDT_SEQ
+             , DM.GOODSDT_INFO 
+             , DECODE(DM.USE_YN,'0',0,DECODE(DT.SALE_GB, '00', NVL(CEIL(FUN_GET_ORDER_ABLE_QTY(PD.GOODS_CODE, PD.GOODSDT_CODE, GD.WH_CODE) * TC.CODE_GROUP), 0), 0)) AS TRANS_ORDER_ABLE_QTY
+             , DM.PA_OPTION_CODE
+             , DM.USE_YN
+          FROM TPAPRODUCTOPTION PD
+             , TPALTONGOODSDTMAPPING DM
+             , TGOODS GD
+             , TCODE TC
+             , TGOODSDT DT
+         WHERE PD.GOODS_CODE   = DM.GOODS_CODE
+           AND PD.GOODS_CODE   = GD.GOODS_CODE
+           AND PD.GOODS_CODE   = DT.GOODS_CODE 
+           AND PD.GOODSDT_CODE = DM.GOODSDT_CODE
+           AND PD.GOODSDT_CODE = DT.GOODSDT_CODE 
+           AND TC.CODE_LGROUP  = 'O505'
+           AND DM.PA_CODE     = TC.CODE_MGROUP 
+           AND DM.PA_CODE      = #{paCode,    jdbcType=VARCHAR}
+           AND GD.GOODS_CODE   = #{goodsCode, jdbcType=VARCHAR}
+           AND (DM.PA_OPTION_CODE IS NOT NULL OR DM.USE_YN = '1')
+         ORDER BY PD.GOODS_CODE
+                , PD.GOODSDT_CODE
+    </select>
+    
+    <update id="updatePaLtonGoods"  parameterType="com.cware.netshopping.domain.PaLtonGoodsVO">
+        UPDATE /* paltongoods.xml : palton.paltongoods.updatePaLtonGoods by PaLtonGoodsController */
+               TPALTONGOODS PG
+           SET PG.PA_STATUS = #{paStatus, jdbcType=VARCHAR}
+             <if test='approvalStatus != null and approvalStatus != ""'>
+             , PG.SPD_NO    = #{spdNo, 	  jdbcType=VARCHAR}
+             , PG.APPROVAL_STATUS = #{approvalStatus, jdbcType=VARCHAR}
+             </if>
+             <if test='transOrderAbleQty > 0'>
+				<choose>
+					<when test="transOrderAbleQty>99999999" >
+					, PG.TRANS_ORDER_ABLE_QTY = 99999999
+					</when>
+					<otherwise>
+					, PG.TRANS_ORDER_ABLE_QTY = #{transOrderAbleQty, jdbcType=NUMERIC}
+					</otherwise>
+				</choose>
+			 </if>
+			 , PG.RETURN_NOTE     = ''
+             , PG.PA_SALE_GB      = #{paSaleGb,   jdbcType=VARCHAR}
+             , PG.TRANS_TARGET_YN = '0'
+             , PG.TRANS_SALE_YN   = '0'
+             , PG.MODIFY_ID 	  = #{modifyId,   jdbcType=VARCHAR}
+             , PG.MODIFY_DATE 	  = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE PG.GOODS_CODE 	  = #{goodsCode,  jdbcType=VARCHAR}  
+           AND PG.PA_CODE 		  = #{paCode,     jdbcType=VARCHAR}  
+    </update>
+    
+    <update id="updatePaLtonGoodsdt"  parameterType="com.cware.netshopping.domain.PaLtonGoodsdtMappingVO">
+        UPDATE /* paltongoods.xml : palton.paltongoods.updatePaLtonGoodsdt by PaLtonGoodsController */
+               TPALTONGOODSDTMAPPING PD
+           SET PD.MODIFY_ID   = #{modifyId,   jdbcType=VARCHAR}
+             , PD.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+            <if test='paOptionCode != null and paOptionCode != ""'>
+             , PD.PA_OPTION_CODE = #{paOptionCode, jdbcType=VARCHAR}
+            </if>
+            <if test='transOrderAbleQty != null and transOrderAbleQty != ""'>
+             , PD.TRANS_ORDER_ABLE_QTY = #{transOrderAbleQty, jdbcType=NUMERIC}
+            </if>
+            <if test='transStockYn != null and transStockYn != ""'>
+             , PD.TRANS_STOCK_YN = #{transStockYn, jdbcType=VARCHAR}
+            </if>
+            <if test='transSaleYn != null and transSaleYn != ""'>
+             , PD.TRANS_SALE_YN = #{transSaleYn, jdbcType=VARCHAR}
+            </if>
+         WHERE PD.GOODS_CODE   = #{goodsCode,   jdbcType=VARCHAR}
+           AND PD.GOODSDT_CODE = #{goodsdtCode, jdbcType=VARCHAR}
+           AND PD.GOODSDT_SEQ  = #{goodsdtSeq,  jdbcType=VARCHAR}
+           AND PD.PA_CODE      = #{paCode, 		jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updatePaPromoTarget"  parameterType="com.cware.netshopping.domain.model.PaPromoTarget">
+        UPDATE /* paltongoods.xml : palton.paltongoods.updatePaLtonGoodsdt by PaLtonGoodsController */
+               TPAPROMOTARGET PPMT
+           SET PPMT.MODIFY_ID     = #{modifyId, 	jdbcType=VARCHAR}
+			   <choose>
+			   <when test='doCost != null and doCost == 0 '>
+			 , PPMT.EXCEPT_REASON =  '마진률 초과  , 연동 예외 시간 : ' || TO_CHAR(SYSDATE , 'YYYY/MM/DD HH24:MI:SS')
+			   </when>
+			   <otherwise>
+			 , PPMT.TRANS_DATE    = SYSDATE
+			 , PPMT.EXCEPT_REASON = NULL
+			   </otherwise>
+			   </choose>
+             , PPMT.MODIFY_DATE   = #{modifyDate, 	jdbcType=TIMESTAMP}
+         WHERE PPMT.PROMO_NO      = #{promoNo, 		jdbcType=VARCHAR}
+           AND PPMT.PA_CODE       = #{paCode, 		jdbcType=VARCHAR}
+           AND PPMT.GOODS_CODE    = #{goodsCode,  	jdbcType=VARCHAR}
+           AND PPMT.SEQ           = #{seq, 			jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updatePaLtonGoodsImage"  parameterType="com.cware.netshopping.domain.PaLtonGoodsVO">
+        UPDATE /* paltongoods.xml : palton.paltongoods.updatePaLtonGoodsImage by PaLtonGoodsController */
+               TPAGOODSIMAGE PI
+           SET PI.TRANS_TARGET_YN = '0'
+             , PI.MODIFY_ID       = #{modifyId,    jdbcType=VARCHAR}
+             , PI.MODIFY_DATE     = #{modifyDate,  jdbcType=TIMESTAMP}
+         WHERE PI.GOODS_CODE      = #{goodsCode,   jdbcType=VARCHAR}  
+           AND PI.PA_GROUP_CODE   = #{paGroupCode, jdbcType=VARCHAR}  
+    </update>
+    
+    <update id="updatePaLtonGoodsPrice"  parameterType="com.cware.netshopping.domain.PaLtonGoodsVO">
+        UPDATE /* paltongoods.xml : palton.paltongoods.updatePaLtonGoodsPrice by PaLtonGoodsController */
+               TPAGOODSPRICE PP
+           SET PP.TRANS_ID    = #{modifyId,   jdbcType=VARCHAR}
+             , PP.TRANS_DATE  = SYSDATE
+             , PP.MODIFY_ID   = #{modifyId,   jdbcType=VARCHAR}
+             , PP.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE PP.GOODS_CODE  = #{goodsCode,  jdbcType=VARCHAR}  
+           AND PP.PA_CODE 	  = #{paCode,     jdbcType=VARCHAR}
+           AND PP.APPLY_DATE  = #{applyDate,  jdbcType=TIMESTAMP}
+           AND PP.TRANS_DATE IS NULL
+    </update>
+    
+    <update id="updatePaLtonGoodsTarget" parameterType="com.cware.netshopping.domain.PaLtonGoodsVO">
+        UPDATE TPAGOODSTARGET PGT /* paltongoods.xml : palton.paltongoods.updatePaLtonGoodsTarget by PaLtonGoodsController */
+           SET PGT.PA_GOODS_CODE = #{spdNo, 	 jdbcType=VARCHAR}
+             , PGT.PA_SALE_GB 	 = #{paSaleGb,   jdbcType=VARCHAR}
+             , PGT.MODIFY_ID 	 = #{modifyId,   jdbcType=VARCHAR}
+             , PGT.MODIFY_DATE   = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE PGT.PA_CODE 		 = #{paCode, 	 jdbcType=VARCHAR}
+           AND PGT.GOODS_CODE 	 = #{goodsCode,  jdbcType=VARCHAR}
+           AND PGT.PA_GOODS_CODE IS NULL
+    </update>
+    
+    <update id="updatePaLtonCustShipCost"  parameterType="com.cware.netshopping.domain.PaLtonGoodsVO">
+        UPDATE /* paltongoods.xml : palton.paltongoods.updatePaLtonCustShipCost by PaLtonGoodsController */
+               TPACUSTSHIPCOST PS
+           SET PS.TRANS_TARGET_YN = '0'
+             , PS.MODIFY_ID   	  = #{modifyId, 	jdbcType=VARCHAR}
+             , PS.MODIFY_DATE 	  = #{modifyDate, 	jdbcType=TIMESTAMP}
+         WHERE PS.ENTP_CODE 	  = #{entpCode, 	jdbcType=VARCHAR}  
+           AND PS.PA_CODE 	      = #{paCode, 		jdbcType=VARCHAR}
+           AND PS.SHIP_COST_CODE  = #{shipCostCode, jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updatePaLtonGoodsOffer"  parameterType="com.cware.netshopping.domain.PaLtonGoodsVO">
+        UPDATE /* paltongoods.xml : palton.paltongoods.updatePaLtonGoodsOffer by PaLtonGoodsController */
+               TPAGOODSOFFER PO
+           SET PO.TRANS_TARGET_YN = '0'
+             , PO.MODIFY_ID 	  = #{modifyId,    jdbcType=VARCHAR}
+             , PO.MODIFY_DATE 	  = #{modifyDate,  jdbcType=TIMESTAMP}
+         WHERE PO.GOODS_CODE 	  = #{goodsCode,   jdbcType=VARCHAR}  
+           AND PO.PA_GROUP_CODE   = #{paGroupCode, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectPaApprovalStatusList" parameterType="hashMap" resultType="hashMap">
+   		SELECT /* paltongoods.xml : palton.paltongoods.selectPaApprovalStatusList by PaLtonGoodsController */
+			   TG.PA_CODE
+			 , TG.GOODS_CODE 
+			 , TG.SPD_NO
+		  FROM TPALTONGOODS TG
+		 WHERE TG.PA_SALE_GB  = '20'
+		   AND TG.PA_STATUS   = '30'
+		   AND TG.APPROVAL_STATUS = '10'
+		<if test='goodsCode != null and goodsCode != ""'>
+			AND TG.GOODS_CODE    = #{goodsCode, jdbcType=VARCHAR}
+		</if>
+		<if test='paCode != null and paCode != ""'>
+			AND TG.PA_CODE       = #{paCode, jdbcType=VARCHAR}
+		</if>
+    </select>
+    
+    <select id="selectEmptyPaOptionCodeList" parameterType="hashMap" resultType="hashMap">
+   		SELECT /* paltongoods.xml : palton.paltongoods.selectEmptyPaOptionCodeList by PaLtonGoodsController */
+			   DISTINCT TG.PA_CODE
+			 , TG.GOODS_CODE 
+			 , TG.SPD_NO
+		  FROM TPALTONGOODS TG
+			 , TPALTONGOODSDTMAPPING DM
+		 WHERE TG.PA_CODE = DM.PA_CODE
+		   AND TG.GOODS_CODE = DM.GOODS_CODE
+		   AND TG.PA_SALE_GB  = '20'
+		   AND TG.PA_STATUS   = '30'
+		   AND DM.PA_OPTION_CODE IS NULL
+		   AND DM.ROWID = (SELECT /*+ INDEX_DESC (DM2 PK_TPALTONGOODSDTMAPPING)*/
+								  DM2.ROWID
+							 FROM TPALTONGOODSDTMAPPING DM2
+							WHERE DM.PA_CODE = DM2.PA_CODE
+							  AND DM.GOODS_CODE = DM2.GOODS_CODE
+							  AND DM.GOODSDT_CODE = DM2.GOODSDT_CODE
+							  AND rownum = 1 )
+		<if test='goodsCode != null and goodsCode != ""'>
+			AND DM.GOODS_CODE    = #{goodsCode, jdbcType=VARCHAR}
+		</if>
+		<if test='paCode != null and paCode != ""'>
+			AND DM.PA_CODE       = #{paCode, jdbcType=VARCHAR}
+		</if>
+    </select>
+    
+    <select id="selectPaLtonSellStateList" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaLtonGoodsVO">
+   		SELECT /* paltongoods.xml : palton.paltongoods.selectPaLtonSellStateList by PaLtonGoodsController */
+			   TG.PA_CODE
+			 , TG.GOODS_CODE 
+			 , TG.SPD_NO
+			 , TG.PA_SALE_GB
+		  FROM TPALTONGOODS TG
+		 WHERE TG.TRANS_SALE_YN = '1'
+		   AND TG.SPD_NO IS NOT NULL
+		   AND TG.PA_STATUS IN ('30','90')
+		   <if test='goodsCode != null and goodsCode != ""'>
+           AND TG.GOODS_CODE    = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           <if test='paCode != null and paCode != ""'>
+           AND TG.PA_CODE       = #{paCode, jdbcType=VARCHAR}
+           </if>
+    </select>
+    
+    <update id="updatePaLtonGoodsSellState"  parameterType="com.cware.netshopping.domain.PaLtonGoodsVO">
+        UPDATE /* paltongoods.xml : palton.goods.updatePaLtonGoodsSellState by PaLtonGoodsController */
+               TPALTONGOODS PG
+           SET PG.MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+             , PG.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+             , PG.TRANS_SALE_YN = #{transSaleYn, jdbcType=VARCHAR}
+         WHERE PG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}  
+           AND PG.PA_CODE = #{paCode, jdbcType=VARCHAR}  
+    </update>
+    
+ 	<select id="selectPaLtonGoodsdtMappingStockList" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaLtonGoodsdtMappingVO">
+        SELECT /* paltonpgoods.xml : palton.paltongoods.selectPaLtonGoodsdtMappingStockList by PaLtonGoodsController-goodsStockModify */
+               DM.GOODS_CODE
+             , DM.GOODSDT_CODE
+             , DM.PA_CODE
+             , DM.PA_OPTION_CODE
+             , DM.GOODSDT_SEQ
+             , DM.TRANS_ORDER_ABLE_QTY
+             , PG.SPD_NO
+          FROM TPALTONGOODS PG
+             , TPALTONGOODSDTMAPPING DM
+             , TPAPRODUCT P
+         WHERE PG.PA_CODE        = DM.PA_CODE
+           AND PG.GOODS_CODE     = DM.GOODS_CODE
+           AND PG.PA_SALE_GB     = '20'
+           AND PG.PA_STATUS      = '30'
+           AND DM.TRANS_STOCK_YN = '1'  
+           AND DM.ROWID = (SELECT /*+ INDEX_DESC (DM2 PK_TPALTONGOODSDTMAPPING)*/
+								  DM2.ROWID
+							 FROM TPALTONGOODSDTMAPPING DM2
+							WHERE DM.PA_CODE = DM2.PA_CODE
+							  AND DM.GOODS_CODE = DM2.GOODS_CODE
+							  AND DM.GOODSDT_CODE = DM2.GOODSDT_CODE
+							  AND rownum = 1 )
+           <if test='goodsCode != null and goodsCode != ""'>
+           AND PG.GOODS_CODE    = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           <if test='paCode != null and paCode != ""'>
+           AND PG.PA_CODE       = #{paCode, jdbcType=VARCHAR}
+           </if>
+           AND P.GOODS_CODE = PG.GOODS_CODE
+           AND P.SALE_GB = '00'
+    ORDER BY DM.GOODS_CODE, DM.GOODSDT_CODE
+    </select>
+
+ 	<select id="selectPaLtonGoodsdtMappingStock" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaLtonGoodsdtMappingVO">
+        SELECT /* paltonpgoods.xml : palton.paltongoods.selectPaLtonGoodsdtMappingStock by PaLtonGoodsController-goodsStockModify */
+               DISTINCT DM.GOODS_CODE
+             , DM.PA_CODE
+             , PG.SPD_NO
+          FROM TPALTONGOODS PG
+             , TPALTONGOODSDTMAPPING DM
+         WHERE PG.PA_CODE = DM.PA_CODE
+           AND PG.GOODS_CODE = DM.GOODS_CODE
+           AND PG.PA_SALE_GB    = '20'
+           AND PG.PA_STATUS     = '30'
+           AND DM.TRANS_STOCK_YN = '1'
+           AND DM.ROWID = (SELECT /*+ INDEX_DESC (DM2 PK_TPALTONGOODSDTMAPPING)*/
+								  DM2.ROWID
+							 FROM TPALTONGOODSDTMAPPING DM2
+							WHERE DM.PA_CODE = DM2.PA_CODE
+							  AND DM.GOODS_CODE = DM2.GOODS_CODE
+							  AND DM.GOODSDT_CODE = DM2.GOODSDT_CODE
+							  AND rownum = 1 )
+           <if test='goodsCode != null and goodsCode != ""'>
+           AND PG.GOODS_CODE    = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           <if test='paCode != null and paCode != ""'>
+           AND PG.PA_CODE       = #{paCode, jdbcType=VARCHAR}
+           </if>
+           <if test='goodsCode == null or goodsCode == ""'>
+          AND EXISTS ( SELECT 'X'
+                      FROM TPAPRODUCT P
+                     WHERE P.GOODS_CODE = PG.GOODS_CODE
+                       AND P.SALE_GB = '00')
+          </if>
+    </select>
+    
+    <update id="updatePaLtonApprovalStatus"  parameterType="com.cware.netshopping.domain.PaLtonGoodsVO">
+        UPDATE /* paltongoods.xml : palton.goods.updatePaLtonApprovalStatus by PaLtonGoodsController */
+               TPALTONGOODS PG
+           SET PG.MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+             , PG.MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+             , PG.APPROVAL_STATUS = #{approvalStatus, jdbcType=VARCHAR}
+         WHERE PG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}  
+           AND PG.PA_CODE = #{paCode, jdbcType=VARCHAR}  
+    </update>
+    
+    <select id="selectPaLtonDtSellState" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaLtonGoodsdtMappingVO">
+        SELECT /* paltonpgoods.xml : palton.paltongoods.selectPaLtonDtSellState by PaLtonGoodsController */
+               DISTINCT DM.GOODS_CODE
+             , DM.PA_CODE
+             , PG.SPD_NO
+          FROM TPALTONGOODS PG
+             , TPALTONGOODSDTMAPPING DM
+         WHERE PG.PA_CODE = DM.PA_CODE
+           AND PG.GOODS_CODE = DM.GOODS_CODE
+           AND PG.PA_SALE_GB    = '20'
+           AND PG.PA_STATUS     = '30'
+           AND DM.TRANS_SALE_YN = '1'
+           AND DM.ROWID = (SELECT /*+ INDEX_DESC (DM2 PK_TPALTONGOODSDTMAPPING)*/
+								  DM2.ROWID
+							 FROM TPALTONGOODSDTMAPPING DM2
+							WHERE DM.PA_CODE = DM2.PA_CODE
+							  AND DM.GOODS_CODE = DM2.GOODS_CODE
+							  AND DM.GOODSDT_CODE = DM2.GOODSDT_CODE
+							  AND rownum = 1 )
+           <if test='goodsCode != null and goodsCode != ""'>
+           AND PG.GOODS_CODE    = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           <if test='paCode != null and paCode != ""'>
+           AND PG.PA_CODE       = #{paCode, jdbcType=VARCHAR}
+           </if>
+           <if test='goodsCode == null or goodsCode == ""'>
+          AND EXISTS ( SELECT 'X'
+                      FROM TPAPRODUCT P
+                     WHERE P.GOODS_CODE = PG.GOODS_CODE
+                       AND P.SALE_GB = '00')
+          </if>
+    </select>
+    
+    <select id="selectPaLtonDtSellStateList" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaLtonGoodsdtMappingVO">
+        SELECT /* paltonpgoods.xml : palton.paltongoods.selectPaLtonDtSellStateList by PaLtonGoodsController */
+               DM.GOODS_CODE
+             , DM.GOODSDT_CODE
+             , DM.PA_CODE
+             , DM.PA_OPTION_CODE
+             , DM.GOODSDT_SEQ
+             , PG.SPD_NO
+          FROM TPALTONGOODS PG
+             , TPALTONGOODSDTMAPPING DM
+             , TPAPRODUCT P
+         WHERE PG.PA_CODE        = DM.PA_CODE
+           AND PG.GOODS_CODE     = DM.GOODS_CODE
+           AND PG.PA_SALE_GB     = '20'
+           AND PG.PA_STATUS      = '30'
+           AND DM.TRANS_SALE_YN = '1'  
+           AND DM.ROWID = (SELECT /*+ INDEX_DESC (DM2 PK_TPALTONGOODSDTMAPPING)*/
+								  DM2.ROWID
+							 FROM TPALTONGOODSDTMAPPING DM2
+							WHERE DM.PA_CODE = DM2.PA_CODE
+							  AND DM.GOODS_CODE = DM2.GOODS_CODE
+							  AND DM.GOODSDT_CODE = DM2.GOODSDT_CODE
+							  AND rownum = 1 )
+           <if test='goodsCode != null and goodsCode != ""'>
+           AND PG.GOODS_CODE    = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           <if test='paCode != null and paCode != ""'>
+           AND PG.PA_CODE       = #{paCode, jdbcType=VARCHAR}
+           </if>
+           AND P.GOODS_CODE = PG.GOODS_CODE
+           AND P.SALE_GB = '00'
+    ORDER BY DM.GOODS_CODE, DM.GOODSDT_CODE
+    </select>
+    
+    
+    
+    
+    
+    
+    <insert id="insertNewPaPromoTarget"  parameterType="com.cware.netshopping.domain.model.PaPromoTarget">
+		INSERT INTO /* paltonpgoods.xml: palton.paltongoods.insertPaPromoTarget by PaLtonGoodsController */
+			   TPAPROMOTARGET PPMT
+                             (PPMT.PROMO_NO
+                            , PPMT.PA_CODE
+                            , PPMT.GOODS_CODE
+                            , PPMT.SEQ
+                            , PPMT.DO_TYPE
+                            , PPMT.COUPON_YN
+                            , PPMT.IMMEDIATELY_YN
+                            , PPMT.PROMO_BDATE
+                            , PPMT.PROMO_EDATE
+                            , PPMT.AMT_RATE_FLAG
+                            , PPMT.DO_RATE
+                            , PPMT.DO_AMT
+                            , PPMT.STANDARD_APP_AMT
+                            , PPMT.LIMIT_AMT
+                            , PPMT.USE_CODE
+                            , PPMT.OWN_COST
+                            , PPMT.ENTP_COST
+                            , PPMT.INSERT_ID
+                            , PPMT.MODIFY_ID
+                            , PPMT.PROC_GB
+                            , PPMT.PA_GROUP_CODE
+                            , PPMT.TRANS_DATE
+                            , PPMT.INSERT_DATE
+                            , PPMT.MODIFY_DATE
+                            , PPMT.DO_COST
+                            , PPMT.DO_OWN_COST
+                            , PPMT.DO_ENTP_COST
+                            , PPMT.EXCEPT_REASON
+                            )
+                         SELECT PM.PROMO_NO
+                              , PM.PA_CODE
+                              , PM.GOODS_CODE
+                              , LPAD((SELECT MAX(PM1.SEQ) + 1 
+                              	   FROM TPAPROMOTARGET PM1 
+                              	  WHERE PM1.GOODS_CODE 	= #{goodsCode	, jdbcType=VARCHAR}
+                              	  	AND PM1.PA_CODE 	= #{paCode		, jdbcType=VARCHAR}
+                              	  	AND PM1.PROMO_NO 	= #{promoNo		, jdbcType=VARCHAR}
+                              	  	), 4 ,'0')   
+                              , PM.DO_TYPE
+                              , PM.COUPON_YN
+                              , PM.IMMEDIATELY_YN
+                              , PM.PROMO_BDATE
+                              , PM.PROMO_EDATE
+                              , PM.AMT_RATE_FLAG
+                              , PM.DO_RATE
+                              , DECODE(#{doCost, jdbcType=NUMERIC}, 0 , 0 , PM.DO_AMT)
+                              , PM.STANDARD_APP_AMT
+                              , PM.LIMIT_AMT
+                              , PM.USE_CODE
+                              , DECODE(#{doCost, jdbcType=NUMERIC}, 0 , 0 , PM.OWN_COST)
+                              , DECODE(#{doCost, jdbcType=NUMERIC}, 0 , 0 , PM.ENTP_COST)
+                              , PM.INSERT_ID
+                              , 'BATCH'
+                              , DECODE(PM.PROC_GB, 'I', 'U', PM.PROC_GB)
+                              , PM.PA_GROUP_CODE 
+                              , SYSDATE
+                              , SYSDATE
+                              , SYSDATE
+                              , DECODE(#{doCost, jdbcType=NUMERIC}, 0 , 0 , PM.DO_COST)
+                              , DECODE(#{doCost, jdbcType=NUMERIC}, 0 , 0 , PM.DO_OWN_COST)
+                              , DECODE(#{doCost, jdbcType=NUMERIC}, 0 , 0 , PM.DO_ENTP_COST)
+                              , DECODE(#{doCost, jdbcType=NUMERIC}, 0 , '마진률 초과  , 연동 예외 시간 : ' || TO_CHAR(SYSDATE , 'YYYY/MM/DD HH24:MI:SS') , '')                                  
+                           FROM TPAPROMOTARGET PM
+                          WHERE PM.GOODS_CODE 	= #{goodsCode	, jdbcType=VARCHAR}
+						    AND PM.PA_CODE 		= #{paCode		, jdbcType=VARCHAR}
+							AND PM.PROMO_NO 	= #{promoNo		, jdbcType=VARCHAR}
+					        AND PM.SEQ 			= #{seq			, jdbcType=VARCHAR}
+    </insert>  
+      
+    <select id="selectPaPromoTarget" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaPromoTarget">
+	   SELECT /* paltonpgoods.xml: palton.paltongoods.selectPaPromoTarget by PaLtonGoodsController */
+	           PROC_GB 
+		     , PROMO_NO
+		     , PA_CODE
+		     , GOODS_CODE
+		     , SEQ
+		     , TRANS_DATE
+		     , DO_COST
+		     , OWN_COST
+		     , ENTP_COST
+		     , INSERT_DATE
+		     , ALCOUT_PROMO_YN
+		     , PA_GROUP_CODE
+         FROM (
+		       SELECT PPMT.PROC_GB
+		            , PPMT.PROMO_NO
+		            , PPMT.PA_CODE
+		            , PPMT.GOODS_CODE
+		            , PPMT.SEQ
+		            , PPMT.TRANS_DATE
+		            , PPMT.DO_AMT AS DO_COST
+		            , PPMT.OWN_COST
+		            , PPMT.ENTP_COST
+		            , PPMT.INSERT_DATE
+		            , PM.ALCOUT_PROMO_YN
+		            , PPMT.PA_GROUP_CODE
+		         FROM TPAPROMOTARGET PPMT
+		            , TPROMOM PM
+		            , TPPROMOTARGET	 PT
+		        WHERE PPMT.USE_CODE = '00'
+		          AND PT.PROMO_NO 	= PM.PROMO_NO
+		          AND PT.GOODS_CODE = PPMT.GOODS_CODE 
+		          AND PT.GIFT_AMT	= DECODE(PPMT.AMT_RATE_FLAG ,1, PPMT.DO_AMT , PPMT.DO_RATE) 
+		          AND SYSDATE BETWEEN PPMT.PROMO_BDATE AND PPMT.PROMO_EDATE
+		          AND SYSDATE BETWEEN PM.PROMO_BDATE   AND PM.PROMO_EDATE
+		          AND PPMT.GOODS_CODE 				= #{goodsCode		, jdbcType=VARCHAR}
+		          AND PPMT.PA_CODE 					= #{paCode			, jdbcType=VARCHAR}
+		          AND PPMT.PROMO_NO 				= PM.PROMO_NO
+		          AND PM.COUPON_YN 					= '1'
+		          AND PM.IMMEDIATELY_YN 			= '1'
+		          AND NVL(PM.ALCOUT_PROMO_YN, '0') 	= #{alcoutPromoYn	, jdbcType=VARCHAR}
+		          <if test='promoNo != null and promoNo != ""'>
+		          AND PPMT.PROMO_NO					= #{promoNo			, jdbcType=VARCHAR}
+		          </if>
+		          AND PROC_GB 					   != 'D'         
+				  AND PPMT.ROWID    				= (SELECT /*+INDEX_DESC (PTT IDX_TPAPROMOTARGET_02)*/
+						          					   		  ROWID 
+						          					     FROM TPAPROMOTARGET PTT
+						          					    WHERE PTT.PROMO_NO    = PPMT.PROMO_NO
+						          					      AND PTT.PA_CODE  	  = PPMT.PA_CODE
+						          					      AND PTT.GOODS_CODE  = PPMT.GOODS_CODE
+						          					      AND PTT.PROC_GB    != 'D'
+						          					      AND PTT.USE_CODE    = '00'
+						          					      AND PTT.DO_AMT  	  > 0
+						          					      AND ROWNUM = 1 )
+		          AND NOT EXISTS (
+					        	   SELECT 'X'
+					        		 FROM TPAPROMOTARGET PPMT3
+					        	    WHERE PPMT3.PROMO_NO  		= PPMT.PROMO_NO
+					        		  AND PPMT3.PA_CODE	 	 	= PPMT.PA_CODE
+						              AND PPMT3.GOODS_CODE  	= PPMT.GOODS_CODE
+					        	  	  AND PPMT3.INSERT_DATE 	> PPMT.INSERT_DATE
+					        		  AND PPMT3.PROC_GB 	  	= 'D')
+		          AND NOT EXISTS ( SELECT 'X'
+		                             FROM TPAPROMOEXCEPTENTP PEE
+		                            INNER JOIN TGOODS GD ON GD.ENTP_CODE = PEE.ENTP_CODE AND GD.GOODS_CODE = PPMT.GOODS_CODE
+		                            LEFT OUTER JOIN TPAPROMOEXCEPTBRAND PEB ON PEE.ENTP_CODE = PEB.ENTP_CODE AND PEB.USE_YN = '1' AND PEB.BRAND_CODE = GD.BRAND_CODE
+		                           WHERE (INSTR(PEE.PA_GROUP_CODE, '08') > 0  OR PEE.PA_GROUP_CODE_ALL_YN = 1)
+		                             AND PEE.USE_YN = '1'
+		                             AND ((PEE.ALL_BRAND_YN = '1' AND SYSDATE BETWEEN PEE.PA_EXCEPT_BDATE AND PEE.PA_EXCEPT_EDATE) 
+		                             		OR (PEE.ALL_BRAND_YN = '0' AND SYSDATE BETWEEN PEB.PA_EXCEPT_BDATE AND PEB.PA_EXCEPT_EDATE)) )
+		          AND NOT EXISTS ( SELECT 'X' 
+		                     		 FROM TPAPROMOTARGETEXCEPT TPE
+		                          		, TPAGOODSPRICE PGP
+		                      		WHERE TPE.TARGET_CODE = PPMT.GOODS_CODE    
+		                        	  AND TPE.USE_YN = '1'
+		                       		  AND (INSTR(TPE.PA_GROUP_CODE, '08' ) > 0  OR TPE.PA_GROUP_CODE_ALL_YN = 1)
+		                     		  AND SYSDATE BETWEEN TPE.PA_EXCEPT_BDATE AND TPE.PA_EXCEPT_EDATE 
+		                     		  AND TPE.TARGET_GB = '00' 
+		                     		  AND PGP.ROWID  = ( SELECT /*+ INDEX_DESC (GP PK_TPAGOODSPRICE)*/ 
+		                                               			GP.ROWID
+		                                				   FROM TPAGOODSPRICE GP
+							                              WHERE GP.GOODS_CODE = PPMT.GOODS_CODE
+							                                AND GP.APPLY_DATE &lt; SYSDATE
+							                                AND GP.PA_CODE    = PPMT.PA_CODE
+							                                AND ROWNUM = 1)            
+		                       		  AND (PGP.SALE_PRICE - PGP.DC_AMT - PGP.LUMP_SUM_DC_AMT - PPMT.DO_AMT) >= TPE.PA_EXCEPT_MARGIN )
+   	            ORDER BY PPMT.DO_AMT DESC )
+	    WHERE ROWNUM = 1
+    </select>
+    
+    <select id="selectPaPromoDeleteTarget" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaPromoTarget">
+        SELECT /* paltonpgoods.xml: palton.paltongoods.selectPaPromoDeleteTarget by PaLtonGoodsController */
+               /*+INDEX_DESC (PPMT IDX_TPAPROMOTARGET_02)*/
+               PPMT.PROC_GB
+             , PPMT.PROMO_NO
+             , PPMT.PA_CODE
+             , PPMT.GOODS_CODE
+             , PPMT.SEQ
+             , PPMT.TRANS_DATE
+             , PPMT.DO_AMT AS DO_COST
+             , PPMT.OWN_COST
+             , PPMT.ENTP_COST
+             , PPMT.INSERT_DATE
+          FROM TPAPROMOTARGET PPMT
+             , TPROMOM PM
+         WHERE  PPMT.PROC_GB 				= 'D' 
+           AND PPMT.TRANS_DATE 				IS NULL
+           AND PPMT.PROMO_NO 				= PM.PROMO_NO
+           AND PM.COUPON_YN 				= '1'
+           AND PM.IMMEDIATELY_YN 			= '1'
+           AND NVL(PM.ALCOUT_PROMO_YN, '0') = #{alcoutPromoYn	, jdbcType=VARCHAR}
+           AND PPMT.GOODS_CODE 				= #{goodsCode		, jdbcType=VARCHAR}
+           AND PPMT.PA_CODE 				= #{paCode			, jdbcType=VARCHAR}
+           AND EXISTS 	  ( SELECT /*+INDEX_DESC (PPMT3 IDX_TPAPROMOTARGET_04)*/
+          						   'X'
+					          FROM TPAPROMOTARGET PPMT3
+					         WHERE PPMT3.PROMO_NO  		= PPMT.PROMO_NO
+					           AND PPMT3.PA_CODE	 	= PPMT.PA_CODE
+						       AND PPMT3.GOODS_CODE     = PPMT.GOODS_CODE
+					           AND PPMT3.INSERT_DATE &lt; PPMT.INSERT_DATE
+					           AND PPMT3.TRANS_DATE    IS NOT NULL
+					           AND PPMT3.PROC_GB 	   != 'D'
+					           AND PPMT3.DO_AMT  	    > 0
+					           AND ROWNUM 				= 1)
+           AND ROWNUM = 1
+    </select>
+         
+    <update id="updateTPapromoTarget4ExceptMemo"  parameterType="com.cware.netshopping.domain.model.PaPromoTarget">
+		UPDATE /* paltonpgoods.xml: palton.paltongoods.updateTPapromoTarget4ExceptMemo by PaLtonGoodsController */
+			   TPAPROMOTARGET T
+		   SET T.EXCEPT_REASON = #{exceptReason	, jdbcType=VARCHAR}
+		 WHERE T.PROMO_NO      = #{promoNo		, jdbcType=VARCHAR} 
+		   AND T.PA_CODE       = #{paCode		, jdbcType=VARCHAR} 
+		   AND T.SEQ		   = #{seq			, jdbcType=VARCHAR} 
+		   AND T.GOODS_CODE	   = #{goodsCode	, jdbcType=VARCHAR} 
+		   AND T.TRANS_DATE IS NULL
+    </update>
+   
+   
+    <insert id="insertNewPaPromoTargetAmt0"  parameterType="com.cware.netshopping.domain.model.PaPromoTarget">
+		INSERT INTO /* paltonpgoods.xml: palton.paltongoods.insertNewPaPromoTargetAmt0 by PaLtonGoodsController */
+			   TPAPROMOTARGET PPMT
+                             (PPMT.PROMO_NO
+                            , PPMT.PA_CODE
+                            , PPMT.GOODS_CODE
+                            , PPMT.SEQ
+                            , PPMT.DO_TYPE
+                            , PPMT.COUPON_YN
+                            , PPMT.IMMEDIATELY_YN
+                            , PPMT.PROMO_BDATE
+                            , PPMT.PROMO_EDATE
+                            , PPMT.AMT_RATE_FLAG
+                            , PPMT.DO_RATE
+                            , PPMT.DO_AMT
+                            , PPMT.STANDARD_APP_AMT
+                            , PPMT.LIMIT_AMT
+                            , PPMT.USE_CODE
+                            , PPMT.OWN_COST
+                            , PPMT.ENTP_COST
+                            , PPMT.INSERT_ID
+                            , PPMT.MODIFY_ID
+                            , PPMT.PROC_GB
+                            , PPMT.PA_GROUP_CODE
+                            , PPMT.TRANS_DATE
+                            , PPMT.INSERT_DATE
+                            , PPMT.MODIFY_DATE
+                            , PPMT.DO_COST
+                            , PPMT.DO_OWN_COST
+                            , PPMT.DO_ENTP_COST
+                            )
+                         SELECT PM.PROMO_NO
+                              , PM.PA_CODE
+                              , PM.GOODS_CODE
+                              , LPAD((SELECT MAX(PM1.SEQ) + 1 
+                              	   FROM TPAPROMOTARGET PM1 
+                              	  WHERE PM1.GOODS_CODE 	= #{goodsCode	, jdbcType=VARCHAR}
+                              	  	AND PM1.PA_CODE 	= #{paCode		, jdbcType=VARCHAR}
+                              	  	AND PM1.PROMO_NO 	= #{promoNo		, jdbcType=VARCHAR}
+                              	  	), 4 ,'0')   
+                              , PM.DO_TYPE
+                              , PM.COUPON_YN
+                              , PM.IMMEDIATELY_YN
+                              , PM.PROMO_BDATE
+                              , PM.PROMO_EDATE
+                              , PM.AMT_RATE_FLAG
+                              , 0
+                              , 0
+                              , 0
+                              , 0
+                              , PM.USE_CODE
+                              , 0
+                              , 0
+                              , PM.INSERT_ID
+                              , 'BATCH'
+                              , 'D'
+                              , PM.PA_GROUP_CODE 
+                              , SYSDATE
+                              , SYSDATE
+                              , SYSDATE
+                              , 0
+                              , 0
+                              , 0                                
+                           FROM TPAPROMOTARGET PM
+                          WHERE PM.GOODS_CODE 	= #{goodsCode	, jdbcType=VARCHAR}
+						    AND PM.PA_CODE 		= #{paCode		, jdbcType=VARCHAR}
+							AND PM.PROMO_NO 	= #{promoNo		, jdbcType=VARCHAR}
+					        AND PM.SEQ 			= #{seq			, jdbcType=VARCHAR}
+     </insert>
+    
+     <select id="selectPaLtonGoodsModifyCheck" resultType="int" parameterType="com.cware.netshopping.domain.PaLtonGoodsVO">
+        SELECT /* paltongoods.xml : palton.paltongoods.selectPaLtonGoodsModifyCheck by PaLtonGoodsController */ 
+               COUNT(1)
+          FROM TPALTONGOODS T
+         WHERE T.GOODS_CODE = #{goodsCode		, jdbcType=VARCHAR}
+           AND T.MODIFY_DATE > #{lastModifyDate, jdbcType=TIMESTAMP}
+           AND T.PA_CODE = #{paCode, jdbcType=VARCHAR}
+     </select>   
+     <!-- 
+     <select id="selectPaLtonGoodsTrans" parameterType="String" resultType="hashMap">
+        SELECT  /* paltongoods.xml : palton.paltongoods.selectPaLtonGoodsTrans by PaLtonGoodsController */ 
+               TG.GOODS_CODE
+             , PG.PA_CODE
+          FROM TPALTONGOODS  PG
+             , TPAGOODS      TG
+             , TGOODS        GD
+             , TCODE         TC
+             , TGOODSPRICE   GP
+             , TPAGOODSPRICE PP
+         WHERE TG.GOODS_CODE  = PG.GOODS_CODE
+           AND TG.GOODS_CODE  = GD.GOODS_CODE
+           AND TC.CODE_LGROUP = 'O505'
+           AND TC.CODE_MGROUP = PG.PA_CODE
+           AND GP.GOODS_CODE  = PG.GOODS_CODE
+           AND GP.ROWID = (SELECT /*+ INDEX_DESC (Z PK_TGOODSPRICE)*/
+                            	  Z.ROWID
+                             FROM TGOODSPRICE Z
+                            WHERE Z.GOODS_CODE     = GP.GOODS_CODE
+                              AND Z.APPLY_DATE &lt;= SYSDATE
+                              AND ROWNUM 		   = 1)
+           AND PP.GOODS_CODE = PG.GOODS_CODE
+           AND PP.PA_CODE 	 = PG.PA_CODE
+           AND PP.APPLY_DATE = GP.APPLY_DATE
+           AND GD.SIGN_GB 	 = '80'
+           AND GD.GIFT_YN 	 = '0'
+           AND PG.PA_STATUS  = '10'
+           AND PG.PA_SALE_GB = '20'
+           AND GD.INVI_GOODS_TYPE = '00'
+           AND PG.INSERT_DATE &lt; SYSDATE - 1/24
+           AND PG.INSERT_DATE > SYSDATE - 7
+		   <if test='massTargetYn != null and massTargetYn != ""'>
+		   AND PG.MASS_TARGET_YN = #{massTargetYn, jdbcType=VARCHAR}  
+		   </if>           
+           AND EXISTS ( SELECT '1' 
+	                      FROM TPAGOODSTARGET PGT 
+	                     WHERE PGT.GOODS_CODE = PG.GOODS_CODE
+	                       AND PGT.PA_CODE = PG.PA_CODE)
+           AND EXISTS ( SELECT '1' 
+                          FROM TDESCRIBE DB 
+                         WHERE DB.GOODS_CODE = GD.GOODS_CODE 
+                           AND DB.DESCRIBE_CODE IN ('998','999')
+                           AND DB.DESCRIBE_EXT IS NOT NULL
+                           AND ROWNUM = 1 )  
+           AND EXISTS ( SELECT '1'
+                          FROM TGOODSIMAGE GI
+                         WHERE GI.GOODS_CODE = GD.GOODS_CODE
+                           AND NVL(IMAGE_C,IMAGE_G) IS NOT NULL
+                           AND ROWNUM = 1 )
+            ORDER BY GOODS_CODE
+    </select> -->
+     
+    <update id="updatePaLtonGoodsFail"  parameterType="hashMap">
+        UPDATE TPALTONGOODS PG
+           SET PG.RETURN_NOTE = #{RETURN_NOTE	, jdbcType=VARCHAR}
+             , PG.PA_STATUS   = #{PA_STATUS		, jdbcType=VARCHAR}
+             , PG.MODIFY_ID   = #{MODIFY_ID		, jdbcType=VARCHAR}
+             , PG.MODIFY_DATE = SYSDATE
+         WHERE PG.GOODS_CODE  = #{GOODS_CODE	, jdbcType=VARCHAR}  
+           AND PG.PA_CODE     = #{PA_CODE		, jdbcType=VARCHAR}  
+    </update>
+    
+    <update id="updateMassTargetYn" parameterType="com.cware.netshopping.domain.PaLtonGoodsVO">
+		UPDATE /* paltongoods.xml : palton.paltongoods.updateMassTargetYn */ 
+			   TPALTONGOODS
+		   SET MASS_TARGET_YN 	= #{massTargetYn 	, jdbcType=VARCHAR}
+	 	 WHERE PA_CODE    		= #{paCode			, jdbcType=VARCHAR}
+	 	   AND GOODS_CODE 		= #{goodsCode		, jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updateMassTargetYnByEpCode" parameterType="hashMap">
+		UPDATE /* paltongoods.xml : palton.paltongoods.updateMassTargetYnByEpCode */ 
+			   TPALTONGOODS
+		   SET MASS_TARGET_YN 	= #{massTargetYn 	, jdbcType=VARCHAR}
+		     , MASS_TARGET_CODE = NULL
+	 	 WHERE MASS_TARGET_EP	= #{massTargetEp 	, jdbcType=VARCHAR}
+	 	   AND MASS_TARGET_YN  != '9'
+    </update>   
+    
+    <update id="updatePaLtonPaStatus" parameterType="hashMap">
+		UPDATE /* paltongoods.xml : palton.paltongoods.updatePaLtonPaStatus */ 
+			   TPALTONGOODS
+		   SET PA_SALE_GB 	= #{paSaleGb   , jdbcType=VARCHAR}
+		     , PA_STATUS	= #{paStatus   , jdbcType=VARCHAR}
+		     , RETURN_NOTE  = #{returnNote , jdbcType=VARCHAR}
+		     , TRANS_TARGET_YN = '1'
+		     , TRANS_SALE_YN   = '1'
+		     , MODIFY_DATE	= SYSDATE
+	 	 WHERE PA_CODE    	= #{paCode	   , jdbcType=VARCHAR}
+	 	   AND GOODS_CODE 	= #{goodsCode  , jdbcType=VARCHAR}
+	 	   AND SPD_NO 		= #{spdNo 	   , jdbcType=VARCHAR}
+    </update>
+</mapper>

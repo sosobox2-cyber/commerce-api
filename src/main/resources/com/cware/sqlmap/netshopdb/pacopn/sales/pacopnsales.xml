@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pacopn.sales">
+    <insert id="insertPaCopnSettlement" parameterType="com.cware.netshopping.domain.model.Pacopnsettlement">
+        INSERT /* pacopnsales.xml : pacopn.sales.insertPaCopnSettlement by PaCopnSalesController */
+          INTO TPACOPNSETTLEMENT
+             ( PACOPN_SALES_NO
+             , PA_CODE
+             , ORDER_ID
+             , SALE_TYPE
+             , SALE_DATE
+             , RECOGNITION_DATE
+             , SETTLEMENT_DATE
+             , FINAL_SETTLEMENT_DATE
+             , AMOUNT
+             , FEE
+             , FEE_VAT
+             , FEE_RATIO
+             , SETTLEMENT_AMOUNT_DELI
+             , BASE_AMOUNT
+             , BASE_FEE
+             , BASE_FEE_VAT
+             , REMOTE_AMOUNT
+             , REMOTE_FEE
+             , REMOTE_FEE_VAT
+             , TAX_TYPE
+             , PRODUCT_ID
+             , PRODUCT_NAME
+             , VENDOR_ITEM_ID
+             , VENDOR_ITEM_NAME
+             , SALE_PRICE
+             , QUANTITY
+             , COUPANG_DISCOUNT_COUPON
+             , DISCOUNT_COUPONPOLICYAGREEMENT
+             , SALE_AMOUNT
+             , SELLER_DISCOUNT_COUPON
+             , DOWNLOADABLE_COUPON
+             , SERVICE_FEE
+             , SERVICE_FEE_VAT
+             , SERVICE_FEE_RATIO
+             , SETTLEMENT_AMOUNT
+             , COURANTEE_FEE_RATIO
+             , COURANTEE_FEE
+             , COURANTEE_FEE_VAT
+             , STORE_FEE_DISCOUNT_VAT
+             , STORE_FEE_DISCOUNT
+             , EXTERNAL_SELLER_SKU_CODE
+             , INSERT_ID
+             , INSERT_DATE 
+             )
+        VALUES 
+             ( #{pacopnSalesNo, jdbcType=VARCHAR}
+             , #{paCode, jdbcType=VARCHAR}
+             , #{orderId, jdbcType=VARCHAR}
+             , #{saleType, jdbcType=VARCHAR}
+             , #{saleDate, jdbcType=VARCHAR}
+             , #{recognitionDate, jdbcType=TIMESTAMP}
+             , #{settlementDate, jdbcType=VARCHAR}
+             , #{finalSettlementDate, jdbcType=VARCHAR}
+             , #{amount, jdbcType=DOUBLE}
+             , #{fee, jdbcType=DOUBLE}
+             , #{feeVat, jdbcType=DOUBLE}
+             , #{feeRatio, jdbcType=DOUBLE}
+             , #{settlementAmountDeli, jdbcType=DOUBLE}
+             , #{baseAmount, jdbcType=DOUBLE}
+             , #{baseFee, jdbcType=DOUBLE}
+             , #{baseFeeVat, jdbcType=DOUBLE}
+             , #{remoteAmount, jdbcType=DOUBLE}
+             , #{remoteFee, jdbcType=DOUBLE}
+             , #{remoteFeeVat, jdbcType=DOUBLE}
+             , #{taxType, jdbcType=VARCHAR}
+             , #{productId, jdbcType=VARCHAR}
+             , #{productName, jdbcType=VARCHAR}
+             , #{vendorItemId, jdbcType=VARCHAR}
+             , #{vendorItemName, jdbcType=VARCHAR}
+             , #{salePrice, jdbcType=DOUBLE}
+             , #{quantity, jdbcType=DOUBLE}
+             , #{coupangDiscountCoupon, jdbcType=DOUBLE}
+             , #{discountCouponpolicyagreement, jdbcType=VARCHAR}
+             , #{saleAmount, jdbcType=DOUBLE}
+             , #{sellerDiscountCoupon, jdbcType=DOUBLE}
+             , #{downloadableCoupon, jdbcType=DOUBLE}
+             , #{serviceFee, jdbcType=DOUBLE}
+             , #{serviceFeeVat, jdbcType=DOUBLE}
+             , #{serviceFeeRatio, jdbcType=DOUBLE}
+             , #{settlementAmount, jdbcType=DOUBLE}
+             , #{couranteeFeeRatio, jdbcType=DOUBLE}
+             , #{couranteeFee, jdbcType=DOUBLE}
+             , #{couranteeFeeVat, jdbcType=DOUBLE}
+             , #{storeFeeDiscountVat, jdbcType=DOUBLE}
+             , #{storeFeeDiscount, jdbcType=DOUBLE}
+             , #{externalSellerSkuCode, jdbcType=VARCHAR}
+             , #{insertId, jdbcType=VARCHAR}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             )  
+    </insert>
+    
+    <select id="selectPaSettlementExists" parameterType="com.cware.netshopping.domain.model.Pacopnsettlement" resultType="int">
+      SELECT /* pacopnsales.xml : pacopn.sales.selectPaSettlementExists */
+             COUNT(1) 
+        FROM TPACOPNSETTLEMENT PS
+       WHERE PS.PA_CODE = #{paCode, jdbcType=VARCHAR}
+         AND PS.ORDER_ID = #{orderId, jdbcType=VARCHAR}
+         AND PS.PRODUCT_ID = #{productId, jdbcType=VARCHAR}
+         AND PS.VENDOR_ITEM_ID = #{vendorItemId, jdbcType=VARCHAR}
+         AND PS.SALE_TYPE = #{saleType, jdbcType=VARCHAR}
+         AND PS.QUANTITY = #{quantity, jdbcType=VARCHAR}
+         AND EXTERNAL_SELLER_SKU_CODE = #{externalSellerSkuCode, jdbcType=VARCHAR}
+         AND RECOGNITION_DATE = #{recognitionDate, jdbcType=TIMESTAMP}
+    </select>
+    
+    <select id="selectChkPaCopnAccount" parameterType="hashMap" resultType="int">
+        SELECT /* pacopnsales.xml : panaver.account.selectChkPaCopnAccount */
+               COUNT(1)
+          FROM TPACOPNSETTLEMENT
+         WHERE PA_CODE    = #{paCode, jdbcType=VARCHAR}
+           AND RECOGNITION_DATE BETWEEN TO_DATE(#{startDateQ , jdbcType=VARCHAR}, 'YYYY-MM-DD')
+                                    AND TO_DATE(#{endDateQ , jdbcType=VARCHAR}, 'YYYY-MM-DD')
+    </select>
+    
+    <delete id="deletePaCopnAccount" parameterType="hashMap">
+        DELETE /* pacopnsales.xml : pacopn.sales.deletePaCopnAccount */ 
+          FROM TPACOPNSETTLEMENT
+         WHERE PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND RECOGNITION_DATE BETWEEN TO_DATE(#{startDateQ , jdbcType=VARCHAR}, 'YYYY-MM-DD')
+                                    AND TO_DATE(#{endDateQ , jdbcType=VARCHAR}, 'YYYY-MM-DD')
+    </delete>
+</mapper>

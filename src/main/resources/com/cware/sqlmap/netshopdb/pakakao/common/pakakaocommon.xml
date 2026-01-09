@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pakakao.common">
+
+	<delete id="deletePaGoodsKindsMomentList" >
+        DELETE /* pakakaocommon.xml : pakakao.common.deletePaGoodsKindsMomentList */ 
+          FROM TPAGOODSKINDSMOMENT TGKM
+         WHERE TGKM.PA_GROUP_CODE = #{paGroupCode, jdbcType=VARCHAR} 
+    </delete>
+    
+    <insert id="insertPaGoodsKindMomentsList" parameterType="com.cware.netshopping.domain.model.PaGoodsKinds">
+        INSERT INTO /* pakakaocommon.xml : pakakao.common.insertPaGoodsKindMomentsList by PaKaKaoCommonController */
+                    TPAGOODSKINDSMOMENT
+                   ( PA_GROUP_CODE
+                   , PA_LMSD_KEY
+                   , PA_LGROUP
+                   , PA_MGROUP
+                   , PA_SGROUP
+                   , PA_DGROUP
+                   , PA_LGROUP_NAME
+                   , PA_MGROUP_NAME
+                   , PA_SGROUP_NAME
+                   , PA_DGROUP_NAME
+                   , REMARK
+                   )
+            VALUES ( #{paGroupCode,     jdbcType=VARCHAR}
+                   , #{paLmsdKey,       jdbcType=VARCHAR}
+                   , #{paLgroup,        jdbcType=VARCHAR}
+                   , #{paMgroup,        jdbcType=VARCHAR}
+                   , #{paSgroup,        jdbcType=VARCHAR}
+                   , #{paDgroup,        jdbcType=VARCHAR}
+                   , #{paLgroupName,    jdbcType=VARCHAR}
+                   , #{paMgroupName,    jdbcType=VARCHAR}
+                   , #{paSgroupName,    jdbcType=VARCHAR}
+                   , #{paDgroupName,    jdbcType=VARCHAR}
+                   , #{certYn,			jdbcType=VARCHAR}
+                   )
+    </insert>
+    
+    <insert id="insertPaGoodsKindsList" parameterType="com.cware.netshopping.domain.model.PaGoodsKinds">
+        INSERT INTO /* pakakaocommon.xml : pakakao.common.insertPaGoodsKindsList by PaKaKaoCommonController */
+                    TPAGOODSKINDS  
+                 ( PA_GROUP_CODE
+                 , PA_LMSD_KEY
+                 , PA_LGROUP
+                 , PA_MGROUP
+                 , PA_SGROUP
+                 , PA_DGROUP
+                 , PA_LGROUP_NAME
+                 , PA_MGROUP_NAME
+                 , PA_SGROUP_NAME
+                 , PA_DGROUP_NAME
+                 , USE_YN
+                 , CERT_YN
+                 , INSERT_ID
+                 , INSERT_DATE
+                 , MODIFY_ID 
+                 , MODIFY_DATE
+                 )
+            SELECT TGKM.PA_GROUP_CODE
+                 , TGKM.PA_LMSD_KEY
+                 , TGKM.PA_LGROUP
+                 , TGKM.PA_MGROUP
+                 , TGKM.PA_SGROUP
+                 , TGKM.PA_DGROUP
+                 , TGKM.PA_LGROUP_NAME
+                 , TGKM.PA_MGROUP_NAME
+                 , TGKM.PA_SGROUP_NAME
+                 , TGKM.PA_DGROUP_NAME
+                 , '1'
+                 , NVL(TGKM.REMARK,'0')
+                 , #{insertId,    jdbcType=VARCHAR}
+                 , #{insertDate,  jdbcType=TIMESTAMP}
+                 , #{insertId,    jdbcType=VARCHAR}
+                 , #{insertDate,  jdbcType=TIMESTAMP}
+              FROM TPAGOODSKINDSMOMENT TGKM
+             WHERE TGKM.PA_GROUP_CODE  = #{paGroupCode, jdbcType=VARCHAR}
+               AND NOT EXISTS ( SELECT 'X'
+                                  FROM TPAGOODSKINDS TGK
+                                 WHERE TGK.PA_GROUP_CODE    = TGKM.PA_GROUP_CODE
+                                   AND TGK.PA_LMSD_KEY      = TGKM.PA_LMSD_KEY
+                              )
+    </insert>
+    
+    <insert id="insertPaOrigin" parameterType="com.cware.netshopping.domain.model.PaOrigin">
+        INSERT /* pakakaocommon.xml : pakakao.common.insertPaOrigin by PaKaKaoCommonController */
+          INTO TPAORIGIN
+             ( PA_GROUP_CODE
+             , PA_ORIGIN_CODE
+             , PA_ORIGIN_NAME
+             , REMARK1
+             , REMARK2
+             , REMARK3
+             , REMARK4
+             , INSERT_ID
+             , INSERT_DATE
+             , MODIFY_ID
+             , MODIFY_DATE 
+             )
+        VALUES 
+             ( 
+               #{paGroupCode,	jdbcType=VARCHAR}
+             , #{paOriginCode,	jdbcType=VARCHAR}
+             , #{paOriginName,	jdbcType=VARCHAR}
+             , #{remark1,		jdbcType=VARCHAR}
+             , #{remark2,		jdbcType=VARCHAR}
+             , #{remark3,		jdbcType=VARCHAR}
+             , #{remark4,		jdbcType=VARCHAR}
+             , #{insertId,		jdbcType=VARCHAR}
+	         , #{insertDate,	jdbcType=VARCHAR}
+	         , #{modifyId,		jdbcType=VARCHAR}
+	         , #{modifyDate,	jdbcType=VARCHAR}
+             )
+    </insert>
+    
+    <select id="selectBrandList" resultType="com.cware.netshopping.domain.model.Brand">
+        SELECT /* pakakaocommon.xml : pakakao.common.selectBrandList by PaKaKaoCommonController */
+			   A.BRAND_CODE
+			 , A.BRAND_NAME
+		  FROM TBRAND A
+		 WHERE A.USE_YN = '1'
+	  ORDER BY A.BRAND_CODE
+    </select>
+    
+    <select id="countPaBrand" parameterType="com.cware.netshopping.domain.model.PaBrand" resultType="int">
+        SELECT /* pakakaocommon.xml : pakakao.common.countPaBrand by PaKaKaoCommonController */
+               COUNT(1) AS CNT
+          FROM TPABRAND A
+         WHERE A.PA_GROUP_CODE	= #{paGroupCode,	jdbcType=VARCHAR}
+           AND A.PA_BRAND_NO	= #{paBrandNo,		jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertPaBrand" parameterType="com.cware.netshopping.domain.model.PaBrand">
+        INSERT /* pakakaocommon.xml : pakakao.common.insertPaBrand by PaKaKaoCommonController */
+          INTO TPABRAND
+             ( PA_GROUP_CODE
+             , PA_BRAND_NO
+             , PA_BRAND_NAME
+             , USE_YN
+             , INSERT_ID
+             , INSERT_DATE
+             , MODIFY_ID
+             , MODIFY_DATE 
+             )
+        VALUES 
+             ( 
+               #{paGroupCode, jdbcType=VARCHAR}
+             , #{paBrandNo,   jdbcType=VARCHAR}
+             , #{paBrandName, jdbcType=VARCHAR}
+             , #{useYn, 	  jdbcType=VARCHAR}
+             , #{insertId, jdbcType=VARCHAR}
+	         , #{insertDate, jdbcType=VARCHAR}
+	         , #{modifyId, jdbcType=VARCHAR}
+	         , #{modifyDate, jdbcType=VARCHAR}
+             )
+    </insert>
+    
+    <select id="selectMakerList" resultType="com.cware.netshopping.domain.model.Makecomp">
+        SELECT /* pakakaocommon.xml : pakakao.common.selectMakerList by PaKaKaoCommonController */
+			   A.MAKECO_CODE
+			 , A.MAKECO_NAME
+		  FROM TMAKECOMP A
+	  ORDER BY A.MAKECO_CODE
+    </select>
+    
+    <select id="countPaMaker" parameterType="com.cware.netshopping.domain.model.PaMaker" resultType="int">
+        SELECT /* pakakaocommon.xml : pakakao.common.countPaMaker by PaKaKaoCommonController */
+               COUNT(1) AS CNT
+          FROM TPAMAKER A
+         WHERE A.PA_GROUP_CODE	= #{paGroupCode,	jdbcType=VARCHAR}
+           AND A.PA_MAKER_NO	= #{paMakerNo,		jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertPaMaker" parameterType="com.cware.netshopping.domain.model.PaMaker">
+        INSERT /* pakakaocommon.xml : pakakao.common.insertPaMaker by PaKaKaoCommonController */
+          INTO TPAMAKER
+             ( PA_GROUP_CODE
+             , PA_MAKER_NO
+             , PA_MAKER_NAME
+             , RTN_MSG
+             , USE_YN
+             , INSERT_ID
+             , INSERT_DATE
+             , MODIFY_ID
+             , MODIFY_DATE 
+             )
+        VALUES 
+             ( 
+               #{paGroupCode,	jdbcType=VARCHAR}
+             , #{paMakerNo,		jdbcType=VARCHAR}
+             , #{paMakerName,	jdbcType=VARCHAR}
+             , #{rtnMsg,		jdbcType=VARCHAR}
+             , #{useYn,			jdbcType=VARCHAR}
+             , #{insertId,		jdbcType=VARCHAR}
+	         , #{insertDate,	jdbcType=VARCHAR}
+	         , #{modifyId,		jdbcType=VARCHAR}
+	         , #{modifyDate,	jdbcType=VARCHAR}
+             )
+    </insert>
+    
+    <select id="selectPaKakaoEntpSlip" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaEntpSlip">
+        SELECT /* pakakaocommon.xml : pakakao.common.selectPaKakaoEntpSlip by PaKaKaoCommonController */
+               distinct TE.ENTP_CODE
+             , TE.ENTP_MAN_SEQ 
+             , TE.ENTP_MAN_GB AS PA_ADDR_GB
+             , PG.PA_CODE
+             , NVL(TE.STD_POST, TE.POST_NO) AS POST_NO
+             , NVL(TE.STD_POST_ADDR1, TE.POST_ADDR) AS ADDRESS1
+             , NVL(TE.STD_POST_ADDR2, TE.ADDR) AS ADDRESS2
+             , TE.ENTP_MAN_DDD
+             , TE.ENTP_MAN_TEL1
+             , TE.ENTP_MAN_TEL2
+             , TE.ENTP_MAN_HP1
+             , TE.ENTP_MAN_HP2
+             , TE.ENTP_MAN_HP3
+          FROM TPAPRODUCT TG
+             , TENTPUSER TE
+             , TPAKAKAOGOODS PG
+             , TGOODS GD
+         WHERE DECODE(GD.DELY_TYPE,'10','100001',TG.ENTP_CODE) = TE.ENTP_CODE
+           AND PG.GOODS_CODE = TG.GOODS_CODE
+           AND PG.GOODS_CODE = GD.GOODS_CODE
+           AND ( DECODE(GD.DELY_TYPE, '10', '002', TG.RETURN_MAN_SEQ) = TE.ENTP_MAN_SEQ
+			 OR  DECODE(GD.DELY_TYPE, '10', '003', TG.SHIP_MAN_SEQ) = TE.ENTP_MAN_SEQ )
+           <if test='goodsCode != null and goodsCode != ""'>
+           AND TG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           AND PG.PA_STATUS = '10'
+           AND NOT EXISTS ( SELECT 'X'
+                              FROM TPAENTPSLIP PS
+                             WHERE PS.ENTP_CODE = TE.ENTP_CODE
+                               AND PS.ENTP_MAN_SEQ = TE.ENTP_MAN_SEQ
+                               AND PS.PA_CODE = PG.PA_CODE
+                          )
+    </select>
+    
+    <select id="selectEntpSlipInsert" resultType="hashMap" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">
+        SELECT /* pakakaocommon.xml : pakakao.common.selectEntpSlipInsert by PaKaKaoSellerService */
+               TE.ENTP_CODE
+             , TE.ENTP_MAN_SEQ 
+             , TE.ENTP_MAN_GB
+             , NVL(TE.STD_POST, TE.POST_NO) AS POST_NO
+             , NVL(TE.STD_POST_ADDR1, TE.POST_ADDR) AS ADDRESS1
+             , NVL(TE.STD_POST_ADDR2, TE.ADDR) AS ADDRESS2
+             , TE.ENTP_MAN_DDD
+             , TE.ENTP_MAN_TEL1
+             , TE.ENTP_MAN_TEL2
+             , TE.ENTP_MAN_HP1
+             , TE.ENTP_MAN_HP2
+             , TE.ENTP_MAN_HP3
+          FROM TENTPUSER TE
+         WHERE TE.ENTP_CODE    = #{entpCode, jdbcType=VARCHAR}
+           AND TE.ENTP_MAN_SEQ = #{entpManSeq, jdbcType=VARCHAR}
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TPAENTPSLIP PL               
+                            WHERE TE.ENTP_CODE    = PL.ENTP_CODE
+                              AND TE.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+                              AND PL.PA_CODE      = #{paCode, jdbcType=VARCHAR})
+    </select>
+    
+    
+    <insert id="insertPaEntpSlip" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">    
+        INSERT /* pakakaocommon.xml : pakakao.passgcommon.insertPaEntpSlip by PaKaKaoCommonController */
+          INTO TPAENTPSLIP
+             ( ENTP_CODE
+             , ENTP_MAN_SEQ
+             , PA_CODE
+             , PA_ADDR_SEQ
+             , PA_ADDR_GB
+             , PA_BUNDLE_NO
+             , PA_GMKT_SHIP_NO
+             , TRANS_TARGET_YN
+             , LAST_SYNC_DATE
+             , INSERT_DATE
+             , INSERT_ID
+             , MODIFY_DATE
+             , MODIFY_ID )
+        VALUES 
+             ( 
+               #{entpCode, jdbcType=VARCHAR}
+             , #{entpManSeq, jdbcType=VARCHAR}
+             , #{paCode, jdbcType=VARCHAR}
+             , #{paAddrSeq, jdbcType=VARCHAR}
+             , #{paAddrGb, jdbcType=VARCHAR}
+             , #{paBundleNo, jdbcType=VARCHAR}
+             , #{newGmktShipNo, jdbcType=VARCHAR}
+             , #{transTargetYn, jdbcType=VARCHAR}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{insertId, jdbcType=VARCHAR}
+             , #{modifyDate, jdbcType=TIMESTAMP}
+             , #{modifyId, jdbcType=VARCHAR}
+             )  
+    </insert>
+    
+    <select id="selectPaKakaoEntpSlipUpdate" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaEntpSlip">
+        SELECT /* pakakaocommon.xml : pakakao.common.selectPaKakaoEntpSlipUpdate by PaKaKaoCommonController */
+               distinct PL.PA_ADDR_SEQ
+             , TE.ENTP_CODE
+             , TE.ENTP_MAN_SEQ 
+             , TE.ENTP_MAN_GB AS PA_ADDR_GB
+             , PG.PA_CODE
+             , NVL(TE.STD_POST, TE.POST_NO) AS POST_NO
+             , NVL(TE.STD_POST_ADDR1, TE.POST_ADDR) AS ADDRESS1
+             , NVL(TE.STD_POST_ADDR2, TE.ADDR) AS ADDRESS2
+             , TE.ENTP_MAN_DDD
+             , TE.ENTP_MAN_TEL1
+             , TE.ENTP_MAN_TEL2
+             , TE.ENTP_MAN_HP1
+             , TE.ENTP_MAN_HP2
+             , TE.ENTP_MAN_HP3
+          FROM TPAPRODUCT TG
+             , TENTPUSER TE
+             , TPAKAKAOGOODS PG
+             , TGOODS GD
+             , TPAENTPSLIP PL
+         WHERE DECODE(GD.DELY_TYPE,'10','100001',TG.ENTP_CODE) = TE.ENTP_CODE
+           AND PG.GOODS_CODE = TG.GOODS_CODE
+           AND PG.GOODS_CODE = GD.GOODS_CODE
+           AND ( DECODE(GD.DELY_TYPE, '10', '002', TG.RETURN_MAN_SEQ) = TE.ENTP_MAN_SEQ
+			 OR  DECODE(GD.DELY_TYPE, '10', '003', TG.SHIP_MAN_SEQ) = TE.ENTP_MAN_SEQ )
+           <if test='goodsCode != null and goodsCode != ""'>
+			AND TG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           AND PG.PA_STATUS NOT IN ('20','90')
+           AND TE.ENTP_CODE = PL.ENTP_CODE
+		   AND TE.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+		   AND PL.PA_CODE = PG.PA_CODE
+		   AND PL.PA_ADDR_GB IN ('20','30')
+		   AND PL.TRANS_TARGET_YN = '1'
+		   AND PL.PA_ADDR_SEQ IS NOT NULL
+    </select>
+    
+    <select id="selectEntpSlipUpdate" resultType="hashMap" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">
+        SELECT /* pakakaocommon.xml : pakakao.common.selectEntpSlipUpdate by PaKaKaoSellerService */
+               PL.PA_ADDR_SEQ
+             , TE.ENTP_CODE
+             , TE.ENTP_MAN_SEQ 
+             , TE.ENTP_MAN_GB
+             , NVL(TE.STD_POST, TE.POST_NO) AS POST_NO
+             , NVL(TE.STD_POST_ADDR1, TE.POST_ADDR) AS ADDRESS1
+             , NVL(TE.STD_POST_ADDR2, TE.ADDR) AS ADDRESS2
+             , TE.ENTP_MAN_DDD
+             , TE.ENTP_MAN_TEL1
+             , TE.ENTP_MAN_TEL2
+             , TE.ENTP_MAN_HP1
+             , TE.ENTP_MAN_HP2
+             , TE.ENTP_MAN_HP3
+          FROM TENTPUSER TE
+             , TPAENTPSLIP PL
+         WHERE TE.ENTP_CODE = PL.ENTP_CODE
+		   AND TE.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+           AND PL.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PL.TRANS_TARGET_YN = '1'
+           AND PL.PA_ADDR_SEQ IS NOT NULL
+           AND PL.ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+           AND PL.ENTP_MAN_SEQ = #{entpManSeq, jdbcType=VARCHAR}
+    </select>
+    
+    <update id="updatePaEntpSlip" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">
+        UPDATE /* pakakaocommon.xml : pakakao.common.updatePaEntpSlip by PaKaKaoCommonController */
+               TPAENTPSLIP
+           SET TRANS_TARGET_YN = #{transTargetYn, jdbcType=VARCHAR}
+             , PA_ADDR_SEQ = #{paAddrSeq, jdbcType=VARCHAR}
+             , MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+             , MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+         WHERE ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+           AND PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND ENTP_MAN_SEQ = #{entpManSeq, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectPaKakaoModifyEntpSlip" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaEntpSlip">
+        SELECT /* pakakaocommon.xml : pakakao.common.selectPaKakaoEntpSlip by PaKaKaoCommonController */
+               distinct TE.ENTP_CODE
+             , TE.ENTP_MAN_SEQ 
+             , TE.ENTP_MAN_GB AS PA_ADDR_GB
+             , PG.PA_CODE
+             , NVL(TE.STD_POST, TE.POST_NO) AS POST_NO
+             , NVL(TE.STD_POST_ADDR1, TE.POST_ADDR) AS ADDRESS1
+             , NVL(TE.STD_POST_ADDR2, TE.ADDR) AS ADDRESS2
+             , TE.ENTP_MAN_DDD
+             , TE.ENTP_MAN_TEL1
+             , TE.ENTP_MAN_TEL2
+             , TE.ENTP_MAN_HP1
+             , TE.ENTP_MAN_HP2
+             , TE.ENTP_MAN_HP3
+          FROM TPAPRODUCT TG
+             , TENTPUSER TE
+             , TPAKAKAOGOODS PG
+             , TGOODS GD
+         WHERE DECODE(GD.DELY_TYPE,'10','100001',TG.ENTP_CODE) = TE.ENTP_CODE
+           AND PG.GOODS_CODE = TG.GOODS_CODE
+           AND PG.GOODS_CODE = GD.GOODS_CODE
+           AND ( DECODE(GD.DELY_TYPE, '10', '002', TG.RETURN_MAN_SEQ) = TE.ENTP_MAN_SEQ
+			 OR  DECODE(GD.DELY_TYPE, '10', '003', TG.SHIP_MAN_SEQ) = TE.ENTP_MAN_SEQ )
+           <if test='goodsCode != null and goodsCode != ""'>
+           AND TG.GOODS_CODE = #{goodsCode, jdbcType=VARCHAR}
+           </if>
+           AND PG.PA_STATUS = '30'
+           AND NOT EXISTS ( SELECT 'X'
+                              FROM TPAENTPSLIP PS
+                             WHERE PS.ENTP_CODE = TE.ENTP_CODE
+                               AND PS.ENTP_MAN_SEQ = TE.ENTP_MAN_SEQ
+                               AND PS.PA_CODE = PG.PA_CODE
+                          )
+    </select>
+
+</mapper>

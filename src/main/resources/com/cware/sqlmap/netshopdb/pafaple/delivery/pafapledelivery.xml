@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pafaple.delivery">
+
+	<select id="selectSlipProcList" parameterType="hashMap" resultType="hashMap">	 
+		SELECT  /* pafapledelivery.xml: pafaple.delivery.selectSlipProcList by PaFapleDeliveryController*/
+			   PM.PA_CODE
+			 , DG.PA_DELY_GB 
+			 , SM.SLIP_NO
+			 , PM.MAPPING_SEQ
+			 , OL.ORDER_ID
+			 , OL.ITEM_ID
+	     FROM TPAORDERM PM
+			, TPAFAPLEORDERLIST OL
+			, TSLIPM SM
+			, TSLIPDT SD
+			, TORDERGOODS OG
+			, TPADELYGB DG
+		 WHERE OL.ORDER_ID    = PM.PA_ORDER_NO
+		   AND OL.ITEM_ID	  = PM.PA_ORDER_SEQ
+		   AND SM.SLIP_I_NO   = SD.SLIP_I_NO
+		   AND PM.ORDER_NO    = SD.ORDER_NO
+		   AND PM.ORDER_G_SEQ = SD.ORDER_G_SEQ
+		   AND PM.ORDER_D_SEQ = SD.ORDER_D_SEQ
+		   AND PM.ORDER_W_SEQ = SD.ORDER_W_SEQ
+		   AND PM.ORDER_NO    = OG.ORDER_NO
+		   AND PM.ORDER_G_SEQ = OG.ORDER_G_SEQ
+		   AND PM.PA_DO_FLAG  = '30'
+		   AND PM.PA_ORDER_GB = '10'
+		   AND SM.SLIP_PROC   >= '40'
+		   AND DG.PA_CODE 	  = '14'
+		   AND SM.DELY_GB 	  = DG.DELY_GB
+		   AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+		   AND SM.SLIP_NO IS NOT NULL /*운송장이 있는 주문 건*/
+		   <if test='paCode != "" and paCode != null '>
+               AND PM.PA_CODE = #{paCode , jdbcType=VARCHAR}
+           </if>
+           <if test='order_id != "" and order_id != null '>
+               AND PM.PA_ORDER_NO = #{order_id , jdbcType=VARCHAR}
+           </if>
+           <if test='item_id != "" and item_id != null '>
+               AND PM.PA_ORDER_SEQ = #{item_id , jdbcType=VARCHAR}
+           </if>
+	</select>
+	
+	<update id="updatePaorderm" parameterType="hashMap">
+        UPDATE /* pafapledelivery.xml: pafaple.delivery.updatePaorderm by PaFapleDeliveryController*/
+        	   TPAORDERM
+           SET MODIFY_DATE		  = SYSDATE
+             <if test='paDoFlag != null and paDoFlag != ""'>
+             , PA_DO_FLAG 		  = #{paDoFlag			,	jdbcType=VARCHAR}
+             </if>
+             <if test='preCancelYn != null and preCancelYn != ""'>
+             , PRE_CANCEL_YN 	  = #{preCancelYn		,	jdbcType=VARCHAR}
+             </if>
+             <if test='changeFlag != null and changeFlag != ""'>
+             , CHANGE_FLAG 		  = #{changeFlag		, 	jdbcType=VARCHAR}
+             </if>
+             , API_RESULT_MESSAGE = #{resultMessage		,	jdbcType=VARCHAR}
+             , API_RESULT_CODE	  = #{resultCode		,	jdbcType=VARCHAR}
+         WHERE MAPPING_SEQ        = #{mappingSeq		,   jdbcType=VARCHAR}
+    </update>
+	
+	<select id="checkOrderExistYn" parameterType="com.cware.netshopping.pafaple.domain.PaFapleOrderListVO" resultType="int">
+        SELECT /* pafapledelivery.xml : pafaple.delivery.checkOrderExistYn by PaFapleDeliveryController */
+               COUNT(DISTINCT FO.ORDER_ID) AS CNT
+          FROM TPAFAPLEORDERLIST FO,
+               TPAORDERM PO
+         WHERE FO.ORDER_ID = #{orderId, jdbcType=VARCHAR}
+           AND FO.ITEM_ID = #{itemId, jdbcType=VARCHAR}
+           AND FO.ORDER_ID = PO.PA_ORDER_NO
+           AND PO.PA_CODE = #{paCode, jdbcType=VARCHAR}
+    </select>
+	
+	 <insert id="insertPaFapleOrderList" parameterType="com.cware.netshopping.pafaple.domain.PaFapleOrderListVO">
+        INSERT /* pafapledelivery.xml : pafaple.delivery.insertPaFapleOrderList by PaFapleDeliveryController */
+          INTO TPAFAPLEORDERLIST (
+               ORDER_ID
+             , ORDER_DATE
+             , CREATED_DATE
+             , ITEM_NO
+             , ITEM_ID
+             , STATUS_CD
+             , PAY_METHOD
+             , SHOPPER_NAME
+             , OPT_ID
+             , GOODS_NO
+             , GOODS_NAME
+             , GOODS_ATTR
+             , COLOR_DESC
+             , SIZE_DESC
+             , QUANTITY
+             , IADJUST_CURRENTPRICE
+             , OADJUST_ADJUSTEDPRICE
+             , PRODUCT_PURCHASE_PRICE
+             , SHOPPER_RECEIPT_NAME
+             , SHOPPER_RECEIPT_STREET
+             , SHIP_TO_STREET
+             , SHIP_TO_ZIP
+             , SHIP_TO_NAME
+             , SHIP_TO_PHONE
+             , SHIP_TO_MOBILE
+             , GIFT_MESSAGE
+             , GIFT_NAME
+             , DELIVERY_DATE
+             , GOAL_DELI_DATE
+             , ETCINFO1
+             , ETCINFO2
+             , COUPON_USE_CUST
+             , ORDER_DATE_DETAIL
+             , SENDER_FEE
+             , UITEM_ID
+             , INSERT_DATE
+             , MODIFY_DATE
+             )
+        VALUES (
+               #{orderId, jdbcType=VARCHAR}
+             , #{orderDate, jdbcType=TIMESTAMP}
+             , #{createDate, jdbcType=TIMESTAMP}
+             , #{itemNo, jdbcType=VARCHAR}
+             , #{itemId, jdbcType=VARCHAR}
+             , #{statusCd, jdbcType=VARCHAR}
+             , #{payMethod, jdbcType=VARCHAR}
+             , #{shopperName, jdbcType=VARCHAR}
+             , #{optId, jdbcType=VARCHAR}
+             , #{goodsNo, jdbcType=VARCHAR}
+             , #{goodsName, jdbcType=VARCHAR}
+             , #{goodsAttr, jdbcType=VARCHAR}
+             , #{color, jdbcType=VARCHAR}
+             , #{size, jdbcType=VARCHAR}
+             , #{quantity, jdbcType=NUMERIC}
+             , #{iadjustCurrentprice, jdbcType=NUMERIC}
+             , #{oadjustAdjustedprice, jdbcType=NUMERIC}
+             , #{productPurchasePrice, jdbcType=NUMERIC}
+             , #{shopperReceiptName, jdbcType=VARCHAR}
+             , #{shopperReceiptStreet, jdbcType=VARCHAR}
+             , #{shipToStreet, jdbcType=VARCHAR}
+             , #{shipToZip, jdbcType=VARCHAR}
+             , #{shipToName, jdbcType=VARCHAR}
+             , #{shipToPhone, jdbcType=VARCHAR}
+             , #{shipToMobile, jdbcType=VARCHAR}
+             , #{giftMessage, jdbcType=VARCHAR}
+             , #{giftName, jdbcType=VARCHAR}
+             , #{deliveryDate, jdbcType=TIMESTAMP}
+             , #{goalDeliDate, jdbcType=TIMESTAMP}
+             , #{etcInfo1, jdbcType=VARCHAR}
+             , #{etcInfo2, jdbcType=VARCHAR}
+             , #{couponUseCust, jdbcType=VARCHAR}
+             , #{orderDateDetail, jdbcType=TIMESTAMP}
+             , #{senderFee, jdbcType=NUMERIC}
+             , #{uitemId, jdbcType=VARCHAR}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{modifyDate, jdbcType=TIMESTAMP}
+             )
+    </insert>
+	
+	<select id="selectOrderConfirmTargetList" resultType="hashMap">
+        SELECT /* pafapledelivery.xml : pafaple.delivery.selectOrderConfirmTargetList by PaFapleDeliveryController */
+               PM.MAPPING_SEQ
+             , PM.PA_ORDER_NO
+             , PM.PA_CODE
+             , PM.PA_SHIP_NO
+             , PM.PA_SHIP_SEQ
+          FROM TPAORDERM PM
+         WHERE PM.PA_CODE IN ('E1','E2')
+           AND PM.PA_ORDER_GB = '10'
+           AND PM.PA_DO_FLAG  = '10'
+           AND PM.ORDER_NO IS NULL
+    </select>
+    
+    <select id="selectOrderInputTargetList" parameterType="int" resultType="hashMap">
+        SELECT  /* pafapledelivery.xml: pafaple.delivery.selectOrderInputTargetList by PaFapleDeliveryController*/
+               AA.PA_ORDER_NO
+             , AA.TARGET_CNT
+          FROM (SELECT POM.PA_ORDER_NO
+                     , COUNT(1) TARGET_CNT
+                  FROM TPAORDERM POM
+                 WHERE POM.PA_CODE        IN ('E1','E2')
+                   AND POM.PA_ORDER_GB    = '10'
+                   AND POM.CREATE_YN      = '0'
+                   AND POM.PRE_CANCEL_YN  = '0'
+                   AND POM.INSERT_DATE    > TRUNC(SYSDATE)-5
+                   AND POM.PA_DO_FLAG	  = '30'
+                 GROUP BY POM.PA_ORDER_NO
+                 ORDER BY POM.PA_ORDER_NO) AA
+          WHERE ROWNUM &lt;= #{limitCount, jdbcType=NUMERIC}
+	</select> 
+	
+	<select id="selectOrderInputTargetDtList" parameterType="hashMap" resultType="hashMap">	 
+        SELECT  /* pafapledelivery.xml: pafaple.delivery.selectOrderInputTargetDtList by PaFapleDeliveryController*/
+				PM.PA_ORDER_NO
+			  , PM.PA_CODE
+			  , PGM.ITEM_ID AS PA_GOODS_CODE
+			  , PM.MAPPING_SEQ
+			  , TC.REMARK1 AS MEDIA_CODE  
+			  , TO_CHAR(OL.ORDER_DATE_DETAIL, 'YYYYMMDDHH24MISS') AS ORDER_DATE
+			  , PGD.GOODS_CODE
+			  , PGD.GOODSDT_CODE
+			  , OL.QUANTITY AS ORDER_QTY
+			  , TO_CHAR(PP.APPLY_DATE, 'YYYYMMDDHH24MISS') APPLY_DATE
+			  , PP.SUPPLY_PRICE
+			  , NVL(OL.SHOPPER_RECEIPT_NAME  , OL.SHIP_TO_NAME)    AS CUST_NAME 
+			  , NVL(OL.SHIP_TO_MOBILE    , OL.SHIP_TO_PHONE)  AS CUST_TEL1
+			  , NVL(OL.SHIP_TO_MOBILE    , OL.SHIP_TO_PHONE)  AS CUST_TEL2
+			  , NVL(OL.SHIP_TO_NAME , OL.SHOPPER_NAME)     AS RECEIVER_NAME 
+			  , NVL(OL.SHIP_TO_PHONE, OL.SHIP_TO_MOBILE) AS RECEIVER_TEL
+			  , NVL(OL.SHIP_TO_MOBILE, OL.SHIP_TO_PHONE) AS RECEIVER_HP
+			  , REPLACE(OL.SHIP_TO_ZIP,'-' , '' )  AS POST_NO
+			  , '001'               AS POST_NO_SEQ 
+			  , CASE WHEN LENGTH( REPLACE(OL.SHIP_TO_ZIP,'-' , '' ) ) = 6  THEN  '01'  ELSE  '02'  END  AS  ADDR_GBN 
+			  , OL.SHIP_TO_STREET AS RECEIVER_ADDR      
+			  , OL.SHIP_TO_STREET AS RCVR_BASE_ADDR
+			  , OL.SHIP_TO_STREET AS RCVR_DTLS_ADDR
+			  , NVL((OL.OADJUST_ADJUSTEDPRICE),0) AS RSALE_AMT
+			  , NVL((PP.SALE_PRICE * OL.QUANTITY),0) - NVL((OL.OADJUST_ADJUSTEDPRICE),0) AS SELLER_DC_AMT
+			  , NVL((PP.LUMP_SUM_DC_AMT * OL.QUANTITY),0) AS LUMP_SUM_DC_AMT
+			  , NVL((PP.LUMP_SUM_ENTP_DC_AMT),0) AS LUMP_SUM_ENTP_DC_AMT
+			  , NVL((PP.LUMP_SUM_OWN_DC_AMT),0) AS LUMP_SUM_OWN_DC_AMT
+			  , OL.GIFT_MESSAGE  AS MSG
+			  , NVL(OL.SENDER_FEE, 0) AS PA_SHPFEE_COST
+			  , PP.PRICE_SEQ
+			  , PP.SALE_PRICE  
+			  , '99' AS CUST_CHAR
+			  , '71' AS RECEIVE_METHOD
+			  , 0 AS INSTANT_COUPON_DISCOUNT
+			  , PP.COUPON_PROMO_NO AS PROMO_NO
+			  , NVL(PP.COUPON_DC_AMT, 0) AS DO_AMT
+			  , PP.COUPON_OWN_COST AS OWN_COST
+			  , PP.COUPON_ENTP_COST AS ENTP_COST
+			  , PROMO.PROMO_BDATE AS COUPON_PROMO_BDATE
+			  , PROMO.PROMO_EDATE AS COUPON_PROMO_EDATE
+			  , TO_CHAR(GP.APPLY_DATE, 'YYYYMMDDHH24MISS') AS STOA_APPLY_DATE
+		   FROM TPAORDERM PM
+			  , TPAFAPLEORDERLIST OL
+		      , TCODE TC
+		      , TPAFAPLEGOODS PGM
+		      , TPAFAPLEGOODSDTMAPPING PGD
+		      , TPAGOODSPRICEAPPLY PP 
+		      , TPROMOM PROMO
+		      , TGOODSPRICE GP
+		  WHERE PM.PA_ORDER_NO    = OL.ORDER_ID
+    		AND PM.PA_ORDER_SEQ   = OL.ITEM_ID
+    		AND PM.PA_GROUP_CODE  = TC.CODE_MGROUP
+    		AND PGM.GOODS_CODE    = PGD.GOODS_CODE
+    		AND OL.UITEM_ID       = PGM.ITEM_ID
+    		AND OL.OPT_ID         = PGD.PA_OPTION_CODE
+    		AND PM.PA_CODE        = PGD.PA_CODE
+    		AND PGM.PA_GROUP_CODE = PM.PA_GROUP_CODE 
+    		AND PGM.GOODS_CODE    = PP.GOODS_CODE
+    		AND PGM.PA_GROUP_CODE = PP.PA_GROUP_CODE
+    		AND PGM.PA_CODE       = PP.PA_CODE
+    		AND (PP.APPLY_DATE, PP.PRICE_APPLY_SEQ) = (SELECT /*+ INDEX_DESC (PP2 PK_TPAGOODSPRICEAPPLY)*/
+		                                                      PP2.APPLY_DATE, PP2.PRICE_APPLY_SEQ
+		                                                 FROM TPAGOODSPRICEAPPLY PP2
+		                                                WHERE PP2.GOODS_CODE   = PP.GOODS_CODE
+		                                                  AND PP2.PA_GROUP_CODE  = PP.PA_GROUP_CODE
+		                                                  AND PP2.PA_CODE    = PP.PA_CODE
+		                                                  AND PP2.APPLY_DATE &lt;= OL.ORDER_DATE_DETAIL 
+		                                                  AND PP2.TRANS_DATE &lt;= OL.ORDER_DATE_DETAIL 
+		                                                  AND rownum = 1 )
+    
+    		AND PP.COUPON_PROMO_NO      = PROMO.PROMO_NO(+)
+    		AND GP.GOODS_CODE           = PP.GOODS_CODE
+    		AND GP.ROWID                = (  SELECT /*+ INDEX_DESC (GP2 PK_TGOODSPRICE)*/
+                                             		GP2.ROWID
+                                       		   FROM TGOODSPRICE GP2
+                                      		  WHERE GP2.GOODS_CODE = GP.GOODS_CODE
+                                        		AND GP2.APPLY_DATE &lt; OL.ORDER_DATE_DETAIL
+                                        		AND ROWNUM = 1)
+    		AND TC.CODE_LGROUP           = 'O500'
+        	AND TC.CODE_MGROUP           = PM.PA_GROUP_CODE 
+    		AND PM.PA_ORDER_GB           = '10'
+    		AND PM.CREATE_YN             = '0'
+    		AND PM.PRE_CANCEL_YN         = '0'
+    		AND PGD.USE_YN 				 = '1'
+    		AND OL.OADJUST_ADJUSTEDPRICE = (PP.SALE_PRICE - PP.ARS_DC_AMT - PP.COUPON_DC_AMT - PP.LUMP_SUM_DC_AMT) * OL.QUANTITY
+    		AND PM.PA_CODE IN ('E1','E2')
+    		AND PM.PA_ORDER_NO           = #{paOrderNo, jdbcType=VARCHAR}
+	
+	</select>  
+	
+	<select id="selectRefusalInfo" parameterType="String" resultType="hashMap">
+       SELECT /* pafaplegoods.xml: pafaple.delivery.selectRefusalInfo by PaFapleDeliveryController*/
+       	      OL.OPT_ID
+		    , PM.PA_PROC_QTY 
+		    , OL.ORDER_ID
+		    , OL.ITEM_ID
+		    , '재고부족' AS REASON_DETAIL
+		    , PM.PA_CODE
+		    , MAPPING_SEQ
+		 FROM TPAORDERM PM 
+		    , TPAFAPLEORDERLIST OL
+		WHERE PM.PA_ORDER_NO  = OL.ORDER_ID
+		  AND PM.PA_ORDER_SEQ = OL.ITEM_ID
+		  AND PM.PA_ORDER_GB  = '10'
+		  AND PM.MAPPING_SEQ  IN
+            <foreach item="item" collection="list" open="(" separator="," close=")">
+                #{item.MAPPING_SEQ, jdbcType=VARCHAR}
+            </foreach> 
+    </select>
+    
+    <select id="selectFapleMappingSeq" parameterType="hashMap" resultType="String">
+        SELECT /* pafapledelivery.xml : pafaple.delivery.selectFapleMappingSeq by PaFapleDeliveryController */
+               PO.MAPPING_SEQ
+          FROM TPAORDERM PO
+         WHERE PO.PA_ORDER_NO = #{ORDER_ID, jdbcType=VARCHAR}
+           AND PO.PA_ORDER_SEQ = #{ITEM_ID, jdbcType=VARCHAR}
+           AND PO.PA_CODE = #{PA_CODE, jdbcType=VARCHAR}
+           AND PO.PA_ORDER_GB = '10'
+    </select>
+	
+    <update id="updatePreCanYn" parameterType="hashMap">
+        UPDATE  /* pafapledelivery.xml : pafaple.delivery.updatePreCanYn by PaFapleDeliveryController */
+        	   TPAORDERM
+           SET PRE_CANCEL_YN	 	= #{preCanYn		 , jdbcType=VARCHAR}
+             , API_RESULT_MESSAGE	= #{apiResultMessage , jdbcType=VARCHAR}
+             <if test="apiResultCode != null and apiResultCode != ''">
+             , API_RESULT_CODE		= #{apiResultCode    , jdbcType=VARCHAR}
+             </if>
+             , MODIFY_DATE		 	= SYSDATE
+         WHERE MAPPING_SEQ       	= #{MAPPING_SEQ		 , jdbcType=VARCHAR}
+    </update>
+</mapper>

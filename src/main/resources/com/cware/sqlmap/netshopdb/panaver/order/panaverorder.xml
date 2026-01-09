@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="panaver.order">
+    <update id="updateCancelSale" parameterType="hashMap">
+        UPDATE TPAORDERM /* panaver.order.updateCancelSale : panaverorder.xml */
+           SET API_RESULT_CODE = #{apiResultCode , jdbcType=VARCHAR}
+             , API_RESULT_MESSAGE = #{apiResultMessage , jdbcType=VARCHAR}
+             <if test='apiResultCode == "0"'>
+             , PRE_CANCEL_YN = '1'
+             , PRE_CANCEL_REASON = #{preCancelReason , jdbcType=VARCHAR}
+             , PROC_DATE = SYSDATE
+             </if>
+         WHERE PA_ORDER_NO  = #{ordNo , jdbcType=VARCHAR}
+           AND PA_ORDER_SEQ = #{ordPrdSeq , jdbcType=VARCHAR}
+           AND PA_CODE = #{paCode , jdbcType=VARCHAR}
+           AND PA_ORDER_GB = '10'
+	<!-- choose 부분 반품처리 만들어지면 추가 -->
+    </update>
+    
+    
+    <select id="selectPaNaverOrdCancelApprovalList" parameterType="hashMap" resultType="hashMap">
+        SELECT 'PONO200000000343' AS PRODUCT_ORDER_ID
+             , 'PAYED' AS PRODUCT_ORDER_STATUS
+             , OM.PA_CODE
+          FROM DUAL DT
+             , TPAORDERM OM
+         WHERE DT.PRODUCT_ORDER_ID = #{productOrdIds, jdbcType=VARCHAR}
+           AND PO.ORD_PRD_SEQ = #{ordPrdSeq, jdbcType=VARCHAR}
+           AND OM.PA_ORDER_NO = DT.PRODUCT_ORDER_ID
+           AND OM.PA_ORDER_GB = '10'
+           AND ROWNUM = 1
+    </select>
+</mapper>

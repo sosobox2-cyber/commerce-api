@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pacopn.stockcheck">
+    
+    <select id="selectOrderableGoods" parameterType="hashMap" resultType="hashMap">
+        SELECT /* pacopnstockcheck.xml : pacopn.stockcheck.selectOrderableGoods by PaCopnStockCheckController */
+               DISTINCT
+               CASE WHEN CEIL(fun_get_order_able_qty(P.GOODS_CODE, PM.GOODSDT_CODE, GD.WH_CODE) * T.CODE_GROUP) > 0 
+                     AND CEIL(fun_get_order_able_qty(P.GOODS_CODE, PM.GOODSDT_CODE, GD.WH_CODE) * T.CODE_GROUP) &gt;= #{quantity, jdbcType=NUMERIC}
+                    THEN 'OK' 
+                    WHEN CEIL(fun_get_order_able_qty(P.GOODS_CODE, PM.GOODSDT_CODE, GD.WH_CODE) * T.CODE_GROUP) = 0
+                    THEN 'OUT_OF_STOCK' 
+                    WHEN CEIL(fun_get_order_able_qty(P.GOODS_CODE, PM.GOODSDT_CODE, GD.WH_CODE) * T.CODE_GROUP) &gt; 0 
+                     AND CEIL(fun_get_order_able_qty(P.GOODS_CODE, PM.GOODSDT_CODE, GD.WH_CODE) * T.CODE_GROUP) &lt; #{quantity, jdbcType=NUMERIC}
+                    THEN 'INSUFFICIENT_STOCK'
+                END STOCK_STAT
+              , P.SELLER_PRODUCT_ID AS PRODUCT_ID
+              , PM.PA_OPTION_CODE AS VENDOR_ITEM_ID
+              , fun_get_goods_price(GD.GOODS_CODE, SYSDATE, '6') - fun_get_goods_price(GD.GOODS_CODE, SYSDATE, '12') AS SALE_PRICE 
+              , CEIL(fun_get_order_able_qty(P.GOODS_CODE, PM.GOODSDT_CODE, GD.WH_CODE) * T.CODE_GROUP) AS QUANTITY
+           FROM TPACOPNGOODS P
+              , TPAGOODSDTMAPPING PM
+              , TGOODS GD
+              , TCODE T
+          WHERE P.GOODS_CODE = PM.GOODS_CODE
+            AND P.PA_CODE = PM.PA_CODE
+            AND P.GOODS_CODE = GD.GOODS_CODE
+            AND T.CODE_LGROUP = 'O505'
+            AND T.CODE_MGROUP = PM.PA_CODE
+            AND P.SELLER_PRODUCT_ID = #{sellerProductId, jdbcType=VARCHAR} 
+            AND PM.PA_OPTION_CODE = #{vendorItemId, jdbcType=VARCHAR}
+     </select>
+    
+</mapper>

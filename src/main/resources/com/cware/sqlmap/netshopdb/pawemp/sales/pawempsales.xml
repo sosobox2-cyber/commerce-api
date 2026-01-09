@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pawemp.sales">
+    
+    <select id="selectChkPaWempSalesOpt" parameterType="hashMap" resultType="int">
+        SELECT /* pawempsales.xml : pawemp.sales.selectChkPaWempSalesOpt by IF_PAWEMPAPI_05_003 */
+               COUNT(1)
+          FROM TPAWEMPOPTIONSALES
+         WHERE PA_CODE    = #{paCode, jdbcType=VARCHAR}
+           AND BASIC_DATE = TO_DATE(#{basicDt , jdbcType=VARCHAR}, 'yyyy-MM-DD')
+    </select>
+    
+    <select id="selectChkPaWempSalesShip" parameterType="hashMap" resultType="int">
+        SELECT /* pawempsales.xml : pawemp.sales.selectChkPaWempSalesShip by IF_PAWEMPAPI_05_002 */
+               COUNT(1)
+          FROM TPAWEMPSHIPSALES
+         WHERE PA_CODE    = #{paCode, jdbcType=VARCHAR}
+           AND BASIC_DATE = TO_DATE(#{basicDt , jdbcType=VARCHAR}, 'yyyy-MM-DD')                           
+    </select>
+    
+    <delete id="deletePaWempSalesOpt" parameterType="hashMap">
+      DELETE /* pasales.xml : pawemp.sales.settlementList by IF_PAWEMPAPI_05_003 */
+        FROM TPAWEMPOPTIONSALES
+       WHERE BASIC_DATE = TO_DATE(#{basicDt, jdbcType=VARCHAR}, 'YYYY-MM-DD')
+    </delete>
+    
+    <delete id="deletePaWempSalesShip" parameterType="hashMap">
+      DELETE /* pasales.xml : pawemp.sales.settlementList by IF_PAWEMPAPI_05_001 */
+        FROM TPAWEMPSHIPSALES
+       WHERE BASIC_DATE = TO_DATE(#{basicDt, jdbcType=VARCHAR}, 'YYYY-MM-DD')
+    </delete>
+    
+    <insert id="insertPaWempSalesOpt" parameterType="com.cware.netshopping.pawemp.sales.model.SettleOptionSales">
+        INSERT /* pawempsales.xml : pawemp.sales.insertPaWempSalesOpt by IF_PAWEMPAPI_05_003 */
+          INTO TPAWEMPOPTIONSALES(    
+                  PAWEMP_SALES_NO
+                , PA_CODE
+				, BASIC_DATE
+				, ORDER_NO
+				, ORDER_OPT_NO
+				, CLAIM_NO
+				, CLAIM_OPT_NO
+				, PROD_NO
+				, GUBUN
+				, PAYMENT_NO
+				, BUNDLE_NO
+				, PURCHASE_NO
+				, TRANS_TYPE
+				, SETTLE_CYCLE_TYPE
+				, PROD_NAME
+				, PROD_TYPE
+				, SHIP_MNG
+				, PROD_SALE_AMT
+				, COMPLETE_QTY
+				, COMPLETE_AMT
+				, OPT_SALE_QTY
+				, OPT_SALE_AMT
+				, OPT_COMPLETE_AMT
+				, SALE_AGENCY_FEE
+				, FEE_AMT
+				, FEE_RATE
+				, FEE_FLAG
+				, VAT_FLAG
+				, WMP_CHARGE_COUPON_AMT
+				, SELLER_CHARGE_COUPON_AMT
+				, CARD_CHARGE_COUPON_AMT
+				, WMP_CART_COUPON_AMT
+				, SELLER_CART_COUPON_AMT
+				, CARD_CART_COUPON_AMT
+				, PAYMENT_COMPLETE_DATE
+				, SETTLE_PRE_DATE
+				, CLAIM_DEDUCT_AMT
+				, WMP_DISCOUNT_BURDEN_FEE
+				, WMP_EP_AMT
+				, INSERT_ID
+				, INSERT_DATE
+                , WMP_DISCOUNT_BURDEN_AMT
+                , EP_FEE)
+        VALUES (    
+                  #{paWempSalesNo            , jdbcType=VARCHAR}
+                , #{paCode                   , jdbcType=VARCHAR}
+				, TO_DATE(#{basicDt          , jdbcType=VARCHAR}, 'yyyyMMdd')
+				, #{orderNo                  , jdbcType=VARCHAR}
+				, #{orderOptNo               , jdbcType=VARCHAR}
+				, #{claimNo                  , jdbcType=VARCHAR}
+				, #{claimOptNo               , jdbcType=VARCHAR}
+				, #{prodNo                   , jdbcType=VARCHAR}
+				, #{gubun                    , jdbcType=VARCHAR}
+				, #{paymentNo                , jdbcType=VARCHAR}
+				, #{bundleNo                 , jdbcType=VARCHAR}
+				, #{purchaseNo               , jdbcType=VARCHAR}
+				, #{transType                , jdbcType=VARCHAR}
+				, #{settleCycleType          , jdbcType=VARCHAR}
+				, #{prodName                 , jdbcType=VARCHAR}
+				, #{prodType                 , jdbcType=VARCHAR}
+				, #{shipMng                  , jdbcType=VARCHAR}
+				, #{prodSaleAmt              , jdbcType=DOUBLE}
+				, #{completeQty              , jdbcType=DOUBLE}
+				, #{completeAmt              , jdbcType=DOUBLE}
+				, #{completeQty              , jdbcType=DOUBLE}
+				, #{optSaleAmt               , jdbcType=DOUBLE}
+				, #{completeAmt              , jdbcType=DOUBLE}
+				, #{saleAgencyFee            , jdbcType=DOUBLE}
+				, #{feeAmt                   , jdbcType=DOUBLE}
+				, #{feeRate                  , jdbcType=VARCHAR}
+				, #{feeFlag                  , jdbcType=VARCHAR}
+				, #{vatFlag                  , jdbcType=VARCHAR}
+				, #{wmpChargeCouponAmt       , jdbcType=DOUBLE}
+				, #{sellerChargeCouponAmt    , jdbcType=DOUBLE}
+				, #{cardChargeCouponAmt      , jdbcType=DOUBLE}
+				, #{wmpCartCouponAmt         , jdbcType=DOUBLE}
+				, #{sellerCartCouponAmt      , jdbcType=DOUBLE}
+				, #{cardCartCouponAmt        , jdbcType=DOUBLE}
+				, TO_DATE(#{paymentCompleteDt, jdbcType=VARCHAR}, 'yyyyMMdd')
+				, TO_DATE(#{settlePreDt      , jdbcType=VARCHAR}, 'yyyyMMdd')
+				, #{claimDeductAmt           , jdbcType=DOUBLE}
+				, 0
+				, 0
+				, #{insertId                 , jdbcType=VARCHAR}
+				, #{insertDate               , jdbcType=TIMESTAMP}
+                , #{wmpDiscountBurdenAmt     , jdbcType=DOUBLE}
+                , #{epFee                    , jdbcType=DOUBLE})
+    </insert>
+     
+    <insert id="insertPaWempSalesShip" parameterType="com.cware.netshopping.pawemp.sales.model.SettleShipSales">
+        INSERT /* pawempsales.xml : pawemp.sales.insertPaWempSalesShip by IF_PAWEMPAPI_05_002 */
+          INTO TPAWEMPSHIPSALES(
+                  PAWEMP_SALES_NO
+                , PA_CODE
+                , BASIC_DATE
+                , BUNDLE_NO
+                , CLAIM_BUNDLE_NO
+                , GUBUN
+                , ORIGINAL_SHIP_AMT
+                , SHIP_AMT
+                , WMP_CHARGE_COUPON_AMT
+                , SELLER_CHARGE_COUPON_AMT
+                , CARD_CHARGE_COUPON_AMT
+                , CLAIM_CHARGE_CUST
+                , CLAIM_CHARGE_SELLER
+                , CLAIM_CHARGE_WMP
+                , CUST_CHARGE_ADD_SHIP_AMT
+                , SELLER_CHARGE_ADD_SHIP_AMT
+                , WMP_CHARGE_ADD_SHIP_AMT
+                , CUST_CHARGE_RETURN_SHIP_AMT
+                , SELLER_CHARGE_RETURN_SHIP_AMT
+                , WMP_CHARGE_RETURN_SHIP_AMT
+                , SHIP_MNG
+                , CLAIM_DEDUCT_AMT
+                , INSERT_ID
+                , INSERT_DATE)
+        VALUES(
+                  #{paWempSalesNo            , jdbcType=VARCHAR}
+                , #{paCode                   , jdbcType=VARCHAR}
+                , TO_DATE(#{basicDt          , jdbcType=VARCHAR}, 'yyyyMMdd')
+                , #{bundleNo                 , jdbcType=VARCHAR}
+                , #{claimBundleNo            , jdbcType=VARCHAR}
+                , #{gubun                    , jdbcType=VARCHAR}
+                , #{originalShipAmt          , jdbcType=DOUBLE}
+                , #{shipAmt                  , jdbcType=DOUBLE}
+                , #{wmpChargeCouponAmt       , jdbcType=DOUBLE}
+                , #{sellerChargeCouponAmt    , jdbcType=DOUBLE}
+                , #{cardChargeCouponAmt      , jdbcType=DOUBLE}
+                , #{claimChargeCust          , jdbcType=DOUBLE}
+                , #{claimChargeSeller        , jdbcType=DOUBLE}
+                , #{claimChargeWmp           , jdbcType=DOUBLE}
+                , #{custChargeAddShipAmt     , jdbcType=DOUBLE}
+                , #{wmpChargeAddShipAmt      , jdbcType=DOUBLE}
+                , #{sellerChargeAddShipAmt   , jdbcType=DOUBLE}
+                , #{custChargeReturnShipAmt  , jdbcType=DOUBLE}
+                , #{wmpChargeReturnShipAmt   , jdbcType=DOUBLE}
+                , #{sellerChargeReturnShipAmt, jdbcType=DOUBLE}
+                , #{shipMng                  , jdbcType=VARCHAR}
+                , #{claimDeductAmt           , jdbcType=DOUBLE}
+                , #{insertId                 , jdbcType=VARCHAR}
+                , #{insertDate               , jdbcType=TIMESTAMP})    
+    </insert>
+    
+    <select id="selectPaSettlementOptExists" parameterType="com.cware.netshopping.pawemp.sales.model.SettleOptionSales" resultType="int">
+      SELECT /* pawempsales.xml : pawemp.sales.selectPaSettlementOptExists */
+             COUNT(1) 
+        FROM TPAWEMPOPTIONSALES T
+       WHERE T.PA_CODE		= #{paCode    , jdbcType=VARCHAR}
+         AND T.ORDER_NO		= #{orderNo   , jdbcType=VARCHAR}
+         AND T.ORDER_OPT_NO	= #{orderOptNo, jdbcType=VARCHAR}
+         AND T.CLAIM_NO		= #{claimNo   , jdbcType=VARCHAR}
+         AND T.CLAIM_OPT_NO	= #{claimOptNo, jdbcType=VARCHAR}
+         AND T.GUBUN		= #{gubun     , jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectPaSettlementShipExists" parameterType="com.cware.netshopping.pawemp.sales.model.SettleShipSales" resultType="int">
+      SELECT /* pawempsales.xml : pawemp.sales.selectPaSettlementShipExists */
+             COUNT(1) 
+        FROM TPAWEMPSHIPSALES T
+       WHERE T.PA_CODE			= #{paCode       , jdbcType=VARCHAR}
+         AND T.BUNDLE_NO		= #{bundleNo     , jdbcType=VARCHAR}
+         AND T.CLAIM_BUNDLE_NO	= #{claimBundleNo, jdbcType=VARCHAR}
+         AND T.GUBUN 			= #{gubun        , jdbcType=VARCHAR}
+    </select>
+</mapper>

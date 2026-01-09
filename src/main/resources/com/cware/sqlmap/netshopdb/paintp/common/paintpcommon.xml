@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="paIntp.common">
+
+	<insert id="insertPaIntpBrand" parameterType="com.cware.netshopping.domain.model.PaBrand">
+        INSERT /* paintpcommon.xml : paintp.paintpcommon.insertPaIntpBrand by PaIntpCommonController-brandList */
+          INTO TPABRAND
+             ( PA_GROUP_CODE
+             , PA_BRAND_NO
+             , PA_BRAND_NAME
+             , INSERT_ID
+             , INSERT_DATE
+             , MODIFY_ID
+             , MODIFY_DATE )
+        VALUES 
+             ( #{paGroupCode, jdbcType=VARCHAR}
+             , #{paBrandNo, jdbcType=VARCHAR}
+             , #{paBrandName, jdbcType=VARCHAR}
+             , #{insertId, jdbcType=VARCHAR}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{modifyId, jdbcType=VARCHAR}
+             , #{modifyDate, jdbcType=TIMESTAMP}
+             )
+    </insert>
+    
+    <select id="selectEntpSlipCost" resultType="hashMap" parameterType="hashMap">
+        SELECT PCC.ORD_COST
+		     , PCC.SHIP_COST_BASE_AMT
+		     , PCC.ENTP_CODE
+		     , PCC.SHIP_COST_CODE
+		     , PCC.GROUP_CODE
+		     , PCC.ISLAND_COST
+         	 , PCC.JEJU_COST
+		  FROM TPACUSTSHIPCOST PCC
+		 WHERE PCC.PA_CODE = #{paCode, jdbcType=VARCHAR}
+		 <if test='entpCode != null and entpCode !="" '>
+		   AND PCC.ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+		 </if>
+		 <if test='shipCostCode != null and shipCostCode !="" '>
+		   AND PCC.SHIP_COST_CODE = #{shipCostCode, jdbcType=VARCHAR}
+		 </if>
+		 <if test ='modCase =="MODIFY"'>
+		   AND PCC.GROUP_CODE IS NOT NULL
+		 </if>
+		 <if test ='modCase =="INSERT"'>
+		   AND PCC.GROUP_CODE IS NULL
+		 </if>
+		   AND PCC.TRANS_TARGET_YN = '1'
+	  ORDER BY PCC.ENTP_CODE, PCC.ORD_COST, PCC.SHIP_COST_BASE_AMT
+    </select>
+    
+    <update id="updatePaIntpCustShipCost" parameterType="hashMap">
+    	UPDATE /* paintpcommon.xml : paintp.paintpcommon.updatePaIntpCustShipCost by PaIntpCommonController-delvCostPlcInsert */
+		       TPACUSTSHIPCOST
+		   SET TRANS_TARGET_YN 		= '0'
+			<if test='delvCostPlcNo != null and delvCostPlcNo != ""'>
+    		 , GROUP_CODE			= #{delvCostPlcNo,	jdbcType=VARCHAR}
+			</if>
+			 , MODIFY_ID        	= #{modifyId, 		jdbcType=VARCHAR}
+		     , MODIFY_DATE     		= #{modifyDate,		jdbcType=TIMESTAMP}
+		 WHERE ENTP_CODE      	= #{entpCode,		jdbcType=VARCHAR}
+		   AND PA_CODE        	= #{paCode,			jdbcType=VARCHAR}
+		   AND SHIP_COST_CODE 	= #{shipCostCode,	jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updatePaIntpEntpSlip" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">
+        UPDATE /* paintpcommon.xml : paintp.paintpcommon.updatePaIntpEntpSlip by PaIntpCommonController-entpShipInsert */
+               TPAENTPSLIP
+           SET TRANS_TARGET_YN = #{transTargetYn, jdbcType=VARCHAR}
+             , MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+             , MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+         WHERE ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+           AND PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PA_ADDR_SEQ = #{paAddrSeq, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectEntpShipUpdateList" resultType="hashMap" parameterType="String">
+        SELECT /* paintpcommon.xml : paintp.paintpcommon.selectEntpShipUpdateList by PaIntpCommonController-entpShipUpdate */
+               EU.POST_NO
+             , EU.POST_SEQ
+             , NVL(EU.STD_POST_ADDR1,EU.POST_ADDR) AS ADDRESS1
+             , NVL(EU.STD_POST_ADDR2,EU.ADDR) AS ADDRESS2
+             , EU.ENTP_CODE
+             , EU.ENTP_MAN_SEQ
+             , EU.ENTP_MAN_GB 
+             , EU.ENTP_MAN_NAME
+             , EU.ENTP_MAN_DDD || '-' || EU.ENTP_MAN_TEL1 || '-' || EU.ENTP_MAN_TEL2 AS ENTP_MAN_TEL
+             , EU.ENTP_MAN_HP1 || DECODE(EU.ENTP_MAN_HP1, NULL, '', '-') || EU.ENTP_MAN_HP2 || DECODE(EU.ENTP_MAN_HP2, NULL, '', '-') || EU.ENTP_MAN_HP3 AS ENTP_MAN_HP
+             , PL.PA_CODE
+             , PL.PA_ADDR_SEQ
+          FROM TENTPUSER EU
+             , TENTERPRISE EP
+             , TPAENTPSLIP PL
+         WHERE EU.ENTP_CODE = EP.ENTP_CODE
+           AND EU.ENTP_CODE = PL.ENTP_CODE
+           AND EU.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+           AND PL.PA_CODE IN ('71','72')
+           AND PL.PA_ADDR_GB = #{paAddrGb, jdbcType=VARCHAR}
+           AND PL.TRANS_TARGET_YN = '1'
+           AND PL.PA_ADDR_SEQ IS NOT NULL
+    </select>
+    
+    <select id="selectEntpShipUpdate" resultType="hashMap" parameterType="String">
+        SELECT /* paintpcommon.xml : paintp.paintpcommon.selectEntpShipUpdate by PaIntpSellerService */
+               EU.POST_NO
+             , EU.POST_SEQ
+             , NVL(EU.STD_POST_ADDR1,EU.POST_ADDR) AS ADDRESS1
+             , NVL(EU.STD_POST_ADDR2,EU.ADDR) AS ADDRESS2
+             , EU.ENTP_CODE
+             , EU.ENTP_MAN_SEQ
+             , EU.ENTP_MAN_GB 
+             , EU.ENTP_MAN_NAME
+             , EU.ENTP_MAN_DDD || '-' || EU.ENTP_MAN_TEL1 || '-' || EU.ENTP_MAN_TEL2 AS ENTP_MAN_TEL
+             , EU.ENTP_MAN_HP1 || DECODE(EU.ENTP_MAN_HP1, NULL, '', '-') || EU.ENTP_MAN_HP2 || DECODE(EU.ENTP_MAN_HP2, NULL, '', '-') || EU.ENTP_MAN_HP3 AS ENTP_MAN_HP
+             , PL.PA_CODE
+             , PL.PA_ADDR_SEQ
+          FROM TENTPUSER EU
+             , TENTERPRISE EP
+             , TPAENTPSLIP PL
+         WHERE EU.ENTP_CODE = EP.ENTP_CODE
+           AND EU.ENTP_CODE = PL.ENTP_CODE
+           AND EU.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+           AND PL.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PL.TRANS_TARGET_YN = '1'
+           AND PL.PA_ADDR_SEQ IS NOT NULL
+           AND PL.ENTP_CODE = #{entpCode, jdbcType=VARCHAR}
+           AND PL.ENTP_MAN_SEQ = #{entpManSeq, jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectEntpShipInsertList" resultType="hashMap" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">
+        SELECT /* paintpcommon.xml : paintp.paintpcommon.selectEntpShipInsertList by PaIntpCommonController-selectEntpShipInsertList	*/
+               EU.POST_NO
+             , EU.POST_SEQ
+             , NVL(EU.STD_POST_ADDR1,EU.POST_ADDR) AS ADDRESS1
+             , NVL(EU.STD_POST_ADDR2,EU.ADDR) AS ADDRESS2
+             , EU.ENTP_CODE
+             , EU.ENTP_MAN_SEQ
+             , EU.ENTP_MAN_GB 
+             , EU.ENTP_MAN_NAME
+             , EU.ENTP_MAN_DDD || '-' || EU.ENTP_MAN_TEL1 || '-' || EU.ENTP_MAN_TEL2 AS ENTP_MAN_TEL
+             , EU.ENTP_MAN_HP1 || DECODE(EU.ENTP_MAN_HP1, NULL, '', '-') || EU.ENTP_MAN_HP2 || DECODE(EU.ENTP_MAN_HP2, NULL, '', '-') || EU.ENTP_MAN_HP3 AS ENTP_MAN_HP
+          FROM TENTPUSER   EU
+             , TENTERPRISE EP
+         WHERE EU.ENTP_CODE    = EP.ENTP_CODE    
+           AND EU.ENTP_CODE    = #{entpCode, jdbcType=VARCHAR}
+           AND EU.ENTP_MAN_SEQ = #{entpManSeq, jdbcType=VARCHAR}
+           <if test="paAddrSeq == null or paAddrSeq == '' ">
+           AND NOT EXISTS (SELECT 'X'
+                             FROM TPAENTPSLIP PL               
+                            WHERE EU.ENTP_CODE    = PL.ENTP_CODE
+                              AND EU.ENTP_MAN_SEQ = PL.ENTP_MAN_SEQ
+                              AND PL.PA_CODE      = #{paCode, jdbcType=VARCHAR})
+           </if>
+    </select>
+    
+    <insert id="insertPaIntpEntpSlip" parameterType="com.cware.netshopping.domain.model.PaEntpSlip">    
+        INSERT /* paintpcommon.xml : paintp.paintpcommon.insertPaIntpEntpSlip by PaIntpCommonController-entpShipInsert */
+          INTO TPAENTPSLIP
+             ( ENTP_CODE
+             , ENTP_MAN_SEQ
+             , PA_CODE
+             , PA_ADDR_SEQ
+             , PA_ADDR_GB
+             , TRANS_TARGET_YN
+             , LAST_SYNC_DATE
+             , INSERT_DATE
+             , INSERT_ID
+             , MODIFY_DATE
+             , MODIFY_ID )
+        VALUES 
+             ( #{entpCode, jdbcType=VARCHAR}
+             , #{entpManSeq, jdbcType=VARCHAR}
+             , #{paCode, jdbcType=VARCHAR}
+             , #{paAddrSeq, jdbcType=VARCHAR}
+             , #{paAddrGb, jdbcType=VARCHAR}
+             , #{transTargetYn, jdbcType=VARCHAR}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{insertDate, jdbcType=TIMESTAMP}
+             , #{insertId, jdbcType=VARCHAR}
+             , #{modifyDate, jdbcType=TIMESTAMP}
+             , #{modifyId, jdbcType=VARCHAR}
+             )  
+    </insert>
+    
+    <delete id="deletePaIntpSettlement" parameterType="hashMap">
+        DELETE /* paintpcommon.xml : paintp.paintpcommon.deletePaIntpSettlement */ 
+          FROM TPAINTPSETTLEMENT
+         WHERE TO_DATE(REV_DT,'YYYY-MM-DD') BETWEEN TO_DATE(#{strDate , jdbcType=VARCHAR}, 'YYYY-MM-DD')
+                                    AND TO_DATE(#{endDate, jdbcType=VARCHAR}, 'YYYY-MM-DD')
+    </delete>
+    
+    <select id="selectPaSettlementExists" parameterType="com.cware.netshopping.domain.model.PaIntpSettlement" resultType="int">
+      SELECT /* paintpcommon.xml : paintp.paintpcommon.selectPaSettlementExists */
+             COUNT(1) 
+        FROM TPAINTPSETTLEMENT PS
+       WHERE PS.REV_LOG_NM = #{revLogNm, jdbcType=VARCHAR}
+         AND PS.CNCL_YN = #{cnclYn, jdbcType=VARCHAR}
+         AND PS.SETL_MOD_TP = #{setlModTp, jdbcType=VARCHAR}
+         AND PS.ORDCLM_NO = #{ordclmNo, jdbcType=VARCHAR}
+         AND PS.ORD_SEQ = #{ordSeq, jdbcType=VARCHAR}
+       	 AND PS.REV_DT = #{revDt, jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertPaIntpSettlement" parameterType="com.cware.netshopping.domain.model.PaIntpSettlement">    
+    INSERT /* paintpcommon.xml : paintp.paintpcommon.insertPaIntpSettlement */
+          INTO TPAINTPSETTLEMENT
+             ( PAINTP_SETTLEMENT_NO
+             , REV_LOG_NM
+             , CNCL_YN
+             , SETL_MOD_TP
+             , REV_DT
+             , ORDCLM_NO
+             , ORD_SEQ
+             , ORI_ORDCLM_NO
+             , CLM_SEQ             
+             , ORD_NM
+             , RCVR_NM
+             , PARENT_PRD_NO
+             , PARENT_PRD_NM
+             , PRD_NO
+             , OPT_FNM
+             , OLD_SALE_UNITCOST
+             , REAL_SALE_UNITCOST
+             , SALE_FEE_RT
+             , IN_DC_COUPON_AMT
+             , ENTR_DIRECT_DC_AMT
+             , ENTR_DC_COUPON_AMT
+             , SALE_QTY
+             , SALE_AMT
+             , SALE_FEE
+             , DELV_END_DT
+             , TRANSFER_DT
+             , PRE_USE_UNITCOST
+             , IPOINT_DC_AMT
+             , INPK_ONUS_AMT
+             , DEPOSIT_AMT
+             )
+        VALUES 
+             ( #{paIntpSettlementNo, jdbcType=VARCHAR}
+             , #{revLogNm, jdbcType=VARCHAR}
+             , #{cnclYn, jdbcType=VARCHAR}
+             , #{setlModTp, jdbcType=VARCHAR}
+             , #{revDt, jdbcType=VARCHAR}
+             , #{ordclmNo, jdbcType=VARCHAR}
+             , #{ordSeq, jdbcType=VARCHAR}
+             , #{oriOrdclmNo, jdbcType=VARCHAR}
+             , #{clmSeq, jdbcType=VARCHAR}
+             , #{ordNm, jdbcType=VARCHAR}
+             , #{rcvrNm, jdbcType=VARCHAR}
+             , #{parentPrdNo, jdbcType=VARCHAR}
+             , #{parentPrdNm, jdbcType=VARCHAR}
+             , #{prdNo, jdbcType=VARCHAR}
+             , #{optFnm, jdbcType=VARCHAR}
+             , #{oldSaleUnitcost, jdbcType=NUMERIC}
+             , #{realSaleUnitcost, jdbcType=NUMERIC}
+             , #{saleFeeRt, jdbcType=NUMERIC}
+             , #{inDcCouponAmt, jdbcType=NUMERIC}
+             , #{entrDirectDcAmt, jdbcType=NUMERIC}
+             , #{entrDcCouponAmt, jdbcType=NUMERIC}
+             , #{saleQty, jdbcType=NUMERIC}
+             , #{saleAmt, jdbcType=NUMERIC}
+             , #{saleFee, jdbcType=NUMERIC}
+             , #{delvEndDt, jdbcType=VARCHAR}
+             , #{transferDt, jdbcType=VARCHAR}
+             , #{preUseUnitcost, jdbcType=NUMERIC}
+             , #{ipointDcAmt, jdbcType=NUMERIC}
+             , #{inpkOnusAmt, jdbcType=NUMERIC}
+             , #{depositAmt, jdbcType=NUMERIC}
+             )
+    </insert>
+    
+     <delete id="deletePaIntpDelvSettlement" parameterType="hashMap">
+        DELETE /* paintpcommon.xml : paintp.paintpcommon.deletePaIntpDelvSettlement */ 
+          FROM TPAINTPDELVSETTLEMENT
+         WHERE TO_DATE(REV_DT,'YYYY-MM-DD') BETWEEN TO_DATE(#{strDate , jdbcType=VARCHAR}, 'YYYY-MM-DD')
+                                    AND TO_DATE(#{endDate, jdbcType=VARCHAR}, 'YYYY-MM-DD')
+    </delete>
+    
+     <select id="selectPaDelvSettlementExists" parameterType="com.cware.netshopping.domain.model.PaIntpDelvSettlement" resultType="int">
+      SELECT /* paintpcommon.xml : paintp.paintpcommon.selectPaDelvSettlementExists */
+             COUNT(1) 
+        FROM TPAINTPDELVSETTLEMENT PS
+       WHERE PS.REV_LOG_NM = #{revLogNm, jdbcType=VARCHAR}
+         AND PS.CNCL_YN = #{cnclYn, jdbcType=VARCHAR}
+         AND PS.SETL_MOD_TP = #{setlModTp, jdbcType=VARCHAR}
+         AND PS.ORDCLM_NO = #{ordclmNo, jdbcType=VARCHAR}
+         AND PS.ORD_SEQ = #{ordSeq, jdbcType=VARCHAR}
+       	 AND PS.REV_DT = #{revDt, jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertPaIntpDelvSettlement" parameterType="com.cware.netshopping.domain.model.PaIntpDelvSettlement">    
+    INSERT /* paintpcommon.xml : paintp.paintpcommon.insertPaIntpDelvSettlement */
+          INTO TPAINTPDELVSETTLEMENT
+             ( DELVSETTLE_NO  
+             , REV_LOG_NM
+             , CNCL_YN
+             , SETL_MOD_TP
+             , REV_DT
+             , ORDCLM_NO
+             , ORD_SEQ
+             , ORI_ORDCLM_NO
+             , CLM_SEQ             
+             , ORD_NM
+             , RCVR_NM
+             , DELV_AMT
+             , DELV_RTN_AMT
+             , FEE_24
+             , FEE_22
+             , TRANSFER_DT
+             )
+        VALUES 
+             ( #{paIntpSettlementNo, jdbcType=VARCHAR}
+             , #{revLogNm, jdbcType=VARCHAR}
+             , #{cnclYn, jdbcType=VARCHAR}
+             , #{setlModTp, jdbcType=VARCHAR}
+             , #{revDt, jdbcType=VARCHAR}
+             , #{ordclmNo, jdbcType=VARCHAR}
+             , #{ordSeq, jdbcType=VARCHAR}
+             , #{oriOrdclmNo, jdbcType=VARCHAR}
+             , #{clmSeq, jdbcType=VARCHAR}
+             , #{ordNm, jdbcType=VARCHAR}
+             , #{rcvrNm, jdbcType=VARCHAR}
+             , #{delvAmt, jdbcType=NUMERIC}
+             , #{delvRtnAmt, jdbcType=NUMERIC}
+             , #{fee24, jdbcType=VARCHAR}
+             , #{fee22, jdbcType=VARCHAR}
+             , #{transferDt, jdbcType=VARCHAR}
+             )
+    </insert>
+</mapper>

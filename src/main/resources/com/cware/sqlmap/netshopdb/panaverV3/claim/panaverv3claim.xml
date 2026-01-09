@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="panaver.v3.claim">
+    
+    <select id="selectPaNaverClaimApprovalList" parameterType="hashMap" resultType="hashMap">
+        SELECT /* panaverv3claim.xml : panaver.v3.claim.selectPaNaverClaimApprovalList */
+               PM.MAPPING_SEQ
+             , PM.PA_ORDER_NO
+             , PM.PA_ORDER_SEQ AS PRODUCT_ORDER_ID
+             , PM.PA_CLAIM_NO
+             , PM.OUT_BEF_CLAIM_GB
+             , PM2.PA_DO_FLAG
+             , PM.PA_CODE
+          FROM TPAORDERM PM
+    INNER JOIN TPAORDERM PM2
+            ON PM.PA_ORDER_NO = PM2.PA_ORDER_NO
+           AND PM.PA_ORDER_SEQ = PM2.PA_ORDER_SEQ
+           AND PM.PA_CODE = PM2.PA_CODE
+    INNER JOIN TCLAIMDT CD
+            ON CD.ORDER_NO    = PM.ORDER_NO
+           AND CD.ORDER_G_SEQ = PM.ORDER_G_SEQ
+           AND CD.ORDER_D_SEQ = PM.ORDER_D_SEQ
+           AND CD.ORDER_W_SEQ = PM.ORDER_W_SEQ
+    INNER JOIN TCODE TC
+            ON PM.PA_CODE     = TC.CODE_MGROUP
+         WHERE TC.CODE_LGROUP = 'O501'
+           AND TC.CODE_MGROUP = '41'
+           AND TC.CODE_GROUP  = '04'
+           AND TC.USE_YN      = '1'
+           AND (PM.PA_ORDER_GB = '30' or (PM.PA_ORDER_GB = '20' AND PM.OUT_BEF_CLAIM_GB = '1')) 
+           AND PM.PA_DO_FLAG  &lt; '60'
+           AND CD.CLAIM_GB    = '30'
+           AND CD.DO_FLAG     = '60'
+           AND PM.PA_CODE     = '41'
+           AND PM2.PA_ORDER_GB = '10'
+           <if test="productOrderId != '' and productOrderId != null">
+               AND PM.PA_ORDER_SEQ = #{productOrderId , jdbcType=VARCHAR} 
+           </if>
+    </select>
+        
+    <update id="updatePaOrdermResult" parameterType="com.cware.netshopping.domain.model.Paorderm">
+        UPDATE TPAORDERM /* panaverv3claim.xml : panaver.v3.claim.updatePaOrdermResult */
+           SET API_RESULT_CODE = #{apiResultCode , jdbcType=VARCHAR}
+             , API_RESULT_MESSAGE = #{apiResultMessage , jdbcType=VARCHAR}
+             <if test='apiResultCode == "000000"'>
+             , PA_DO_FLAG = #{paDoFlag , jdbcType=VARCHAR}
+             , PROC_DATE = #{procDate , jdbcType=TIMESTAMP}
+             </if>
+             , MODIFY_DATE = SYSDATE
+             , MODIFY_ID = #{modifyId, jdbcType=VARCHAR}
+         WHERE 1=1
+           <choose>
+            <when test="mappingSeq != '' and mappingSeq != null">
+            AND MAPPING_SEQ = #{mappingSeq , jdbcType=VARCHAR} 
+            </when>
+            <when test="paOrderNo != '' and paOrderNo != null">
+            AND PA_ORDER_NO  = #{paOrderNo , jdbcType=VARCHAR}
+            AND PA_ORDER_SEQ = #{paOrderSeq , jdbcType=VARCHAR}
+            AND PA_CODE = #{paCode , jdbcType=VARCHAR}
+            </when>
+           </choose>
+    </update>
+    
+    <select id="selectReturnClaimTargetList" resultType="hashMap">
+        SELECT /* panaverv3claim.xml : panaver.v3.claim.selectReturnClaimTargetList */
+              PM.PA_ORDER_NO AS ORDER_ID
+            , PM.PA_ORDER_SEQ AS PRODUCT_ORDER_ID
+            , PM.PA_CLAIM_NO AS CLAIM_ID
+            , PM.PA_ORDER_GB
+          FROM TPAORDERM PM
+         WHERE PM.PA_CODE = '41'
+           AND PM.PA_ORDER_GB = '30'
+           AND PM.CREATE_YN = '0'
+           AND PM.PRE_CANCEL_YN = '0'
+           AND PM.INSERT_DATE > TRUNC(SYSDATE) - 15
+           AND PM.PA_ORDER_NO = #{orderId, jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ = #{productOrderId, jdbcType=VARCHAR}
+           
+     UNION ALL
+     
+        SELECT PM.PA_ORDER_NO AS ORDER_ID
+             , PM.PA_ORDER_SEQ AS PRODUCT_ORDER_ID
+             , PM.PA_CLAIM_NO AS CLAIM_ID
+             , PM.PA_ORDER_GB
+          FROM TPAORDERM PM
+         WHERE PM.PA_CODE = '41'
+           AND PM.PA_ORDER_GB = '20'
+           AND PM.OUT_BEF_CLAIM_GB = '1'
+           AND PM.CREATE_YN = '0'
+           AND PM.PRE_CANCEL_YN = '0'
+           AND PM.PA_ORDER_NO = #{orderId, jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ = #{productOrderId, jdbcType=VARCHAR}
+           AND EXISTS (SELECT 1
+                         FROM TPANAVERCLAIMLIST CL
+                        WHERE CL.PRODUCT_ORDER_ID = #{productOrderId, jdbcType=VARCHAR}
+                          AND CL.CLAIM_STATUS IN ('02', '41'))
+    </select>
+        
+    <select id="selectReturnClaimTargetDt30List" parameterType="hashMap" resultType="hashMap">
+        SELECT /* panaverv3claim.xml : panaver.v3.claim.selectReturnClaimTargetDt30List */
+               PM.MAPPING_SEQ
+             , PM.PA_ORDER_NO
+             , OPM.ORDER_NO
+             , OPM.ORDER_G_SEQ
+             , PM.PA_PROC_QTY
+             , CS_LGROUP||CS_MGROUP||CS_SGROUP AS CLAIM_CODE
+             , PC.DETAILED_REASON AS CLAIM_DESC
+             , NVL(PCC.SHIPCOST_CHARGE_YN, '1') AS SHIPCOST_CHARGE_YN
+             , A.NAME AS RETURN_NAME
+             , CWARE_ENC_DEC(A.TEL1, 'D') AS RETURN_TEL
+             , CWARE_ENC_DEC(A.TEL2, 'D') AS RETURN_HP
+             , CWARE_ENC_DEC(A.BASE_ADDRESS, 'D') || ' ' || CWARE_ENC_DEC(A.DETAILED_ADDRESS, 'D') AS RETURN_ADDR
+             , PM.OUT_BEF_CLAIM_GB AS OUT_BEF_CLAIM_GB
+             , DECODE(PC.COLLECT_DELIVERY_METHOD, '13', '1', '0') AS CUST_DELY_YN
+             , NVL((SELECT DELY_GB FROM TPADELYGB WHERE PA_CODE = '04' AND PA_DELY_GB = PC.COLLECT_DELIVERY_COMPANY), '40') AS RETURN_DELY_GB 
+             , PC.COLLECT_TRACKING_NUMBER AS RETURN_SLIP_NO
+             , CWARE_ENC_DEC(A.ZIP_CODE, 'D')   AS RCVR_MAIL_NO
+             , CWARE_ENC_DEC(A.BASE_ADDRESS, 'D')   AS RCVR_BASE_ADDR
+             , CWARE_ENC_DEC(A.DETAILED_ADDRESS, 'D')   AS RCVR_DTLS_ADDR    
+             , CWARE_ENC_DEC(A.ZIP_CODE, 'D') AS RCVR_MAIL_NO_SEQ
+             , PC.DELIVERY_FEE_DEMAND_AMOUNT + PC.ETC_FEE_DEMAND_AMOUNT - PC.DELIVERY_FEE_DISCOUNT_AMOUNT - PO.DELIVERY_FEE_AMT AS SHIP_FEE
+             , PC.DELIVERY_FEE_DEMAND_AMOUNT + PC.ETC_FEE_DEMAND_AMOUNT - PC.DELIVERY_FEE_DISCOUNT_AMOUNT - PO.DELIVERY_FEE_AMT AS CLM_LST_DLV_CST
+             , PO.CLAIM_ID
+             , DECODE(A.IS_ROAD_NAME_ADDRESS, 'false','01','02') AS RCVR_TYPE_ADD
+             , PC.DELIVERY_FEE_PAY_METHOD
+          FROM TPAORDERM PM   /*반품접수건*/
+    INNER JOIN TPAORDERM OPM  /*원주문건*/
+            ON PM.PA_ORDER_NO = OPM.PA_ORDER_NO
+           AND PM.PA_ORDER_SEQ = OPM.PA_ORDER_SEQ
+           AND PM.PA_CODE = OPM.PA_CODE
+    INNER JOIN TPANAVERORDERLIST PO
+            ON PO.ORDER_ID = PM.PA_ORDER_NO
+           AND PO.PRODUCT_ORDER_ID = PM.PA_ORDER_SEQ
+    INNER JOIN TPANAVERCLAIMLIST PC
+            ON PO.CLAIM_SEQ = PC.CLAIM_SEQ
+     LEFT JOIN TPANAVERADDRESS A
+            ON PC.COLLECT_ADDRESS_SEQ = A.ADDRESS_SEQ
+     LEFT JOIN TPANAVERADDRESS B
+            ON PC.RETURN_RECEIVE_ADDRESS_SEQ = B.ADDRESS_SEQ
+    INNER JOIN TPACLAIMCODE PCC
+            ON PC.CLAIM_REASON = PCC.PA_CLAIM_CODE
+         WHERE PO.CLAIM_STATUS IN ('10', '11', '13', '41')
+           AND PCC.PA_CODE = '04'
+           AND PCC.CLAIM_GB = '30'
+           AND PM.PA_CODE = '41'
+           AND PM.PA_ORDER_GB = '30'
+           AND PM.CREATE_YN = '0'
+           AND PM.PRE_CANCEL_YN = '0'
+           AND PM.INSERT_DATE > TRUNC(SYSDATE) - 5
+           AND OPM.PA_ORDER_GB = '10'
+           AND OPM.CREATE_YN = '1'
+           AND PM.PA_ORDER_NO   = #{orderId, jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ  = #{productOrderId, jdbcType=VARCHAR}
+           AND PM.PA_CLAIM_NO   = #{claimId, jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectReturnClaimTargetDt20List" parameterType="hashMap" resultType="hashMap">
+        SELECT /* panaverv3claim.xml : panaver.v3.claim.selectReturnClaimTargetDt20List */
+               PM.MAPPING_SEQ
+             , PM.PA_ORDER_NO
+             , OPM.ORDER_NO
+             , OPM.ORDER_G_SEQ
+             , PM.PA_PROC_QTY
+             , PC.CLAIM_REASON_CODE AS CLAIM_CODE
+             , '네이버 취소' AS CLAIM_DESC
+             , A.NAME AS RETURN_NAME
+             , CWARE_ENC_DEC(A.TEL1, 'D') AS RETURN_TEL
+             , CWARE_ENC_DEC(A.TEL2, 'D') AS RETURN_HP
+             , CWARE_ENC_DEC(A.BASE_ADDRESS, 'D') || ' ' || CWARE_ENC_DEC(A.DETAILED_ADDRESS, 'D') AS RETURN_ADDR
+             , PM.OUT_BEF_CLAIM_GB AS OUT_BEF_CLAIM_GB
+             , '' AS CUST_DELY_YN
+             , '' AS RETURN_DELY_GB
+             , '' AS RETURN_SLIP_NO
+             , 0 AS SHIP_FEE
+             , '0' AS SHIPCOST_CHARGE_YN
+             , '0' AS CLM_LST_DLV_CST
+          FROM TPAORDERM PM   /*출하지시 이후 취소 접수건*/
+    INNER JOIN TPAORDERM OPM  /*원주문건*/
+            ON PM.PA_ORDER_NO = OPM.PA_ORDER_NO
+           AND PM.PA_ORDER_SEQ = OPM.PA_ORDER_SEQ
+           AND PM.PA_CODE = OPM.PA_CODE
+    INNER JOIN TPANAVERORDERLIST PO
+            ON OPM.PA_ORDER_NO = PO.ORDER_ID
+           AND OPM.PA_ORDER_SEQ = PO.PRODUCT_ORDER_ID
+    INNER JOIN TPANAVERCLAIMLIST PC
+            ON PO.CLAIM_SEQ = PC.CLAIM_SEQ
+     LEFT JOIN TPANAVERADDRESS A
+            ON PC.COLLECT_ADDRESS_SEQ = A.ADDRESS_SEQ
+     LEFT JOIN TPANAVERADDRESS B
+            ON PC.RETURN_RECEIVE_ADDRESS_SEQ = B.ADDRESS_SEQ
+         WHERE PM.PA_CODE = '41'
+           AND PM.PA_ORDER_GB = '20'
+           AND PM.CREATE_YN = '0'
+           AND PM.PRE_CANCEL_YN = '0'
+           AND PM.OUT_BEF_CLAIM_GB = '1'
+           AND OPM.PA_ORDER_GB = '10'
+           AND OPM.CREATE_YN = '1'
+           AND PM.PA_ORDER_NO   = #{orderId, jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ  = #{productOrderId, jdbcType=VARCHAR}
+           AND PM.PA_CLAIM_NO   = #{claimId, jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectReturnCancelTargetDtList" parameterType="hashMap" resultType="hashMap">
+    	SELECT X.* /* panaverv3claim.xml : panaver.v3.claim.selectReturnCancelTargetDtList */
+    	  FROM (
+		        SELECT PM.MAPPING_SEQ
+		             , OPM.ORDER_NO
+		             , OPM.ORDER_G_SEQ
+		             , OPM.ORDER_W_SEQ
+		             , PM.PA_PROC_QTY
+		             , NC.CLAIM_REASON_CODE AS CANCEL_CODE 
+		             , OPM.PRE_CANCEL_YN
+		          FROM TPAORDERM PM   /*반품취소건*/
+		    INNER JOIN TPAORDERM OPM  /*원 반품건*/
+		            ON PM.PA_ORDER_NO = OPM.PA_ORDER_NO
+		           AND PM.PA_ORDER_SEQ = OPM.PA_ORDER_SEQ
+		           AND PM.PA_CLAIM_NO = OPM.PA_CLAIM_NO
+		           AND PM.PA_CODE = OPM.PA_CODE
+		    INNER JOIN TPANAVERORDERLIST PC
+		            ON PM.PA_ORDER_NO = PC.ORDER_ID
+		           AND PM.PA_ORDER_SEQ = PC.PRODUCT_ORDER_ID
+		    INNER JOIN TPANAVERCLAIMLIST NC
+		            ON PC.CLAIM_SEQ = NC.CLAIM_SEQ
+		         WHERE NC.CLAIM_STATUS = '14'
+		           AND PM.PA_ORDER_GB = '31'
+		           AND PM.OUT_BEF_CLAIM_GB = '0'
+		           AND PM.CREATE_YN = '0'
+		           AND PM.PRE_CANCEL_YN = '0'
+		           AND PM.INSERT_DATE > TRUNC(SYSDATE) - 5
+		           AND OPM.PA_ORDER_GB = '30'
+		           AND OPM.CREATE_YN = '1'
+		           AND PM.PA_CODE       = '41'
+		           AND PM.PA_ORDER_NO   = #{orderId, jdbcType=VARCHAR}
+		           AND PM.PA_ORDER_SEQ  = #{productOrderId, jdbcType=VARCHAR} 
+		           AND PM.PA_CLAIM_NO   = #{claimId, jdbcType=VARCHAR}
+		           
+		        UNION ALL
+		      
+		        SELECT PM.MAPPING_SEQ
+		             , '' AS ORDER_NO
+		             , '' AS ORDER_G_SEQ
+		             , '' AS ORDER_W_SEQ
+		             , '' AS PA_PROC_QTY
+		             , '' AS CANCEL_CODE
+		             , '1' AS PRE_CANCEL_YN
+		          FROM TPAORDERM PM
+		         WHERE PM.PA_ORDER_GB = '31'
+		           AND PM.CREATE_YN = '0'
+		           AND PM.PRE_CANCEL_YN = '0'        
+		           AND PM.PA_CODE       = '41'
+		           AND PM.PA_ORDER_NO   = #{orderId, jdbcType=VARCHAR}
+		           AND PM.PA_ORDER_SEQ  = #{productOrderId, jdbcType=VARCHAR} 
+		           AND PM.PA_CLAIM_NO   = #{claimId, jdbcType=VARCHAR}
+		           AND NOT EXISTS (SELECT 1
+				                     FROM TPAORDERM PMC
+				                    WHERE PM.PA_ORDER_NO = PMC.PA_ORDER_NO
+				                      AND PM.PA_ORDER_SEQ = PMC.PA_ORDER_SEQ
+				                      AND PM.PA_CLAIM_NO = PMC.PA_CLAIM_NO
+				                      AND PMC.PA_ORDER_GB ='30')
+			    ) X
+	     ORDER BY X.MAPPING_SEQ DESC
+    </select>
+</mapper>

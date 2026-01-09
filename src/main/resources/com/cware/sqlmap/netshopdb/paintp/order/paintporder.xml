@@ -1,0 +1,955 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="paintp.order">
+	<select id="countOrderList" parameterType="hashMap" resultType="int">
+        SELECT /* paintporder.xml : paintp.order.countOrderList by PaIntpOrderController */
+        	   COUNT(1) AS CNT
+          FROM TPAINTPORDERLIST OT
+         WHERE ORD_NO 		= #{ordNo, 		jdbcType=VARCHAR}
+           AND ORD_SEQ 		= #{ordSeq, 	jdbcType=VARCHAR}
+           AND PA_ORDER_GB  = #{paOrderGb,  jdbcType=VARCHAR}
+           <choose>
+           	<when test = 'clmreqSeq != "" and clmreqSeq != null'>
+           AND CLMREQ_SEQ   = #{clmreqSeq,  jdbcType=VARCHAR}		
+           	</when>
+           	<otherwise>
+           AND PROC_FLAG 	= '10'		
+           	</otherwise>
+           </choose>
+           AND WITHDRAW_YN  = '0'
+	</select>
+	
+	<select id="getOrderCancelWithdrawYn" parameterType="hashMap" resultType="string">
+        SELECT /* paintporder.xml : paintp.order.getOrderCancelWithdrawYn by PaIntpOrderController */
+        	   WITHDRAW_YN
+          FROM TPAINTPORDERLIST
+         WHERE ORD_NO       = #{ordNo,      jdbcType=VARCHAR}
+           AND ORD_SEQ      = #{ordSeq,     jdbcType=VARCHAR}
+           AND CLMREQ_SEQ   = #{clmreqSeq,  jdbcType=VARCHAR}
+           AND PA_ORDER_GB  = '20'
+           AND ROWNUM = 1
+	</select>
+    
+    <update id="updateWithdrawYn">
+        UPDATE /* paintporder.xml : paintp.order.updateWithdrawYn by PaIntpOrderController */
+        	   TPAINTPORDERLIST
+           SET WITHDRAW_YN = '1'
+             , MODIFY_DATE = SYSDATE
+         WHERE ORD_NO       = #{ordNo,      jdbcType=VARCHAR}
+           AND ORD_SEQ      = #{ordSeq,     jdbcType=VARCHAR}
+           AND CLMREQ_SEQ   = #{clmreqSeq,  jdbcType=VARCHAR}
+           AND PA_ORDER_GB  = '20'
+    </update>
+	
+	<insert id="insertPaIntpOrderlist" parameterType="com.cware.netshopping.domain.model.PaIntpOrderlist">
+	INSERT INTO /* paintporder.xml : paintp.order.insertPaIntpOrderlist by PaIntpOrderController */ TPAINTPORDERLIST
+	(      ORD_NO  
+	     , ORD_SEQ  
+	     , PA_ORDER_GB  
+	     , CLMREQ_SEQ  
+	     , OPT_PRD_TP  
+	     , WITHDRAW_YN  
+	     , ORDER_DT  
+	     , ORDER_DTS  
+	     , PAY_DTS  
+	     , OPT_PARENT_SEQ  
+	     , PRD_NM  
+	     , PRD_NO  
+	     , OPT_PRD_NO  
+	     , ENTR_PRD_NO  
+	     , OPT_NO  
+	     , OPT_NM  
+	     , SEL_OPT_NM  
+	     , IN_OPT_NM  
+	     , MEM_ID  
+	     , SUPPLY_ENTR_NO  
+	     , SUPPLY_CTRT_SEQ  
+	     , SALE_UNITCOST  
+	     , PRE_USE_UNITCOST  
+	     , PRE_USE_AMT  
+	     , ORD_QTY  
+	     , ORD_AMT  
+	     , CURRENT_STATE  
+	     , ORDCLM_STAT_DTS  
+	     , DC_COUPON_AMT  
+	     , ENTR_DC_COUPON_AMT  
+	     , TOT_DC_COUPON_AMT  
+	     , ENTR_DIS_UNIT_COST  
+	     , IPOINT_DC_UNITCOST  
+	     , REAL_SALE_UNITCOST  
+	     , IS_COLLECTED  
+	     , ABROAD_BS_YN  
+	     , DELVSETL_SEQ  
+	     , PAY_REF_MTHD_TP  
+	     , ORDCLM_CRT_TP  
+	     , DEL_AMT  
+	     , DELV_AMT  
+	     , ADD_DELV_AMT  
+	     , ORD_NM  
+	     , MOBILE_TEL  
+	     , TEL  
+	     , EMAIL  
+	     , RCVR_NM  
+	     , DELI_MOBILE  
+	     , DELI_TEL  
+	     , DEL_ZIP  
+	     , DELI_ADDR1  
+	     , DELI_ADDR2  
+	     , DELI_ZIP_DORO  
+	     , DELI_ADDR1_DORO  
+	     , DELI_ADDR2_DORO  
+	     , DELV_COMMENT  
+	     , RESIDENT_NO  
+	     , CLMREQ_DT  
+	     , CLMREQ_DTS  
+	     , CLMREQ_TPNM  
+	     , CLMREQ_TP  
+	     , RTN_MTHD_TPNM  
+	     , RTN_MTHD_TP  
+	     , FRTN_CP_TP  
+	     , CLMREQ_STATNM  
+	     , CLMREQ_STAT  
+	     , CLMREQ_QTY  
+	     , CLMREQ_CNCL_DTS  
+	     , CLMREQ_RSN_TPNM  
+	     , CLMREQ_RSN_TP  
+	     , CLMREQ_RSN_DTL  
+	     , CLMREQ_ACCEPT_DTS  
+	     , CLMREQ_REFUSE_DTS  
+	     , CLMREQ_REFUSE_RSN_DTL  
+	     , INSERT_DATE  
+	     , MODIFY_DATE  
+	     , CANCEL_PROC_NOTE  
+	     , CANCEL_PRC_ID
+	) VALUES (
+	       #{ordNo             , jdbcType=VARCHAR}
+	     , #{ordSeq            , jdbcType=VARCHAR}
+	     , #{paOrderGb         , jdbcType=VARCHAR}
+	     , 0
+	     , #{optPrdTp          , jdbcType=VARCHAR}
+	     , #{withdrawYn        , jdbcType=VARCHAR}
+	     , #{orderDt           , jdbcType=TIMESTAMP}
+	     , #{orderDts          , jdbcType=TIMESTAMP}
+	     , #{payDt             , jdbcType=TIMESTAMP}
+	     , #{optParentSeq      , jdbcType=VARCHAR}
+	     , #{prdNm             , jdbcType=VARCHAR}
+	     , #{prdNo             , jdbcType=VARCHAR}
+	     , #{optPrdNo          , jdbcType=VARCHAR}
+	     , #{entrPrdNo         , jdbcType=VARCHAR}
+	     , #{optNo             , jdbcType=VARCHAR}
+	     , #{optNm             , jdbcType=VARCHAR}
+	     , #{selOptNm          , jdbcType=VARCHAR}
+	     , #{inOptNm           , jdbcType=VARCHAR}
+	     , #{memId             , jdbcType=VARCHAR}
+	     , #{supplyEntrNo      , jdbcType=VARCHAR}
+	     , #{supplyCtrtSeq     , jdbcType=VARCHAR}
+	     , #{saleUnitcost      , jdbcType=NUMERIC}
+	     , #{preUseUnitcost    , jdbcType=NUMERIC}
+	     , #{preUseAmt         , jdbcType=NUMERIC}
+	     , #{ordQty            , jdbcType=NUMERIC}
+	     , #{ordAmt            , jdbcType=NUMERIC}
+	     , #{currentState      , jdbcType=VARCHAR}
+	     , #{ordclmStatDt      , jdbcType=TIMESTAMP}
+	     , #{dcCouponAmt       , jdbcType=NUMERIC}
+	     , #{entrDcCouponAmt   , jdbcType=NUMERIC}
+	     , #{totDcCouponAmt    , jdbcType=NUMERIC}
+	     , #{entrDisUnitCost   , jdbcType=NUMERIC}
+	     , #{ipointDcUnitcost  , jdbcType=NUMERIC}
+	     , #{realSaleUnitcost  , jdbcType=NUMERIC}
+	     , #{isCollected       , jdbcType=VARCHAR}
+	     , #{abroadBsYn        , jdbcType=VARCHAR}
+	     , #{delvsetlSeq       , jdbcType=VARCHAR}
+	     , #{payRefMthdTp      , jdbcType=VARCHAR}
+	     , #{ordclmCrtTp       , jdbcType=VARCHAR}
+	     , #{delAmt            , jdbcType=NUMERIC}
+	     , #{delvAmt           , jdbcType=NUMERIC}
+	     , #{addDelvAmt        , jdbcType=NUMERIC}
+	     , SUBSTR(#{ordNm             , jdbcType=VARCHAR}, 1, 8)
+	     , CWARE_ENC_DEC(#{mobileTel    , jdbcType=VARCHAR}, 'E')
+	     , CWARE_ENC_DEC(#{tel          , jdbcType=VARCHAR}, 'E')
+	     , CWARE_ENC_DEC(#{email        , jdbcType=VARCHAR}, 'E')
+	     , SUBSTR(#{rcvrNm            			, jdbcType=VARCHAR}, 1, 8)
+	     , CWARE_ENC_DEC(#{deliMobile   , jdbcType=VARCHAR}, 'E')
+	     , CWARE_ENC_DEC(#{deliTel      , jdbcType=VARCHAR}, 'E')
+	     , CWARE_ENC_DEC(#{delZip       , jdbcType=VARCHAR}, 'E')
+	     , CWARE_ENC_DEC(#{deliAddr1    , jdbcType=VARCHAR}, 'E')
+	     , CWARE_ENC_DEC(#{deliAddr2    , jdbcType=VARCHAR}, 'E')
+	     , CWARE_ENC_DEC(#{delZipDoro   , jdbcType=VARCHAR}, 'E')
+	     , CWARE_ENC_DEC(#{deliAddr1Doro, jdbcType=VARCHAR}, 'E')
+	     , CWARE_ENC_DEC(#{deliAddr2Doro, jdbcType=VARCHAR}, 'E')
+	     , #{delvComment       , jdbcType=VARCHAR}
+	     , #{residentNo        , jdbcType=VARCHAR}
+	     , #{clmreqDt          , jdbcType=TIMESTAMP}
+	     , #{clmreqDts         , jdbcType=TIMESTAMP}
+	     , #{clmreqTpnm        , jdbcType=VARCHAR}
+	     , #{clmreqTp          , jdbcType=VARCHAR}
+	     , #{rtnMthdTpnm       , jdbcType=VARCHAR}
+	     , #{rtnMthdTp         , jdbcType=VARCHAR}
+	     , #{frtnCpTp          , jdbcType=VARCHAR}
+	     , #{clmreqStatnm      , jdbcType=VARCHAR}
+	     , #{clmreqStat        , jdbcType=VARCHAR}
+	     , #{clmreqQty         , jdbcType=NUMERIC}
+	     , #{clmreqCnclDts     , jdbcType=TIMESTAMP}
+	     , #{clmreqRsnTpnm     , jdbcType=VARCHAR}
+	     , #{clmreqRsnTp       , jdbcType=VARCHAR}
+	     , #{clmreqRsnDtl      , jdbcType=VARCHAR}
+	     , #{clmreqAcceptDts   , jdbcType=TIMESTAMP}
+	     , #{clmreqRefuseDts   , jdbcType=TIMESTAMP}
+	     , #{clmreqRefuseRsnDtl, jdbcType=VARCHAR}
+	     , SYSDATE
+	     , SYSDATE
+	     , #{cancelProcNote    , jdbcType=VARCHAR}
+	     , #{cancelProcId      , jdbcType=VARCHAR}
+	)
+	</insert>
+	
+	<select id="getOrderProductInfo" parameterType="hashMap" resultType="com.cware.netshopping.domain.paintp.xml.PaIntpOrderProductVO">
+	   SELECT /* paintporder.xml : paintp.order.getOrderProductInfo by PaIntpOrderController */
+	   		  OPT_PRD_TP
+            , OPT_PARENT_SEQ
+            , ENTR_PRD_NO
+            , PRD_NO
+            , OPT_NO
+            , DELVSETL_SEQ
+         FROM TPAINTPORDERLIST
+        WHERE ORD_NO        = #{ordNo, jdbcType=VARCHAR}
+          AND ORD_SEQ       = #{ordSeq, jdbcType=VARCHAR}
+          AND CLMREQ_SEQ    = '0'
+          AND PA_ORDER_GB   = '10'
+          AND ROWNUM        = 1
+	</select>
+	
+	<insert id="insertCancelReqPaIntpOrderlist" parameterType="com.cware.netshopping.domain.model.PaIntpOrderlist">
+        INSERT INTO /* paintporder.xml : paintp.order."insertCancelReqPaIntpOrderlist" by PaIntpOrderController */ TPAINTPORDERLIST (
+                  ORD_NO
+                , ORD_SEQ
+                , OPT_PRD_TP
+                , CLMREQ_SEQ
+                , PA_ORDER_GB
+                , WITHDRAW_YN
+                , OPT_PARENT_SEQ
+                , PRD_NO
+                , OPT_PRD_NO
+                , ENTR_PRD_NO
+                , OPT_NO
+                , DELVSETL_SEQ
+                , CLMREQ_DT
+                , CLMREQ_TPNM
+                , CLMREQ_TP
+                , RTN_MTHD_TPNM
+                , RTN_MTHD_TP
+                , FRTN_CP_TP
+                , CLMREQ_STATNM
+                , CLMREQ_STAT
+                , CLMREQ_QTY
+                , CLMREQ_CNCL_DTS
+                , CLMREQ_RSN_TPNM
+                , CLMREQ_RSN_TP
+                , CLMREQ_RSN_DTL
+                , CLMREQ_DTS
+                , SUPPLY_ENTR_NO
+                , SUPPLY_CTRT_SEQ
+                , PROC_FLAG
+                , INSERT_DATE
+                , MODIFY_DATE
+              )
+              VALUES (
+                  #{ordNo              , jdbcType=VARCHAR}
+                , #{ordSeq             , jdbcType=VARCHAR}
+                , #{optPrdTp           , jdbcType=VARCHAR}
+                , #{clmreqSeq          , jdbcType=VARCHAR}
+                , #{paOrderGb          , jdbcType=VARCHAR}
+                , #{withdrawYn         , jdbcType=VARCHAR}
+                , #{optParentSeq       , jdbcType=VARCHAR}
+                , #{prdNo              , jdbcType=VARCHAR}
+                , #{optPrdNo           , jdbcType=VARCHAR}
+                , #{entrPrdNo          , jdbcType=VARCHAR}
+                , #{optNo              , jdbcType=VARCHAR}
+                , #{delvsetlSeq        , jdbcType=VARCHAR}
+                , #{clmreqDt           , jdbcType=TIMESTAMP}
+                , #{clmreqTpnm         , jdbcType=VARCHAR}
+                , #{clmreqTp           , jdbcType=VARCHAR}
+                , #{rtnMthdTpnm        , jdbcType=VARCHAR}
+                , #{rtnMthdTp          , jdbcType=VARCHAR}
+                , #{frtnCpTp           , jdbcType=VARCHAR}
+                , #{clmreqStatnm       , jdbcType=VARCHAR}
+                , #{clmreqStat         , jdbcType=VARCHAR}
+                , #{clmreqQty          , jdbcType=NUMERIC}
+                , #{clmreqCnclDts      , jdbcType=TIMESTAMP}
+                , #{clmreqRsnTpnm      , jdbcType=VARCHAR}
+                , #{clmreqRsnTp        , jdbcType=VARCHAR}
+                , #{clmreqRsnDtl       , jdbcType=VARCHAR}
+                , #{clmreqDts          , jdbcType=TIMESTAMP}
+                , #{supplyEntrNo       , jdbcType=VARCHAR}
+                , #{supplyCtrtSeq      , jdbcType=VARCHAR}
+                , #{procFlag      	   , jdbcType=VARCHAR}
+                , SYSDATE
+                , SYSDATE
+              )
+	</insert>
+	
+    <select id="selectOrderInputTargetList" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaIntpTargetVO">
+        SELECT /* paintporder.xml : paintp.order.selectOrderInputTargetList by PaIntpOrderController */
+               AA.PA_ORDER_NO
+             , AA.TARGET_CNT
+          FROM (SELECT POM.PA_ORDER_NO
+                     , COUNT(1) TARGET_CNT
+                  FROM TPAORDERM POM
+                 WHERE POM.PA_CODE       IN ('71','72')
+                   AND POM.PA_ORDER_GB   = '10'
+                   AND POM.CREATE_YN     = '0'
+                   AND POM.PRE_CANCEL_YN = '0'
+                   AND POM.INSERT_DATE   &gt; TRUNC(SYSDATE)-5
+                 GROUP BY POM.PA_ORDER_NO
+                 ORDER BY POM.PA_ORDER_NO) AA
+          WHERE ROWNUM &lt;= #{limitCount, jdbcType=NUMERIC}
+    </select>
+    
+    <select id="selectOrderInputTargetDtList" parameterType="hashMap" resultType="hashMap">
+        SELECT /* paintporder.xml : paintp.order.selectOrderInputTargetDtList by PaIntpOrderController */
+        	   *
+    	  FROM ( 
+		    	SELECT /* paintporder.xml : paintp.order.selectOrderInputTargetDtList by PaIntpOrderController */
+		       		   PM.PA_CODE
+		     		 , PM.PA_ORDER_NO
+		     		 , PM.PA_ORDER_SEQ
+		     		 , PM.MAPPING_SEQ             
+		     		 , TC.REMARK1                                                 AS MEDIA_CODE
+		     		 , TC.CODE_GROUP                                              AS CODE_GROUP
+		    		 , TO_CHAR(OL.ORDER_DTS, 'YYYYMMDDHH24MISS')                  AS ORDER_DATE             
+		    		 , PGD.GOODS_CODE
+		    		 , PGD.GOODSDT_CODE
+		    		 , OL.ORD_QTY                                                 AS ORDER_QTY
+		    		 , TO_CHAR(PGP.APPLY_DATE, 'YYYYMMDDHH24MISS')                AS APPLY_DATE    
+		    		 , OL.REAL_SALE_UNITCOST * OL.ORD_QTY                         AS RSALE_AMT
+		    		 , PGP.SUPPLY_PRICE                                           AS SUPPLY_PRICE             
+		    		 , OL.ORD_NM                                                  AS CUST_NAME
+		    		 , REPLACE(CWARE_ENC_DEC(OL.TEL, 'D'), '-', '')               AS CUST_TEL1
+		    		 , REPLACE(CWARE_ENC_DEC(OL.MOBILE_TEL, 'D'), '-', '')        AS CUST_TEL2
+		    		 , OL.RCVR_NM                                                 AS RECEIVER_NAME
+		    		 , REPLACE(CWARE_ENC_DEC(OL.DELI_TEL, 'D'), '-', '')          AS RECEIVER_TEL
+		    		 , REPLACE(CWARE_ENC_DEC(OL.DELI_MOBILE, 'D'), '-', '')       AS RECEIVER_HP
+		    		 , CWARE_ENC_DEC(NVL(OL.DELI_ADDR1, OL.DELI_ADDR1_DORO), 'D') || ' ' || CWARE_ENC_DEC(NVL(OL.DELI_ADDR2, OL.DELI_ADDR2_DORO), 'D') AS RECEIVER_ADDR
+		    		 , CWARE_ENC_DEC(NVL(OL.DELI_ADDR1, OL.DELI_ADDR1_DORO), 'D') AS RECEIVER_ADDR1
+		    		 , CWARE_ENC_DEC(NVL(OL.DELI_ADDR2, OL.DELI_ADDR2_DORO), 'D') AS RECEIVER_ADDR2
+		    		 , CWARE_ENC_DEC(NVL(OL.DEL_ZIP, OL.DELI_ZIP_DORO), 'D')      AS RECEIVER_ZIPCODE
+		    		 , OL.ENTR_DIS_UNIT_COST * OL.ORD_QTY AS SELLER_DC_AMT
+		    		 , NVL((PGP.LUMP_SUM_DC_AMT * OL.ORD_QTY),0)                  AS LUMP_SUM_DC_AMT
+		    		 , NVL((PGP.LUMP_SUM_ENTP_DC_AMT),0)                          AS LUMP_SUM_ENTP_DC_AMT
+		    		 , NVL((PGP.LUMP_SUM_OWN_DC_AMT),0)                           AS LUMP_SUM_OWN_DC_AMT
+		    		 , OL.DELV_COMMENT                                            AS MSG
+		    		 , NVL(OL.DELV_AMT,0)                                         AS PA_SHPFEE_COST
+		    		 , OL.PRD_NO                                                  AS PA_GOODS_CODE
+		    		 , PGP.PRICE_SEQ
+		    		 , DECODE(PM.PA_DO_FLAG, '10', '10', '20')                    AS DO_FLAG
+		             , 0 AS SD_PROMO_PRICE
+		             , NVL(NVL(PP.COUPON_DC_AMT,
+		                (SELECT /*+INDEX_DESC (PPT IDX_TPAPROMOTARGET_04)*/
+		                             CASE WHEN  PPT.PROC_GB   = 'D'   THEN 0
+		                                  WHEN  PPT.USE_CODE != '00'  THEN 0
+		                             ELSE  PPT.DO_AMT
+		                             END
+		                        FROM TPAPROMOTARGET PPT
+		                           , TPROMOM PM
+		                       WHERE PPT.GOODS_CODE         = PGP.GOODS_CODE
+		                         AND PPT.PA_CODE            = PGP.PA_CODE    
+		                         AND PPT.PROMO_NO           = PM.PROMO_NO
+		                         AND PM.COUPON_YN           = '1'
+		                         AND PM.IMMEDIATELY_YN        = '1'
+		                         AND PPT.TRANS_DATE IS NOT NULL
+		                         AND NVL(PM.ALCOUT_PROMO_YN, '0') = '1'
+		                         AND PPT.TRANS_DATE &lt; OL.ORDER_DTS
+		                         AND ((OL.ORDER_DTS BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE ) 
+		                             OR (OL.ORDER_DTS > PPT.PROMO_EDATE AND  PPT.PROC_GB = 'D')
+		                             OR (PM.REMARK4_N IS NOT NULL AND PM.REMARK4_N = 1)
+		                             )
+		                          AND ROWNUM = 1)
+		                          ), 0) AS OUT_PROMO_PRICE				
+				  		 
+					 , PGP.DC_AMT 			 AS ARS_DC_AMT
+
+				     , PM.REMARK4_N
+				     , PP.COUPON_PROMO_NO AS PROMO_NO
+	               	 , PP.COUPON_OWN_COST AS OWN_COST
+	                 , PP.COUPON_ENTP_COST AS ENTP_COST
+	                 , TO_CHAR(PROMO.PROMO_BDATE, 'yyyy/mm/dd hh24:mi:ss') AS COUPON_PROMO_BDATE
+	                 , TO_CHAR(PROMO.PROMO_EDATE, 'yyyy/mm/dd hh24:mi:ss') AS COUPON_PROMO_EDATE
+	                 , TO_CHAR(GP.APPLY_DATE, 'YYYYMMDDHH24MISS') AS STOA_APPLY_DATE
+		 		  FROM TPAORDERM PM
+		    		 , TPAINTPORDERLIST OL
+		    		 , TCODE TC
+		    		 , TPAINTPGOODS PGM
+		    		 , TPAGOODSDTMAPPING PGD
+		    		 , TPAGOODSPRICE PGP
+             		 , TPAGOODSPRICEAPPLY PP
+             		 , TPROMOM PROMO
+             		 , TGOODSPRICE GP
+             	 WHERE PM.PA_ORDER_GB   = '10'
+		  		   AND PM.CREATE_YN     = '0'
+		   		   AND PM.PRE_CANCEL_YN = '0'
+		  		   AND PM.PA_ORDER_GB   = OL.PA_ORDER_GB
+		   		   AND PM.PA_ORDER_NO   = OL.ORD_NO
+		   		   AND PM.PA_ORDER_SEQ  = OL.ORD_SEQ
+				   AND PM.PA_SHIP_NO    = OL.DELVSETL_SEQ
+				   AND OL.CLMREQ_SEQ	= '0'
+				   AND TC.CODE_LGROUP   = 'O501'
+				   AND PM.PA_CODE       = TC.CODE_MGROUP
+				   AND TC.USE_YN        = '1'
+				
+				   AND TO_CHAR(OL.PRD_NO) = PGM.PRD_NO
+				   AND OL.ENTR_PRD_NO = PGD.GOODS_CODE
+				   AND DECODE(OL.OPT_NO, OL.ENTR_PRD_NO, 001, OL.OPT_NO) = PGD.GOODSDT_CODE
+				   AND PM.PA_CODE       = PGD.PA_CODE
+				   AND PGM.GOODS_CODE   = PGD.GOODS_CODE
+				   AND PGM.PA_CODE      = PGP.PA_CODE
+				   AND PGM.GOODS_CODE   = PGP.GOODS_CODE
+				   AND PGP.ROWID = (SELECT /*+ INDEX_DESC(I PK_TPAGOODSPRICE) */
+		                           		   ROWID 
+		                      		  FROM TPAGOODSPRICE I 
+		                     		 WHERE I.PA_CODE    = PM.PA_CODE
+		                       		   AND I.GOODS_CODE = PGP.GOODS_CODE
+		                     		   AND I.TRANS_DATE &lt;= OL.ORDER_DTS
+		                       		   AND I.TRANS_DATE IS NOT NULL
+				                       AND ROWNUM = 1)
+		           AND PGM.GOODS_CODE    = PP.GOODS_CODE                                 
+		           AND PGM.PA_GROUP_CODE = PP.PA_GROUP_CODE
+		           AND PGM.PA_CODE       = PP.PA_CODE
+		           AND (PP.APPLY_DATE, PP.PRICE_APPLY_SEQ) = (SELECT /*+ INDEX_DESC (PP2 PK_TPAGOODSPRICEAPPLY)*/
+		                                                                              PP2.APPLY_DATE, PP2.PRICE_APPLY_SEQ
+		                                                                     FROM TPAGOODSPRICEAPPLY PP2
+		                                                                    WHERE PP2.GOODS_CODE = PP.GOODS_CODE
+		                                                                       AND PP2.PA_GROUP_CODE = PP.PA_GROUP_CODE
+		                                                                       AND PP2.PA_CODE = PP.PA_CODE
+		                                                                       AND PP2.APPLY_DATE &lt;= OL.ORDER_DTS
+		                                                                       AND PP2.TRANS_DATE &lt;= OL.ORDER_DTS
+		                                                                       AND ROWNUM = 1 )
+		           AND PP.COUPON_PROMO_NO = PROMO.PROMO_NO(+)		           
+		           AND GP.GOODS_CODE = PGP.GOODS_CODE
+                   AND GP.ROWID = (SELECT /*+ INDEX_DESC (GP2 PK_TGOODSPRICE)*/
+                                             GP2.ROWID
+                                     FROM TGOODSPRICE GP2
+                                    WHERE GP2.GOODS_CODE  = GP.GOODS_CODE
+                                      AND GP2.APPLY_DATE &lt; OL.ORDER_DTS
+                                      AND ROWNUM = 1)
+		   		   AND OL.SALE_UNITCOST + OL.TOT_DC_COUPON_AMT + OL.ENTR_DIS_UNIT_COST = PGP.SALE_PRICE
+		   		   AND PM.PA_ORDER_NO = #{paOrderNo, jdbcType=VARCHAR} )
+		   		   
+         <!-- WHERE ENTR_DIS_UNIT_COST = ARS_DC_AMT + LUMP_SUM_DC_AMT + SD_PROMO_PRICE + OUT_PROMO_PRICE		  제휴사 비회원 주문으로 인해 밖으로 뻄   -->
+		   		   
+         <!-- 
+           AND OL.ENTR_DIS_UNIT_COST 
+            = PGP.DC_AMT + PGP.LUMP_SUM_DC_AMT + NVL(( SELECT /*+INDEX_DESC (PPT IDX_TPAPROMOTARGET_04)*/
+                                                              CASE WHEN  PPT.PROC_GB = 'D' THEN 0
+                                                                   WHEN  PPT.PROC_GB = 'U' AND PPT.USE_CODE != '00'  THEN 0
+                                                                   ELSE  PPT.DO_AMT
+                                                              END
+                                                         FROM TPAPROMOTARGET PPT, TPROMOM TB_A
+                                                        WHERE PPT.GOODS_CODE      = PGM.GOODS_CODE
+                                                          AND PPT.PA_CODE         = PGM.PA_CODE
+                                                          AND PPT.PROMO_NO        = TB_A.PROMO_NO
+                                                          AND TB_A.COUPON_YN      = '1'
+                                                          AND TB_A.IMMEDIATELY_YN = '1'
+                                                          AND NVL(TB_A.ALCOUT_PROMO_YN, '0') = '0'
+                                                          AND PPT.TRANS_DATE IS NOT NULL
+                                                          AND PPT.TRANS_DATE &lt; OL.ORDER_DTS
+                                                          AND ((OL.ORDER_DTS BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE)  OR (OL.ORDER_DTS > PPT.PROMO_EDATE AND PPT.PROC_GB = 'D' )) 
+                                                          AND ROWNUM = 1 ), 0)
+                                               + NVL(( SELECT /*+INDEX_DESC (PPT IDX_TPAPROMOTARGET_04)*/
+                                                              CASE WHEN  PPT.PROC_GB = 'D' THEN 0
+                                                                   WHEN  PPT.PROC_GB = 'U' AND PPT.USE_CODE != '00'  THEN 0
+                                                                   ELSE  PPT.DO_AMT
+                                                              END
+                                                         FROM TPAPROMOTARGET PPT, TPROMOM TB_A
+                                                         WHERE PPT.GOODS_CODE 	   = PGM.GOODS_CODE
+                                                          AND PPT.PA_CODE    	   = PGM.PA_CODE
+                                                          AND PPT.PROMO_NO 	   = TB_A.PROMO_NO
+                                                          AND TB_A.COUPON_YN 	   = '1'
+                                                          AND TB_A.IMMEDIATELY_YN = '1'
+                                                          AND NVL(TB_A.ALCOUT_PROMO_YN, '0') = '1'
+                                                          AND PPT.TRANS_DATE IS NOT NULL
+                                                          AND PPT.TRANS_DATE &lt; OL.ORDER_DTS
+                                                          AND ((OL.ORDER_DTS BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE)  OR (OL.ORDER_DTS > PPT.PROMO_EDATE AND PPT.PROC_GB = 'D' )) 
+                                                          AND ROWNUM = 1 ), 0) -->
+                                                          
+    </select>
+    
+    <select id="getPaOrderKeyByMappingSeq" resultType="hashMap">
+        SELECT /* paintporder.xml: getPaOrderKeyByMappingSeq */
+               POM.PA_ORDER_NO
+             , POM.PA_ORDER_SEQ
+             , POM.PA_CODE
+          FROM TPAORDERM        POM
+             , TPAINTPORDERLIST COI
+         WHERE POM.PA_ORDER_NO  = COI.ORD_NO
+           AND POM.PA_ORDER_SEQ = COI.ORD_SEQ
+           AND POM.MAPPING_SEQ = #{mappingSeq, jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectPaIntpOrderCancelList" resultType="com.cware.netshopping.domain.model.PaIntpCancellist">
+        SELECT /* paintporder.xml : paintp.order.selectPaIntpOrderCancelList by PaIntpOrderController */
+               PM.PA_ORDER_NO
+             , PM.PA_SHIP_NO
+             , PM.PA_ORDER_SEQ
+             , PAO.PA_ORDER_GB
+             , PAO.DELVSETL_SEQ
+             , PAO.CLMREQ_SEQ
+             , PAO.CLMREQ_QTY
+             , PAO.ORD_SEQ
+             , PAO.OPT_PRD_TP
+             , PAO.WITHDRAW_YN
+             , OD.DO_FLAG
+             , PM.MAPPING_SEQ
+             , PM.PA_CODE
+             , SM.SLIP_NO
+             , PDG.PA_DELY_GB
+             , TO_DATE(SM.OUT_CLOSE_DATE) AS SHIP_START_DATE
+             , PM.ORDER_NO
+             , PM.ORDER_G_SEQ
+             , PM.ORDER_D_SEQ
+             , PM.ORDER_W_SEQ
+             , OD.GOODS_GB
+             , SM.SLIP_I_NO
+             , OD.GOODS_CODE
+             , OD.GOODSDT_CODE
+             , SM.DELY_GB
+          FROM TPAORDERM        PM
+             , TPAINTPORDERLIST PAO
+             , TORDERDT         OD
+             , TSLIPM           SM
+             , TSLIPDT          SD
+             , TPADELYGB        PDG
+         WHERE PM.PA_ORDER_GB  = '10'
+           AND PM.PA_ORDER_NO  = PAO.ORD_NO
+           AND PM.PA_ORDER_SEQ = PAO.ORD_SEQ
+           AND PM.PA_SHIP_NO   = PAO.DELVSETL_SEQ
+           AND PAO.CLMREQ_STAT = '1'
+           AND PAO.PA_ORDER_GB = '20'
+           AND PAO.WITHDRAW_YN = '0'
+           AND PAO.PROC_FLAG   = '00'
+           AND PM.ORDER_NO     = OD.ORDER_NO
+           AND PM.ORDER_G_SEQ  = OD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ  = OD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ  = OD.ORDER_W_SEQ
+           AND PM.ORDER_NO     = SD.ORDER_NO(+)
+           AND PM.ORDER_G_SEQ  = SD.ORDER_G_SEQ(+)
+           AND PM.ORDER_D_SEQ  = SD.ORDER_D_SEQ(+)
+           AND PM.ORDER_W_SEQ  = SD.ORDER_W_SEQ(+)
+           AND SD.SLIP_I_NO    = SM.SLIP_I_NO(+)
+           AND SM.DELY_GB      = PDG.DELY_GB(+)
+           AND PDG.PA_CODE(+)  = '07'
+           AND NOT EXISTS ( SELECT 1
+                              FROM TPAINTPORDERLIST T
+                             WHERE 1=1
+                               AND T.ORD_NO = PAO.ORD_NO
+                               AND T.ORD_SEQ = PAO.ORD_SEQ
+                               AND T.PA_ORDER_GB = PAO.PA_ORDER_GB
+                               AND T.PROC_FLAG = '10'
+                           )
+           AND PM.INSERT_DATE &gt; SYSDATE - 15
+    </select>
+    
+    <update id="updatePaIntpOrderListProcFlag" parameterType="hashMap">
+        UPDATE /* paintporder.xml : paintp.order.updatePaIntpOrderListProcFlag by PaIntpOrderController */
+        	   TPAINTPORDERLIST
+           SET PROC_FLAG     = #{procFlag,   jdbcType=VARCHAR}
+             , MODIFY_DATE   = SYSDATE
+             , CANCEL_PRC_ID = 'PAINTP'
+         WHERE ORD_NO        = #{ordNo,      jdbcType=VARCHAR}
+           AND ORD_SEQ       = #{ordSeq,     jdbcType=NUMERIC}
+           AND CLMREQ_SEQ    = #{clmreqSeq,  jdbcType=VARCHAR}
+           AND PA_ORDER_GB   = #{paOrderGb,  jdbcType=NUMERIC}
+    </update>
+
+    <update id="updatePreCancelYn" parameterType="hashMap">
+        UPDATE TPAORDERM /* paintporder.xml : updatePreCancelYn by PaIntpOrderController */
+           SET PRE_CANCEL_YN      = #{preCancelYn      ,jdbcType=VARCHAR}
+             , PRE_CANCEL_REASON  = #{preCancelReason  ,jdbcType=VARCHAR}
+             <if test="apiResultMessage != '' and apiResultMessage != null">
+             , API_RESULT_CODE    = #{apiResultCode    ,jdbcType=VARCHAR}
+             , API_RESULT_MESSAGE = #{apiResultMessage ,jdbcType=VARCHAR}
+             , PROC_DATE          = SYSDATE
+             </if>
+         WHERE MAPPING_SEQ        = #{mappingSeq       ,jdbcType=VARCHAR}
+           AND CREATE_YN          = '0'
+           AND PRE_CANCEL_YN      = '0'
+    </update>
+    
+    <update id="updatePaOrdermPreCancel" parameterType="hashMap">
+        /* paintporder.xml : paintp.order.updatePaOrdermPreCancel by PaIntpOrderController */
+        UPDATE TPAORDERM 
+           SET API_RESULT_CODE      = #{apiResultCode,      jdbcType=VARCHAR}
+             , API_RESULT_MESSAGE   = #{apiResultMessage,   jdbcType=VARCHAR}
+             <if test="canceled">
+             , PRE_CANCEL_YN        = '1'
+             , PRE_CANCEL_REASON    = #{preCancelReason,    jdbcType=VARCHAR}
+             , PROC_DATE            = SYSDATE
+             </if>
+         WHERE PA_ORDER_NO  = #{ordNo,      jdbcType=VARCHAR}
+           AND PA_ORDER_SEQ = #{ordPrdSeq,  jdbcType=VARCHAR}
+           AND PA_CODE      = #{paCode,     jdbcType=VARCHAR}
+        <choose>
+            <when test="clmReqSeq != '' and clmReqSeq != null">
+            AND PA_CLAIM_NO  = #{clmReqSeq , jdbcType=VARCHAR}
+            AND PA_ORDER_GB  IN ('40','45')
+            </when>
+            <otherwise>
+            AND PA_ORDER_GB = '10'
+            </otherwise>
+        </choose>
+    </update>
+    
+    <update id="updatePaOrdermCancelRefusal" parameterType="hashMap">
+        UPDATE /* paintporder.xml : paintp.order.updatePaOrdermCancelRefusal by PaIntpOrderController */
+        	   TPAORDERM
+           SET PA_DO_FLAG         = #{paDoFlag,         jdbcType=VARCHAR}
+             , PROC_DATE          = SYSDATE
+             , API_RESULT_CODE    = #{apiResultCode,    jdbcType=VARCHAR}
+             , API_RESULT_MESSAGE = #{apiResultMessage, jdbcType=VARCHAR}
+         WHERE PA_ORDER_NO    	  = #{ordNo,    jdbcType=VARCHAR}
+           AND PA_ORDER_SEQ  	  = #{ordSeq,   jdbcType=VARCHAR}
+           AND PA_ORDER_GB    	  = '10'
+           AND PA_DO_FLAG     	  &lt; '40'
+    </update>
+    
+    <select id="selectCancelInputTargetList" resultType="com.cware.netshopping.domain.PaIntpTargetVO">
+        SELECT /* paintporder.xml : paintp.order.selectCancelInputTargetList by PaIntpOrderController */
+               POM.PA_ORDER_NO
+             , POM.PA_ORDER_SEQ
+             , POM.PA_SHIP_NO
+             , POM.PA_CLAIM_NO
+             , POM.PA_CODE
+          FROM TPAORDERM POM
+         WHERE POM.PA_CODE          IN ('71','72')
+           AND POM.PA_ORDER_GB      = '20'
+           AND POM.CREATE_YN        = '0'
+           AND POM.PRE_CANCEL_YN    = '0'
+           AND POM.OUT_BEF_CLAIM_GB = '0'
+           AND POM.INSERT_DATE &gt; TRUNC(SYSDATE) - 5
+    </select>
+    
+    <select id="selectCancelInputTargetDtList" parameterType="hashMap" resultType="hashMap">
+       SELECT /* paintporder.xml : selectCancelInputTargetDtList by PaIntpOrderController */
+               PM.MAPPING_SEQ
+             , OPM.ORDER_NO
+             , OPM.ORDER_G_SEQ
+             , PM.PA_PROC_QTY
+             , NVL((SELECT CS_LGROUP || CS_MGROUP || CS_SGROUP FROM TPACLAIMCODE PC WHERE PC.PA_CLAIM_NAME = PO.CLMREQ_RSN_TPNM AND PC.PA_CODE = '07' AND CLAIM_GB = '20'), '620799') AS CANCEL_CODE
+             , OPM.PRE_CANCEL_YN
+             , TC.CODE_GROUP
+          FROM TPAORDERM        PM   /*취소건*/
+             , TPAORDERM        OPM  /*원주문건*/
+             , TPAINTPORDERLIST PO
+             , TORDERDT         OD
+             , TCODE            TC
+         WHERE PM.PA_ORDER_NO      = OPM.PA_ORDER_NO
+           AND PM.PA_ORDER_SEQ     = OPM.PA_ORDER_SEQ
+           AND PM.PA_SHIP_NO       = OPM.PA_SHIP_NO
+           AND PM.PA_CODE          = OPM.PA_CODE
+           AND PM.PA_ORDER_NO      = PO.ORD_NO
+           AND PM.PA_ORDER_SEQ     = PO.ORD_SEQ
+           AND PM.PA_SHIP_NO       = PO.DELVSETL_SEQ
+           AND PM.PA_CLAIM_NO      = PO.CLMREQ_SEQ
+           AND PM.PA_ORDER_GB      = PO.PA_ORDER_GB
+           AND OPM.ORDER_NO        = OD.ORDER_NO
+           AND OPM.ORDER_G_SEQ     = OD.ORDER_G_SEQ
+           AND OPM.ORDER_D_SEQ     = OD.ORDER_D_SEQ
+           AND OPM.ORDER_W_SEQ     = OD.ORDER_W_SEQ
+           AND PM.PA_CODE          = TC.CODE_MGROUP
+           AND TC.CODE_LGROUP      = 'O501'
+           AND TC.USE_YN           = '1'
+           AND PM.PA_CODE          = #{paCode   ,jdbcType=VARCHAR}
+           AND PM.PA_ORDER_GB      = '20'
+           AND PM.CREATE_YN        = '0'
+           AND PM.PRE_CANCEL_YN    = '0'
+           AND PM.OUT_BEF_CLAIM_GB = '0'
+           AND PM.PA_DO_FLAG       = '20'
+           AND OPM.PA_ORDER_GB     = '10'
+           AND OPM.CREATE_YN       = '1'
+           AND PM.INSERT_DATE      &gt; SYSDATE - 5
+           AND (OPM.CREATE_YN      = '1' OR OPM.PRE_CANCEL_YN = '1')
+           AND OD.DO_FLAG          &lt; '30'
+           AND PM.PA_ORDER_NO      = #{paOrderNo  ,jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ     = #{paOrderSeq ,jdbcType=VARCHAR} 
+           AND PM.PA_SHIP_NO       = #{paShipNo   ,jdbcType=VARCHAR}
+           AND PM.PA_CLAIM_NO      = #{paClaimNo  ,jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectPaIntpCancellistApproval" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaIntpCancellistKey">
+        SELECT /* paintporder.xml : paintp.order.selectPaIntpCancellistApproval by PaIntpOrderController */
+        	   PO.ORD_NO            AS "ordNo"
+             , PO.ORD_SEQ           AS "ordSeq"
+             , PO.CLMREQ_SEQ        AS "clmreqSeq"
+             , PO.DELVSETL_SEQ      AS "delvsetlSeq"
+             , PO.OPT_PRD_TP        AS "optPrdTp"
+             , PO.CLMREQ_QTY        AS "clmreqQty"
+             , OM.PA_CODE			AS "paCode"
+          FROM TPAINTPORDERLIST PO
+               JOIN TPAORDERM OM
+                 ON OM.PA_ORDER_NO = PO.ORD_NO
+                AND OM.PA_ORDER_SEQ = PO.ORD_SEQ
+         WHERE PO.ORD_NO      = #{ordNo, jdbcType=VARCHAR}
+           AND PO.ORD_SEQ     = #{ordSeq, jdbcType=VARCHAR}
+       <if test="clmreqSeq != null and clmreqSeq != ''">
+           AND PO.CLMREQ_SEQ  = #{clmreqSeq, jdbcType=VARCHAR} 
+       </if>
+           AND PO.PA_ORDER_GB = '20'
+           AND PO.PROC_FLAG   &lt; '10'
+           AND OM.PA_CODE     = #{paCode, jdbcType=VARCHAR}
+           AND OM.PA_ORDER_GB = '10'
+           AND ROWNUM         = 1
+    </select>
+
+    <update id="updatePaOrdermResult" parameterType="hashMap">
+        UPDATE /* paintporder.xml : paintp.order.updatePaOrdermResult by PaIntpOrderController */
+        	   TPAORDERM 
+           SET API_RESULT_CODE    = #{apiResultCode, jdbcType=VARCHAR}
+             , API_RESULT_MESSAGE = #{apiResultMessage, jdbcType=VARCHAR}
+             , PA_DO_FLAG         = #{paDoFlag, jdbcType=VARCHAR}
+             , PROC_DATE	      = SYSDATE
+             , MODIFY_DATE		  = SYSDATE
+         WHERE PA_ORDER_NO     	  = #{ordNo,  jdbcType=VARCHAR}
+           AND PA_ORDER_SEQ    	  = #{ordSeq, jdbcType=VARCHAR}
+           AND PA_ORDER_GB     	  = '10'
+           AND PA_CODE			  IN ('71','72')
+    </update>
+    
+    <select id="selectSlipOutProcList" parameterType="HashMap" resultType="HashMap">
+    	SELECT /* paintporder.xml : selectSlipOutProcList by PaIntpOrderController */
+    		   XX.PA_ORDER_NO
+    		 , XX.PA_ORDER_SEQ
+    		 , XX.PA_CODE
+    		 , XX.SLIP_NO
+    		 , XX.OUT_CLOSE_DATE
+    		 , XX.PA_DELY_GB
+     	  FROM (
+		   	    SELECT PM.PA_ORDER_NO
+		         	 , PM.PA_ORDER_SEQ
+		         	 , PM.PA_CODE
+		             , CASE WHEN SM.SLIP_PROC = '80' AND SM.SLIP_NO IS NULL THEN SM.SLIP_I_NO
+		               	    ELSE SM.SLIP_NO 
+		               END AS SLIP_NO
+		             , CASE WHEN SM.SLIP_PROC = '80' AND SM.SLIP_NO IS NULL THEN (SELECT A.PA_DELY_GB FROM TPADELYGB A WHERE A.PA_CODE = '07' AND A.DELY_GB = '99' AND ROWNUM = 1)
+		             	    ELSE DG.PA_DELY_GB
+		               END AS PA_DELY_GB		
+		             , CASE WHEN SM.SLIP_PROC = '80' AND SM.SLIP_NO IS NULL THEN TO_CHAR(SYSDATE, 'yyyyMMdd')
+		               		ELSE TO_CHAR(SM.OUT_CLOSE_DATE, 'yyyyMMdd')
+		               END AS OUT_CLOSE_DATE
+		          FROM TPAORDERM PM
+		         	 , TSLIPM SM
+		         	 , TSLIPDT SD
+		         	 , TORDERGOODS OG
+		         	 , TPADELYGB DG
+		     	 WHERE SM.SLIP_I_NO   = SD.SLIP_I_NO
+		           AND PM.ORDER_NO    = SD.ORDER_NO
+		           AND PM.ORDER_G_SEQ = SD.ORDER_G_SEQ
+		           AND PM.ORDER_D_SEQ = SD.ORDER_D_SEQ
+		           AND PM.ORDER_W_SEQ = SD.ORDER_W_SEQ
+		           AND PM.ORDER_NO    = OG.ORDER_NO
+		           AND PM.ORDER_G_SEQ = OG.ORDER_G_SEQ
+		           AND PM.PA_DO_FLAG  = '30'
+		           AND PM.PA_ORDER_GB = '10'
+		           AND PM.PA_CODE     IN ('71', '72')
+		           AND SM.SLIP_PROC   >= '40'
+		           AND DG.PA_CODE = '07'
+		   		   AND SM.DELY_GB = DG.DELY_GB
+		           AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+		           <if test='paOrderNo != null and paOrderNo != ""'>
+		             AND PM.PA_ORDER_NO = #{paOrderNo, jdbcType=VARCHAR}
+		             AND PM.PA_ORDER_SEQ = #{paOrderSeq, jdbcType=VARCHAR}
+		           </if>
+		           ) XX
+		 WHERE XX.SLIP_NO IS NOT NULL
+    </select>
+    
+    <!-- 
+    <select id="selectSlipOutProcList" parameterType="HashMap" resultType="HashMap">
+   	    SELECT /* paintporder.xml : selectSlipOutProcList by PaIntpOrderController */
+         	   DISTINCT PM.PA_ORDER_NO
+         	 , PM.PA_ORDER_SEQ
+         	 , PM.PA_CODE
+         	 , SM.SLIP_NO
+         	 , TO_CHAR(SM.OUT_CLOSE_DATE, 'yyyyMMdd') AS OUT_CLOSE_DATE
+         	 , DG.PA_DELY_GB
+          FROM TPAORDERM PM
+         	 , TSLIPM SM
+         	 , TSLIPDT SD
+         	 , TORDERGOODS OG
+         	 , TPADELYGB DG
+     	 WHERE SM.SLIP_I_NO   = SD.SLIP_I_NO
+           AND PM.ORDER_NO    = SD.ORDER_NO
+           AND PM.ORDER_G_SEQ = SD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ = SD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ = SD.ORDER_W_SEQ
+           AND PM.ORDER_NO    = OG.ORDER_NO
+           AND PM.ORDER_G_SEQ = OG.ORDER_G_SEQ
+           AND PM.PA_DO_FLAG  = '30'
+           AND PM.PA_ORDER_GB = '10'
+           AND PM.PA_CODE     IN ('71', '72')
+           AND SM.SLIP_PROC   >= '40'
+           AND SM.SLIP_NO IS NOT NULL
+           AND DG.PA_CODE = '07'
+   		   AND SM.DELY_GB = DG.DELY_GB
+           AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+           AND SM.SLIP_PROC_DATE > SYSDATE - 3
+           <if test='paOrderNo != null and paOrderNo != ""'>
+             AND PM.PA_ORDER_NO = #{paOrderNo, jdbcType=VARCHAR}
+             AND PM.PA_ORDER_SEQ = #{paOrderSeq, jdbcType=VARCHAR}
+           </if>
+    </select>  -->
+    
+    <update id="updateSlipOutProc" parameterType="hashMap">
+      UPDATE /* paintporder.xml : paintp.order.updateSlipOutProc by PaIntpOrderController */
+             TPAORDERM
+         SET PA_DO_FLAG     = '40' /*배송중(출고완료)*/
+           , API_RESULT_CODE = '000000'
+           , API_RESULT_MESSAGE = '출고처리성공'
+           , PROC_DATE      = SYSDATE           
+           , MODIFY_ID      = 'BATCH'           
+           , MODIFY_DATE    = SYSDATE
+       WHERE PA_ORDER_GB    = '10' /*주문*/
+         AND PA_CODE        = #{PA_CODE, jdbcType=VARCHAR}
+         AND PA_ORDER_NO    = #{PA_ORDER_NO, jdbcType=VARCHAR}
+         AND PA_ORDER_SEQ   = #{PA_ORDER_SEQ, jdbcType=VARCHAR}
+    </update>  
+    
+    <update id="updateSlipOutProcFail" parameterType="hashMap">
+      UPDATE /* paintporder.xml : paintp.order.updateSlipOutProcFail by PaIntpOrderController */
+             TPAORDERM
+         SET API_RESULT_CODE = '999999'
+           , API_RESULT_MESSAGE = #{message, jdbcType=VARCHAR}           
+           , MODIFY_ID      = 'BATCH'           
+           , MODIFY_DATE    = SYSDATE
+       WHERE PA_ORDER_GB    = '10' /*주문*/
+         AND PA_CODE        = #{paCode, jdbcType=VARCHAR}
+         AND PA_ORDER_NO    = #{paOrdNo, jdbcType=VARCHAR}
+         AND PA_ORDER_SEQ   = #{paOrdSeq, jdbcType=VARCHAR}
+    </update>  
+    
+    <select id="selectOrgItemInfoByCancelInfo" parameterType="hashMap" resultType="com.cware.netshopping.domain.model.PaIntpCancellist">
+		SELECT /* paintporder.xml: paintp.order.selectOrgItemInfoByCancelInfo by PaIntpOrderController */
+               PM.PA_CODE
+             , PM.PA_ORDER_NO
+             , PM.PA_SHIP_NO
+             , PM.PA_ORDER_SEQ
+             , PAO.PA_ORDER_GB
+             , PAO.DELVSETL_SEQ
+             , PAO.CLMREQ_SEQ
+             , PAO.CLMREQ_QTY
+             , PAO.ORD_SEQ
+          FROM TPAINTPORDERLIST PAO
+             , TPAORDERM PM
+             , TORDERDT OD
+         WHERE PAO.PA_ORDER_GB  = '20'
+           AND PM.PA_CODE      IN ('71', '72')
+           AND PM.PA_ORDER_NO  = PAO.ORD_NO
+           AND PM.PA_SHIP_NO   = PAO.DELVSETL_SEQ
+           AND PM.PA_ORDER_SEQ = PAO.ORD_SEQ
+           AND PM.PA_ORDER_GB  = '10'
+           AND PM.CREATE_YN    = '1'
+           AND PM.ORDER_NO     = OD.ORDER_NO
+           AND PM.ORDER_G_SEQ  = OD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ  = OD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ  = OD.ORDER_W_SEQ
+           AND PAO.ORD_NO      = #{ordNo, jdbcType=VARCHAR}
+           AND PAO.ORD_SEQ     = #{ordSeq, jdbcType=VARCHAR}
+           AND PAO.CLMREQ_SEQ  = #{clmreqSeq, jdbcType=VARCHAR}
+	</select>
+	
+	<select id="countDeliComList" parameterType="hashMap" resultType="int">
+        SELECT /* paintporder.xml : paintp.order.countDeliComList by PaIntpOrderController */
+        	   COUNT(1) AS CNT
+          FROM TPAORDERM
+         WHERE PA_ORDER_NO  = #{ordNo,  jdbcType=VARCHAR}
+           AND PA_ORDER_SEQ = #{ordSeq,  jdbcType=VARCHAR}
+           AND PA_ORDER_GB  = '10'
+           AND PA_CODE		IN ('71','72')
+           AND PA_DO_FLAG	&lt; '80'
+	</select>
+	
+	<!-- 옵티마이저가  /*+INDEX_DESC (PPT IDX_TPAPROMOTARGET_04)*/를 계속 의도대로 사용하지 않아 ORDER BY 절로 수정  -->
+	<select id="selectOrderPromo" parameterType="hashMap" resultType="com.cware.netshopping.domain.OrderpromoVO">
+        SELECT /* paintporder.xml : paintp.order.selectOrderPromo by PaIntpOrderController */ 
+        	    * 
+          FROM ( SELECT PPT.SEQ
+		              , PPT.PROC_GB 
+		              , PM.PROMO_NO AS PROMO_NO
+		              , PPT.PA_CODE
+		              , TG.GOODS_CODE
+		              , PM.DO_TYPE
+		              , PM.COUPON_YN
+		              , PM.MEDIA_CODE
+		              , PM.PROMO_BDATE AS COUPON_PROMO_BDATE
+		              , PM.PROMO_EDATE AS COUPON_PROMO_EDATE
+		              , PPT.DO_AMT AS PROC_COST
+		              , PPT.OWN_COST AS OWN_PROC_COST
+		              , PPT.ENTP_COST AS ENTP_PROC_COST   
+		              , PPT.INSERT_DATE              
+		              , PPT.USE_CODE
+		           FROM TPROMOM          PM
+		              , TPAPROMOTARGET   PPT
+		              , TGOODS           TG
+		              , TPAINTPGOODS     IG
+		           WHERE PM.PROMO_NO       = PPT.PROMO_NO
+		             AND PPT.GOODS_CODE    = TG.GOODS_CODE
+		             AND TG.GOODS_CODE     = IG.GOODS_CODE
+		             AND PPT.GOODS_CODE    = #{GOODS_CODE,jdbcType=VARCHAR}
+		             AND PM.COUPON_YN      = '1'
+		             AND PM.APP_TYPE       = '10'
+		             AND PPT.PA_CODE       = IG.PA_CODE
+		             AND PM.IMMEDIATELY_YN = '1'
+		             AND NVL(PM.ALCOUT_PROMO_YN, '0') = '0'
+		             AND PM.GOODS_ALL_YN   = '0'
+		             AND ((PPT.USE_CODE       = '00' AND PPT.PROC_GB IN ('I', 'U') )  OR (PPT.PROC_GB = 'D') ) 
+		             AND PPT.TRANS_DATE    IS NOT NULL
+		             AND PPT.TRANS_DATE    &lt; TO_DATE(#{ORDER_DATE,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS')
+		             AND (( TO_DATE(#{ORDER_DATE,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE )
+		             	   OR ( TO_DATE(#{ORDER_DATE,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') >  PPT.PROMO_EDATE AND PPT.PROC_GB = 'D' ) )
+		             AND TG.GIFT_YN        = '0' 
+		        ORDER BY PPT.TRANS_DATE DESC )
+         WHERE ROWNUM = 1
+    </select>
+    
+    <select id="selectOrderPaPromo" parameterType="hashMap" resultType="com.cware.netshopping.domain.OrderpromoVO">
+        SELECT /* paintporder.xml : paintp.order.selectOrderPaPromo by PaIntpOrderController */ 
+        	    * 
+          FROM ( SELECT PPT.SEQ
+		              , PPT.PROC_GB 
+		              , PM.PROMO_NO AS PROMO_NO
+		              , PPT.PA_CODE
+		              , TG.GOODS_CODE
+		              , PM.DO_TYPE
+		              , PM.COUPON_YN
+		              , PM.MEDIA_CODE
+		              , PM.PROMO_BDATE AS COUPON_PROMO_BDATE
+		              , PM.PROMO_EDATE AS COUPON_PROMO_EDATE
+		              , PPT.DO_AMT AS PROC_COST
+		              , PPT.OWN_COST AS OWN_PROC_COST
+		              , PPT.ENTP_COST AS ENTP_PROC_COST   
+		              , PPT.INSERT_DATE              
+		              , PPT.USE_CODE
+		           FROM TPROMOM          PM
+		              , TPAPROMOTARGET   PPT
+		              , TGOODS           TG
+		              , TPAINTPGOODS     IG
+		           WHERE PM.PROMO_NO       = PPT.PROMO_NO
+		             AND PPT.GOODS_CODE    = TG.GOODS_CODE
+		             AND TG.GOODS_CODE     = IG.GOODS_CODE
+		             AND PPT.GOODS_CODE    = #{GOODS_CODE,jdbcType=VARCHAR}
+		             AND PM.COUPON_YN      = '1'
+		             AND PM.APP_TYPE       = '10'
+		             AND PPT.PA_CODE       = IG.PA_CODE
+		             AND PM.IMMEDIATELY_YN = '1'
+		             AND NVL(PM.ALCOUT_PROMO_YN, '0') = '1'
+		             AND PM.GOODS_ALL_YN   = '0'
+		             AND ((PPT.USE_CODE       = '00' AND PPT.PROC_GB IN ('I', 'U') )  OR (PPT.PROC_GB = 'D') ) 
+		             AND PPT.TRANS_DATE    IS NOT NULL
+		             AND PPT.TRANS_DATE    &lt; TO_DATE(#{ORDER_DATE,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS')
+		             AND (( TO_DATE(#{ORDER_DATE,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE )
+		             	   OR ( TO_DATE(#{ORDER_DATE,jdbcType=VARCHAR} , 'YYYY-MM-DD HH24MISS') >  PPT.PROMO_EDATE AND PPT.PROC_GB = 'D' ) )
+		             AND TG.GIFT_YN        = '0' 
+		        ORDER BY PPT.TRANS_DATE DESC )
+         WHERE ROWNUM = 1
+    </select>
+</mapper>

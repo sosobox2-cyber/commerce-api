@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="palton.stockcheck">
+
+    <select id="selectStockCheck" parameterType="com.cware.netshopping.domain.PaLtonGoodsdtMappingVO" resultType="com.cware.netshopping.domain.PaLtonGoodsdtMappingVO">
+		 SELECT DISTINCT /* paltonstockcheck.xml.xml : palton.stockcheck.selectStockCheck by PaLtonStockCheckController */
+		           DECODE(GD.SALE_GB, '00', CEIL(FUN_GET_ORDER_ABLE_QTY(PM.GOODS_CODE,
+				                                             PM.GOODSDT_CODE,
+				                                             GS.WH_CODE) *
+				                      FUN_TCODE_GROUP('O505', PM.PA_CODE)),
+				                 0) AS NEW_TRANS_QTY,
+		           PM.GOODS_CODE,
+		           PM.GOODSDT_CODE,
+		           PM.PA_OPTION_CODE
+		  FROM TPALTONGOODSDTMAPPING   PM,
+		           TPALTONGOODS                   GM,
+		           TGOODSDT                          GD,
+		           TGOODS                              GS
+		 WHERE 1 = 1
+		    AND PM.GOODS_CODE 		 = GM.GOODS_CODE
+		    AND PM.GOODS_CODE 		 = GD.GOODS_CODE
+		    AND PM.GOODSDT_CODE 	 = GD.GOODSDT_CODE
+		    AND PM.GOODS_CODE 		 = GS.GOODS_CODE
+		    AND PM.PA_OPTION_CODE = #{paOptionCode, jdbcType=VARCHAR}
+		    AND GM.SPD_NO 			 = #{spdNo, jdbcType=VARCHAR}
+     </select>
+    
+</mapper>

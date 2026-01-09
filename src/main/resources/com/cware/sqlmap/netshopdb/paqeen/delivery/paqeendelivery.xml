@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="paqeen.delivery">
+
+	<select id="selectCountOrderList" parameterType="hashMap" resultType="int">
+		SELECT /* paqeendelivery.xml: paqeen.delivery.selectCountOrderList by PaQeenDeliveryController*/
+	    	   COUNT(1) AS CNT
+	  	  FROM TPAQEENORDERLIST OL
+	 	 WHERE OL.ORDER_ID		= #{orderId,  jdbcType=VARCHAR}
+           AND OL.GROUP_ID		= #{groupId,  jdbcType=VARCHAR}
+           AND OL.ORDER_LINE_ID = #{orderLineId,  jdbcType=VARCHAR}
+	</select>
+	
+	<insert id="insertPaQeenOrderList" parameterType="hashMap">
+        INSERT /* paqeendelivery.xml: paqeen.delivery.insertPaQeenOrderList by PaQeenDeliveryController*/
+          INTO TPAQEENORDERLIST ( 
+          	   ORDER_ID				, GROUP_ID							, ORDER_LINE_ID				
+          	 , CONFIRMED_AT_MILLIS	, CREATED_AT_MILLIS					, PRODUCT_ID			
+          	 , STATE				, PRODUCT_ITEM_ID					, PRODUCT_ITEM_TITLE
+	         , PRODUCT_NAME			, QUANTITY							, FINAL_PRICE			
+	         , ORIGINAL_PRICE		, DIRECT_COUPON_APPLIED_FINAL_PRICE	, SHIPPING_COST_NORMAL			
+	         , ORDERER_ID			, RECIPIENT_NAME					, RECIPIENT_PHONE_NUMBER		
+	         , ZIP_CODE				, ADDRESS							, DETAILED_ADDRESS
+	         , SHIPPING_COST_JEJU	, SHIPPING_COST_BACK_COUNTRY		, INSERT_DATE			
+	         , MODIFY_DATE			, HOLDER_NAME						, REQUEST
+	         , SELLER_AMOUNT		, QUEENIT_AMOUNT
+        	) 
+        VALUES(
+              #{orderId	 		  , jdbcType=VARCHAR} 	, #{groupId						  , jdbcType=VARCHAR} 	, #{orderLineId			 , jdbcType=VARCHAR} 	
+			, #{confirmedAtMillis , jdbcType=TIMESTAMP} , #{createdAtMillis				  , jdbcType=TIMESTAMP} , #{productId			 , jdbcType=TIMESTAMP} 	
+			, #{state	 		  , jdbcType=VARCHAR} 	, #{productItemId				  , jdbcType=VARCHAR} 	, #{productItemtitle	 , jdbcType=VARCHAR} 
+			, #{prodcutName		  , jdbcType=VARCHAR} 	, #{quantity					  , jdbcType=VARCHAR} 	, #{finalPrice			 , jdbcType=VARCHAR} 
+			, #{originalPrice 	  , jdbcType=NUMERIC} 	, #{directCouponAppliedFinalPrice , jdbcType=NUMERIC} 	, #{shippingCostNormal	 , jdbcType=NUMERIC} 
+			, #{ordererId	 	  , jdbcType=VARCHAR} 	, #{recipientName				  , jdbcType=VARCHAR} 	, #{recipientPhoneNumber , jdbcType=VARCHAR} 
+			, #{zipCode			  , jdbcType=VARCHAR} 	, #{address						  , jdbcType=VARCHAR} 	, #{detailedAddress		 , jdbcType=VARCHAR} 
+			, #{shippingCostJeju  , jdbcType=NUMERIC} 	, #{shippingCostBackCountry		  , jdbcType=NUMERIC}   , #{insertDate			 , jdbcType=TIMESTAMP} 	
+			, #{modifyDate		  , jdbcType=TIMESTAMP}	, #{holderName		  			  , jdbcType=VARCHAR}	, #{request		  		 , jdbcType=VARCHAR}
+        	, #{sellerAmount 	  , jdbcType=NUMERIC}	, #{queenitAmount 	  			  , jdbcType=NUMERIC}
+        	)  
+     </insert>
+     
+     <select id="selectOrderConfirmTargetList" resultType="hashMap">
+        SELECT /* paqeendelivery.xml : paqeen.delivery.selectOrderConfirmTargetList by PaQeenDeliveryController */
+               PM.MAPPING_SEQ
+             , PM.PA_ORDER_NO
+             , PM.PA_CODE
+             , PM.PA_ORDER_NO || PM.PA_SHIP_NO AS PA_SHIP_NO
+             , PM.PA_ORDER_NO ||PM.PA_ORDER_SEQ AS PA_ORDER_SEQ
+          FROM TPAORDERM PM
+         WHERE PM.PA_CODE = #{paCode, jdbcType=VARCHAR}
+           AND PM.PA_ORDER_GB = '10'
+           AND PM.PA_DO_FLAG  = '10'
+           AND PM.ORDER_NO IS NULL
+           AND PM.PRE_CANCEL_YN = '0'
+    </select>
+
+    <update id="updatePaorderm" parameterType="hashMap">
+        UPDATE /* paqeendelivery.xml: paqeen.delivery.updatePaorderm by PaQeenDeliveryController*/
+        	   TPAORDERM
+           SET MODIFY_DATE		  = SYSDATE
+             <if test='paDoFlag != null and paDoFlag != ""'>
+             , PA_DO_FLAG 		  = #{paDoFlag			,	jdbcType=VARCHAR}
+             </if>
+             <if test='preCancelYn != null and preCancelYn != ""'>
+             , PRE_CANCEL_YN 	  = #{preCancelYn		,	jdbcType=VARCHAR}
+             </if>
+             <if test='changeFlag != null and changeFlag != ""'>
+             , CHANGE_FLAG 		  = #{changeFlag		, 	jdbcType=VARCHAR}
+             </if>
+             , API_RESULT_MESSAGE = #{resultMessage		,	jdbcType=VARCHAR}
+             , API_RESULT_CODE	  = #{resultCode		,	jdbcType=VARCHAR}
+         WHERE MAPPING_SEQ        = #{mappingSeq		,   jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectOrderInputTargetList" parameterType="int" resultType="hashMap">
+        SELECT  /* paqeendelivery.xml: paqeen.delivery.selectOrderInputTargetList by PaQeenDeliveryController*/
+               AA.PA_ORDER_NO
+             , AA.TARGET_CNT
+          FROM (SELECT POM.PA_ORDER_NO
+                     , COUNT(1) TARGET_CNT
+                  FROM TPAORDERM POM
+                 WHERE POM.PA_CODE        IN ('F1','F2')
+                   AND POM.PA_ORDER_GB    = '10'
+                   AND POM.CREATE_YN      = '0'
+                   AND POM.PRE_CANCEL_YN  = '0'
+                   AND POM.INSERT_DATE    > TRUNC(SYSDATE)-5
+                   AND POM.PA_DO_FLAG	  = '30'
+                 GROUP BY POM.PA_ORDER_NO
+                 ORDER BY POM.PA_ORDER_NO) AA
+          WHERE ROWNUM &lt;= #{limitCount, jdbcType=NUMERIC}
+	</select>
+	
+	<select id="selectOrderInputTargetDtList" parameterType="hashMap" resultType="hashMap">	 
+        SELECT  /* paqeendelivery.xml: paqeen.delivery.selectOrderInputTargetDtList by PaQeenDeliveryController*/
+				PM.PA_ORDER_NO
+			  , PM.PA_CODE
+			  , PGM.REIFIED_PRODUCT_ID AS PA_GOODS_CODE
+			  , PM.MAPPING_SEQ
+			  , TC.REMARK1 AS MEDIA_CODE  
+			  , TO_CHAR(OL.CREATED_AT_MILLIS, 'YYYYMMDDHH24MISS') AS ORDER_DATE
+			  , PGD.GOODS_CODE
+			  , PGD.GOODSDT_CODE
+			  , OL.QUANTITY AS ORDER_QTY
+			  , TO_CHAR(PP.APPLY_DATE, 'YYYYMMDDHH24MISS') APPLY_DATE
+			  , PP.SUPPLY_PRICE
+			  , NVL(OL.HOLDER_NAME,OL.RECIPIENT_NAME) AS CUST_NAME
+			  , OL.RECIPIENT_PHONE_NUMBER  AS CUST_TEL1
+			  , OL.RECIPIENT_PHONE_NUMBER  AS CUST_TEL2
+			  , RECIPIENT_NAME AS RECEIVER_NAME 
+			  , RECIPIENT_PHONE_NUMBER AS RECEIVER_TEL
+			  , RECIPIENT_PHONE_NUMBER AS RECEIVER_HP
+			  , REPLACE(OL.ZIP_CODE,'-' , '' )  AS POST_NO
+			  , '001' AS POST_NO_SEQ 
+			  , CASE WHEN LENGTH( REPLACE(OL.ZIP_CODE,'-' , '' ) ) = 6  THEN  '01'  ELSE  '02'  END  AS  ADDR_GBN 
+			  , OL.ADDRESS || ' ' || OL.DETAILED_ADDRESS AS RECEIVER_ADDR 
+			  , OL.ADDRESS AS RCVR_BASE_ADDR
+			  , OL.DETAILED_ADDRESS AS RCVR_DTLS_ADDR
+			  , NVL((OL.FINAL_PRICE),0) - OL.QUEENIT_AMOUNT AS RSALE_AMT
+			  , NVL((PP.SALE_PRICE * OL.QUANTITY),0) - NVL((OL.FINAL_PRICE),0) AS SELLER_DC_AMT
+			  , NVL((PP.LUMP_SUM_DC_AMT * OL.QUANTITY),0) AS LUMP_SUM_DC_AMT
+			  , NVL((PP.LUMP_SUM_ENTP_DC_AMT),0) AS LUMP_SUM_ENTP_DC_AMT
+			  , NVL((PP.LUMP_SUM_OWN_DC_AMT),0) AS LUMP_SUM_OWN_DC_AMT
+			  , OL.REQUEST  AS MSG
+			  , NVL(OL.SHIPPING_COST_NORMAL + OL.SHIPPING_COST_JEJU + SHIPPING_COST_BACK_COUNTRY, 0) AS PA_SHPFEE_COST
+			  , PP.PRICE_SEQ
+			  , PP.SALE_PRICE  
+			  , '99' AS CUST_CHAR
+			  , '72' AS RECEIVE_METHOD
+			  , 0 AS INSTANT_COUPON_DISCOUNT
+			  , PP.COUPON_PROMO_NO AS PROMO_NO
+			  , NVL(PP.COUPON_DC_AMT, 0) AS DO_AMT
+			  , PP.COUPON_OWN_COST AS OWN_COST
+			  , PP.COUPON_ENTP_COST AS ENTP_COST
+			  , PROMO.PROMO_BDATE AS COUPON_PROMO_BDATE
+			  , PROMO.PROMO_EDATE AS COUPON_PROMO_EDATE
+			  , TO_CHAR(GP.APPLY_DATE, 'YYYYMMDDHH24MISS') AS STOA_APPLY_DATE
+		   FROM ( SELECT MAPPING_SEQ
+                   , PA_CODE
+                   , PA_ORDER_GB
+                   , PA_ORDER_NO
+                   , PA_ORDER_NO || PA_ORDER_SEQ AS PA_ORDER_SEQ
+                   , PA_ORDER_NO || PA_SHIP_NO AS PA_SHIP_NO
+                   , PA_SHIP_SEQ
+                   , PA_GROUP_CODE
+                   , CREATE_YN
+                   , PRE_CANCEL_YN
+                FROM TPAORDERM
+               WHERE PA_CODE IN ('F1','F2')) PM
+			  , TPAQEENORDERLIST OL
+		      , TCODE TC
+		      , TPAQEENGOODS PGM
+		      , TPAQEENGOODSDTMAPPING PGD
+		      , TPAGOODSPRICEAPPLY PP 
+		      , TPROMOM PROMO
+		      , TGOODSPRICE GP
+		  WHERE PM.PA_ORDER_NO     = OL.ORDER_ID
+    		AND PM.PA_ORDER_SEQ    = OL.GROUP_ID
+    		AND PM.PA_SHIP_NO	   = OL.ORDER_LINE_ID
+    		AND PM.PA_GROUP_CODE   = TC.CODE_MGROUP
+    		AND PGM.GOODS_CODE     = PGD.GOODS_CODE
+    		AND OL.PRODUCT_ID 	   = PGM.REIFIED_PRODUCT_ID
+    		AND OL.PRODUCT_ITEM_ID = PGD.PA_OPTION_CODE
+    		AND PM.PA_CODE         = PGD.PA_CODE
+    		AND PGM.PA_GROUP_CODE  = PM.PA_GROUP_CODE 
+    		AND PGM.GOODS_CODE     = PP.GOODS_CODE
+    		AND PGM.PA_GROUP_CODE  = PP.PA_GROUP_CODE
+    		AND PGM.PA_CODE        = PP.PA_CODE
+    		AND (PP.APPLY_DATE, PP.PRICE_APPLY_SEQ) = (SELECT /*+ INDEX_DESC (PP2 PK_TPAGOODSPRICEAPPLY)*/
+		                                                      PP2.APPLY_DATE, PP2.PRICE_APPLY_SEQ
+		                                                 FROM TPAGOODSPRICEAPPLY PP2
+		                                                WHERE PP2.GOODS_CODE   = PP.GOODS_CODE
+		                                                  AND PP2.PA_GROUP_CODE  = PP.PA_GROUP_CODE
+		                                                  AND PP2.PA_CODE    = PP.PA_CODE
+		                                                  AND PP2.APPLY_DATE &lt;= OL.CREATED_AT_MILLIS 
+		                                                  AND PP2.TRANS_DATE &lt;= OL.CREATED_AT_MILLIS 
+		                                                  AND rownum = 1 )
+    
+    		AND PP.COUPON_PROMO_NO      = PROMO.PROMO_NO(+)
+    		AND GP.GOODS_CODE           = PP.GOODS_CODE
+    		AND GP.ROWID                = (  SELECT /*+ INDEX_DESC (GP2 PK_TGOODSPRICE)*/
+                                             		GP2.ROWID
+                                       		   FROM TGOODSPRICE GP2
+                                      		  WHERE GP2.GOODS_CODE = GP.GOODS_CODE
+                                        		AND GP2.APPLY_DATE &lt; OL.CREATED_AT_MILLIS
+                                        		AND ROWNUM = 1)
+    		AND TC.CODE_LGROUP           = 'O500'
+        	AND TC.CODE_MGROUP           = PM.PA_GROUP_CODE 
+    		AND PM.PA_ORDER_GB           = '10'
+    		AND PM.CREATE_YN             = '0'
+    		AND PM.PRE_CANCEL_YN         = '0'
+    		AND PGD.USE_YN 				 = '1'
+    		AND OL.FINAL_PRICE			 = (PP.SALE_PRICE - PP.ARS_DC_AMT - PP.COUPON_DC_AMT - PP.LUMP_SUM_DC_AMT) * OL.QUANTITY
+    		AND PM.PA_CODE IN ('F1','F2')
+    		AND PM.PA_ORDER_NO           = #{paOrderNo, jdbcType=VARCHAR}
+	
+	</select>  
+	
+	<select id="selectRefusalInfo" parameterType="String" resultType="hashMap">
+       SELECT /* paqeengoods.xml: paqeen.delivery.selectRefusalInfo by PaQeenDeliveryController */
+       	      OL.PRODUCT_ITEM_ID
+       	    , OL.ORDER_LINE_ID
+		    , PM.PA_PROC_QTY 
+		    , OL.ORDER_ID AS PA_ORDER_NO
+		    , '재고부족' AS REASON_DETAIL
+		    , PM.PA_CODE
+		    , OL.ORDER_ID
+		    , PM.MAPPING_SEQ
+		 FROM ( SELECT MAPPING_SEQ
+                     , PA_CODE
+                     , PA_ORDER_NO
+                     , PA_ORDER_NO || PA_ORDER_SEQ AS PA_ORDER_SEQ
+                     , PA_ORDER_NO || PA_SHIP_NO AS PA_SHIP_NO
+                     , PA_PROC_QTY
+                  FROM TPAORDERM
+                 WHERE PA_CODE IN ('F1','F2')) PM
+		    , TPAQEENORDERLIST OL
+		WHERE PM.PA_ORDER_NO  = OL.ORDER_ID
+		  AND PM.PA_ORDER_SEQ = OL.GROUP_ID
+		  AND PM.PA_SHIP_NO   = OL.ORDER_LINE_ID
+		  AND PM.MAPPING_SEQ  = #{mappingSeq, jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectSlipProcList" parameterType="hashMap" resultType="hashMap">	 
+		SELECT  /* paqeendelivery.xml: paqeen.delivery.selectSlipProcList by PaQeenDeliveryController*/
+			   PM.PA_CODE
+			 , DG.PA_DELY_GB
+			 , OL.ORDER_ID
+			 , SM.SLIP_NO
+			 , PM.MAPPING_SEQ
+			 , OL.ORDER_LINE_ID
+	     FROM ( SELECT MAPPING_SEQ
+	                 , PA_CODE
+	                 , PA_ORDER_GB
+	                 , PA_ORDER_NO
+	                 , PA_ORDER_NO || PA_ORDER_SEQ AS PA_ORDER_SEQ
+	                 , PA_ORDER_NO || PA_SHIP_NO AS PA_SHIP_NO
+	                 , PA_SHIP_SEQ
+	                 , PA_GROUP_CODE
+	                 , ORDER_NO
+	                 , ORDER_G_SEQ
+	                 , ORDER_D_SEQ
+	                 , ORDER_W_SEQ
+	                 , PA_DO_FLAG
+	              FROM TPAORDERM
+	             WHERE PA_CODE IN ('F1','F2')) PM
+			, TPAQEENORDERLIST OL
+			, TSLIPM SM
+			, TSLIPDT SD
+			, TORDERGOODS OG
+			, TPADELYGB DG
+		 WHERE OL.ORDER_ID      = PM.PA_ORDER_NO
+		   AND OL.GROUP_ID      = PM.PA_ORDER_SEQ
+		   AND OL.ORDER_LINE_ID = PM.PA_SHIP_NO
+		   AND SM.SLIP_I_NO   	= SD.SLIP_I_NO
+		   AND PM.ORDER_NO    	= SD.ORDER_NO
+		   AND PM.ORDER_G_SEQ 	= SD.ORDER_G_SEQ
+		   AND PM.ORDER_D_SEQ 	= SD.ORDER_D_SEQ
+		   AND PM.ORDER_W_SEQ 	= SD.ORDER_W_SEQ
+		   AND PM.ORDER_NO    	= OG.ORDER_NO
+		   AND PM.ORDER_G_SEQ 	= OG.ORDER_G_SEQ
+		   AND PM.PA_DO_FLAG  	= '30'
+		   AND PM.PA_ORDER_GB 	= '10'
+		   AND PM.PA_CODE       = #{paCode , jdbcType=VARCHAR}
+		   AND SM.SLIP_PROC   	>= '40'
+		   AND DG.PA_CODE 		= '15'
+		   AND SM.DELY_GB 		= DG.DELY_GB
+		   AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+		   AND SM.SLIP_NO IS NOT NULL
+	</select>
+
+	<select id="selectDeliveryComplete" parameterType="hashMap" resultType="hashMap">	 
+		SELECT  /* paqeendelivery.xml: paqeen.delivery.selectDeliveryComplete by PaQeenDeliveryController*/
+			   PM.PA_CODE
+			 , PM.PA_ORDER_NO
+			 , PM.PA_SHIP_NO
+			 , PM.PA_ORDER_SEQ
+			 , PM.MAPPING_SEQ
+	     FROM ( SELECT MAPPING_SEQ
+	                 , PA_CODE
+	                 , PA_ORDER_GB
+	                 , PA_ORDER_NO
+	                 , PA_ORDER_NO || PA_ORDER_SEQ AS PA_ORDER_SEQ
+	                 , PA_ORDER_NO || PA_SHIP_NO AS PA_SHIP_NO
+	                 , PA_SHIP_SEQ
+	                 , PA_GROUP_CODE
+	                 , ORDER_NO
+	                 , ORDER_G_SEQ
+	                 , ORDER_D_SEQ
+	                 , ORDER_W_SEQ
+	                 , PA_DO_FLAG
+	              FROM TPAORDERM
+	             WHERE PA_CODE IN ('F1','F2')) PM
+			, TPAQEENORDERLIST OL
+			, TSLIPM SM
+			, TSLIPDT SD
+			, TORDERGOODS OG
+			, TPADELYGB DG
+ 		WHERE OL.ORDER_ID      = PM.PA_ORDER_NO
+		  AND OL.GROUP_ID      = PM.PA_ORDER_SEQ
+		  AND OL.ORDER_LINE_ID = PM.PA_SHIP_NO
+		  AND SM.SLIP_I_NO     = SD.SLIP_I_NO
+		  AND PM.ORDER_NO      = SD.ORDER_NO
+		  AND PM.ORDER_G_SEQ   = SD.ORDER_G_SEQ
+		  AND PM.ORDER_D_SEQ   = SD.ORDER_D_SEQ
+		  AND PM.ORDER_W_SEQ   = SD.ORDER_W_SEQ
+		  AND PM.ORDER_NO      = OG.ORDER_NO
+		  AND PM.ORDER_G_SEQ   = OG.ORDER_G_SEQ
+	      AND PM.PA_DO_FLAG    = '40'
+	      AND PM.PA_ORDER_GB   = '10'
+	      AND SM.SLIP_PROC     = '80'
+	      AND DG.PA_CODE       = '15'
+		  AND SM.DELY_GB 	   = DG.DELY_GB
+		  AND SM.SLIP_PROC_DATE &gt;= TRUNC(SYSDATE) - 15
+		/*  AND NOT EXISTS (SELECT 1
+                    		FROM TPAQEENCLAIMLIST PC
+                   		   WHERE PC.ORDER_LINE_ID = OL.ORDER_LINE_ID )*/
+		<if test='paCode != "" and paCode != null '>
+          AND PM.PA_CODE = #{paCode , jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<update id="updatePreCanYn" parameterType="hashMap">
+        UPDATE /* paqeendelivery.xml : paqeen.delivery.updatePreCanYn by PaQeenDeliveryController */
+        	   TPAORDERM
+           SET PRE_CANCEL_YN	 	= #{preCanYn		 , jdbcType=VARCHAR}
+             , API_RESULT_MESSAGE	= #{apiResultMessage , jdbcType=VARCHAR}
+             <if test="apiResultCode != null and apiResultCode != ''">
+             , API_RESULT_CODE		= #{apiResultCode    , jdbcType=VARCHAR}
+             </if>
+             , MODIFY_DATE		 	= SYSDATE
+         WHERE MAPPING_SEQ       	= #{MAPPING_SEQ		 , jdbcType=VARCHAR}
+    </update>
+	
+	<insert id="insertPaOrderM" parameterType="com.cware.netshopping.domain.model.Paorderm" >
+		INSERT INTO TPAORDERM( /* paqeendelivery.xml :  paqeen.delivery.insertPaOrderM */
+	        MAPPING_SEQ
+	      , PA_CODE
+	      , PA_ORDER_GB
+	      , PA_ORDER_NO
+	      , PA_ORDER_SEQ
+	      , PA_SHIP_NO
+	      , PA_SHIP_SEQ
+	      , PA_CLAIM_NO
+	      , PA_PROC_QTY
+	      , PA_DO_FLAG
+	      , OUT_BEF_CLAIM_GB
+	      , CHANGE_GOODS_CODE
+	      , CHANGE_GOODSDT_CODE
+	      , CHANGE_FLAG
+	      , INSERT_DATE
+	      , MODIFY_ID
+	      , MODIFY_DATE
+	      , PA_GROUP_CODE
+	      , API_RESULT_CODE
+	      , API_RESULT_MESSAGE
+	      , CREATE_YN
+	      , PRE_CANCEL_YN
+	      <if test='paGroupCode != null and paGroupCode == "10" and remark1V != null and remark1V != ""'>
+	      , REMARK1_V
+	      </if>
+	      <if test='paGroupCode != null and paGroupCode == "08" and remark6V != null and remark6V != ""'>
+	      , REMARK6_V
+	      </if>
+	        )
+		VALUES
+           (SEQ_PAORDERM_SEQ.NEXTVAL
+          , #{paCode,            	jdbcType=VARCHAR}
+          , #{paOrderGb,         	jdbcType=VARCHAR}
+          , #{paOrderNo,        	jdbcType=VARCHAR}
+          , #{paOrderSeq,           jdbcType=VARCHAR}
+          , #{paShipNo,         	jdbcType=VARCHAR}
+          , #{paShipSeq,  	        jdbcType=VARCHAR}          
+          , #{paClaimNo,   	        jdbcType=VARCHAR}
+          , #{paProcQty,   	        jdbcType=VARCHAR}
+          , #{paDoFlag,   	        jdbcType=VARCHAR}
+          , #{outBefClaimGb,        jdbcType=VARCHAR}
+          , #{changeGoodsCode,      jdbcType=VARCHAR}
+          , #{changeGoodsdtCode,    jdbcType=VARCHAR}
+          , #{changeFlag,           jdbcType=VARCHAR}
+          , #{insertDate,           jdbcType=TIMESTAMP}
+          , #{modifyId,             jdbcType=VARCHAR}
+          , #{modifyDate,           jdbcType=TIMESTAMP} 
+          , NVL(#{paGroupCode,      jdbcType=VARCHAR}, '01' )
+          , #{apiResultCode,      	jdbcType=VARCHAR}
+          , #{apiResultMessage,     jdbcType=VARCHAR}
+          , NVL(#{createYn,         jdbcType=VARCHAR}, '0' )
+          , NVL(#{preCancelYn,      jdbcType=VARCHAR}, '0' )
+          <if test='paGroupCode != null and paGroupCode == "10" and remark1V != null and remark1V != ""'>
+          , #{remark1V,             jdbcType=VARCHAR}
+          </if>
+          <if test='paGroupCode != null and paGroupCode == "08" and remark6V != null and remark6V != ""'>
+          , #{remark6V,             jdbcType=VARCHAR}
+          </if>
+          )
+    </insert>
+</mapper>

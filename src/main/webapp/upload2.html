@@ -1,0 +1,32 @@
+<html>
+<head>
+    <script type="text/javascript">
+        function formSubmit() {
+            var form = document.infoForm;
+            
+            form.action = "";
+            form.submit();
+        }
+    </script>
+</head>
+<!-- <form name="infoForm" method="post" enctype="multipart/form-data" action="http://localhost/partner/goods/pregoods-image-file">-->
+<form name="infoForm" method="post" enctype="multipart/form-data" action="http://api2dev.skymall.co.kr/sellerapi/partner/goods/pregoods-image-file">
+	  <input name="linkCode"             value="SLINK" />
+    <input name="entpId"               value="E433900" />
+    <input name="entpPass"              value="cware@1212" />
+    <input name="entpCode"              value="433900" />
+    
+    <input name="scmGoodsCode" 				 value="200337" />
+    <input name="flagGb"               value="I" /></br>
+    
+    메인이미지 <input name="imgFileBase"          type="file" /></br>
+    서브이미지A<input name="imgFileA"          		type="file" /></br>
+    서브이미지B<input name="imgFileB"          		type="file" /></br>
+    서브이미지C<input name="imgFileC"          		type="file" /></br>
+    서브이미지D<input name="imgFileD"          		type="file" /></br>
+    모바일이미지<input name="imgFileE"          		type="file" /></br>
+    
+  	</br>
+		<input type="submit" value="전송~">
+</form>
+</html>

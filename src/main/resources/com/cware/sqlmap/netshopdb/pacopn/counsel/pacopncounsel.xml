@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pacopn.counsel">
+	<select id="selectPaCopnQna" resultType="com.cware.netshopping.domain.PaqnamVO">
+		SELECT /* pacouncounsel.xml : pacopn.counsel.selectPaCopnQna */
+               PQ.PA_COUNSEL_SEQ
+             , PQ.PROC_GB
+             , PQ.PA_CODE
+             , PQ.PA_COUNSEL_NO
+             , PQ.COUNSEL_SEQ
+             , PQ.COUNSEL_DATE
+             , PQ.COUNSEL_GB
+             , PQ.PA_GOODS_DT_CODE
+             , PQ.PA_ORDER_NO
+             , (SELECT PM.ORDER_NO 
+                  FROM TPAORDERM PM 
+                 WHERE PM.PA_CODE = PQ.PA_CODE
+                   AND PM.PA_ORDER_NO = PQ.PA_ORDER_NO 
+                   AND PM.PA_ORDER_GB ='10' 
+                   AND ROWNUM = 1 ) AS REF_NO
+             , PQ.ORDER_YN
+             , PQ.DISPLAY_YN
+             , PQ.PA_CUST_NO
+             , PQ.CUST_NAME
+             , PQ.CUST_TEL
+             , PQ.RECEIPT_DATE
+             , PQ.TRANS_YN
+             , PQ.TRANS_DATE
+             , PQ.INSERT_DATE
+             , PQ.INSERT_ID
+             , PQ.MODIFY_DATE
+             , PQ.MODIFY_ID
+             , PD.PA_COUNSEL_DT_SEQ
+             , PD.TITLE
+             , PD.PROC_NOTE
+             , PG.GOODS_CODE
+             , PG.ENTP_CODE
+             , NVL((SELECT OM.CUST_NO
+                     FROM TPAORDERM PM, TORDERM OM
+                    WHERE PQ.PA_ORDER_NO = PM.PA_ORDER_NO
+                      AND PM.ORDER_NO = OM.ORDER_NO
+                      AND ROWNUM = 1
+                   ) ,(SELECT TO_CHAR(CODE_NAME)
+                      FROM TCODE TC
+                     WHERE TC.CODE_LGROUP = 'O511'
+                       AND TC.REMARK1 = '05'
+                       AND ROWNUM = 1
+                     ) ) AS CUST_NO
+          FROM TPAQNAM PQ
+             , TPAQNADT PD
+             , TPAPRODUCT PG
+             , TPAGOODSDTMAPPING PDM
+         WHERE PQ.PA_COUNSEL_SEQ = PD.PA_COUNSEL_SEQ
+           AND PQ.PROC_GB = PD.PROC_GB
+           AND PG.GOODS_CODE = PDM.GOODS_CODE
+           AND PQ.PA_GOODS_DT_CODE = PDM.PA_OPTION_CODE
+           AND PQ.COUNSEL_SEQ IS NULL
+           AND PQ.PROC_GB = '10'
+           AND PQ.TRANS_YN = '0'
+           AND PQ.TRANS_DATE IS NULL
+           AND PD.PA_COUNSEL_DT_SEQ = '1'
+           AND PDM.PA_CODE IN ('51', '52')
+           AND PQ.INSERT_DATE > TRUNC(SYSDATE) - 3
+           
+         <!-- 제휴OUT상품연동 REQ_PRM_041 : E -->
+         UNION ALL
+         SELECT 
+               PQ.PA_COUNSEL_SEQ
+             , PQ.PROC_GB
+             , PQ.PA_CODE
+             , PQ.PA_COUNSEL_NO
+             , PQ.COUNSEL_SEQ
+             , PQ.COUNSEL_DATE
+             , PQ.COUNSEL_GB
+             , PQ.PA_GOODS_DT_CODE
+             , PQ.PA_ORDER_NO
+             , (SELECT PM.ORDER_NO 
+                  FROM TPAORDERM PM 
+                 WHERE PM.PA_CODE = PQ.PA_CODE
+                   AND PM.PA_ORDER_NO = PQ.PA_ORDER_NO 
+                   AND PM.PA_ORDER_GB ='10' 
+                   AND ROWNUM = 1 ) AS REF_NO
+             , PQ.ORDER_YN
+             , PQ.DISPLAY_YN
+             , PQ.PA_CUST_NO
+             , PQ.CUST_NAME
+             , PQ.CUST_TEL
+             , PQ.RECEIPT_DATE
+             , PQ.TRANS_YN
+             , PQ.TRANS_DATE
+             , PQ.INSERT_DATE
+             , PQ.INSERT_ID
+             , PQ.MODIFY_DATE
+             , PQ.MODIFY_ID
+             , PD.PA_COUNSEL_DT_SEQ
+             , PD.TITLE
+             , PD.PROC_NOTE
+             , PG.GOODS_CODE
+             , PG.ENTP_CODE
+             , NVL((SELECT OM.CUST_NO
+                     FROM TPAORDERM PM, TORDERM OM
+                    WHERE PQ.PA_ORDER_NO = PM.PA_ORDER_NO
+                      AND PM.ORDER_NO = OM.ORDER_NO
+                      AND ROWNUM = 1
+                   ) ,(SELECT TO_CHAR(CODE_NAME)
+                      FROM TCODE TC
+                     WHERE TC.CODE_LGROUP = 'O511'
+                       AND TC.REMARK1 = '05'
+                       AND ROWNUM = 1
+                     ) ) AS CUST_NO
+          FROM TPAQNAM PQ
+             , TPAQNADT PD
+             , TPAPRODUCT PG
+             , TGDS_ALCOUT_DEAL_GOODS_MAPP ADGM
+         WHERE PQ.PA_COUNSEL_SEQ = PD.PA_COUNSEL_SEQ
+           AND PQ.PROC_GB = PD.PROC_GB
+           AND PG.GOODS_CODE = ADGM.GOODS_CODE
+           AND PQ.PA_GOODS_DT_CODE = ADGM.PA_OPTION_CODE
+           AND PQ.COUNSEL_SEQ IS NULL
+           AND PQ.PROC_GB = '10'
+           AND PQ.TRANS_YN = '0'
+           AND PQ.TRANS_DATE IS NULL
+           AND PD.PA_COUNSEL_DT_SEQ = '1'
+           AND ADGM.PA_CODE IN ('51', '52')
+           AND PQ.INSERT_DATE > TRUNC(SYSDATE) - 3  
+         <!-- 제휴OUT상품연동 REQ_PRM_041 : E -->
+	</select>
+	
+	<update id="updatePaQnaMTrans" parameterType="com.cware.netshopping.domain.PaqnamVO">
+		UPDATE TPAQNAM /* pacopncounsel.xml : pacopn.counsel.updatePaQnamTrans by PaCopnCounselController */
+           SET TRANS_YN = '1'
+             , PROC_GB  = '40'
+             , TRANS_DATE  = #{modifyDate, jdbcType=TIMESTAMP}
+             , MODIFY_ID   = #{modifyId  , jdbcType=VARCHAR}
+             , MODIFY_DATE = #{modifyDate, jdbcType=TIMESTAMP}
+         WHERE PA_COUNSEL_SEQ  = #{paCounselSeq, jdbcType=VARCHAR}
+	</update>
+	
+	<select id="selectPaQnaDtMaxSeq" parameterType="com.cware.netshopping.domain.PaqnamVO" resultType="String">
+		SELECT /* pacopncounsel.xml : pacopn.counsel.selectPaQnaDtMaxSeq by PaCopnCounselController */
+    		   MAX(P.PA_COUNSEL_DT_SEQ) + 1 
+    	  FROM TPAQNADT P
+    	 WHERE P.PA_COUNSEL_SEQ = #{paCounselSeq, jdbcType=VARCHAR}
+	</select>
+	
+	<insert id="insertPaQnaDt" parameterType="com.cware.netshopping.domain.PaqnamVO">
+		INSERT INTO TPAQNADT( /* pacopncounsel.xml : pacopn.counsel.insertPaQnaDt by PaCopnCounselController */
+			PA_COUNSEL_SEQ
+		  , PA_COUNSEL_DT_SEQ
+		  , PROC_GB
+		  , TITLE
+		  , PROC_NOTE
+		  , PROC_DATE
+		  , PROC_ID) 
+		VALUES (
+		    #{paCounselSeq  , jdbcType=VARCHAR}
+		  , #{paCounselDtSeq, jdbcType=VARCHAR}
+		  , #{procGb        , jdbcType=VARCHAR}
+		  , #{title         , jdbcType=VARCHAR}
+		  , #{procNote      , jdbcType=VARCHAR}
+		  , #{procDate      , jdbcType=TIMESTAMP}
+		  , #{procId        , jdbcType=VARCHAR})
+	</insert>
+	
+	<insert id="insertPaQnaMoment" parameterType="com.cware.netshopping.domain.model.Paqnamoment">
+        INSERT INTO TPAQNAMOMENT ( /* pacopncounsel.xml : pacopn.counsel.insertPaQnaMoment */
+                      PA_CODE
+                    , PA_COUNSEL_NO
+                    , COUNSEL_DATE
+                    , TITLE
+                    , QUEST_COMMENT
+                    , ANSWER_COMMENT
+                    , COUNSEL_GB
+                    , PA_GOODS_CODE
+                    , PA_GOODS_DT_CODE
+                    , PA_ORDER_NO
+                    , ORDER_YN
+                    , DISPLAY_YN
+                    , PA_CUST_NO
+                    , CUST_NAME
+                    , CUST_TEL
+                    , RECEIPT_DATE
+                    , MSG_GB
+                    , TOKEN
+                    , PA_GROUP_CODE
+                    )
+             VALUES( #{paCode, jdbcType=VARCHAR}
+                   , #{paCounselNo, jdbcType=VARCHAR}
+                   , #{counselDate, jdbcType=VARCHAR}
+                   , #{title, jdbcType=VARCHAR}
+                   , #{questComment, jdbcType=VARCHAR}
+                   , #{answerComment, jdbcType=VARCHAR}
+                   , #{counselGb, jdbcType=VARCHAR}
+                   , (SELECT T.GOODS_CODE FROM TPAGOODSDTMAPPING T WHERE T.PA_OPTION_CODE = #{paGoodsDtCode, jdbcType=VARCHAR}
+                   <!-- 제휴OUT상품연동 REQ_PRM_041 : S -->
+                   UNION ALL
+                   SELECT T.GOODS_CODE FROM TGDS_ALCOUT_DEAL_GOODS_MAPP T WHERE T.PA_OPTION_CODE = #{paGoodsDtCode, jdbcType=VARCHAR} )
+                   <!-- 제휴OUT상품연동 REQ_PRM_041 : E -->
+                   , #{paGoodsDtCode, jdbcType=VARCHAR}
+                   , #{paOrderNo, jdbcType=VARCHAR}
+                   , #{orderYn, jdbcType=DATE}
+                   , #{displayYn, jdbcType=VARCHAR}
+                   , #{paCustNo, jdbcType=DATE}
+                   , #{custName, jdbcType=VARCHAR}
+                   , #{custTel, jdbcType=VARCHAR}
+                   , #{receiptDate, jdbcType=VARCHAR}
+                   , #{msgGb, jdbcType=VARCHAR}
+                   , #{token, jdbcType=VARCHAR}
+                   , #{paGroupCode, jdbcType=VARCHAR}
+                   )
+    </insert>
+    
+    <select id="selectPaCopnUrgentQna" resultType="com.cware.netshopping.domain.PaqnamVO">
+        SELECT /* pacopncounsel.xml : pacopn.counsel.selectPaCopnUrgentQna */
+               PQ.PA_COUNSEL_SEQ
+             , PQ.PROC_GB
+             , PQ.PA_CODE
+             , PQ.PA_COUNSEL_NO
+             , PQ.COUNSEL_SEQ
+             , PQ.COUNSEL_DATE
+             , PQ.COUNSEL_GB
+             , PQ.PA_GOODS_CODE
+             , PQ.PA_GOODS_DT_CODE
+             , PQ.PA_ORDER_NO
+             , (SELECT PM.ORDER_NO 
+                  FROM TPAORDERM PM 
+                 WHERE PM.PA_CODE = PQ.PA_CODE
+                   AND PM.PA_ORDER_NO = PQ.PA_ORDER_NO 
+                   AND PM.PA_ORDER_GB ='10' 
+                   AND ROWNUM = 1 ) AS REF_NO
+             , PQ.ORDER_YN
+             , PQ.DISPLAY_YN
+             , PQ.PA_CUST_NO
+             , PQ.CUST_NAME
+             , PQ.CUST_TEL
+             , PQ.RECEIPT_DATE
+             , PQ.TRANS_YN
+             , PQ.TRANS_DATE
+             , PQ.INSERT_DATE
+             , PQ.INSERT_ID
+             , PQ.MODIFY_DATE
+             , PQ.MODIFY_ID
+             , PD.PA_COUNSEL_DT_SEQ
+             , PD.TITLE
+             , PD.PROC_NOTE
+             , '' GOODS_CODE
+             , '' ENTP_CODE
+             , PQ.MSG_GB
+             , NVL((SELECT OM.CUST_NO
+                     FROM TPAORDERM PM, TORDERM OM
+                    WHERE PQ.PA_ORDER_NO = PM.PA_ORDER_NO
+                      AND PM.ORDER_NO = OM.ORDER_NO
+                      AND ROWNUM = 1
+                   ) ,(SELECT TO_CHAR(CODE_NAME)
+                      FROM TCODE TC
+                     WHERE TC.CODE_LGROUP = 'O511'
+                       AND TC.REMARK1 = '05'
+                       AND ROWNUM = 1
+                     ) ) AS CUST_NO    
+          FROM TPAQNAM PQ
+             , TPAQNADT PD          
+         WHERE PQ.PA_COUNSEL_SEQ = PD.PA_COUNSEL_SEQ
+           AND PQ.PROC_GB = PD.PROC_GB
+           AND PQ.PA_CODE IN ('51','52')
+           AND PQ.COUNSEL_SEQ IS NULL
+           AND PQ.PROC_GB = '10'
+           AND PQ.TRANS_YN = '0'
+           AND PQ.TRANS_DATE IS NULL
+           AND PD.PA_COUNSEL_DT_SEQ = '1'
+           AND PQ.INSERT_DATE > TRUNC(SYSDATE) - 3
+    </select>
+    
+    <select id="selectPaCopnCounselReply" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaqnamVO">
+		 SELECT /* pacopncounsel.xml: pacopn.counsel.selectPaCopnUrgentCounselReply by PaCopnCounselController */
+         		 SQ.PA_COUNSEL_SEQ
+               , SQ.PA_COUNSEL_NO
+               , SQ.PA_GOODS_CODE
+               , CD.TITLE
+           	   , CD.PROC_NOTE
+          	   , CD.PROC_ID
+        	   , CD.PROC_DATE
+           	   , SQ.PA_CODE
+           	   , SQ.TOKEN
+           FROM TPAQNAM SQ
+           	   , TCUSTCOUNSELM CM
+               , TCUSTCOUNSELDT CD
+          	   , TCODE TC
+        WHERE SQ.COUNSEL_SEQ = CM.COUNSEL_SEQ
+         	  AND CM.COUNSEL_SEQ = CD.COUNSEL_SEQ
+         	  AND SQ.PA_CODE     = TC.CODE_MGROUP
+         	  AND TC.CODE_LGROUP = 'O501'
+         	  AND TC.CODE_GROUP  = '05'
+         	  AND TC.USE_YN      = '1'
+         	  AND SQ.MSG_GB = #{msgGb, jdbcType=VARCHAR}
+         	  AND CD.DO_FLAG     = '40'
+         	  AND CD.PROC_DATE > SYSDATE - 3
+         	  AND SQ.TRANS_YN    = '0'
+         	  AND SQ.PA_CODE IN ('51','52')
+	</select>
+</mapper>

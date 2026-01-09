@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="pahalf.common">
+
+	<insert id="insertPaHalfBrand" parameterType="com.cware.netshopping.domain.model.PaHalfBrand">
+        MERGE INTO TPAHALFBRAND A  /* pahalfcommon.xml : pahalfcommon.insertPaHalfBrand by PaHalfCommonController*/
+        USING DUAL
+        ON
+          (
+             A.PA_BRAND_NO = #{paBrandNo, jdbcType=VARCHAR}
+          )
+        WHEN MATCHED THEN
+        	 UPDATE SET
+        	     A.PA_GROUP_CODE  	  = #{paGroupCode     , jdbcType=VARCHAR}
+               , A.PA_CODE        	  = #{paCode          , jdbcType=VARCHAR}
+               , A.PA_BRAND_NAME  	  = #{paBrandName	  , jdbcType=VARCHAR}
+               , A.USE_YN         	  = #{useYn			  , jdbcType=VARCHAR}
+               , A.MODIFY_ID      	  = #{modifyId		  , jdbcType=VARCHAR}
+               , A.MODIFY_DATE    	  = SYSDATE
+               , A.RETURN_NO_YN   	  = #{returnNoYn	  , jdbcType=VARCHAR}
+               , A.PA_DETAIL_BRAND_NO = #{paDetailBrandNo , jdbcType=VARCHAR}
+               
+        WHEN NOT MATCHED THEN
+             INSERT 
+             ( 
+             	 A.PA_GROUP_CODE
+               , A.PA_CODE
+               , A.PA_BRAND_NO
+               , A.PA_BRAND_NAME
+               , A.USE_YN
+               , A.INSERT_ID
+               , A.INSERT_DATE
+               , A.MODIFY_ID
+               , A.MODIFY_DATE 
+               , A.RETURN_NO_YN
+               , A.PA_DETAIL_BRAND_NO
+             )
+        VALUES 
+             ( 
+               #{paGroupCode    , jdbcType=VARCHAR}
+             , #{paCode	        , jdbcType=VARCHAR}
+             , #{paBrandNo		, jdbcType=VARCHAR}
+             , #{paBrandName	, jdbcType=VARCHAR}
+             , #{useYn			, jdbcType=VARCHAR}
+             , #{insertId		, jdbcType=VARCHAR}
+             , SYSDATE
+             , #{modifyId		, jdbcType=VARCHAR}
+             , SYSDATE
+             , #{returnNoYn		, jdbcType=VARCHAR}
+             , #{paDetailBrandNo , jdbcType=VARCHAR}
+             )
+    </insert>
+    
+     <insert id="insertPaHalfOfferCode" parameterType="com.cware.netshopping.domain.model.PaOfferCode">
+        INSERT INTO /* pahalfcommon.xml : pahalfcommon.insertPaHalfOfferCode by PaHalfCommonController */
+               		TPAOFFERCODE
+		           ( PA_GROUP_CODE
+		           , PA_OFFER_TYPE  
+		           , PA_OFFER_CODE 
+		           , PA_OFFER_TYPE_NAME 
+		           , PA_OFFER_CODE_NAME
+		           , REQUIRED_YN
+		           , SORT_SEQ
+		           , USE_YN
+		           , REMARK
+		           , UNIT_REQUIRED_YN
+		           , IPT_MTHD_CD
+	               , INSERT_ID
+		           , INSERT_DATE
+	               , MODIFY_ID
+	               , MODIFY_DATE )
+		     VALUES 
+		           ( #{paGroupCode		, jdbcType=VARCHAR}
+		           , #{paOfferType		, jdbcType=VARCHAR}
+		           , #{paOfferCode		, jdbcType=VARCHAR}
+	               , #{paOfferTypeName	, jdbcType=VARCHAR}
+		           , #{paOfferCodeName	, jdbcType=VARCHAR}
+		           , #{requiredYn		, jdbcType=VARCHAR}
+		           , #{sortSeq			, jdbcType=VARCHAR}
+		           , #{useYn			, jdbcType=VARCHAR}
+	               , #{remark			, jdbcType=VARCHAR}
+	               , #{unitRequiredYn	, jdbcType=VARCHAR}
+	               , #{iptMthdCd		, jdbcType=VARCHAR}
+	               , #{insertId			, jdbcType=VARCHAR}
+	               , SYSDATE
+	               , #{modifyId			, jdbcType=VARCHAR}
+	               , SYSDATE
+	               )  
+    </insert>
+	
+	<insert id="insertStdItemList" parameterType="com.cware.netshopping.domain.model.PaGoodsKinds">
+		INSERT INTO TPAGOODSKINDS( /* pahalfcommon.xml : pahalfcommon.insertStdItemList by PaHalfCommonController-goodsKinds-stdItem-list */
+					PA_GROUP_CODE
+				  , PA_LMSD_KEY
+				  , PA_LGROUP
+				  , PA_MGROUP
+				  , PA_SGROUP
+				  , PA_DGROUP
+				  , PA_LGROUP_NAME
+				  , PA_MGROUP_NAME
+				  , PA_SGROUP_NAME
+				  , PA_DGROUP_NAME
+				  , USE_YN
+				  , INSERT_DATE
+				  , INSERT_ID
+				  , MODIFY_DATE
+				  , MODIFY_ID
+				  , CERT_YN
+				  , BEEF_TRACE_YN
+				  , MEDICAL_YN
+				  , CHILD_CERT_YN
+				  , ELECTRIC_CERT_YN
+				  , LIFE_CERT_YN
+				  , REMARK
+				  , HEALTH_YN
+				  , FOOD_YN )
+			VALUES(
+				   #{paGroupCode	, jdbcType=VARCHAR}
+				  , #{paLmsdKey		, jdbcType=VARCHAR}
+				  , #{paLgroup		, jdbcType=VARCHAR}
+				  , #{paMgroup		, jdbcType=VARCHAR}
+				  , #{paSgroup		, jdbcType=VARCHAR}
+				  , ''
+				  , #{paLgroupName	, jdbcType=VARCHAR}
+				  , #{paMgroupName	, jdbcType=VARCHAR}
+				  , #{paSgroupName	, jdbcType=VARCHAR}
+				  , ''
+				  , #{useYn			, jdbcType=VARCHAR}
+				  , SYSDATE
+				  , #{insertId		, jdbcType=VARCHAR}
+				  , SYSDATE
+				  , #{modifyId		, jdbcType=VARCHAR}
+				  , '0'
+				  , '0'
+				  , '0'
+				  , '0'
+				  , '0'
+				  , '0'
+				  , '0'
+				  , '0'
+				  , '0'
+				)
+
+	</insert>
+	
+	
+	<insert id="insertTpaHalfShipInfo" parameterType="hashMap">	
+		INSERT INTO TPAHALFSHIPINFO/* pahalfcommon.xml : pahalfcommon.insertTpaHalfShipInfo by PaHalfCommonController */
+			(
+		    	ENTP_CODE
+		      	, SHIP_MAN_SEQ
+		      	, RETURN_MAN_SEQ
+		      	, SHIP_COST_CODE
+		      	, PA_SHIP_COST_CODE
+		      	, TRANS_TARGET_YN
+		      	, INSERT_DATE
+		      	, INSERT_ID
+		      	, LAST_SHIP_COST_SYNC_DATE
+		      	, LAST_ENTP_SYNC_DATE
+		      	, MODIFY_DATE
+		      	, MODIFY_ID
+		      	, PA_CODE
+		      	, NO_SHIP_JEJU_ISLAND
+			)
+				SELECT OE.ENTP_CODE
+		      		 , OE.ENTP_MAN_SEQ AS SHIP_MAN_SEQ
+		     		 , IE.ENTP_MAN_SEQ AS RETURN_MAN_SEQ
+		      		 , #{shipCostCode,	jdbcType=VARCHAR}
+		     		 , NULL
+		      	 	 , '1'
+		      	 	 , SYSDATE
+		      		 , 'PAHALF'
+		     		 , SYSDATE
+		     		 , SYSDATE
+		      		 , SYSDATE
+		      		 , 'PAHALF'
+		      		 , #{paCode				, jdbcType=VARCHAR}
+		      		 , #{noShipJejuIsland	, jdbcType=VARCHAR}
+				 FROM  TENTPUSER OE
+		      		 , TENTPUSER IE
+				WHERE OE.ENTP_CODE 		= IE.ENTP_CODE
+			  	  AND OE.ENTP_CODE 	    = #{entpCode	, 	jdbcType=VARCHAR}
+			  	  AND OE.ENTP_MAN_SEQ 	= #{shipManSeq	,	jdbcType=VARCHAR}
+			  	  AND OE.ENTP_MAN_GB  	= '30'
+			  	  AND IE.ENTP_MAN_SEQ 	= #{returnManSeq,	jdbcType=VARCHAR}
+			  	  AND IE.ENTP_MAN_GB  	= '20'
+			  	 
+    </insert>
+    
+    <update id="updateTpaHalfShipInfo" parameterType="com.cware.netshopping.domain.PaHalfShipInfoVO">
+	    UPDATE TPAHALFSHIPINFO /* pahalfcommon.xml : pahalfcommon.updateTpaHalfShipInfo by PaHalfCommonController*/
+		   SET PA_SHIP_COST_CODE 	= #{paShipCostCode  , jdbcType=VARCHAR}
+	      	 , TRANS_DATE	  		= SYSDATE
+	      	 , TRANS_TARGET_YN      = '0'
+	      	 , MODIFY_DATE     		= SYSDATE 
+		 WHERE ENTP_CODE     		= #{entpCode			, jdbcType=VARCHAR}
+		   AND PA_CODE				= #{paCode				, jdbcType=VARCHAR}
+		   AND SHIP_MAN_SEQ   		= #{shipManSeq			, jdbcType=VARCHAR}
+		   AND RETURN_MAN_SEQ 		= #{returnManSeq		, jdbcType=VARCHAR}
+		   AND SHIP_COST_CODE		= #{shipCostCode		, jdbcType=VARCHAR}
+		   AND NO_SHIP_JEJU_ISLAND  = #{noShipJejuIsland	, jdbcType=VARCHAR} 
+    </update>
+    
+    <select id="selectHalfShipCostInfo" parameterType="hashMap" resultType="com.cware.netshopping.domain.PaHalfShipInfoVO">
+	   SELECT /* pahalfcommon.xml : pahalfcommon.selectHalfShipCostInfo by PaHalfCommonController */  
+	       	  HS.PA_SHIP_COST_CODE
+	     	, HS.ENTP_CODE
+	     	, HS.SHIP_MAN_SEQ
+	     	, HS.RETURN_MAN_SEQ
+	     	, HS.SHIP_COST_CODE
+	     	, PA.ORD_COST
+	     	, PA.SHIP_COST_BASE_AMT
+	     	, PA.RETURN_COST
+	     	, PA.ISLAND_COST
+	     	, PA.JEJU_COST
+	     	, PA.CHANGE_COST
+	     	, PA.SHIP_COST_RECEIPT
+	     	, SUBSTR(PA.SHIP_COST_CODE,1,2) AS SHIP_COST_FLAG     
+	     	, OE.POST_NO
+	     	, NVL(OE.ROAD_POST_ADDR, OE.POST_ADDR) AS ADDR
+	     	, DECODE (OE.ROAD_ADDR_YN,'1', OE.ROAD_ADDR, OE.ADDR) AS ADDR_DT
+	     	, IE.POST_NO AS RET_POST_NO
+			, NVL(IE.ROAD_POST_ADDR, IE.POST_ADDR) AS RET_ADDR
+	     	, DECODE (IE.ROAD_ADDR_YN,'1', IE.ROAD_ADDR, IE.ADDR) AS RET_ADDR_DT
+	     	, NVL(OE.ENTP_MAN_HP1 || OE.ENTP_MAN_HP2  || OE.ENTP_MAN_HP3 	, OE.ENTP_MAN_DDD || OE.ENTP_MAN_TEL1 || OE.ENTP_MAN_TEL2 ) AS HP
+	     	, NVL(IE.ENTP_MAN_HP1 || IE.ENTP_MAN_HP2  || IE.ENTP_MAN_HP3	, IE.ENTP_MAN_DDD || IE.ENTP_MAN_TEL1 || IE.ENTP_MAN_TEL2)  AS RET_HP
+	     	, HS.PA_CODE
+	     	, #{noShipJejuIsland	, jdbcType=VARCHAR} AS NO_SHIP_JEJU_ISLAND
+	   	 FROM TPAHALFSHIPINFO HS
+	     	, TPACUSTSHIPCOST PA
+    	    , TENTPUSER OE
+    	    , TENTPUSER IE
+	 	WHERE PA.ROWID          	  = (SELECT PAA.ROWID
+	                              	 	   FROM TPACUSTSHIPCOST PAA
+	                             		  WHERE HS.ENTP_CODE       = PAA.ENTP_CODE
+	                               	  	    AND HS.SHIP_COST_CODE  = PAA.SHIP_COST_CODE
+	                               	  	    AND HS.PA_CODE		   = PAA.PA_CODE
+	                                  		AND ROWNUM = 1)  
+    	  AND OE.ENTP_CODE 			  = HS.ENTP_CODE 
+    	  AND OE.ENTP_MAN_SEQ 		  = HS.SHIP_MAN_SEQ
+    	  AND IE.ENTP_CODE 			  = HS.ENTP_CODE 
+    	  AND IE.ENTP_MAN_SEQ		  = HS.RETURN_MAN_SEQ
+    	  AND OE.ENTP_MAN_GB		  = '30'
+    	  AND IE.ENTP_MAN_GB		  = '20'          
+	   	  AND HS.ENTP_CODE            = #{entpCode			, jdbcType=VARCHAR}
+	   	  AND HS.SHIP_MAN_SEQ         = #{shipManSeq		, jdbcType=VARCHAR}
+	   	  AND HS.RETURN_MAN_SEQ       = #{returnManSeq		, jdbcType=VARCHAR}
+	   	  AND HS.SHIP_COST_CODE       = #{shipCostCode		, jdbcType=VARCHAR}
+	   	  AND HS.PA_CODE			  = #{paCode			, jdbcType=VARCHAR}
+	   	  AND HS.NO_SHIP_JEJU_ISLAND  = #{noShipJejuIsland	, jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectPaHalfSlipInfoList" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* pahalfcommon.xml : pahalfcommon.selectPaHalfSlipInfoList by PaHalfCommonController */		
+    		  HS.ENTP_CODE
+	     	, HS.PA_CODE
+	     	, HS.SHIP_MAN_SEQ
+	     	, HS.RETURN_MAN_SEQ
+	     	, HS.SHIP_COST_CODE
+	     	, HS.PA_SHIP_COST_CODE 
+	     	, HS.NO_SHIP_JEJU_ISLAND
+    	FROM TPAHALFSHIPINFO HS
+       WHERE TRANS_TARGET_YN 	= '1'
+    </select>
+    
+    <select id="selectPaShipCostCode" parameterType="hashMap" resultType="hashMap">
+    	SELECT /* pahalfcommon.xml : pahalfcommon.selectPaShipCostCode by PaHalfCommonController */		
+    		   HS.PA_SHIP_COST_CODE
+      	  FROM TPAHALFSHIPINFO HS
+    	 WHERE HS.ENTP_CODE  	 		= #{entpCode			, jdbcType=VARCHAR} 
+    	   AND HS.SHIP_MAN_SEQ   		= #{shipManSeq			, jdbcType=VARCHAR}
+    	   AND HS.RETURN_MAN_SEQ 		= #{returnManSeq		, jdbcType=VARCHAR}
+    	   AND HS.SHIP_COST_CODE 		= #{shipCostCode		, jdbcType=VARCHAR}
+		   AND HS.PA_CODE		 		= #{paCode				, jdbcType=VARCHAR}
+		   AND HS.NO_SHIP_JEJU_ISLAND	= #{noShipJejuIsland	, jdbcType=VARCHAR}
+    	   AND HS.PA_SHIP_COST_CODE IS NOT NULL
+    </select>
+    
+     <select id="selectNullShipCostCode" parameterType="hashMap" resultType="int">
+    	SELECT /* pahalfcommon.xml : pahalfcommon.selectNullShipCostCode by PaHalfCommonController */		
+    		   COUNT(1) AS CNT
+      	  FROM TPAHALFSHIPINFO HS
+    	 WHERE HS.ENTP_CODE  	 		= #{entpCode			, jdbcType=VARCHAR} 
+    	   AND HS.SHIP_MAN_SEQ   		= #{shipManSeq			, jdbcType=VARCHAR}
+    	   AND HS.RETURN_MAN_SEQ 		= #{returnManSeq		, jdbcType=VARCHAR}
+    	   AND HS.SHIP_COST_CODE 		= #{shipCostCode		, jdbcType=VARCHAR}
+    	   AND HS.NO_SHIP_JEJU_ISLAND	= #{noShipJejuIsland	, jdbcType=VARCHAR}
+    	   AND HS.PA_SHIP_COST_CODE IS NULL
+    </select>
+    
+    <insert id="insertPaHalfShipInfoHistory" parameterType="com.cware.netshopping.domain.PaHalfShipInfoVO">
+     	<selectKey resultType="string" keyProperty="seq" order="BEFORE">
+			SELECT 
+				   LTRIM(TO_CHAR(NVL(MAX(A.SEQ), 0)+1, '00000000'))
+			  FROM TPAHALFSHIPINFOHISTORY A 
+			 WHERE ENTP_CODE 			= #{entpCode  	 		, jdbcType=VARCHAR} 
+			   AND PA_CODE 				= #{paCode		 		, jdbcType=VARCHAR}
+			   AND SHIP_MAN_SEQ 		= #{shipManSeq	 		, jdbcType=VARCHAR}
+			   AND RETURN_MAN_SEQ 		= #{returnManSeq 		, jdbcType=VARCHAR}
+			   AND SHIP_COST_CODE		= #{shipCostCode 		, jdbcType=VARCHAR}
+			   AND NO_SHIP_JEJU_ISLAND	= #{noShipJejuIsland	, jdbcType=VARCHAR}
+        </selectKey>
+    	INSERT INTO TPAHALFSHIPINFOHISTORY 
+    		(
+    			SEQ
+       		  , PA_CODE
+       		  , PA_SHIP_COST_CODE
+       		  , FLAG
+       		  , ENTP_CODE
+       		  , SHIP_MAN_SEQ
+       		  , RETURN_MAN_SEQ
+       		  , SHIP_COST_CODE
+       		  , ORD_COST
+       		  , SHIP_COST_BASE_AMT
+       		  , RETURN_COST
+       		  , ISLAND_COST
+       		  , JEJU_COST
+       		  , CHANGE_COST
+       		  , SHIP_COST_FLAG
+       		  , POST_NO
+       		  , ADDR
+       		  , ADDR_DT
+       		  , RET_POST_NO
+       		  , RET_ADDR
+       		  , RET_ADDR_DT
+       		  , HP
+       		  , RET_HP
+       		  , INSERT_ID
+       		  , INSERT_DATE
+       		  , MODIFY_ID
+       		  , MODIFY_DATE
+       		  , NO_SHIP_JEJU_ISLAND
+			) VALUES (
+			   #{seq				, jdbcType=VARCHAR}
+       		 , #{paCode				, jdbcType=VARCHAR}
+       		 , #{paShipCostCode 	, jdbcType=VARCHAR}
+       		 , DECODE(#{seq			, jdbcType=VARCHAR}, '00000001', 'I', 'U')
+       		 , #{entpCode  			, jdbcType=VARCHAR}
+       		 , #{shipManSeq			, jdbcType=VARCHAR}
+       		 , #{returnManSeq		, jdbcType=VARCHAR}
+       		 , #{shipCostCode		, jdbcType=VARCHAR}
+       		 , #{ordCost			, jdbcType=NUMERIC}
+       		 , #{shipCostBaseAmt	, jdbcType=NUMERIC}
+       		 , #{returnCost			, jdbcType=NUMERIC}
+       		 , #{islandCost			, jdbcType=NUMERIC}
+       		 , #{jejuCost			, jdbcType=NUMERIC}
+       		 , #{changeCost			, jdbcType=NUMERIC}
+       		 , #{shipCostFlag		, jdbcType=VARCHAR}
+       		 , #{postNo			    , jdbcType=VARCHAR}
+       		 , #{addr				, jdbcType=VARCHAR}
+       		 , #{addrDt				, jdbcType=VARCHAR}
+       		 , #{retPostNo			, jdbcType=VARCHAR}
+       		 , #{retAddr			, jdbcType=VARCHAR}
+       		 , #{retAddrDt			, jdbcType=VARCHAR}
+       		 , #{hp					, jdbcType=VARCHAR}
+       		 , #{retHp				, jdbcType=VARCHAR}
+       		 , 'PAHALF'
+       		 , SYSDATE
+       		 , 'PAHALF'
+       		 , SYSDATE
+       		 , #{noShipJejuIsland	, jdbcType=VARCHAR}
+			)
+    </insert>
+    
+
+    <insert id="insertPaHalfBrandMapping" parameterType="com.cware.netshopping.domain.model.PaHalfBrand">
+    	INSERT INTO TPAHALFBRANDMAPPING /* pahalfcommon.xml : pahalfcommon.insertPaHalfBrandMapping by PaHalfCommonController */		
+				 (
+				  	PA_CODE
+				  , BRAND_CODE
+				  , PA_BRAND_NO
+				  , BRAND_NAME
+				  , RETURN_NO_YN
+				  , REMARK1
+				  , REMARK2
+				  , INSERT_ID
+				  , INSERT_DATE
+				  , MODIFY_ID
+				  , MODIFY_DATE
+				 )
+			 SELECT 
+					HB.PA_CODE
+				  , TB.BRAND_CODE
+				  , HB.PA_BRAND_NO
+				  , TB.BRAND_NAME
+				  , HB.RETURN_NO_YN
+				  , ''
+				  , ''
+				  , 'PAHALF'
+				  , SYSDATE
+				  , 'PAHALF'
+				  , SYSDATE
+			   FROM TPAHALFBRAND HB
+			   	  , TBRAND TB
+			  WHERE SUBSTR(HB.PA_BRAND_NAME, 1, 6) = TB.BRAND_CODE
+			  	AND HB.USE_YN = '1'
+  				AND HB.PA_BRAND_NO &lt;> ALL(SELECT BM.PA_BRAND_NO FROM TPAHALFBRANDMAPPING BM)
+          		AND NOT EXISTS (SELECT 'X'
+	                              FROM TPAHALFBRANDMAPPING BM
+	                             WHERE BM.PA_CODE      = HB.PA_CODE
+	                               AND BM.BRAND_CODE   = TB.BRAND_CODE 
+	                               AND BM.RETURN_NO_YN = HB.RETURN_NO_YN)
+    </insert>
+    
+    <select id="selectBrandFilterGoods" resultType="hashMap">
+    	SELECT /* pahalfcommon.xml : pahalfcommon.selectBrandFilterGoods by PaHalfCommonController */		
+			   BM.PA_CODE
+			 , GD.GOODS_CODE
+		  FROM TPAGOODSFILTERLOG PGF
+			 , TGOODS GD
+			 , TPAHALFBRANDMAPPING BM
+			 , TGOODSADDINFO GA 
+		 WHERE PGF.GOODS_CODE        = GD.GOODS_CODE
+			   AND BM.PA_CODE        = CASE WHEN GD.SOURCING_MEDIA = '01' OR (GD.SOURCING_MEDIA = '61'  AND GA.MOBILE_ETV_YN = '1') THEN 'C1'
+			                                WHEN GD.SOURCING_MEDIA = '61' THEN 'C2'
+			                                END 
+			   AND GD.RETURN_NO_YN   = BM.RETURN_NO_YN
+			   AND GD.BRAND_CODE     = BM.BRAND_CODE
+			   AND PGF.PA_GROUP_CODE = '12' 
+			   AND PGF.FILTER_TYPE   = 'HALF-BRAND-MAPPING' 
+			   AND PGF.INSERT_DATE   > SYSDATE - 30
+			   AND GD.GOODS_CODE     = GA.GOODS_CODE
+			   AND PGF.FILTER_LOG_NO = (SELECT MAX(PPP.FILTER_LOG_NO) 
+			                              FROM TPAGOODSFILTERLOG PPP 
+			                             WHERE PPP.GOODS_CODE  = PGF.GOODS_CODE
+			                               AND PPP.INSERT_DATE > SYSDATE - 30 )
+			   AND NOT EXISTS (SELECT 'X' 
+			                     FROM TPAGOODSTARGET PGT
+			                    WHERE PGT.GOODS_CODE = PGF.GOODS_CODE
+			                      AND PGT.PA_GROUP_CODE = '12')
+    </select>
+    
+     <insert id="insertPaHalfGoodsTarget" parameterType="hashMap">
+    	INSERT INTO TPAGOODSTARGET  /* pahalfcommon.xml : pahalfcommon.insertPaHalfGoodsTarget by PaHalfCommonController */
+			  (
+			   PA_GROUP_CODE
+			 , PA_CODE
+			 , GOODS_CODE
+			 , PA_GOODS_CODE
+			 , PA_SALE_GB
+			 , INSERT_ID
+			 , INSERT_DATE
+			 , MODIFY_ID
+			 , MODIFY_DATE
+			 , AUTO_YN )
+			VALUES
+			  (#{PA_GROUP_CODE, jdbcType=VARCHAR}
+			 , #{PA_CODE      , jdbcType=VARCHAR}
+			 , #{GOODS_CODE   , jdbcType=VARCHAR}
+			 , NULL
+			 , NULL
+			 , #{INSERT_ID    , jdbcType=VARCHAR}
+			 , SYSDATE
+			 , #{MODIFY_ID    , jdbcType=VARCHAR}
+			 , SYSDATE
+			 , '1')
+    </insert>
+</mapper>

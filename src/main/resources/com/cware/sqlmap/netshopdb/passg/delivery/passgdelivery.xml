@@ -1,0 +1,701 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="passg.delivery">
+    <select id="countChangeOrderList" parameterType="hashMap" resultType="int">
+        SELECT /* passgdelivery.xml : passg.delivery.countChangeOrderList by PaSsgDeliveryController */
+                COUNT(DISTINCT OL.ORD_NO) AS CNT
+          FROM TPASSGORDERLIST OL
+         WHERE OL.ORD_NO  	   = #{ordNo	  , jdbcType=VARCHAR}
+           AND OL.ORD_ITEM_SEQ = #{ordItemSeq , jdbcType=VARCHAR}
+           AND OL.SHPP_NO	   = #{shppNo 	  , jdbcType=VARCHAR}
+           AND OL.SHPP_SEQ	   = #{shppSeq 	  , jdbcType=VARCHAR}
+    </select>
+    
+    <select id="countOrderList" parameterType="hashMap" resultType="int">
+        SELECT /* passgdelivery.xml : passg.delivery.countOrderList by PaSsgDeliveryController */
+                COUNT(DISTINCT OL.ORD_NO) AS CNT
+          FROM TPASSGORDERLIST OL
+         WHERE OL.ORORD_NO  	 = #{ordNo	  , jdbcType=VARCHAR}
+           AND OL.ORORD_ITEM_SEQ = #{ordItemSeq , jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertPaSsgOrderList" parameterType="com.cware.netshopping.domain.PaSsgOrderListVO">
+        INSERT /* passgdelivery.xml : passg.delivery.insertPaSsgOrderList by PaSsgDeliveryController */  
+          INTO TPASSGORDERLIST (
+               ORD_NO  		   	   		  , ORD_ITEM_SEQ 			   , ORD_CMPL_DTS 				, SHPP_NO
+			 , SHPP_SEQ 		   		  , SHPP_TAB_PROG_STAT_CD 	   , BF_ORDER_ID 				, BF_ORDER_SEQ
+			 , EVNT_SEQ 		   		  , SHPP_DIV_DTL_CD 		   , SHPP_DIV_DTL_NM 		    , RE_ORDER_YN
+			 , DELAY_NTS 		   		  , LAST_SHPP_PROG_STAT_DTL_NM , LAST_SHPP_PROG_STAT_DTL_CD , SHPP_VEN_ID
+			 , SHPP_VEN_NM 		   		  , SHPP_LRNK_VEN_ID 	   	   , SHPP_LRNK_VEN_NM 			, SHORTG_PROG_STAT_CD
+			 , SHORTG_PROG_STAT_NM 		  , SHPP_TYPE_NM 		   	   , SHPP_TYPE_CD 				, SHPP_TYPE_DTL_NM
+			 , SHPP_TYPE_DTL_CD    		  , DELICO_VEN_ID 		   	   , DELICO_VEN_NM 				, WBL_NO
+			 , BOX_NO 			   		  , SHPPCST 			   	   , SHPPCST_COD_YN 			, FRG_SHPPCST_PROC_DIV_CD
+			 , FRG_SHPPCST_PROC_DIV_CD_NM , ITEM_NM 			   	   , SPL_VEN_ITEM_ID 			, U_SPL_VEN_ITEM_ID
+			 , ITEM_ID 					  , UITEM_ID 			   	   , UITEM_NM 					, MDL_NM
+			 , SPE_SALESTR_NO 			  , DIRC_ITEM_QTY 		   	   , CNCL_ITEM_QTY 				, ORD_QTY
+			 , SPL_PRC 					  , SELLPRC 			   	   , DC_AMT 					, RLORD_AMT
+			 , FRG_SHPP_YN 				  , WGT_REG_YN 			   	   , ORDPE_NM 					, ORDPE_HPNO
+			 , RCPTPE_NM 				  , RCPTPE_HPNO 		   	   , RCPTPE_TELNO 				, SHPPLOC_ADDR
+			 , SHPPLOC_ZIPCD 			  , SHPPLOC_OLD_ZIPCD 	   	   , SHPPLOC_ROAD_ADDR 			, FREBIE_NM
+			 , MEMO_CNTT 				  , ORD_MEMO_CNTT 		   	   , ITEM_CHRCT_DIV_CD 			, SHPP_STAT_CD
+			 , SHPP_STAT_NM 			  , ORORD_NO 			   	   , ORORD_ITEM_SEQ 			, WBL_REG_ERR_CD_NM 		  
+			 , WBL_REG_ERR_CD 			  , SHPP_MAIN_CD 		   	   , SITE_NO 					, SITE_NM		 			  
+			 , P_CUS 					  , ALLN_ORD_NO 		   	   , OLD_ORD_NO 				, ITEM_DIV					  
+			 , SHPPLOC_BASC_ADDR 		  , SHPPLOC_DTL_ADDR 	   	   , ORD_ITEM_DIV_NM 			, AUTO_SHORTG_YN			  
+			 , WHOUT_CRITN_DT 		  	  , FRG_SHPPLOC_CNTRY_CD   	   , FRG_SHPPLOC_HPNO 			, FRG_SHPPLOC_TELNO		  
+			 , FRG_SHPPLOC_ZIPCD 		  , FRG_SHPPLOC_BASC_ADDR  	   , FRG_SHPPLOC_DTL_ADDR 		, WHDD_DIV_CD				  
+			 , WHIN_DELAY_NTS 			  , ORD_PROC_DEMND_STAT_CD 	   , MALL_TYPE_CD 				, ORD_TYPE_CD06_YN 		  
+			 , ORD_ITEM_CERT_NO_YN 	   	  , INSERT_DATE 		   	   , MODIFY_DATE
+             )
+        VALUES (
+        	   #{ordNo 					, jdbcType=VARCHAR} , #{ordItemSeq			  , jdbcType=VARCHAR}   , TO_DATE(#{ordCmplDts    , jdbcType=VARCHAR}, 'YYYY-MM-DD HH24:MI:SS') , #{shppNo 				, jdbcType=VARCHAR}
+			 , #{shppSeq 				, jdbcType=VARCHAR} , #{shppTabProgStatCd 	  , jdbcType=VARCHAR}   , #{bfOrderId 			  , jdbcType=VARCHAR} 							, #{bfOrderSeq 			, jdbcType=VARCHAR}
+			 , #{evntSeq 				, jdbcType=VARCHAR} , #{shppDivDtlCd 		  , jdbcType=VARCHAR}   , #{shppDivDtlNm 		  , jdbcType=VARCHAR} 							, #{reOrderYn 			, jdbcType=VARCHAR}
+			 , #{delayNts 				, jdbcType=VARCHAR} , #{lastShppProgStatDtlNm , jdbcType=VARCHAR}   , #{lastShppProgStatDtlCd , jdbcType=VARCHAR} 							, #{shppVenId 			, jdbcType=VARCHAR}
+			 , #{shppVenNm 				, jdbcType=VARCHAR} , #{shppLrnkVenId 		  , jdbcType=VARCHAR}   , #{shppLrnkVenNm 		  , jdbcType=VARCHAR} 							, #{shortgProgStatCd 	, jdbcType=VARCHAR}
+			 , #{shortgProgStatNm 		, jdbcType=VARCHAR} , #{shppTypeNm 			  , jdbcType=VARCHAR}   , #{shppTypeCd 			  , jdbcType=VARCHAR} 							, #{shppTypeDtlNm 		, jdbcType=VARCHAR}
+			 , #{shppTypeDtlCd 			, jdbcType=VARCHAR} , #{delicoVenId 		  , jdbcType=VARCHAR}   , #{delicoVenNm 		  , jdbcType=VARCHAR} 							, #{wblNo 				, jdbcType=VARCHAR}
+			 , #{boxNo 					, jdbcType=VARCHAR} , #{shppcst 			  , jdbcType=VARCHAR}   , #{shppcstCodYn 		  , jdbcType=VARCHAR} 							, #{frgShppcstProcDivCd , jdbcType=VARCHAR}
+			 , #{frgShppcstProcDivCdNm  , jdbcType=VARCHAR} , #{itemNm 				  , jdbcType=VARCHAR}   , #{splVenItemId 		  , jdbcType=VARCHAR} 							, #{uSplVenItemId 		, jdbcType=VARCHAR}
+			 , #{itemId 				, jdbcType=VARCHAR} , #{uitemId 			  , jdbcType=VARCHAR}   , #{uitemNm 			  , jdbcType=VARCHAR} 							, #{mdlNm 				, jdbcType=VARCHAR}
+			 , #{speSalestrNo 			, jdbcType=VARCHAR} , #{dircItemQty 		  , jdbcType=NUMERIC}   , #{cnclItemQty 		  , jdbcType=NUMERIC} 							, #{ordQty 				, jdbcType=NUMERIC}
+			 , #{splPrc 				, jdbcType=NUMERIC} , #{sellprc 			  , jdbcType=NUMERIC}   , #{dcAmt 				  , jdbcType=NUMERIC} 							, #{rlordAmt 			, jdbcType=NUMERIC}
+			 , #{frgShppYn 				, jdbcType=VARCHAR} , #{wgtRegYn 			  , jdbcType=VARCHAR}   , #{ordpeNm 			  , jdbcType=VARCHAR} 							, #{ordpeHpno 			, jdbcType=VARCHAR}
+			 , #{rcptpeNm 				, jdbcType=VARCHAR} , #{rcptpeHpno 			  , jdbcType=VARCHAR}   , #{rcptpeTelno 		  , jdbcType=VARCHAR} 							, #{shpplocAddr 		, jdbcType=VARCHAR}
+			 , #{shpplocZipcd 			, jdbcType=VARCHAR} , #{shpplocOldZipcd 	  , jdbcType=VARCHAR}   , #{shpplocRoadAddr 	  , jdbcType=VARCHAR} 							, #{frebieNm 			, jdbcType=VARCHAR}
+			 , #{memoCntt 				, jdbcType=VARCHAR} , #{ordMemoCntt 		  , jdbcType=VARCHAR}   , #{itemChrctDivCd 		  , jdbcType=VARCHAR} 							, #{shppStatCd 			, jdbcType=VARCHAR}
+			 , #{shppStatNm 			, jdbcType=VARCHAR} , #{orordNo 			  , jdbcType=VARCHAR}   , #{orordItemSeq 		  , jdbcType=VARCHAR} 							, #{wblRegErrCdNm 		, jdbcType=VARCHAR} 
+			 , #{wblRegErrCd 		    , jdbcType=VARCHAR} , #{shppMainCd 			  , jdbcType=VARCHAR}   , #{siteNo 				  , jdbcType=VARCHAR} 							, #{siteNm 				, jdbcType=VARCHAR} 
+			 , #{pCus 				    , jdbcType=VARCHAR} , #{allnOrdNo 			  , jdbcType=VARCHAR}   , #{oldOrdNo 			  , jdbcType=VARCHAR} 							, #{itemDiv 			, jdbcType=VARCHAR} 
+			 , #{shpplocBascAddr 	    , jdbcType=VARCHAR} , #{shpplocDtlAddr 		  , jdbcType=VARCHAR}   , #{ordItemDivNm 		  , jdbcType=VARCHAR}							, #{autoShortgYn 		, jdbcType=VARCHAR} 
+			 , #{whoutCritnDt 		    , jdbcType=VARCHAR} , #{frgShpplocCntryCd 	  , jdbcType=VARCHAR}   , #{frgShpplocHpno 		  , jdbcType=VARCHAR} 							, #{frgShpplocTelno     , jdbcType=VARCHAR} 
+			 , #{frgShpplocZipcd 	    , jdbcType=VARCHAR} , #{frgShpplocBascAddr    , jdbcType=VARCHAR}   , #{frgShpplocDtlAddr 	  , jdbcType=VARCHAR} 							, #{whddDivCd 			, jdbcType=VARCHAR} 
+			 , #{whinDelayNts 		    , jdbcType=VARCHAR} , #{ordProcDemndStatCd    , jdbcType=VARCHAR}   , #{mallTypeCd 			  , jdbcType=VARCHAR} 							, #{ordTypeCd06Yn 		, jdbcType=VARCHAR} 
+			 , #{ordItemCertNoYn 	    , jdbcType=VARCHAR} , #{insertDate 			  , jdbcType=TIMESTAMP} , #{modifyDate 		      , jdbcType=TIMESTAMP}
+        	 )
+    </insert>
+    
+    <update id="updatePreCanYn" parameterType="hashMap">
+        UPDATE /* passgdelivery.xml : passg.delivery.updatePreCanYn by PaSsgDeliveryController */
+        	   TPAORDERM
+           SET PRE_CANCEL_YN	 	= #{preCanYn		 , jdbcType=VARCHAR}
+             , API_RESULT_MESSAGE	= #{apiResultMessage , jdbcType=VARCHAR}
+             <if test="apiResultCode != null and apiResultCode != ''">
+             , API_RESULT_CODE		= #{apiResultCode    , jdbcType=VARCHAR}
+             </if>
+             , MODIFY_DATE		 	= SYSDATE
+         WHERE MAPPING_SEQ       	= #{MAPPING_SEQ		 , jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectOrderInputTargetList" parameterType="hashMap" resultType="hashMap">
+        SELECT /* passgdelivery.xml : passg.delivery.selectOrderInputTargetList by PaSsgDeliveryController */
+               AA.PA_ORDER_NO
+             , AA.SHPPLOC_ADDR
+             , AA.SHPPLOC_ROAD_ADDR
+             , AA.RCPTPE_NM
+             , AA.TARGET_CNT
+          FROM (SELECT POM.PA_ORDER_NO
+                     , SO.SHPPLOC_ADDR
+                     , SO.SHPPLOC_ROAD_ADDR
+                     , SO.RCPTPE_NM
+                     , COUNT(1) TARGET_CNT
+                  FROM TPAORDERM POM
+                     , TPASSGORDERLIST SO
+                 WHERE POM.PA_ORDER_NO 	  = SO.ORORD_NO
+                   AND POM.PA_ORDER_SEQ   = SO.ORORD_ITEM_SEQ
+                   AND POM.PA_SHIP_NO 	  = SO.SHPP_NO
+                   AND POM.PA_SHIP_SEQ 	  = SO.SHPP_SEQ
+                   AND POM.PA_CODE        IN ('A1','A2')
+                   AND POM.PA_ORDER_GB    = '10'
+                   AND POM.CREATE_YN      = '0'
+                   AND POM.PRE_CANCEL_YN  = '0'
+                   AND POM.INSERT_DATE    &gt; TRUNC(SYSDATE) - 5
+                   AND POM.PA_DO_FLAG     = '30'
+                 GROUP BY POM.PA_ORDER_NO, SO.SHPPLOC_ADDR, SO.SHPPLOC_ROAD_ADDR, SO.RCPTPE_NM
+                 ORDER BY POM.PA_ORDER_NO, SO.SHPPLOC_ADDR, SO.SHPPLOC_ROAD_ADDR, SO.RCPTPE_NM) AA
+          WHERE ROWNUM &lt;= #{limitCount, jdbcType=NUMERIC}
+	</select>
+	
+	<select id="selectOrderInputTargetDtList" parameterType="hashMap" resultType="hashMap">
+		WITH SSGORDERLIST AS (/* passgdelivery.xml : passg.delivery.selectOrderInputTargetDtList by PaSsgDeliveryController */
+			SELECT * FROM TPASSGORDERLIST WHERE ORORD_NO = #{PA_ORDER_NO, jdbcType=VARCHAR} AND RCPTPE_NM = #{RCPTPE_NM, jdbcType=VARCHAR}
+			<choose>
+	           <when test="SHPPLOC_ADDR != null and SHPPLOC_ADDR != ''">
+	           		AND SHPPLOC_ADDR = #{SHPPLOC_ADDR, jdbcType=VARCHAR}	           		
+	           </when>
+	           <otherwise>
+	           		AND SHPPLOC_ROAD_ADDR = #{SHPPLOC_ROAD_ADDR, jdbcType=VARCHAR}	           		
+	           </otherwise>
+           </choose>
+		), PAPROMO AS (
+			SELECT DISTINCT PPA.PA_CODE
+				 , PPA.GOODS_CODE
+				 , PPA.APPLY_DATE
+				 , PPA.COUPON_PROMO_NO AS PROMO_NO
+				 , PPA.COUPON_OWN_COST AS OWN_COST
+				 , PPA.COUPON_ENTP_COST AS ENTP_COST
+				 , PPA.COUPON_DC_AMT
+				 , TA.PROMO_BDATE
+         		 , TA.PROMO_EDATE
+			  FROM TPASSGGOODS PG
+				 , TPAGOODSPRICEAPPLY PPA
+				 , SSGORDERLIST PO
+				 , TPROMOM TA
+			 WHERE PG.GOODS_CODE    = PPA.GOODS_CODE                                 
+		       AND PG.PA_GROUP_CODE = PPA.PA_GROUP_CODE
+		       AND PG.PA_CODE       = PPA.PA_CODE
+		       AND (PPA.APPLY_DATE, PPA.PRICE_APPLY_SEQ) = (SELECT /*+ INDEX_DESC (PP2 PK_TPAGOODSPRICEAPPLY)*/
+                                                                    PP2.APPLY_DATE, PP2.PRICE_APPLY_SEQ
+                                                              FROM TPAGOODSPRICEAPPLY PP2
+                                                             WHERE PP2.GOODS_CODE = PPA.GOODS_CODE
+                                                               AND PP2.PA_GROUP_CODE = PPA.PA_GROUP_CODE
+                                                               AND PP2.PA_CODE = PPA.PA_CODE
+                                                               AND PP2.APPLY_DATE &lt;= PO.ORD_CMPL_DTS
+                                                               AND PP2.TRANS_DATE &lt;= PO.ORD_CMPL_DTS
+                                                               AND ROWNUM = 1 )
+               AND PPA.COUPON_PROMO_NO = TA.PROMO_NO(+)  
+			   AND PG.ITEM_ID = PO.ITEM_ID
+		) 
+		SELECT PM.PA_ORDER_NO
+		     , PM.PA_CODE
+		     , PL.ORORD_NO AS PA_ORDER_CODE
+		     , PL.ITEM_ID AS PA_GOODS_CODE
+		     , PM.MAPPING_SEQ
+		     , TC.REMARK1 AS MEDIA_CODE
+		     , TO_CHAR(PL.ORD_CMPL_DTS, 'YYYYMMDDHH24MISS') AS ORDER_DATE
+		     , PGD.GOODS_CODE
+		     , PGD.GOODSDT_CODE
+		     , PL.DIRC_ITEM_QTY AS ORDER_QTY
+		     , TO_CHAR(PGP.APPLY_DATE, 'YYYYMMDDHH24MISS') AS APPLY_DATE
+		     , (PL.DIRC_ITEM_QTY * PL.SELLPRC) AS RSALE_AMT
+		     , PGP.SUPPLY_PRICE
+		     , NVL(PL.ORDPE_NM, PL.RCPTPE_NM) AS CUST_NAME
+		     , PL.ORDPE_HPNO AS CUST_TEL1
+		     , PL.ORDPE_HPNO AS CUST_TEL2
+		     , PL.RCPTPE_NM AS RECEIVER_NAME
+		     , NVL(PL.RCPTPE_HPNO, PL.ORDPE_HPNO) AS RECEIVER_TEL
+		     , NVL(PL.RCPTPE_HPNO, PL.RCPTPE_TELNO) AS RECEIVER_HP
+		     , PL.SHPPLOC_ZIPCD AS ZIPCODE
+		     , PL.SHPPLOC_BASC_ADDR || ' ' || PL.SHPPLOC_DTL_ADDR AS RECEIVER_ADDR
+		     , PL.SHPPLOC_BASC_ADDR || ' ' || PL.SHPPLOC_DTL_ADDR AS FULL_RECEIVER_ADDR
+		     , NVL((PGP.SALE_PRICE * PL.DIRC_ITEM_QTY),0) - PL.SELLPRC  AS SELLER_DC_AMT
+		     , NVL((PGP.LUMP_SUM_DC_AMT * PL.DIRC_ITEM_QTY),0) AS LUMP_SUM_DC_AMT
+		     , NVL((PGP.LUMP_SUM_ENTP_DC_AMT),0) AS LUMP_SUM_ENTP_DC_AMT
+		     , NVL((PGP.LUMP_SUM_OWN_DC_AMT),0) AS LUMP_SUM_OWN_DC_AMT
+		     , PL.ORD_MEMO_CNTT AS MSG
+		     , PL.SHPPCST AS SHP_FEE_COST 
+		     , PL.SHPPLOC_BASC_ADDR AS RECEIVER_ADDR1
+		     , PL.SHPPLOC_DTL_ADDR AS RECEIVER_ADDR2
+		     , PGP.PRICE_SEQ
+		     , DECODE(PA_DO_FLAG, '10', '10', '20') DO_FLAG 
+		     , TC.CODE_SNAME AS SITE_GB  
+		     , PGP.SALE_PRICE  
+		     , '99' AS CUST_CHAR
+		     , '67' AS RECEIVE_METHOD
+		     , PROMO.PROMO_NO
+		     , NVL(NVL(PROMO.COUPON_DC_AMT,
+				        (SELECT /*+INDEX_DESC (PPT IDX_TPAPROMOTARGET_04)*/
+		                           CASE WHEN  PPT.PROC_GB = 'D' THEN 0
+		                                WHEN  PPT.PROC_GB = 'U' AND PPT.USE_CODE != '00'  THEN 0
+		                                ELSE  PPT.DO_AMT
+		                                END
+		                      FROM TPAPROMOTARGET PPT
+		                         , TPROMOM TB_A
+		                     WHERE PPT.GOODS_CODE 		= PGM.GOODS_CODE
+		                       AND PPT.PA_CODE    		= PGM.PA_CODE
+		                       AND PPT.PROMO_NO 	 	= TB_A.PROMO_NO
+		                       AND TB_A.COUPON_YN 		= '1'
+		                       AND TB_A.IMMEDIATELY_YN = '1'
+		                       AND NVL(TB_A.ALCOUT_PROMO_YN, '0') = '1'
+		                       AND PPT.TRANS_DATE IS NOT NULL
+		                       AND PPT.TRANS_DATE &lt; PL.ORD_CMPL_DTS
+		                       AND ((PL.ORD_CMPL_DTS BETWEEN PPT.TRANS_DATE AND PPT.PROMO_EDATE +  1 ) 
+		                       	  OR (PL.ORD_CMPL_DTS > PPT.PROMO_EDATE AND  PPT.PROC_GB = 'D' )
+		                       	  OR (PM.REMARK4_N IS NOT NULL AND PM.REMARK4_N = 1) )
+		                       AND ROWNUM         = 1 )
+		                       ), 0) AS DO_AMT
+		     , PROMO.OWN_COST
+		     , PROMO.ENTP_COST
+		     , PROMO.PROMO_BDATE AS COUPON_PROMO_BDATE
+         	 , PROMO.PROMO_EDATE AS COUPON_PROMO_EDATE
+             , TO_CHAR(GP.APPLY_DATE, 'YYYYMMDDHH24MISS') AS STOA_APPLY_DATE
+		  FROM TPAORDERM PM
+		     , SSGORDERLIST PL
+		     , TCODE TC
+		     , TPASSGGOODS PGM
+		     , TPASSGGOODSDTMAPPING PGD
+		     , TPAGOODSPRICE PGP
+		     , PAPROMO PROMO            
+		     , TGOODSPRICE GP
+		 WHERE PM.PA_ORDER_NO    = PL.ORORD_NO
+		   AND PM.PA_ORDER_SEQ   = PL.ORORD_ITEM_SEQ
+		   AND PM.PA_SHIP_NO	 = PL.SHPP_NO
+		   AND PM.PA_SHIP_SEQ	 = PL.SHPP_SEQ
+		   AND PM.PA_GROUP_CODE  = TC.CODE_MGROUP
+		   AND PGM.GOODS_CODE    = PGD.GOODS_CODE
+		   AND PL.ITEM_ID     	 = PGM.ITEM_ID
+		   AND PM.PA_CODE        = PGD.PA_CODE
+		   AND PL.UITEM_ID 		 = PGD.PA_OPTION_CODE
+		   AND PGD.GOODS_CODE    = PGP.GOODS_CODE
+		   AND PM.PA_CODE        = PGP.PA_CODE
+		   AND PGM.PA_GROUP_CODE = PM.PA_GROUP_CODE
+		   AND PGP.PA_CODE 		 = PROMO.PA_CODE(+)
+		   AND PGP.GOODS_CODE 	 = PROMO.GOODS_CODE(+)
+		   AND PGP.APPLY_DATE 	 = PROMO.APPLY_DATE(+)
+		   AND PGP.ROWID         = ( SELECT /*+ INDEX_DESC (PP PK_TPAGOODSPRICE)*/
+	                                        PP.ROWID
+	                                   FROM TPAGOODSPRICE PP
+	                                  WHERE PP.GOODS_CODE = PGM.GOODS_CODE
+	                                    AND PP.PA_CODE    = PM.PA_CODE
+	                                    AND PP.APPLY_DATE &lt; PL.ORD_CMPL_DTS
+	                                    AND PP.TRANS_DATE &lt; PL.ORD_CMPL_DTS
+	                                    AND PP.TRANS_DATE IS NOT NULL
+	                                    AND ROWNUM = 1 )
+	       AND GP.GOODS_CODE = PGP.GOODS_CODE
+	       AND GP.ROWID 		 = (SELECT /*+ INDEX_DESC (GP2 PK_TGOODSPRICE)*/
+		                                     GP2.ROWID
+		                              FROM TGOODSPRICE GP2
+		                             WHERE GP2.GOODS_CODE  = GP.GOODS_CODE
+		                               AND GP2.APPLY_DATE &lt; PL.ORD_CMPL_DTS
+		                               AND ROWNUM = 1)                             
+		   AND PL.SELLPRC = PGP.SALE_PRICE - PGP.DC_AMT - PGP.LUMP_SUM_DC_AMT - NVL(PROMO.COUPON_DC_AMT,0)
+	       AND TC.CODE_LGROUP   = 'O500'
+	       AND TC.CODE_MGROUP   =  PM.PA_GROUP_CODE 
+	       AND PM.PA_ORDER_GB   = '10'
+	       AND PM.CREATE_YN     = '0'
+	       AND PM.PRE_CANCEL_YN = '0'
+	       AND PM.PA_CODE       IN ('A1','A2')
+	</select>
+	
+    <select id="selectRefusalInfo" parameterType="String" resultType="hashMap">   
+		SELECT /* passgdelivery.xml : passg.delivery.selectRefusalInfo by PaSsgDeliveryController */
+		       OL.ORORD_NO
+		     , OL.ORORD_ITEM_SEQ
+		     , OL.SHPP_NO -- 배송번호
+		     , OL.SHPP_SEQ -- 배송순번
+		     , '판매자 취소(재고부족)' AS SHORTG_PROC_DTLC
+		     , OL.ITEM_ID
+		     , PM.MAPPING_SEQ
+		     , PM.PA_CODE
+		  FROM TPAORDERM PM
+		     , TPASSGORDERLIST OL
+		 WHERE OL.ORORD_NO       = PM.PA_ORDER_NO
+		   AND OL.ORORD_ITEM_SEQ = PM.PA_ORDER_SEQ
+		   AND PM.PA_ORDER_GB    = '10'
+		   AND PM.PA_CODE 	     IN ('A1','A2')
+		   AND PM.MAPPING_SEQ    = #{mappingSeq , jdbcType=VARCHAR}
+   	</select>
+   	
+    <update id="updatePaOrderMDoFlag" parameterType="hashMap">
+        UPDATE /* passgdelivery.xml : passg.delivery.updatePaOrderMDoFlag by PaSsgDeliveryController */
+        	   TPAORDERM PM
+           SET 
+           	   PROC_DATE		  = SYSDATE
+           <if test="PA_DO_FLAG != null and PA_DO_FLAG != ''">
+             , PA_DO_FLAG		  = #{PA_DO_FLAG		 , jdbcType=VARCHAR}
+           </if>
+           	 , API_RESULT_CODE	  = #{API_RESULT_CODE	 , jdbcType=VARCHAR}
+           	 , API_RESULT_MESSAGE = #{API_RESULT_MESSAGE , jdbcType=VARCHAR}
+             , MODIFY_DATE		  = SYSDATE
+         WHERE MAPPING_SEQ		  = #{mappingSeq 		 , jdbcType=VARCHAR}
+           AND PM.PRE_CANCEL_YN = '0'
+           AND PM.PA_ORDER_GB   = #{paOrderGb	    , jdbcType=VARCHAR}
+           AND PM.PA_CODE       = #{paCode	    , jdbcType=VARCHAR}
+           AND PM.PA_DO_FLAG    = #{paDoFlagOrg , jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectPartialSlipList" parameterType="hashMap" resultType="hashMap">
+	    SELECT /* passgdelivery.xml : passg.delivery.selectPartialSlipList by PaSsgDeliveryController */
+	           PO.ORORD_NO
+             , PO.ORORD_ITEM_SEQ
+             , PM.MAPPING_SEQ
+             , PM.PA_ORDER_GB
+             , PO.SHPP_NO
+             , PO.SHPP_SEQ
+             , PM.PA_CODE
+             , SM.SLIP_NO
+             , DG.PA_DELY_GB
+             , (SELECT COUNT(1) 
+                  FROM TPAORDERM A
+                     , TORDERDT  OD 
+                 WHERE A.PA_CODE     = PM.PA_CODE
+                   AND A.PA_ORDER_NO = PM.PA_ORDER_NO
+                   AND A.PA_SHIP_NO  = PM.PA_SHIP_NO
+                   AND A.PA_ORDER_GB = PM.PA_ORDER_GB
+                   AND A.PA_DO_FLAG  = '30'
+                   AND A.ORDER_NO	 = OD.ORDER_NO
+                   AND A.ORDER_G_SEQ = OD.ORDER_G_SEQ
+                   AND A.ORDER_D_SEQ = OD.ORDER_D_SEQ
+                   AND A.ORDER_W_SEQ = OD.ORDER_W_SEQ
+                   AND OD.SYSLAST    > 0
+               ) AS PA_SHIP_CNT
+             , COUNT(1) OVER(PARTITION BY SM.DELY_GB, PO.SHPP_NO, SM.SLIP_NO, PM.PA_DO_FLAG) AS SLIP_NO_CNT
+             , PM.PA_PROC_QTY
+          FROM TPAORDERM PM
+             , TPASSGORDERLIST PO
+             , TSLIPM SM
+             , TSLIPDT SD
+             , TORDERGOODS OG
+             , TPADELYGB DG
+         WHERE PM.PA_ORDER_NO  = PO.ORORD_NO
+           AND PM.PA_ORDER_SEQ = PO.ORORD_ITEM_SEQ
+           AND PM.PA_SHIP_NO   = PO.SHPP_NO 
+           AND PM.PA_SHIP_SEQ  = PO.SHPP_SEQ
+           AND SM.SLIP_I_NO    = SD.SLIP_I_NO
+           AND PM.ORDER_NO     = SD.ORDER_NO
+           AND PM.ORDER_G_SEQ  = SD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ  = SD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ  = SD.ORDER_W_SEQ
+           AND PM.ORDER_NO     = OG.ORDER_NO
+           AND PM.ORDER_G_SEQ  = OG.ORDER_G_SEQ
+           AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+           AND PM.PA_DO_FLAG   = '30'
+           AND PM.PA_ORDER_GB  IN ('10', '40')
+           AND PM.PA_CODE      IN ('A1', 'A2')
+           AND SM.SLIP_PROC    >= '40'
+           AND SM.SLIP_NO IS NOT NULL
+           AND DG.PA_CODE      = '10'
+           AND SM.DELY_GB      = DG.DELY_GB
+           AND SM.SLIP_PROC_DATE > SYSDATE - 3
+      ORDER BY SHPP_NO, SHPP_SEQ
+	</select>
+	
+	<select id="selectSlipOutProcList" parameterType="hashMap" resultType="hashMap">
+	    SELECT /* passgdelivery.xml : passg.delivery.selectSlipOutProcList by PaSsgDeliveryController */
+	           PO.ORORD_NO
+             , PO.ORORD_ITEM_SEQ
+             , PM.MAPPING_SEQ
+             , PM.PA_ORDER_GB
+             , NVL(PO.PARTIAL_SHPP_NO, PO.SHPP_NO) AS SHPP_NO
+             , NVL(PO.PARTIAL_SHPP_SEQ, PO.SHPP_SEQ) AS SHPP_SEQ
+             , PM.PA_CODE
+             , SM.SLIP_NO
+             , DG.PA_DELY_GB
+          FROM TPAORDERM PM
+             , TPASSGORDERLIST PO
+             , TSLIPM SM
+             , TSLIPDT SD
+             , TORDERGOODS OG
+             , TPADELYGB DG
+         WHERE PM.PA_ORDER_NO  = PO.ORORD_NO
+           AND PM.PA_ORDER_SEQ = PO.ORORD_ITEM_SEQ
+           AND PM.PA_SHIP_NO   = PO.SHPP_NO 
+           AND PM.PA_SHIP_SEQ  = PO.SHPP_SEQ
+           AND SM.SLIP_I_NO    = SD.SLIP_I_NO
+           AND PM.ORDER_NO     = SD.ORDER_NO
+           AND PM.ORDER_G_SEQ  = SD.ORDER_G_SEQ
+           AND PM.ORDER_D_SEQ  = SD.ORDER_D_SEQ
+           AND PM.ORDER_W_SEQ  = SD.ORDER_W_SEQ
+           AND PM.ORDER_NO     = OG.ORDER_NO
+           AND PM.ORDER_G_SEQ  = OG.ORDER_G_SEQ
+           AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+           AND PM.PA_DO_FLAG   = '30'
+      --     AND PM.PA_HOLD_YN   = '0'
+           AND PM.PA_ORDER_GB  IN ('10', '40')
+           AND PM.PA_CODE      IN ('A1', 'A2')
+           AND SM.SLIP_PROC    >= '40'
+           AND SM.SLIP_NO IS NOT NULL
+           AND DG.PA_CODE      = '10'
+           AND SM.DELY_GB      = DG.DELY_GB
+         
+   <!--   UNION ALL 24.03.14 제휴취소승인처리 프로그램에서 상담원처리
+		 
+	    SELECT OPO.ORORD_NO
+	         , OPO.ORORD_ITEM_SEQ
+	         , OPM.MAPPING_SEQ
+	         , OPM.PA_ORDER_GB
+	         , OPO.SHPP_NO
+	         , OPO.SHPP_SEQ
+	         , OPM.PA_CODE
+	         , ''
+	         , '0000033028'
+	      FROM TPAORDERM		OPM
+	         , TPASSGORDERLIST 	OPO
+	         , TPASSGCANCELLIST PC
+	         , TORDERGOODS		OG
+	     WHERE OPM.PA_ORDER_NO	= OPO.ORORD_NO
+	       AND OPM.PA_ORDER_SEQ	= OPO.ORORD_ITEM_SEQ
+	       AND OPM.PA_SHIP_NO	= OPO.SHPP_NO
+	       AND OPM.PA_SHIP_SEQ	= OPO.SHPP_SEQ
+	       AND OPM.PA_ORDER_NO	= PC.ORORD_NO
+	       AND OPM.PA_ORDER_SEQ	= PC.ORORD_ITEM_SEQ
+           AND OPM.ORDER_NO     = OG.ORDER_NO
+           AND OPM.ORDER_G_SEQ  = OG.ORDER_G_SEQ
+           AND OPM.PA_ORDER_GB  = '10'
+           AND OPM.PA_DO_FLAG	= '30'
+           AND OPM.PA_CODE		IN ('A1', 'A2')
+           AND PC.PROC_FLAG		= '09'
+           AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0 -->
+      ORDER BY SHPP_NO, SHPP_SEQ
+	</select>
+	
+    <select id="selectReleaseOrderList" parameterType="hashMap" resultType="hashMap">
+	    SELECT /* passgdelivery.xml : passg.delivery.selectReleaseOrderList by PaSsgDeliveryController */
+	           PO.ORORD_NO
+	         , PO.ORORD_ITEM_SEQ
+	         , PM.MAPPING_SEQ
+	         , PM.PA_ORDER_GB
+	         , NVL(PO.PARTIAL_SHPP_NO, PO.SHPP_NO) AS SHPP_NO
+	         , NVL(PO.PARTIAL_SHPP_SEQ, PO.SHPP_SEQ) AS SHPP_SEQ
+	         , PM.PA_CODE
+	         , PM.PA_PROC_QTY
+	      FROM TPAORDERM PM
+	         , TPASSGORDERLIST PO
+	     WHERE PM.PA_ORDER_NO     = PO.ORORD_NO
+	       AND PM.PA_ORDER_SEQ    = PO.ORORD_ITEM_SEQ
+	       AND PM.PA_SHIP_NO      = PO.SHPP_NO 
+	       AND PM.PA_SHIP_SEQ     = PO.SHPP_SEQ
+	       AND PM.PA_DO_FLAG      = '35'
+	       AND PM.PA_ORDER_GB     IN ('10', '40')
+	       AND PM.PA_CODE         IN ('A1', 'A2')
+	</select>
+	
+    <select id="selectOrderCompleteList" parameterType="hashMap" resultType="hashMap">
+	    SELECT /* passgdelivery.xml : passg.delivery.selectOrderCompleteList by PaSsgDeliveryController */
+		       DISTINCT PM.PA_CODE
+			 , PO.ORORD_NO
+			 , PO.ORORD_ITEM_SEQ
+			 , PM.MAPPING_SEQ
+             , PM.PA_ORDER_GB
+			 , PM.PA_ORDER_NO
+			 , NVL(PO.PARTIAL_SHPP_NO, PM.PA_SHIP_NO) AS PA_SHIP_NO
+			 , NVL(PO.PARTIAL_SHPP_SEQ, PM.PA_SHIP_SEQ) AS PA_SHIP_SEQ
+		  FROM TPAORDERM PM
+			 , TPASSGORDERLIST PO
+			 , TSLIPM SM
+			 , TSLIPDT SD
+		 WHERE PM.PA_ORDER_GB	IN ('10', '40')
+		   AND PM.PA_CODE		IN ('A1', 'A2')
+		   AND PM.PA_DO_FLAG	= '40'
+		   AND PM.PA_ORDER_NO	= PO.ORORD_NO
+		   AND PM.PA_ORDER_SEQ	= PO.ORORD_ITEM_SEQ
+		   AND PM.PA_SHIP_NO	= PO.SHPP_NO
+		   AND PM.PA_SHIP_SEQ	= PO.SHPP_SEQ
+		   AND SM.SLIP_I_NO		= SD.SLIP_I_NO
+		   AND PM.ORDER_NO		= SD.ORDER_NO
+		   AND PM.ORDER_G_SEQ	= SD.ORDER_G_SEQ
+		   AND PM.ORDER_D_SEQ	= SD.ORDER_D_SEQ
+		   AND PM.ORDER_W_SEQ	= SD.ORDER_W_SEQ
+		   AND SM.SLIP_PROC		= '80'
+		   AND SM.SLIP_PROC_DATE &lt; SYSDATE - 1
+		   AND SM.SLIP_PROC_DATE &gt;= TRUNC(SYSDATE) - 15
+	</select>
+	
+	<select id="selectPaSsgChangeConfirmList" resultType="hashMap">
+		SELECT /* passgdelivery.xml : passg.delivery.selectPaSsgChangeConfirmList by PaSsgDeliveryController */
+			   DPM.MAPPING_SEQ	
+			 , DPM.PA_CODE
+			 , DPM.PA_SHIP_NO  AS SHPP_NO
+		     , DPM.PA_SHIP_SEQ AS SHPP_SEQ
+		  FROM TPAORDERM DPM
+		 WHERE DPM.PA_CODE       IN ('A1','A2')
+		   AND DPM.PA_ORDER_GB   = '40'
+		   AND DPM.PA_DO_FLAG    = '10'
+		   AND EXISTS(SELECT 1
+		                FROM TPAORDERM RPM
+		               WHERE RPM.PA_CLAIM_NO   = DPM.PA_CLAIM_NO
+		                 AND RPM.PA_ORDER_NO   = DPM.PA_ORDER_NO
+		                 AND RPM.PA_ORDER_SEQ  = DPM.PA_ORDER_SEQ
+		                 AND RPM.PA_ORDER_GB   = '45' 
+		                 AND RPM.PA_DO_FLAG    = '60'
+		             )
+	</select>
+	
+	<update id="updateChangeOrderDoFlag" parameterType="com.cware.netshopping.domain.PaSsgOrderListVO">
+        UPDATE /* passgdelivery.xml : passg.delivery.updateChangeOrderDoFlag by PaSsgDeliveryController */
+		       TPAORDERM PM
+		   SET PM.PA_DO_FLAG         = '30'
+		     , PM.API_RESULT_CODE	 = '000000'
+		     , PM.API_RESULT_MESSAGE = '출고대상'
+		     , PM.MODIFY_DATE		 = SYSDATE
+		     , PM.PROC_DATE          = SYSDATE
+		 WHERE PM.PA_ORDER_GB   = #{paOrderGb   	, jdbcType=VARCHAR}
+		   AND PM.PA_CODE       = #{paCode   		, jdbcType=VARCHAR}
+		   AND PM.PA_SHIP_NO    = #{shppNo   		, jdbcType=VARCHAR}
+		   AND PM.PA_SHIP_SEQ   = #{shppSeq   		, jdbcType=VARCHAR}
+		   AND PM.PA_CLAIM_NO   = #{ordNo   		, jdbcType=VARCHAR}
+		   AND PM.PA_ORDER_NO   = #{orordNo   		, jdbcType=VARCHAR}
+		   AND PM.PA_ORDER_SEQ  = #{orordItemSeq    , jdbcType=VARCHAR}
+		   AND PM.PA_DO_FLAG	= '20'
+		   AND PM.PRE_CANCEL_YN = '0'
+    </update>
+    
+    <select id="selectDelayOrderList" resultType="hashMap">
+       SELECT /* passgdelivery.xml : passg.delivery.selectDelayOrderList by PaSsgDeliveryController */
+       		  PM.PA_CODE
+			, PM.PA_ORDER_NO
+			, PM.PA_ORDER_SEQ
+			, PO.SHPP_NO
+			, PO.SHPP_SEQ
+            , CASE WHEN TG.INSTALL_YN = '1' THEN TO_CHAR(TO_DATE(PO.WHOUT_CRITN_DT,'YYYYMMDD') + 50,'YYYYMMDD')
+                   WHEN TO_DATE(PO.WHOUT_CRITN_DT,'YYYYMMDD') + 3 > TRUNC(SYSDATE) THEN TO_CHAR(TO_DATE(PO.WHOUT_CRITN_DT,'YYYYMMDD') + 15,'YYYYMMDD')
+                   ELSE TO_CHAR(SYSDATE + 1,'YYYYMMDD')
+              END AS WHOUT_CRITN_DT
+			, PO.ITEM_ID
+		 FROM TPAORDERM PM
+			, TPASSGORDERLIST PO
+			, TORDERGOODS OG
+			, TGOODS TG
+		WHERE PM.PA_ORDER_GB    = '10'
+		  AND PM.PA_CODE    	IN ('A1', 'A2')
+		  AND PM.PRE_CANCEL_YN  = '0'
+		  AND PM.PA_DO_FLAG   	&lt; '40'
+		  AND PM.PA_ORDER_NO    = PO.ORORD_NO
+		  AND PM.PA_ORDER_SEQ   = PO.ORORD_ITEM_SEQ
+		  AND PM.PA_SHIP_NO     = PO.SHPP_NO 
+		  AND PM.PA_SHIP_SEQ    = PO.SHPP_SEQ
+		  AND PM.ORDER_NO     	= OG.ORDER_NO
+		  AND PM.ORDER_G_SEQ  	= OG.ORDER_G_SEQ
+		  AND (OG.ORDER_QTY - OG.CANCEL_QTY - OG.CLAIM_QTY + OG.CLAIM_CAN_QTY) > 0
+		  AND TG.GOODS_CODE = OG.GOODS_CODE
+		  AND NOT EXISTS (SELECT 1 
+	                        FROM TPAORDERM PMC 
+	                       WHERE PMC.PA_CODE 	   = PM.PA_CODE
+	                         AND PMC.PA_ORDER_NO   = PM.PA_ORDER_NO
+	                         AND PMC.PA_ORDER_SEQ  = PM.PA_ORDER_SEQ
+	                         AND PMC.PA_ORDER_GB   = '20'
+	                         AND PMC.CREATE_YN 	   = '1'
+	                         AND PMC.PRE_CANCEL_YN = '0')
+		  AND PO.WHOUT_CRITN_DT &lt;= TO_CHAR(TRUNC(SYSDATE), 'YYYYMMDD')
+		  AND PM.REMARK1_V IS NULL
+    </select>
+    
+    <update id="updatePaSsgWhinExpcDt" parameterType="hashMap">
+        UPDATE /* passgdelivery.xml : passg.delivery."updatePaSsgWhinExpcDt" by PaSsgDeliveryController */
+        	   TPASSGORDERLIST
+           SET WHOUT_CRITN_DT = #{whinExpcDt   , jdbcType=VARCHAR}
+             , MODIFY_DATE	  = SYSDATE
+         WHERE ORORD_NO 	  = #{orordNo 	   , jdbcType=VARCHAR}
+           AND ORORD_ITEM_SEQ = #{orordItemSeq , jdbcType=VARCHAR}
+           AND SHPP_NO 	      = #{shppNo 	   , jdbcType=VARCHAR}
+           AND SHPP_SEQ 	  = #{shppSeq 	   , jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updatePartialFlag" parameterType="hashMap">
+        UPDATE /* passgdelivery.xml : passg.delivery.updatePartialFlag by PaSsgDeliveryController */
+        	   TPASSGORDERLIST
+           SET FLAG  	      = '00'
+         WHERE ORORD_NO 	  = #{paOrderNo  , jdbcType=VARCHAR}
+           AND ORORD_ITEM_SEQ = #{paOrderSeq , jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updatePartialShhpNo"  parameterType="hashMap">
+        UPDATE /* passgdelivery.xml : passg.delivery.updatePartialShhpNo by PaSsgDeliveryController */
+        	   TPASSGORDERLIST
+           SET PARTIAL_SHPP_NO  = #{PARTIAL_SHPP_NO	 , jdbcType=VARCHAR}
+             , PARTIAL_SHPP_SEQ = #{PARTIAL_SHPP_SEQ , jdbcType=VARCHAR}
+             , MODIFY_DATE	    = SYSDATE
+         WHERE ORORD_NO 		= #{ORORD_NO 	   , jdbcType=VARCHAR}
+           AND ORORD_ITEM_SEQ 	= #{ORORD_ITEM_SEQ , jdbcType=VARCHAR}
+           AND SHPP_NO 			= #{SHPP_NO 	   , jdbcType=VARCHAR}
+           AND SHPP_SEQ 		= #{SHPP_SEQ 	   , jdbcType=VARCHAR}
+    </update>
+    
+<!--     <select id="selectPartialDeliveryList" parameterType="hashMap" resultType="hashMap">
+	    SELECT /* passgdelivery.xml : passg.delivery.selectPartialDeliveryList by PaSsgDeliveryController */
+		       PM.PA_CODE
+		     , PM.MAPPING_SEQ
+			 , PO.ORORD_NO
+			 , PO.ORORD_ITEM_SEQ
+			 , PO.SHPP_NO
+			 , PO.SHPP_SEQ
+		  FROM TPAORDERM PM
+			 , TPASSGORDERLIST PO
+		 WHERE PM.PA_ORDER_GB  IN ('10', '40')
+		   AND PM.PA_CODE      IN ('A1', 'A2')
+		   AND PM.PA_DO_FLAG   = '30'
+		   AND PM.PA_HOLD_YN   = '1'
+		   AND PM.PA_ORDER_NO  = PO.ORORD_NO
+		   AND PM.PA_ORDER_SEQ = PO.ORORD_ITEM_SEQ
+		   AND PM.PA_SHIP_NO   = PO.SHPP_NO
+		   AND PM.PA_SHIP_SEQ  = PO.SHPP_SEQ
+		   AND PO.FLAG 		   = '00'
+		   AND PM.MODIFY_DATE &gt;= TRUNC(SYSDATE) - 15
+	  ORDER BY PM.PA_CODE, PM.PA_ORDER_NO, PM.PA_ORDER_SEQ
+	</select> -->
+    <select id="selectPartialDeliveryList" parameterType="hashMap" resultType="hashMap">
+	    SELECT /* passgdelivery.xml : passg.delivery.selectPartialDeliveryList by PaSsgDeliveryController */
+		         PM.PA_CODE
+		       , PM.MAPPING_SEQ
+		       , PO.ORORD_NO
+		       , PO.ORORD_ITEM_SEQ
+		       , PO.SHPP_NO
+		       , PO.SHPP_SEQ
+		      FROM TPAORDERM PM
+		       , TPASSGORDERLIST PO
+		     WHERE EXISTS (
+		           SELECT 1 
+		             FROM TPAORDERM PP 
+		                , TPASSGORDERLIST PT
+		            WHERE PP.PA_ORDER_GB  IN ('10', '40')
+		              AND PP.PA_CODE      IN ('A1', 'A2')
+		              AND PP.PA_ORDER_NO  = PT.ORORD_NO
+		              AND PP.PA_ORDER_SEQ = PT.ORORD_ITEM_SEQ
+		              AND PP.PA_SHIP_NO   = PT.SHPP_NO
+		              AND PP.PA_SHIP_SEQ  = PT.SHPP_SEQ
+		              AND PP.PA_HOLD_YN   = '1'
+		              AND PP.PA_ORDER_NO  = PM.PA_ORDER_NO
+		              AND PP.ORDER_NO 	  = PM.ORDER_NO
+		              AND PT.FLAG         = '00'
+		       )
+		       AND NOT EXISTS (
+		           SELECT 1
+		             FROM TPAORDERM PW
+		            WHERE PW.PA_ORDER_NO = PM.PA_ORDER_NO
+		              AND PW.PA_ORDER_GB IN ('20','30')
+		              AND PW.PA_ORDER_SEQ = PM.PA_ORDER_SEQ
+		              AND PW.CREATE_YN = '1'
+		              AND PW.PA_GROUP_CODE = '10'
+		              AND PW.PA_CODE = PM.PA_CODE
+		              AND PW.PA_CODE IN ('A1', 'A2')
+		       )
+		       AND PM.PA_ORDER_NO  = PO.ORORD_NO
+		       AND PM.PRE_CANCEL_YN = '0'
+		       AND PM.PA_ORDER_GB  IN ('10', '40')
+		       AND PM.PA_CODE      IN ('A1', 'A2')
+		       AND PM.PA_GROUP_CODE = '10'
+		       AND PM.MODIFY_DATE >= TRUNC(SYSDATE) - 15
+		       AND PM.PA_ORDER_NO = PO.ORORD_NO
+			   AND PM.PA_ORDER_SEQ = PO.ORORD_ITEM_SEQ
+			   AND PM.PA_SHIP_NO = PO.SHPP_NO
+			   AND PM.PA_SHIP_SEQ = PO.SHPP_SEQ
+			   AND (PM.ORDER_CANCEL_YN IS NULL OR PM.ORDER_CANCEL_YN &lt;&gt; '10')
+			   AND PM.PA_DO_FLAG &lt; 40
+			   AND PO.PARTIAL_SHPP_NO IS NULL
+   			   AND PO.PARTIAL_SHPP_SEQ IS NULL
+   			   AND PO.FLAG IS NULL
+		    ORDER BY PM.PA_CODE, PM.PA_ORDER_NO, PM.PA_ORDER_SEQ
+	</select>
+	
+	<update id="updatePartialHoldYn" parameterType="hashMap">
+        UPDATE /* passgdelivery.xml : passg.delivery.updatePartialHoldYn by PaSsgDeliveryController */
+        	   TPAORDERM
+           SET PA_HOLD_YN   = #{paHoldYn  , jdbcType=VARCHAR}
+           	 , MODIFY_DATE	= SYSDATE
+         WHERE MAPPING_SEQ  = #{mappingSeq, jdbcType=VARCHAR}
+    </update>
+    
+    <select id="countChangeWhOut" parameterType="hashMap" resultType="int">
+        SELECT /* passgdelivery.xml : passg.delivery.countChangeWhOut by PaSsgDeliveryController */
+               COUNT(1) AS CNT
+          FROM TPAORDERM PM
+         WHERE PM.PA_ORDER_NO  = #{orordNo	  , jdbcType=VARCHAR}
+           AND PM.PA_ORDER_SEQ = #{orordItemSeq , jdbcType=VARCHAR}
+           AND PM.PA_SHIP_NO   = #{shppNo 	  , jdbcType=VARCHAR}
+           AND PM.PA_SHIP_SEQ  = #{shppSeq 	  , jdbcType=VARCHAR}
+           AND PM.PA_CLAIM_NO  = #{ordNo	  , jdbcType=VARCHAR}
+           AND PM.PA_DO_FLAG   = '20'
+    </select>
+    
+    <update id="updatePaOrderMRemark" parameterType="hashMap">
+        UPDATE /* passgdelivery.xml : passg.delivery.updatePaOrderMRemark by PaSsgDeliveryController */
+        	   TPAORDERM
+           SET REMARK1_V  	  = #{remark  	   , jdbcType=VARCHAR}
+         WHERE PA_ORDER_NO 	  = #{orordNo  	   , jdbcType=VARCHAR}
+           AND PA_ORDER_SEQ   = #{orordItemSeq , jdbcType=VARCHAR}
+           AND PA_SHIP_NO     = #{shppNo 	   , jdbcType=VARCHAR}
+           AND PA_SHIP_SEQ    = #{shppSeq 	   , jdbcType=VARCHAR}
+    </update>
+</mapper>
