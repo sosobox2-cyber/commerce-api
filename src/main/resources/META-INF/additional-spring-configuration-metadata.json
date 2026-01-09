@@ -1,0 +1,377 @@
+{"properties": [
+  {
+    "name": "partner.sync.page-size",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.sync.page-size'"
+  },
+  {
+    "name": "partner.sync.schedule.delay",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.sync.schedule.delay'"
+  },
+  {
+    "name": "partner.sync.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.sync.schedule.initial'"
+  },
+  {
+    "name": "\u0089partner.sync.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for '\u0089partner.sync.schedule.initial'"
+  },
+  {
+    "name": "partner.sync.group",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.sync.group'"
+  },
+  {
+    "name": "partner.sync.group-codes",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.sync.group-codes'"
+  },
+  {
+    "name": "partner.sync.pa-groups",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.sync.pa-groups'"
+  },
+  {
+    "name": "partner.api.coupang.host",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.api.coupang.host'"
+  },
+  {
+    "name": "partner.api.coupang.product.trans.url",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.api.coupang.product.trans.url'"
+  },
+  {
+    "name": "partner.api.coupang.page-size",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.api.coupang.page-size'"
+  },
+  {
+    "name": "partner.api.coupang.trans.url",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.api.coupang.trans.url'"
+  },
+  {
+    "name": "partner.trans.coupang.page-size",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.trans.coupang.page-size'"
+  },
+  {
+    "name": "partner.trans.coupang.host",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.trans.coupang.host'"
+  },
+  {
+    "name": "partner.trans.coupang.url",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.trans.coupang.url'"
+  },
+  {
+    "name": "partner.trans.page-size",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.trans.page-size'"
+  },
+  {
+    "name": "partner.trans.coupang.schedule.delay",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.trans.coupang.schedule.delay'"
+  },
+  {
+    "name": "partner.trans.coupang.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.trans.coupang.schedule.initial'"
+  },
+  {
+    "name": "\u0089partner.trans.coupang.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for '\u0089partner.trans.coupang.schedule.initial'"
+  },
+  {
+    "name": "partner.sync.pa-codes",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.sync.pa-codes'"
+  },
+  {
+    "name": "partner.trans.coupang.schedule",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.trans.coupang.schedule'"
+  },
+  {
+    "name": "partner.sync.schedule",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.sync.schedule'"
+  },
+  {
+    "name": "partner.kakao.page-size",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.kakao.page-size'"
+  },
+  {
+    "name": "partner.kakao.api.product.register",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.kakao.api.product.register'"
+  },
+  {
+    "name": "partner.kakao.api.product.update",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.kakao.api.product.update'"
+  },
+  {
+    "name": "partner.kakao.product.schedule",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.kakao.product.schedule'"
+  },
+  {
+    "name": "partner.kakao.product.register.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.kakao.product.register.schedule.initial'"
+  },
+  {
+    "name": "partner.kakao.product.update.schedule.delay",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.kakao.product.update.schedule.delay'"
+  },
+  {
+    "name": "partner.kakao.product.image.schedule.delay",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.kakao.product.image.schedule.delay'"
+  },
+  {
+    "name": "partner.kakao.product.image.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.kakao.product.image.schedule.initial'"
+  },
+  {
+    "name": "partner.kakao.product.register.schedule.delay",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.kakao.product.register.schedule.delay'"
+  },
+  {
+    "name": "partner.kakao.product.update.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.kakao.product.update.schedule.initial'"
+  },
+  {
+    "name": "partner.kakao.api.product.image",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.kakao.api.product.image'"
+  },
+  {
+    "name": "partner.kakao.api.host",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.kakao.api.host'"
+  },
+  {
+    "name": "partner.kakao.pilot",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.kakao.pilot'"
+  },
+  {
+    "name": "partner.coupang.page-size",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.page-size'"
+  },
+  {
+    "name": "partner.coupang.api.host",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.api.host'"
+  },
+  {
+    "name": "partner.coupang.api.product.register",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.api.product.register'"
+  },
+  {
+    "name": "partner.coupang.api.product.update",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.api.product.update'"
+  },
+  {
+    "name": "partner.coupang.product.schedule",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.product.schedule'"
+  },
+  {
+    "name": "partner.coupang.product.register.schedule.delay",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.product.register.schedule.delay'"
+  },
+  {
+    "name": "partner.coupang.product.register.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.product.register.schedule.initial'"
+  },
+  {
+    "name": "partner.coupang.product.update.schedule.delay",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.product.update.schedule.delay'"
+  },
+  {
+    "name": "partner.coupang.product.update.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.product.update.schedule.initial'"
+  },
+  {
+    "name": "partner.coupang.api.tv.access.key",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.api.tv.access.key'"
+  },
+  {
+    "name": "partner.coupang.api.tv.secret.key",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.api.tv.secret.key'"
+  },
+  {
+    "name": "partner.coupang.api.online.access.key",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.api.online.access.key'"
+  },
+  {
+    "name": "partner.coupang.api.online.secret.key",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.api.online.secret.key'"
+  },
+  {
+    "name": "partner.coupang.api.gateway",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.api.gateway'"
+  },
+  {
+    "name": "partner.coupang.api.online.vendor.id",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.api.online.vendor.id'"
+  },
+  {
+    "name": "partner.coupang.api.tv.vendor.id",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.api.tv.vendor.id'"
+  },
+  {
+    "name": "partner.coupang.api.tv.vendor.user.id",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.api.tv.vendor.user.id'"
+  },
+  {
+    "name": "partner.coupang.api.online.vendor.user.id",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.api.online.vendor.user.id'"
+  },
+  {
+    "name": "partner.coupang.product.status.schedule.delay",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.product.status.schedule.delay'"
+  },
+  {
+    "name": "partner.coupang.product.price.schedule.delay",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.product.price.schedule.delay'"
+  },
+  {
+    "name": "partner.coupang.product.stop.schedule.delay",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.product.stop.schedule.delay'"
+  },
+  {
+    "name": "partner.coupang.product.resume.schedule.delay",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.product.resume.schedule.delay'"
+  },
+  {
+    "name": "partner.coupang.product.stock.schedule.delay",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.product.stock.schedule.delay'"
+  },
+  {
+    "name": "partner.coupang.product.stock.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.product.stock.schedule.initial'"
+  },
+  {
+    "name": "partner.coupang.seller.register.schedule.delay",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.seller.register.schedule.delay'"
+  },
+  {
+    "name": "partner.coupang.seller.update.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.seller.update.schedule.initial'"
+  },
+  {
+    "name": "partner.coupang.product.status.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.product.status.schedule.initial'"
+  },
+  {
+    "name": "partner.coupang.product.price.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.product.price.schedule.initial'"
+  },
+  {
+    "name": "partner.coupang.product.stop.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.product.stop.schedule.initial'"
+  },
+  {
+    "name": "partner.coupang.product.resume.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.product.resume.schedule.initial'"
+  },
+  {
+    "name": "partner.coupang.seller.register.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.seller.register.schedule.initial'"
+  },
+  {
+    "name": "partner.coupang.seller.update.schedule.delay",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.seller.update.schedule.delay'"
+  },
+  {
+    "name": "partner.coupang.api.seller.outbound.register",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.api.seller.outbound.register'"
+  },
+  {
+    "name": "partner.coupang.api.seller.outbound.update",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.api.seller.outbound.update'"
+  },
+  {
+    "name": "partner.coupang.seller.outbound.register.schedule.delay",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.seller.outbound.register.schedule.delay'"
+  },
+  {
+    "name": "partner.coupang.seller.outbound.update.schedule.delay",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.seller.outbound.update.schedule.delay'"
+  },
+  {
+    "name": "partner.coupang.seller.outbound.register.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.seller.outbound.register.schedule.initial'"
+  },
+  {
+    "name": "partner.coupang.seller.outbound.update.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.seller.outbound.update.schedule.initial'"
+  },
+  {
+    "name": "partner.coupang.seller.schedule",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.seller.schedule'"
+  },
+  {
+    "name": "partner.coupang.pilot.goods-codes",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.pilot.goods-codes'"
+  },
+  {
+    "name": "partner.coupang.pilot",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.coupang.pilot'"
+  }
+]}
