@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+	    <encoder>
+	        <charset>UTF-8</charset>
+	        <pattern>%d{yyyyMMdd HH:mm:ss.SSS} [%thread] %-3level %logger{5} - %msg %n</pattern>
+	    </encoder>
+	</appender>
+
+	<appender name="info-log" class="ch.qos.logback.core.rolling.RollingFileAppender">
+	    <append>true</append>
+        <file>/app/partner/sync/logs/partner-sync.log</file>
+	    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+	        <fileNamePattern>/app/partner/sync/logs/partner-sync.%d{yyyy-MM-dd}-%i.log</fileNamePattern>
+	        <maxHistory>90</maxHistory>
+	        <totalSizeCap>30GB</totalSizeCap>
+	        <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+	            <maxFileSize>1GB</maxFileSize>
+	        </timeBasedFileNamingAndTriggeringPolicy>
+	    </rollingPolicy>
+	    <encoder>
+	        <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{35} - %msg %n</pattern>
+	    </encoder>
+	</appender>
+
+	<appender name="addr-log" class="ch.qos.logback.core.rolling.RollingFileAppender">
+	    <append>true</append>
+        <file>/app/partner/sync/logs/partner-addr.log</file>
+	    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+	        <fileNamePattern>/app/partner/sync/logs/partner-addr.%d{yyyy-MM-dd}-%i.log</fileNamePattern>
+	        <maxHistory>90</maxHistory>
+	        <totalSizeCap>6GB</totalSizeCap>
+	        <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+	            <maxFileSize>300MB</maxFileSize>
+	        </timeBasedFileNamingAndTriggeringPolicy>
+	    </rollingPolicy>
+	    <encoder>
+	        <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{35} - %msg %n</pattern>
+	    </encoder>
+	</appender>
+
+    <!-- 업체주소동기화 logger -->
+    <logger name="com.cware.partner.sync.service.EntpAddrSyncService" additivity="false">
+        <level value="info" />
+		<springProfile name="default">
+        	<appender-ref ref="console" />
+		</springProfile>
+		<springProfile name="dev, stg, prod">
+<!--         	<appender-ref ref="console" /> -->
+        	<appender-ref ref="addr-log"/>
+		</springProfile>
+    </logger>
+
+    <!-- root -->
+    <root level="info">
+		<springProfile name="default">
+        	<appender-ref ref="console" />
+		</springProfile>
+		<springProfile name="dev, stg, prod">
+<!--         	<appender-ref ref="console" /> -->
+        	<appender-ref ref="info-log"/>
+		</springProfile>
+    </root>
+
+</configuration>
