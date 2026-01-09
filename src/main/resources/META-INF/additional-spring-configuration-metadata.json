@@ -1,0 +1,37 @@
+{"properties": [
+  {
+    "name": "partner.cdc.page-size",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.cdc.page-size'"
+  },
+  {
+    "name": "partner.cdc.schedule.delay",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.cdc.schedule.delay'"
+  },
+  {
+    "name": "partner.cdc.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.cdc.schedule.initial'"
+  },
+  {
+    "name": "\u0089partner.cdc.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for '\u0089partner.cdc.schedule.initial'"
+  },
+  {
+    "name": "partner.cdc.pa-groups",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.cdc.pa-groups'"
+  },
+  {
+    "name": "partner.cdc.pa-groups-category",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.cdc.pa-groups-category'"
+  },
+  {
+    "name": "partner.cdc.ebay-pa-groups",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.cdc.ebay-pa-groups'"
+  }
+]}
