@@ -3,7 +3,7 @@
 쿠팡 상품 데이터 전송 (스케줄러)
 
 
-### stoa-partner-coupang
+### partner-coupang
 - Java 1.8
 - Spring Boot 2.6
 - Spring  5.3 (JPA, Web)
