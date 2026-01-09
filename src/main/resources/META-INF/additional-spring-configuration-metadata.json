@@ -1,0 +1,107 @@
+{"properties": [
+  {
+    "name": "partner.sync.page-size",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.sync.page-size'"
+  },
+  {
+    "name": "partner.sync.schedule.delay",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.sync.schedule.delay'"
+  },
+  {
+    "name": "partner.sync.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.sync.schedule.initial'"
+  },
+  {
+    "name": "\u0089partner.sync.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for '\u0089partner.sync.schedule.initial'"
+  },
+  {
+    "name": "partner.sync.group",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.sync.group'"
+  },
+  {
+    "name": "partner.sync.group-codes",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.sync.group-codes'"
+  },
+  {
+    "name": "partner.sync.pa-groups",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.sync.pa-groups'"
+  },
+  {
+    "name": "partner.api.coupang.host",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.api.coupang.host'"
+  },
+  {
+    "name": "partner.api.coupang.product.trans.url",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.api.coupang.product.trans.url'"
+  },
+  {
+    "name": "partner.api.coupang.page-size",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.api.coupang.page-size'"
+  },
+  {
+    "name": "partner.api.coupang.trans.url",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.api.coupang.trans.url'"
+  },
+  {
+    "name": "partner.trans.coupang.page-size",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.trans.coupang.page-size'"
+  },
+  {
+    "name": "partner.trans.coupang.host",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.trans.coupang.host'"
+  },
+  {
+    "name": "partner.trans.coupang.url",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.trans.coupang.url'"
+  },
+  {
+    "name": "partner.trans.page-size",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.trans.page-size'"
+  },
+  {
+    "name": "partner.trans.coupang.schedule.delay",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.trans.coupang.schedule.delay'"
+  },
+  {
+    "name": "partner.trans.coupang.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.trans.coupang.schedule.initial'"
+  },
+  {
+    "name": "\u0089partner.trans.coupang.schedule.initial",
+    "type": "java.lang.String",
+    "description": "A description for '\u0089partner.trans.coupang.schedule.initial'"
+  },
+  {
+    "name": "partner.sync.pa-codes",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.sync.pa-codes'"
+  },
+  {
+    "name": "partner.trans.coupang.schedule",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.trans.coupang.schedule'"
+  },
+  {
+    "name": "partner.sync.schedule",
+    "type": "java.lang.String",
+    "description": "A description for 'partner.sync.schedule'"
+  }
+]}

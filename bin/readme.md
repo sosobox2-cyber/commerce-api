@@ -3,7 +3,7 @@
 제휴상품/업체주소 동기화
 
 
-### stoa-partner-sync
+### stoa-partner-cdc
 - Java 1.8
 - Spring Boot 2.6
 - Spring  5.3 (JPA, Web)
