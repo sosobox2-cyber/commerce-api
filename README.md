@@ -3,7 +3,7 @@
 제휴상품 변경데이터캡처
 
 
-### stoa-partner-cdc
+### partner-cdc
 - Java 1.8
 - Spring Boot 2.6
 - Spring  5.3 (JPA, Web)
